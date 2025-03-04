@@ -6,7 +6,7 @@ import logging
 import pytz
 from datetime import datetime
 import re
-#from fuzzywuzzy import fuzz
+from fuzzywuzzy import fuzz
 
 ###############################################################################
 # OPERATION CONFIG: Operation type -> icon & color (used by the viewer only)
@@ -104,6 +104,12 @@ class OperationsLogger:
         if log_filename is None:
             log_filename = os.path.join(os.getcwd(), "operations_log.txt")
         self.log_filename = log_filename
+
+        # Create the log file if it doesn't exist
+        if not os.path.exists(self.log_filename):
+            with open(self.log_filename, "w", encoding="utf-8") as f:
+                pass
+
         print("Reading log file from:", os.path.abspath(log_filename))
 
         # Create a logger with a fixed name.
