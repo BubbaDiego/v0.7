@@ -904,3 +904,19 @@
 {"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-4-25 : 1:34:27 PM"}
 {"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-4-25 : 1:34:28 PM", "file_name": "price_monitor.py"}
 {"message": "1 alerts triggered", "source": "user", "operation_type": "Alert Triggered", "timestamp": "3-4-25 : 1:34:28 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 2:01:57 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 2:01:58 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-4-25 : 2:02:04 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-4-25 : 2:02:04 PM", "file_name": "price_monitor.py"}
+{"message": "1 alerts triggered", "source": "user", "operation_type": "Alert Triggered", "timestamp": "3-4-25 : 2:02:05 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 2:07:36 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 2:07:37 PM"}
+{"message": "Testing Twilio Failedz", "source": "system test", "operation_type": "Notification Failed", "timestamp": "3-4-25 : 2:07:43 PM"}
+{"message": "Testing Twilioz", "source": "unknown", "operation_type": "Notification Sent", "timestamp": "3-4-25 : 2:08:33 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 2:09:35 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 2:09:38 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 2:09:39 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-4-25 : 2:09:56 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-4-25 : 2:09:57 PM", "file_name": "price_monitor.py"}
+{"message": "1 alerts triggered", "source": "user", "operation_type": "Alert Triggered", "timestamp": "3-4-25 : 2:09:57 PM"}
+{"message": "Testing Twilio", "source": "system test", "operation_type": "Notification Sent", "timestamp": "3-4-25 : 2:10:14 PM"}
