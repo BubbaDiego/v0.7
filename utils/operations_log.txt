@@ -21,3 +21,7 @@ Source: Monitor - 3-1-25 : 4:48:48 AM
 {"message": "Jupiter Positions Updated", "source": "Monitor", "operation_type": "Jupiter Updated", "timestamp": "3-3-25 : 5:10:16 PM"}
 {"message": "No alerts found", "source": "Monitor", "operation_type": "", "timestamp": "3-3-25 : 5:10:16 PM"}
 {"message": "Plain message with no operation type", "source": "NoIcon", "operation_type": "", "timestamp": "3-3-25 : 5:10:16 PM"}
+{"message": "Launch Pad - Started", "source": "System Start-up", "operation_type": "Launch pad started", "timestamp": "3-4-25 : 6:12:16 AM"}
+{"message": "Jupiter Positions Updated", "source": "Monitor", "operation_type": "Jupiter Updated", "timestamp": "3-4-25 : 6:12:16 AM"}
+{"message": "No alerts found", "source": "Monitor", "operation_type": "", "timestamp": "3-4-25 : 6:12:16 AM"}
+{"message": "Plain message with no operation type", "source": "NoIcon", "operation_type": "", "timestamp": "3-4-25 : 6:12:16 AM"}
