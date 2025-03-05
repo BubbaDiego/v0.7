@@ -948,3 +948,123 @@
 {"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 7:54:14 PM"}
 {"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 7:57:27 PM"}
 {"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 7:57:28 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 8:01:49 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 8:01:50 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 8:03:37 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 8:03:38 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 8:04:19 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 8:04:20 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-4-25 : 8:12:48 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-4-25 : 8:12:50 PM", "file_name": "price_monitor.py"}
+{"message": "1 alerts triggered", "source": "user", "operation_type": "Alert Triggered", "timestamp": "3-4-25 : 8:12:50 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 8:15:04 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 8:15:05 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 8:16:19 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 8:16:20 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 8:17:42 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 8:17:43 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 8:23:26 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 8:23:27 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-4-25 : 8:23:38 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-4-25 : 8:23:40 PM", "file_name": "price_monitor.py"}
+{"message": "1 alerts triggered", "source": "user", "operation_type": "Alert Triggered", "timestamp": "3-4-25 : 8:23:40 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 8:27:07 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 8:27:30 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 8:27:30 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 8:30:43 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 8:31:37 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 8:31:38 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 8:31:56 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 8:31:57 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 8:32:18 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 8:32:19 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 8:35:40 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 8:36:15 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 8:36:16 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 8:59:22 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 8:59:23 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-4-25 : 8:59:42 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-4-25 : 8:59:46 PM", "file_name": "price_monitor.py"}
+{"message": "✅ No alerts found", "source": "user", "operation_type": "No Alerts Found", "timestamp": "3-4-25 : 8:59:46 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 9:02:33 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 9:02:34 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 9:07:30 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 9:07:31 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-4-25 : 9:07:54 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-4-25 : 9:07:56 PM", "file_name": "price_monitor.py"}
+{"message": "1 alerts triggered", "source": "user", "operation_type": "Alert Triggered", "timestamp": "3-4-25 : 9:07:56 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 9:10:17 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 9:10:18 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-4-25 : 9:10:30 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-4-25 : 9:10:32 PM", "file_name": "price_monitor.py"}
+{"message": "1 alerts triggered", "source": "user", "operation_type": "Alert Triggered", "timestamp": "3-4-25 : 9:10:32 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 9:18:00 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 9:18:31 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 9:25:10 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 9:26:36 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 9:26:41 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 9:26:42 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-4-25 : 9:26:53 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-4-25 : 9:26:55 PM", "file_name": "price_monitor.py"}
+{"message": "1 alerts triggered", "source": "user", "operation_type": "Alert Triggered", "timestamp": "3-4-25 : 9:26:55 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 9:31:23 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 9:31:24 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-4-25 : 9:31:33 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-4-25 : 9:31:36 PM", "file_name": "price_monitor.py"}
+{"message": "✅ No alerts found", "source": "user", "operation_type": "No Alerts Found", "timestamp": "3-4-25 : 9:31:36 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 9:36:25 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 9:36:26 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 9:36:53 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 9:36:54 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-4-25 : 9:37:01 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-4-25 : 9:37:03 PM", "file_name": "price_monitor.py"}
+{"message": "✅ No alerts found", "source": "user", "operation_type": "No Alerts Found", "timestamp": "3-4-25 : 9:37:04 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 9:42:03 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 9:42:04 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-4-25 : 9:42:17 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-4-25 : 9:42:19 PM", "file_name": "price_monitor.py"}
+{"message": "✅ No alerts found", "source": "user", "operation_type": "No Alerts Found", "timestamp": "3-4-25 : 9:42:19 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-4-25 : 9:45:35 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-4-25 : 9:45:37 PM", "file_name": "price_monitor.py"}
+{"message": "✅ No alerts found", "source": "user", "operation_type": "No Alerts Found", "timestamp": "3-4-25 : 9:45:37 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 9:52:20 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 9:52:21 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 10:02:37 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 10:02:38 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 10:03:10 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-4-25 : 10:03:11 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-5-25 : 3:17:14 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-5-25 : 3:17:15 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-5-25 : 3:19:37 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-5-25 : 3:19:38 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-5-25 : 3:19:42 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-5-25 : 3:20:08 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-5-25 : 3:27:14 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-5-25 : 3:30:47 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-5-25 : 3:30:48 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-5-25 : 3:38:02 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-5-25 : 3:38:03 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-5-25 : 3:39:02 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-5-25 : 3:39:03 AM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-5-25 : 3:39:09 AM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-5-25 : 3:39:11 AM", "file_name": "price_monitor.py"}
+{"message": "✅ No alerts found", "source": "user", "operation_type": "No Alerts Found", "timestamp": "3-5-25 : 3:39:11 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-5-25 : 3:42:31 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-5-25 : 3:42:32 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-5-25 : 3:45:21 AM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-5-25 : 3:53:50 AM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-5-25 : 3:53:52 AM", "file_name": "price_monitor.py"}
+{"message": "✅ No alerts found", "source": "user", "operation_type": "No Alerts Found", "timestamp": "3-5-25 : 3:53:52 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-5-25 : 3:55:01 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-5-25 : 3:55:02 AM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-5-25 : 3:55:09 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-5-25 : 3:56:17 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-5-25 : 3:56:18 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-5-25 : 3:56:31 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-5-25 : 3:56:32 AM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-5-25 : 3:56:43 AM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-5-25 : 3:56:46 AM", "file_name": "price_monitor.py"}
+{"message": "✅ No alerts found", "source": "user", "operation_type": "No Alerts Found", "timestamp": "3-5-25 : 3:56:46 AM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-5-25 : 3:58:34 AM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-5-25 : 3:58:43 AM", "file_name": "price_monitor.py"}
+{"message": "✅ No alerts found", "source": "user", "operation_type": "No Alerts Found", "timestamp": "3-5-25 : 3:58:43 AM"}

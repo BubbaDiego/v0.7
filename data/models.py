@@ -7,6 +7,7 @@ class AssetType(str, Enum):
     BTC = "BTC"
     ETH = "ETH"
     SOL = "SOL"
+    OTHER = "OTHER"  # New generic type for additional assets
 
 class SourceType(str, Enum):
     AUTO = "Auto"
@@ -129,7 +130,7 @@ class Position:
     def __init__(
         self,
         id: Optional[str] = None,
-        asset_type: AssetType = AssetType.BTC,
+        asset_type: str = AssetType.OTHER,  # default now uses a generic type if not specified
         position_type: str = "",
         entry_price: float = 0.0,
         liquidation_price: float = 0.0,
@@ -177,7 +178,7 @@ class Position:
         self.liquidation_distance = liquidation_distance
         self.heat_index = heat_index
         self.current_heat_index = current_heat_index
-        self.pnl_after_fees_usd = pnl_after_fees_usd  # NEW: Store pnlAfterFeesUsd
+        self.pnl_after_fees_usd = pnl_after_fees_usd
 
     def __repr__(self):
         return (

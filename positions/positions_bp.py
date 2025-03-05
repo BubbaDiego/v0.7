@@ -22,9 +22,9 @@ from data.data_locker import DataLocker
 from config.config_constants import DB_PATH, CONFIG_PATH
 from utils.calc_services import CalcServices, get_profit_alert_class
 from positions.position_service import PositionService
-from positions.Dydx_api import DydxAPI
-from api.Dydx_api import DydxAPI
-from api.Dydx_API import DydxAPI
+#from positions.Dydx_api import DydxAPI
+from api.dydx_api import DydxAPI
+#from api.Dydx_API import DydxAPI
 
 
 
@@ -286,6 +286,7 @@ def position_trends():
     except Exception as e:
         logger.error("Error in position_trends: %s", e, exc_info=True)
         return jsonify({"error": str(e)}), 500
+
 
 
 @positions_bp.route("/table", methods=["GET"])
@@ -601,8 +602,7 @@ def update_prices_wrapper(source="undefined"):
 
 @positions_bp.route("/update_jupiter", methods=["GET", "POST"])
 def update_jupiter():
-    source = request.args.get("source") #or request.form.get("source") or "API"
-    # If the source isn't "user", override it to "monitor"
+    source = request.args.get("source")
     if source != "monitor":
         source = "user"
     logger.debug(f"Update Jupiter called with source: {source}")
@@ -628,10 +628,24 @@ def update_jupiter():
             return jsonify(update_result), 500
 
         op_logger.log("Jupiter Updated", source=source, operation_type="Jupiter Updated")
-
     except Exception as e:
         logger.error(f"Exception during Jupiter positions update: {e}", exc_info=True)
         print(f"[ERROR] Exception during Jupiter positions update: {e}")
+        return jsonify({"error": str(e)}), 500
+
+    # New block: Update dYdX positions similar to Jupiter positions update
+    try:
+        logger.debug("Step 2.1: Updating dYdX positions via PositionService...")
+        update_dydx_result = PositionService.update_dydx_positions(DB_PATH)
+        logger.debug(f"Step 2.1 complete: dYdX positions update result: {update_dydx_result}")
+        print(f"[DEBUG] dYdX positions update result: {update_dydx_result}")
+        if "error" in update_dydx_result:
+            logger.error("Error during dYdX positions update: " + str(update_dydx_result))
+            print("[ERROR] Error during dYdX positions update:", update_dydx_result)
+            return jsonify(update_dydx_result), 500
+    except Exception as e:
+        logger.error(f"Exception during dYdX positions update: {e}", exc_info=True)
+        print(f"[ERROR] Exception during dYdX positions update: {e}")
         return jsonify({"error": str(e)}), 500
 
     try:

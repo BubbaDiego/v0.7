@@ -239,7 +239,7 @@
   "alert_cooldown_seconds": 6000,
   "call_refractory_period": 1,
   "theme_config": {
-    "selected_profile": "profile4",
+    "selected_profile": "profile2",
     "profiles": {
       "profile1": {
         "title_bar": {

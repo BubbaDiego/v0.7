@@ -17,6 +17,7 @@ from datetime import datetime
 from data.data_locker import DataLocker
 from config.config_constants import DB_PATH
 from utils.calc_services import CalcServices
+from api.dydx_api import DydxAPI
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -233,6 +234,58 @@ class PositionService:
         except Exception as e:
             logger.error(f"Error deleting Jupiter positions: {e}", exc_info=True)
             raise
+
+    @staticmethod
+    def update_dydx_positions(db_path: str = DB_PATH) -> dict:
+        """
+        Fetches perpetual positions from dYdX via the DydxAPI client,
+        maps them to our Position model, and inserts new positions into the database.
+        """
+        try:
+            from uuid import uuid4  # Needed for generating IDs if absent
+            client = DydxAPI()
+            wallet_address = "dydx1unfl20nw9xep6vyl78jktjgrywvr5m7z7ru9e8"
+            subaccount_number = 0  # Or get from config as needed
+
+            dydx_positions = client.get_perpetual_positions(wallet_address, subaccount_number)
+            dl = DataLocker.get_instance(db_path)
+            new_count = 0
+
+            for pos in dydx_positions:
+                pos_dict = {
+                    "id": pos.get("id", str(uuid4())),
+                    "asset_type": pos.get("market", "BTC"),
+                    "position_type": pos.get("side", ""),
+                    "entry_price": float(pos.get("entryPrice", 0.0)),
+                    "liquidation_price": 0.0,
+                    "current_travel_percent": 0.0,
+                    "value": float(pos.get("size", 0.0)) * float(pos.get("entryPrice", 0.0)),
+                    "collateral": 0.0,
+                    "size": float(pos.get("size", 0.0)),
+                    "leverage": 0.0,
+                    # Set wallet_name so that create_position sets a proper value (default "Default" otherwise)
+                    "wallet_name": wallet_address,
+                    "last_updated": pos.get("createdAt", datetime.now().isoformat()),
+                    "current_price": float(pos.get("entryPrice", 0.0)),
+                    "liquidation_distance": None,
+                    "heat_index": 0.0,
+                    "current_heat_index": 0.0,
+                    "pnl_after_fees_usd": float(pos.get("unrealizedPnl", 0.0)) if pos.get("unrealizedPnl") else 0.0,
+                }
+                cursor = dl.conn.cursor()
+                cursor.execute("SELECT COUNT(*) FROM positions WHERE id = ?", (pos_dict["id"],))
+                dup_count = cursor.fetchone()[0]
+                cursor.close()
+                if dup_count == 0:
+                    dl.create_position(pos_dict)
+                    new_count += 1
+
+            msg = f"Imported {new_count} new dYdX position(s)."
+            logger.info(msg)
+            return {"message": msg, "imported": new_count}
+        except Exception as e:
+            logger.error("Error updating dYdX positions: %s", e, exc_info=True)
+            return {"error": str(e)}
 
     @staticmethod
     def record_positions_snapshot(db_path: str = DB_PATH):
