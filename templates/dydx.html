@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container my-3">
+  <h1 class="mb-4">dYdX API Data</h1>
+
+  <!-- Subaccounts Section -->
+  <section>
+    <h2>Subaccounts</h2>
+    {% if subaccounts and subaccounts|length > 0 %}
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Subaccount Number</th>
+            <th>Equity</th>
+            <th>Free Collateral</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for sub in subaccounts %}
+          <tr>
+            <td>{{ sub.subaccountNumber }}</td>
+            <td>{{ sub.equity }}</td>
+            <td>{{ sub.freeCollateral }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p>No subaccount data available.</p>
+    {% endif %}
+  </section>
+
+  <!-- Perpetual Positions Section -->
+  <section class="mt-5">
+    <h2>Perpetual Positions</h2>
+    {% if positions and positions|length > 0 %}
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Market</th>
+            <th>Status</th>
+            <th>Side</th>
+            <th>Size</th>
+            <th>Entry Price</th>
+            <th>Realized PnL</th>
+            <th>Unrealized PnL</th>
+            <th>Created At</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for pos in positions %}
+          <tr>
+            <td>{{ pos.market }}</td>
+            <td>{{ pos.status }}</td>
+            <td>{{ pos.side }}</td>
+            <td>{{ pos.size }}</td>
+            <td>{{ pos.entryPrice }}</td>
+            <td>{{ pos.realizedPnl }}</td>
+            <td>{{ pos.unrealizedPnl }}</td>
+            <td>{{ pos.createdAt }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p>No perpetual position data available.</p>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

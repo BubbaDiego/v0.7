@@ -1,0 +1,3658 @@
+Get Trades
+# ticker is the market ticket, such as "BTC-USD"
+market_trades_response = client.markets.get_perpetual_market_trades(ticker)
+market_trades = btc_market_trades_response.data['trades']
+
+Params and Response: See Indexer API
+
+Get Historical Funding
+# ticker is the market ticket, such as "BTC-USD"
+market_funding_response = client.markets.get_perpetual_market_funding(ticker)
+market_funding = market_funding_response.data['historicalFunding']
+
+Params and Response: See Indexer API
+
+Get Candles
+# ticker is the market ticket, such as "BTC-USD"
+market_candles_response = client.markets.get_perpetual_market_candles(ticket, resolution)
+market_candles = market_candles_response.data['candles']
+
+Params and Response: See Indexer API
+
+Subaccount
+Get Address Subaccounts
+# address is the wallet address on dYdX Chain
+subaccounts_response = client.account.get_subaccounts(address)
+subaccounts = subaccounts_response.data['subaccounts']
+
+Params and Response: See Indexer API
+
+Get Subaccount
+# address is the wallet address on dYdX Chain, subaccount_number is the subaccount number
+subaccount_response = client.account.get_subaccount(address, subaccount_number)
+subaccount = subaccount_response.data['subaccount']
+
+Params and Response: See Indexer API
+
+Get Asset Positions
+# address is the wallet address on dYdX Chain, subaccount_number is the subaccount number
+asset_positions_response = client.account.get_subaccount_asset_positions(address, subaccount_number)
+asset_positions = asset_positions_response.data['positions']
+
+Params and Response: See Indexer API
+
+Get Perpetual Positions
+# address is the wallet address on dYdX Chain, subaccount_number is the subaccount number
+perpetual_positions_response = client.account.get_subaccount_perpetual_positions(address, subaccount_number)
+perpetual_positions = perpetual_positions_response.data['positions']
+
+Params and Response: See Indexer API
+
+Get Orders
+# address is the wallet address on dYdX Chain, subaccount_number is the subaccount number
+orders_response = client.account.get_subaccount_orders(address, subaccount_number)
+orders = orders_response.data
+
+Params and Response: See Indexer API
+
+Get Order
+# order_id is the ID of the order
+order_response = client.account.get_order(order_id)
+order = order_response.data
+
+Params and Response: See Indexer API
+
+Get Fills
+# address is the wallet address on dYdX Chain, subaccount_number is the subaccount number
+fills_response = client.account.get_subaccount_fills(address, subaccount_number)
+fills = fills_response.data['fills']
+
+Params and Response: See Indexer API
+
+Get Transfers
+# address is the wallet address on dYdX Chain, subaccount_number is the subaccount number
+transfers_response = client.account.get_subaccount_transfers(address, subaccount_number)
+transfers = transfers_response.data['transfers']
+
+Params and Response: See Indexer API
+
+Get Historical PNL
+# address is the wallet address on dYdX Chain, subaccount_number is the subaccount number
+historical_pnl_response = client.account.get_subaccount_historical_pnls(address, subaccount_number)
+historical_pnl = historical_pnl_response.data['historicalPnl']
+
+Params and Response: See Indexer API
+
+Indexer Usage Estimates
+
+Indexer API v1.0.0
+Scroll down for code samples, example requests and responses. Select a language for code samples from the tabs above or the mobile navigation menu.
+
+Base URLs:
+
+For the deployment by DYDX token holders, use https://indexer.dydx.trade/v4(opens in a new tab)
+For Testnet, use https://dydx-testnet.imperator.co/v4(opens in a new tab)
+Note: Messages on Indexer WebSocket feeds are typically more recent than data fetched via Indexer's REST API, because the latter is backed by read replicas of the databases that feed the former. Ordinarily this difference is minimal (less than a second), but it might become prolonged under load. Please see Indexer Architecture(opens in a new tab) for more information.
+
+Authentication
+Default
+GetAddress
+Code samples
+
+import requests
+headers = {
+  'Accept': 'application/json'
+}
+ 
+# For the deployment by DYDX token holders, use
+# baseURL = 'https://indexer.dydx.trade/v4'
+baseURL = 'https://dydx-testnet.imperator.co/v4'
+ 
+r = requests.get(f'{baseURL}/addresses/{address}', headers = headers)
+ 
+print(r.json())
+ 
+ 
+const headers = {
+  'Accept':'application/json'
+};
+ 
+// For the deployment by DYDX token holders, use
+// const baseURL = 'https://indexer.dydx.trade/v4';
+const baseURL = 'https://dydx-testnet.imperator.co/v4';
+ 
+fetch(`${baseURL}/addresses/{address}`,
+{
+  method: 'GET',
+ 
+  headers: headers
+})
+.then(function(res) {
+    return res.json();
+}).then(function(body) {
+    console.log(body);
+});
+ 
+GET /addresses/{address}
+
+Parameters
+Name	In	Type	Required	Description
+address	path	string	true	none
+Example responses
+
+200 Response
+
+{
+  "subaccounts": [
+    {
+      "address": "string",
+      "subaccountNumber": 0.1,
+      "equity": "string",
+      "freeCollateral": "string",
+      "openPerpetualPositions": {
+        "property1": {
+          "market": "string",
+          "status": "OPEN",
+          "side": "LONG",
+          "size": "string",
+          "maxSize": "string",
+          "entryPrice": "string",
+          "realizedPnl": "string",
+          "createdAt": "string",
+          "createdAtHeight": "string",
+          "sumOpen": "string",
+          "sumClose": "string",
+          "netFunding": "string",
+          "unrealizedPnl": "string",
+          "closedAt": null,
+          "exitPrice": "string",
+          "subaccountNumber": 0.1
+        },
+        "property2": {
+          "market": "string",
+          "status": "OPEN",
+          "side": "LONG",
+          "size": "string",
+          "maxSize": "string",
+          "entryPrice": "string",
+          "realizedPnl": "string",
+          "createdAt": "string",
+          "createdAtHeight": "string",
+          "sumOpen": "string",
+          "sumClose": "string",
+          "netFunding": "string",
+          "unrealizedPnl": "string",
+          "closedAt": null,
+          "exitPrice": "string",
+          "subaccountNumber": 0.1
+        }
+      },
+      "assetPositions": {
+        "property1": {
+          "symbol": "string",
+          "side": "LONG",
+          "size": "string",
+          "assetId": "string",
+          "subaccountNumber": 0.1
+        },
+        "property2": {
+          "symbol": "string",
+          "side": "LONG",
+          "size": "string",
+          "assetId": "string",
+          "subaccountNumber": 0.1
+        }
+      },
+      "marginEnabled": true,
+      "updatedAtHeight": "string"
+    }
+  ],
+  "totalTradingRewards": "string"
+}
+Responses
+Status	Meaning	Description	Schema
+200	OK(opens in a new tab)	Ok	AddressResponse
+This operation does not require authentication
+
+GetSubaccount
+Code samples
+
+import requests
+headers = {
+  'Accept': 'application/json'
+}
+ 
+# For the deployment by DYDX token holders, use
+# baseURL = 'https://indexer.dydx.trade/v4'
+baseURL = 'https://dydx-testnet.imperator.co/v4'
+ 
+r = requests.get(f'{baseURL}/addresses/{address}/subaccountNumber/{subaccountNumber}', headers = headers)
+ 
+print(r.json())
+ 
+ 
+const headers = {
+  'Accept':'application/json'
+};
+ 
+// For the deployment by DYDX token holders, use
+// const baseURL = 'https://indexer.dydx.trade/v4';
+const baseURL = 'https://dydx-testnet.imperator.co/v4';
+ 
+fetch(`${baseURL}/addresses/{address}/subaccountNumber/{subaccountNumber}`,
+{
+  method: 'GET',
+ 
+  headers: headers
+})
+.then(function(res) {
+    return res.json();
+}).then(function(body) {
+    console.log(body);
+});
+ 
+GET /addresses/{address}/subaccountNumber/{subaccountNumber}
+
+Parameters
+Name	In	Type	Required	Description
+address	path	string	true	none
+subaccountNumber	path	number(double)	true	none
+Example responses
+
+200 Response
+
+{
+  "address": "string",
+  "subaccountNumber": 0.1,
+  "equity": "string",
+  "freeCollateral": "string",
+  "openPerpetualPositions": {
+    "property1": {
+      "market": "string",
+      "status": "OPEN",
+      "side": "LONG",
+      "size": "string",
+      "maxSize": "string",
+      "entryPrice": "string",
+      "realizedPnl": "string",
+      "createdAt": "string",
+      "createdAtHeight": "string",
+      "sumOpen": "string",
+      "sumClose": "string",
+      "netFunding": "string",
+      "unrealizedPnl": "string",
+      "closedAt": "string",
+      "exitPrice": "string",
+      "subaccountNumber": 0.1
+    },
+    "property2": {
+      "market": "string",
+      "status": "OPEN",
+      "side": "LONG",
+      "size": "string",
+      "maxSize": "string",
+      "entryPrice": "string",
+      "realizedPnl": "string",
+      "createdAt": "string",
+      "createdAtHeight": "string",
+      "sumOpen": "string",
+      "sumClose": "string",
+      "netFunding": "string",
+      "unrealizedPnl": "string",
+      "closedAt": "string",
+      "exitPrice": "string",
+      "subaccountNumber": 0.1
+    }
+  },
+  "assetPositions": {
+    "property1": {
+      "symbol": "string",
+      "side": "LONG",
+      "size": "string",
+      "assetId": "string",
+      "subaccountNumber": 0.1
+    },
+    "property2": {
+      "symbol": "string",
+      "side": "LONG",
+      "size": "string",
+      "assetId": "string",
+      "subaccountNumber": 0.1
+    }
+  },
+  "marginEnabled": true,
+  "updatedAtHeight": "string"
+}
+Responses
+Status	Meaning	Description	Schema
+200	OK(opens in a new tab)	Ok	SubaccountResponseObject
+This operation does not require authentication
+
+GetParentSubaccount
+Code samples
+
+import requests
+headers = {
+  'Accept': 'application/json'
+}
+ 
+# For the deployment by DYDX token holders, use
+# baseURL = 'https://indexer.dydx.trade/v4'
+baseURL = 'https://dydx-testnet.imperator.co/v4'
+ 
+r = requests.get(f'{baseURL}/addresses/{address}/parentSubaccountNumber/{parentSubaccountNumber}', headers = headers)
+ 
+print(r.json())
+ 
+ 
+const headers = {
+  'Accept':'application/json'
+};
+ 
+// For the deployment by DYDX token holders, use
+// const baseURL = 'https://indexer.dydx.trade/v4';
+const baseURL = 'https://dydx-testnet.imperator.co/v4';
+ 
+fetch(`${baseURL}/addresses/{address}/parentSubaccountNumber/{parentSubaccountNumber}`,
+{
+  method: 'GET',
+ 
+  headers: headers
+})
+.then(function(res) {
+    return res.json();
+}).then(function(body) {
+    console.log(body);
+});
+ 
+GET /addresses/{address}/parentSubaccountNumber/{parentSubaccountNumber}
+
+Parameters
+Name	In	Type	Required	Description
+address	path	string	true	none
+parentSubaccountNumber	path	number(double)	true	none
+Example responses
+
+200 Response
+
+{
+  "address": "string",
+  "parentSubaccountNumber": 0.1,
+  "equity": "string",
+  "freeCollateral": "string",
+  "childSubaccounts": [
+    {
+      "address": "string",
+      "subaccountNumber": 0.1,
+      "equity": "string",
+      "freeCollateral": "string",
+      "openPerpetualPositions": {
+        "property1": {
+          "market": "string",
+          "status": "OPEN",
+          "side": "LONG",
+          "size": "string",
+          "maxSize": "string",
+          "entryPrice": "string",
+          "realizedPnl": "string",
+          "createdAt": "string",
+          "createdAtHeight": "string",
+          "sumOpen": "string",
+          "sumClose": "string",
+          "netFunding": "string",
+          "unrealizedPnl": "string",
+          "closedAt": null,
+          "exitPrice": "string",
+          "subaccountNumber": 0.1
+        },
+        "property2": {
+          "market": "string",
+          "status": "OPEN",
+          "side": "LONG",
+          "size": "string",
+          "maxSize": "string",
+          "entryPrice": "string",
+          "realizedPnl": "string",
+          "createdAt": "string",
+          "createdAtHeight": "string",
+          "sumOpen": "string",
+          "sumClose": "string",
+          "netFunding": "string",
+          "unrealizedPnl": "string",
+          "closedAt": null,
+          "exitPrice": "string",
+          "subaccountNumber": 0.1
+        }
+      },
+      "assetPositions": {
+        "property1": {
+          "symbol": "string",
+          "side": "LONG",
+          "size": "string",
+          "assetId": "string",
+          "subaccountNumber": 0.1
+        },
+        "property2": {
+          "symbol": "string",
+          "side": "LONG",
+          "size": "string",
+          "assetId": "string",
+          "subaccountNumber": 0.1
+        }
+      },
+      "marginEnabled": true,
+      "updatedAtHeight": "string"
+    }
+  ]
+}
+Responses
+Status	Meaning	Description	Schema
+200	OK(opens in a new tab)	Ok	ParentSubaccountResponse
+This operation does not require authentication
+
+GetAssetPositions
+Code samples
+
+import requests
+headers = {
+  'Accept': 'application/json'
+}
+ 
+# For the deployment by DYDX token holders, use
+# baseURL = 'https://indexer.dydx.trade/v4'
+baseURL = 'https://dydx-testnet.imperator.co/v4'
+ 
+r = requests.get(f'{baseURL}/assetPositions', params={
+  'address': 'string',  'subaccountNumber': '0.1'
+}, headers = headers)
+ 
+print(r.json())
+ 
+ 
+const headers = {
+  'Accept':'application/json'
+};
+ 
+// For the deployment by DYDX token holders, use
+// const baseURL = 'https://indexer.dydx.trade/v4';
+const baseURL = 'https://dydx-testnet.imperator.co/v4';
+ 
+fetch(`${baseURL}/assetPositions?address=string&subaccountNumber=0.1`,
+{
+  method: 'GET',
+ 
+  headers: headers
+})
+.then(function(res) {
+    return res.json();
+}).then(function(body) {
+    console.log(body);
+});
+ 
+GET /assetPositions
+
+Parameters
+Name	In	Type	Required	Description
+address	query	string	true	none
+subaccountNumber	query	number(double)	true	none
+Example responses
+
+200 Response
+
+{
+  "positions": [
+    {
+      "symbol": "string",
+      "side": "LONG",
+      "size": "string",
+      "assetId": "string",
+      "subaccountNumber": 0.1
+    }
+  ]
+}
+Responses
+Status	Meaning	Description	Schema
+200	OK(opens in a new tab)	Ok	AssetPositionResponse
+This operation does not require authentication
+
+GetAssetPositionsForParentSubaccount
+Code samples
+
+import requests
+headers = {
+  'Accept': 'application/json'
+}
+ 
+# For the deployment by DYDX token holders, use
+# baseURL = 'https://indexer.dydx.trade/v4'
+baseURL = 'https://dydx-testnet.imperator.co/v4'
+ 
+r = requests.get(f'{baseURL}/assetPositions/parentSubaccountNumber', params={
+  'address': 'string',  'parentSubaccountNumber': '0.1'
+}, headers = headers)
+ 
+print(r.json())
+ 
+ 
+const headers = {
+  'Accept':'application/json'
+};
+ 
+// For the deployment by DYDX token holders, use
+// const baseURL = 'https://indexer.dydx.trade/v4';
+const baseURL = 'https://dydx-testnet.imperator.co/v4';
+ 
+fetch(`${baseURL}/assetPositions/parentSubaccountNumber?address=string&parentSubaccountNumber=0.1`,
+{
+  method: 'GET',
+ 
+  headers: headers
+})
+.then(function(res) {
+    return res.json();
+}).then(function(body) {
+    console.log(body);
+});
+ 
+GET /assetPositions/parentSubaccountNumber
+
+Parameters
+Name	In	Type	Required	Description
+address	query	string	true	none
+parentSubaccountNumber	query	number(double)	true	none
+Example responses
+
+200 Response
+
+{
+  "positions": [
+    {
+      "symbol": "string",
+      "side": "LONG",
+      "size": "string",
+      "assetId": "string",
+      "subaccountNumber": 0.1
+    }
+  ]
+}
+Responses
+Status	Meaning	Description	Schema
+200	OK(opens in a new tab)	Ok	AssetPositionResponse
+This operation does not require authentication
+
+GetCandles
+Code samples
+
+import requests
+headers = {
+  'Accept': 'application/json'
+}
+ 
+# For the deployment by DYDX token holders, use
+# baseURL = 'https://indexer.dydx.trade/v4'
+baseURL = 'https://dydx-testnet.imperator.co/v4'
+ 
+r = requests.get(f'{baseURL}/candles/perpetualMarkets/{ticker}', params={
+  'resolution': '1MIN'
+}, headers = headers)
+ 
+print(r.json())
+ 
+ 
+const headers = {
+  'Accept':'application/json'
+};
+ 
+// For the deployment by DYDX token holders, use
+// const baseURL = 'https://indexer.dydx.trade/v4';
+const baseURL = 'https://dydx-testnet.imperator.co/v4';
+ 
+fetch(`${baseURL}/candles/perpetualMarkets/{ticker}?resolution=1MIN`,
+{
+  method: 'GET',
+ 
+  headers: headers
+})
+.then(function(res) {
+    return res.json();
+}).then(function(body) {
+    console.log(body);
+});
+ 
+GET /candles/perpetualMarkets/{ticker}
+
+Parameters
+Name	In	Type	Required	Description
+ticker	path	string	true	none
+resolution	query	CandleResolution	true	none
+limit	query	number(double)	false	none
+fromISO	query	string	false	none
+toISO	query	string	false	none
+Enumerated Values
+Parameter	Value
+resolution	1MIN
+resolution	5MINS
+resolution	15MINS
+resolution	30MINS
+resolution	1HOUR
+resolution	4HOURS
+resolution	1DAY
+Example responses
+
+200 Response
+
+{
+  "candles": [
+    {
+      "startedAt": "string",
+      "ticker": "string",
+      "resolution": "1MIN",
+      "low": "string",
+      "high": "string",
+      "open": "string",
+      "close": "string",
+      "baseTokenVolume": "string",
+      "usdVolume": "string",
+      "trades": 0.1,
+      "startingOpenInterest": "string",
+      "id": "string"
+    }
+  ]
+}
+Responses
+Status	Meaning	Description	Schema
+200	OK(opens in a new tab)	Ok	CandleResponse
+This operation does not require authentication
+
+Screen
+Code samples
+
+import requests
+headers = {
+  'Accept': 'application/json'
+}
+ 
+# For the deployment by DYDX token holders, use
+# baseURL = 'https://indexer.dydx.trade/v4'
+baseURL = 'https://dydx-testnet.imperator.co/v4'
+ 
+r = requests.get(f'{baseURL}/compliance/screen/{address}', headers = headers)
+ 
+print(r.json())
+ 
+ 
+const headers = {
+  'Accept':'application/json'
+};
+ 
+// For the deployment by DYDX token holders, use
+// const baseURL = 'https://indexer.dydx.trade/v4';
+const baseURL = 'https://dydx-testnet.imperator.co/v4';
+ 
+fetch(`${baseURL}/compliance/screen/{address}`,
+{
+  method: 'GET',
+ 
+  headers: headers
+})
+.then(function(res) {
+    return res.json();
+}).then(function(body) {
+    console.log(body);
+});
+ 
+GET /compliance/screen/{address}
+
+Parameters
+Name	In	Type	Required	Description
+address	path	string	true	none
+Example responses
+
+200 Response
+
+{
+  "status": "COMPLIANT",
+  "reason": "MANUAL",
+  "updatedAt": "string"
+}
+Responses
+Status	Meaning	Description	Schema
+200	OK(opens in a new tab)	Ok	ComplianceV2Response
+This operation does not require authentication
+
+GetFills
+Code samples
+
+import requests
+headers = {
+  'Accept': 'application/json'
+}
+ 
+# For the deployment by DYDX token holders, use
+# baseURL = 'https://indexer.dydx.trade/v4'
+baseURL = 'https://dydx-testnet.imperator.co/v4'
+ 
+r = requests.get(f'{baseURL}/fills', params={
+  'address': 'string',  'subaccountNumber': '0.1'
+}, headers = headers)
+ 
+print(r.json())
+ 
+ 
+const headers = {
+  'Accept':'application/json'
+};
+ 
+// For the deployment by DYDX token holders, use
+// const baseURL = 'https://indexer.dydx.trade/v4';
+const baseURL = 'https://dydx-testnet.imperator.co/v4';
+ 
+fetch(`${baseURL}/fills?address=string&subaccountNumber=0.1`,
+{
+  method: 'GET',
+ 
+  headers: headers
+})
+.then(function(res) {
+    return res.json();
+}).then(function(body) {
+    console.log(body);
+});
+ 
+GET /fills
+
+Parameters
+Name	In	Type	Required	Description
+address	query	string	true	none
+subaccountNumber	query	number(double)	true	none
+market	query	string	false	none
+marketType	query	MarketType	false	none
+limit	query	number(double)	false	none
+createdBeforeOrAtHeight	query	number(double)	false	none
+createdBeforeOrAt	query	IsoString	false	none
+page	query	number(double)	false	none
+Enumerated Values
+Parameter	Value
+marketType	PERPETUAL
+marketType	SPOT
+Example responses
+
+200 Response
+
+{
+  "pageSize": 0.1,
+  "totalResults": 0.1,
+  "offset": 0.1,
+  "fills": [
+    {
+      "id": "string",
+      "side": "BUY",
+      "liquidity": "TAKER",
+      "type": "LIMIT",
+      "market": "string",
+      "marketType": "PERPETUAL",
+      "price": "string",
+      "size": "string",
+      "fee": "string",
+      "createdAt": "string",
+      "createdAtHeight": "string",
+      "orderId": "string",
+      "clientMetadata": "string",
+      "subaccountNumber": 0.1
+    }
+  ]
+}
+Responses
+Status	Meaning	Description	Schema
+200	OK(opens in a new tab)	Ok	FillResponse
+This operation does not require authentication
+
+GetFillsForParentSubaccount
+Code samples
+
+import requests
+headers = {
+  'Accept': 'application/json'
+}
+ 
+# For the deployment by DYDX token holders, use
+# baseURL = 'https://indexer.dydx.trade/v4'
+baseURL = 'https://dydx-testnet.imperator.co/v4'
+ 
+r = requests.get(f'{baseURL}/fills/parentSubaccount', params={
+  'address': 'string',  'parentSubaccountNumber': '0.1'
+}, headers = headers)
+ 
+print(r.json())
+ 
+ 
+const headers = {
+  'Accept':'application/json'
+};
+ 
+// For the deployment by DYDX token holders, use
+// const baseURL = 'https://indexer.dydx.trade/v4';
+const baseURL = 'https://dydx-testnet.imperator.co/v4';
+ 
+fetch(`${baseURL}/fills/parentSubaccount?address=string&parentSubaccountNumber=0.1`,
+{
+  method: 'GET',
+ 
+  headers: headers
+})
+.then(function(res) {
+    return res.json();
+}).then(function(body) {
+    console.log(body);
+});
+ 
+GET /fills/parentSubaccount
+
+Parameters
+Name	In	Type	Required	Description
+address	query	string	true	none
+parentSubaccountNumber	query	number(double)	true	none
+market	query	string	false	none
+marketType	query	MarketType	false	none
+limit	query	number(double)	false	none
+createdBeforeOrAtHeight	query	number(double)	false	none
+createdBeforeOrAt	query	IsoString	false	none
+page	query	number(double)	false	none
+Enumerated Values
+Parameter	Value
+marketType	PERPETUAL
+marketType	SPOT
+Example responses
+
+200 Response
+
+{
+  "pageSize": 0.1,
+  "totalResults": 0.1,
+  "offset": 0.1,
+  "fills": [
+    {
+      "id": "string",
+      "side": "BUY",
+      "liquidity": "TAKER",
+      "type": "LIMIT",
+      "market": "string",
+      "marketType": "PERPETUAL",
+      "price": "string",
+      "size": "string",
+      "fee": "string",
+      "createdAt": "string",
+      "createdAtHeight": "string",
+      "orderId": "string",
+      "clientMetadata": "string",
+      "subaccountNumber": 0.1
+    }
+  ]
+}
+Responses
+Status	Meaning	Description	Schema
+200	OK(opens in a new tab)	Ok	FillResponse
+This operation does not require authentication
+
+GetHeight
+Code samples
+
+import requests
+headers = {
+  'Accept': 'application/json'
+}
+ 
+# For the deployment by DYDX token holders, use
+# baseURL = 'https://indexer.dydx.trade/v4'
+baseURL = 'https://dydx-testnet.imperator.co/v4'
+ 
+r = requests.get(f'{baseURL}/height', headers = headers)
+ 
+print(r.json())
+ 
+ 
+const headers = {
+  'Accept':'application/json'
+};
+ 
+// For the deployment by DYDX token holders, use
+// const baseURL = 'https://indexer.dydx.trade/v4';
+const baseURL = 'https://dydx-testnet.imperator.co/v4';
+ 
+fetch(`${baseURL}/height`,
+{
+  method: 'GET',
+ 
+  headers: headers
+})
+.then(function(res) {
+    return res.json();
+}).then(function(body) {
+    console.log(body);
+});
+ 
+GET /height
+
+Example responses
+
+200 Response
+
+{
+  "height": "string",
+  "time": "string"
+}
+Responses
+Status	Meaning	Description	Schema
+200	OK(opens in a new tab)	Ok	HeightResponse
+This operation does not require authentication
+
+GetTradingRewards
+Code samples
+
+import requests
+headers = {
+  'Accept': 'application/json'
+}
+ 
+# For the deployment by DYDX token holders, use
+# baseURL = 'https://indexer.dydx.trade/v4'
+baseURL = 'https://dydx-testnet.imperator.co/v4'
+ 
+r = requests.get(f'{baseURL}/historicalBlockTradingRewards/{address}', headers = headers)
+ 
+print(r.json())
+ 
+ 
+const headers = {
+  'Accept':'application/json'
+};
+ 
+// For the deployment by DYDX token holders, use
+// const baseURL = 'https://indexer.dydx.trade/v4';
+const baseURL = 'https://dydx-testnet.imperator.co/v4';
+ 
+fetch(`${baseURL}/historicalBlockTradingRewards/{address}`,
+{
+  method: 'GET',
+ 
+  headers: headers
+})
+.then(function(res) {
+    return res.json();
+}).then(function(body) {
+    console.log(body);
+});
+ 
+GET /historicalBlockTradingRewards/{address}
+
+Parameters
+Name	In	Type	Required	Description
+address	path	string	true	none
+limit	query	number(double)	false	none
+startingBeforeOrAt	query	IsoString	false	none
+startingBeforeOrAtHeight	query	string	false	none
+Example responses
+
+200 Response
+
+{
+  "rewards": [
+    {
+      "tradingReward": "string",
+      "createdAt": "string",
+      "createdAtHeight": "string"
+    }
+  ]
+}
+Responses
+Status	Meaning	Description	Schema
+200	OK(opens in a new tab)	Ok	HistoricalBlockTradingRewardsResponse
+This operation does not require authentication
+
+GetHistoricalFunding
+Code samples
+
+import requests
+headers = {
+  'Accept': 'application/json'
+}
+ 
+# For the deployment by DYDX token holders, use
+# baseURL = 'https://indexer.dydx.trade/v4'
+baseURL = 'https://dydx-testnet.imperator.co/v4'
+ 
+r = requests.get(f'{baseURL}/historicalFunding/{ticker}', headers = headers)
+ 
+print(r.json())
+ 
+ 
+const headers = {
+  'Accept':'application/json'
+};
+ 
+// For the deployment by DYDX token holders, use
+// const baseURL = 'https://indexer.dydx.trade/v4';
+const baseURL = 'https://dydx-testnet.imperator.co/v4';
+ 
+fetch(`${baseURL}/historicalFunding/{ticker}`,
+{
+  method: 'GET',
+ 
+  headers: headers
+})
+.then(function(res) {
+    return res.json();
+}).then(function(body) {
+    console.log(body);
+});
+ 
+GET /historicalFunding/{ticker}
+
+Parameters
+Name	In	Type	Required	Description
+ticker	path	string	true	none
+limit	query	number(double)	false	none
+effectiveBeforeOrAtHeight	query	number(double)	false	none
+effectiveBeforeOrAt	query	IsoString	false	none
+Example responses
+
+200 Response
+
+{
+  "historicalFunding": [
+    {
+      "ticker": "string",
+      "rate": "string",
+      "price": "string",
+      "effectiveAt": "string",
+      "effectiveAtHeight": "string"
+    }
+  ]
+}
+Responses
+Status	Meaning	Description	Schema
+200	OK(opens in a new tab)	Ok	HistoricalFundingResponse
+This operation does not require authentication
+
+GetHistoricalPnl
+Code samples
+
+import requests
+headers = {
+  'Accept': 'application/json'
+}
+ 
+# For the deployment by DYDX token holders, use
+# baseURL = 'https://indexer.dydx.trade/v4'
+baseURL = 'https://dydx-testnet.imperator.co/v4'
+ 
+r = requests.get(f'{baseURL}/historical-pnl', params={
+  'address': 'string',  'subaccountNumber': '0.1'
+}, headers = headers)
+ 
+print(r.json())
+ 
+ 
+const headers = {
+  'Accept':'application/json'
+};
+ 
+// For the deployment by DYDX token holders, use
+// const baseURL = 'https://indexer.dydx.trade/v4';
+const baseURL = 'https://dydx-testnet.imperator.co/v4';
+ 
+fetch(`${baseURL}/historical-pnl?address=string&subaccountNumber=0.1`,
+{
+  method: 'GET',
+ 
+  headers: headers
+})
+.then(function(res) {
+    return res.json();
+}).then(function(body) {
+    console.log(body);
+});
+ 
+GET /historical-pnl
+
+Parameters
+Name	In	Type	Required	Description
+address	query	string	true	none
+subaccountNumber	query	number(double)	true	none
+limit	query	number(double)	false	none
+createdBeforeOrAtHeight	query	number(double)	false	none
+createdBeforeOrAt	query	IsoString	false	none
+createdOnOrAfterHeight	query	number(double)	false	none
+createdOnOrAfter	query	IsoString	false	none
+page	query	number(double)	false	none
+Example responses
+
+200 Response
+
+{
+  "pageSize": 0.1,
+  "totalResults": 0.1,
+  "offset": 0.1,
+  "historicalPnl": [
+    {
+      "id": "string",
+      "subaccountId": "string",
+      "equity": "string",
+      "totalPnl": "string",
+      "netTransfers": "string",
+      "createdAt": "string",
+      "blockHeight": "string",
+      "blockTime": "string"
+    }
+  ]
+}
+Responses
+Status	Meaning	Description	Schema
+200	OK(opens in a new tab)	Ok	HistoricalPnlResponse
+This operation does not require authentication
+
+GetHistoricalPnlForParentSubaccount
+Code samples
+
+import requests
+headers = {
+  'Accept': 'application/json'
+}
+ 
+# For the deployment by DYDX token holders, use
+# baseURL = 'https://indexer.dydx.trade/v4'
+baseURL = 'https://dydx-testnet.imperator.co/v4'
+ 
+r = requests.get(f'{baseURL}/historical-pnl/parentSubaccount', params={
+  'address': 'string',  'parentSubaccountNumber': '0.1'
+}, headers = headers)
+ 
+print(r.json())
+ 
+ 
+const headers = {
+  'Accept':'application/json'
+};
+ 
+// For the deployment by DYDX token holders, use
+// const baseURL = 'https://indexer.dydx.trade/v4';
+const baseURL = 'https://dydx-testnet.imperator.co/v4';
+ 
+fetch(`${baseURL}/historical-pnl/parentSubaccount?address=string&parentSubaccountNumber=0.1`,
+{
+  method: 'GET',
+ 
+  headers: headers
+})
+.then(function(res) {
+    return res.json();
+}).then(function(body) {
+    console.log(body);
+});
+ 
+GET /historical-pnl/parentSubaccount
+
+Parameters
+Name	In	Type	Required	Description
+address	query	string	true	none
+parentSubaccountNumber	query	number(double)	true	none
+limit	query	number(double)	false	none
+createdBeforeOrAtHeight	query	number(double)	false	none
+createdBeforeOrAt	query	IsoString	false	none
+createdOnOrAfterHeight	query	number(double)	false	none
+createdOnOrAfter	query	IsoString	false	none
+page	query	number(double)	false	none
+Example responses
+
+200 Response
+
+{
+  "pageSize": 0.1,
+  "totalResults": 0.1,
+  "offset": 0.1,
+  "historicalPnl": [
+    {
+      "id": "string",
+      "subaccountId": "string",
+      "equity": "string",
+      "totalPnl": "string",
+      "netTransfers": "string",
+      "createdAt": "string",
+      "blockHeight": "string",
+      "blockTime": "string"
+    }
+  ]
+}
+Responses
+Status	Meaning	Description	Schema
+200	OK(opens in a new tab)	Ok	HistoricalPnlResponse
+This operation does not require authentication
+
+GetAggregations
+Code samples
+
+import requests
+headers = {
+  'Accept': 'application/json'
+}
+ 
+# For the deployment by DYDX token holders, use
+# baseURL = 'https://indexer.dydx.trade/v4'
+baseURL = 'https://dydx-testnet.imperator.co/v4'
+ 
+r = requests.get(f'{baseURL}/historicalTradingRewardAggregations/{address}', params={
+  'period': 'DAILY'
+}, headers = headers)
+ 
+print(r.json())
+ 
+ 
+const headers = {
+  'Accept':'application/json'
+};
+ 
+// For the deployment by DYDX token holders, use
+// const baseURL = 'https://indexer.dydx.trade/v4';
+const baseURL = 'https://dydx-testnet.imperator.co/v4';
+ 
+fetch(`${baseURL}/historicalTradingRewardAggregations/{address}?period=DAILY`,
+{
+  method: 'GET',
+ 
+  headers: headers
+})
+.then(function(res) {
+    return res.json();
+}).then(function(body) {
+    console.log(body);
+});
+ 
+GET /historicalTradingRewardAggregations/{address}
+
+Parameters
+Name	In	Type	Required	Description
+address	path	string	true	none
+period	query	TradingRewardAggregationPeriod	true	none
+limit	query	number(double)	false	none
+startingBeforeOrAt	query	IsoString	false	none
+startingBeforeOrAtHeight	query	string	false	none
+Enumerated Values
+Parameter	Value
+period	DAILY
+period	WEEKLY
+period	MONTHLY
+Example responses
+
+200 Response
+
+{
+  "rewards": [
+    {
+      "tradingReward": "string",
+      "startedAt": "string",
+      "startedAtHeight": "string",
+      "endedAt": "string",
+      "endedAtHeight": "string",
+      "period": "DAILY"
+    }
+  ]
+}
+Responses
+Status	Meaning	Description	Schema
+200	OK(opens in a new tab)	Ok	HistoricalTradingRewardAggregationsResponse
+This operation does not require authentication
+
+GetPerpetualMarket
+Code samples
+
+import requests
+headers = {
+  'Accept': 'application/json'
+}
+ 
+# For the deployment by DYDX token holders, use
+# baseURL = 'https://indexer.dydx.trade/v4'
+baseURL = 'https://dydx-testnet.imperator.co/v4'
+ 
+r = requests.get(f'{baseURL}/orderbooks/perpetualMarket/{ticker}', headers = headers)
+ 
+print(r.json())
+ 
+ 
+const headers = {
+  'Accept':'application/json'
+};
+ 
+// For the deployment by DYDX token holders, use
+// const baseURL = 'https://indexer.dydx.trade/v4';
+const baseURL = 'https://dydx-testnet.imperator.co/v4';
+ 
+fetch(`${baseURL}/orderbooks/perpetualMarket/{ticker}`,
+{
+  method: 'GET',
+ 
+  headers: headers
+})
+.then(function(res) {
+    return res.json();
+}).then(function(body) {
+    console.log(body);
+});
+ 
+GET /orderbooks/perpetualMarket/{ticker}
+
+Parameters
+Name	In	Type	Required	Description
+ticker	path	string	true	none
+Example responses
+
+200 Response
+
+{
+  "bids": [
+    {
+      "price": "string",
+      "size": "string"
+    }
+  ],
+  "asks": [
+    {
+      "price": "string",
+      "size": "string"
+    }
+  ]
+}
+Responses
+Status	Meaning	Description	Schema
+200	OK(opens in a new tab)	Ok	OrderbookResponseObject
+This operation does not require authentication
+
+ListOrders
+Code samples
+
+import requests
+headers = {
+  'Accept': 'application/json'
+}
+ 
+# For the deployment by DYDX token holders, use
+# baseURL = 'https://indexer.dydx.trade/v4'
+baseURL = 'https://dydx-testnet.imperator.co/v4'
+ 
+r = requests.get(f'{baseURL}/orders', params={
+  'address': 'string',  'subaccountNumber': '0.1'
+}, headers = headers)
+ 
+print(r.json())
+ 
+ 
+const headers = {
+  'Accept':'application/json'
+};
+ 
+// For the deployment by DYDX token holders, use
+// const baseURL = 'https://indexer.dydx.trade/v4';
+const baseURL = 'https://dydx-testnet.imperator.co/v4';
+ 
+fetch(`${baseURL}/orders?address=string&subaccountNumber=0.1`,
+{
+  method: 'GET',
+ 
+  headers: headers
+})
+.then(function(res) {
+    return res.json();
+}).then(function(body) {
+    console.log(body);
+});
+ 
+GET /orders
+
+Parameters
+Name	In	Type	Required	Description
+address	query	string	true	none
+subaccountNumber	query	number(double)	true	none
+limit	query	number(double)	false	none
+ticker	query	string	false	none
+side	query	OrderSide	false	none
+type	query	OrderType	false	none
+status	query	array[any]	false	none
+goodTilBlockBeforeOrAt	query	number(double)	false	none
+goodTilBlockTimeBeforeOrAt	query	IsoString	false	none
+returnLatestOrders	query	boolean	false	none
+Enumerated Values
+Parameter	Value
+side	BUY
+side	SELL
+type	LIMIT
+type	MARKET
+type	STOP_LIMIT
+type	STOP_MARKET
+type	TRAILING_STOP
+type	TAKE_PROFIT
+type	TAKE_PROFIT_MARKET
+Example responses
+
+200 Response
+
+[
+  {
+    "id": "string",
+    "subaccountId": "string",
+    "clientId": "string",
+    "clobPairId": "string",
+    "side": "BUY",
+    "size": "string",
+    "totalFilled": "string",
+    "price": "string",
+    "type": "LIMIT",
+    "reduceOnly": true,
+    "orderFlags": "string",
+    "goodTilBlock": "string",
+    "goodTilBlockTime": "string",
+    "createdAtHeight": "string",
+    "clientMetadata": "string",
+    "triggerPrice": "string",
+    "timeInForce": "GTT",
+    "status": "OPEN",
+    "postOnly": true,
+    "ticker": "string",
+    "updatedAt": "string",
+    "updatedAtHeight": "string",
+    "subaccountNumber": 0.1
+  }
+]
+Responses
+Status	Meaning	Description	Schema
+200	OK(opens in a new tab)	Ok	Inline
+Response Schema
+Status Code 200
+
+Name	Type	Required	Restrictions	Description
+anonymous	[OrderResponseObject]	false	none	none
+» id	string	true	none	none
+» subaccountId	string	true	none	none
+» clientId	string	true	none	none
+» clobPairId	string	true	none	none
+» side	OrderSide	true	none	none
+» size	string	true	none	none
+» totalFilled	string	true	none	none
+» price	string	true	none	none
+» type	OrderType	true	none	none
+» reduceOnly	boolean	true	none	none
+» orderFlags	string	true	none	none
+» goodTilBlock	string	false	none	none
+» goodTilBlockTime	string	false	none	none
+» createdAtHeight	string	false	none	none
+» clientMetadata	string	true	none	none
+» triggerPrice	string	false	none	none
+» timeInForce	APITimeInForce	true	none	none
+» status	any	true	none	none
+anyOf
+
+Name	Type	Required	Restrictions	Description
+»» anonymous	OrderStatus	false	none	none
+or
+
+Name	Type	Required	Restrictions	Description
+»» anonymous	BestEffortOpenedStatus	false	none	none
+continued
+
+Name	Type	Required	Restrictions	Description
+» postOnly	boolean	true	none	none
+» ticker	string	true	none	none
+» updatedAt	IsoString	false	none	none
+» updatedAtHeight	string	false	none	none
+» subaccountNumber	number(double)	true	none	none
+Enumerated Values
+Property	Value
+side	BUY
+side	SELL
+type	LIMIT
+type	MARKET
+type	STOP_LIMIT
+type	STOP_MARKET
+type	TRAILING_STOP
+type	TAKE_PROFIT
+type	TAKE_PROFIT_MARKET
+timeInForce	GTT
+timeInForce	FOK
+timeInForce	IOC
+anonymous	OPEN
+anonymous	FILLED
+anonymous	CANCELED
+anonymous	BEST_EFFORT_CANCELED
+anonymous	UNTRIGGERED
+anonymous	BEST_EFFORT_OPENED
+This operation does not require authentication
+
+ListOrdersForParentSubaccount
+Code samples
+
+import requests
+headers = {
+  'Accept': 'application/json'
+}
+ 
+# For the deployment by DYDX token holders, use
+# baseURL = 'https://indexer.dydx.trade/v4'
+baseURL = 'https://dydx-testnet.imperator.co/v4'
+ 
+r = requests.get(f'{baseURL}/orders/parentSubaccountNumber', params={
+  'address': 'string',  'parentSubaccountNumber': '0.1'
+}, headers = headers)
+ 
+print(r.json())
+ 
+ 
+const headers = {
+  'Accept':'application/json'
+};
+ 
+// For the deployment by DYDX token holders, use
+// const baseURL = 'https://indexer.dydx.trade/v4';
+const baseURL = 'https://dydx-testnet.imperator.co/v4';
+ 
+fetch(`${baseURL}/orders/parentSubaccountNumber?address=string&parentSubaccountNumber=0.1`,
+{
+  method: 'GET',
+ 
+  headers: headers
+})
+.then(function(res) {
+    return res.json();
+}).then(function(body) {
+    console.log(body);
+});
+ 
+GET /orders/parentSubaccountNumber
+
+Parameters
+Name	In	Type	Required	Description
+address	query	string	true	none
+parentSubaccountNumber	query	number(double)	true	none
+limit	query	number(double)	false	none
+ticker	query	string	false	none
+side	query	OrderSide	false	none
+type	query	OrderType	false	none
+status	query	array[any]	false	none
+goodTilBlockBeforeOrAt	query	number(double)	false	none
+goodTilBlockTimeBeforeOrAt	query	IsoString	false	none
+returnLatestOrders	query	boolean	false	none
+Enumerated Values
+Parameter	Value
+side	BUY
+side	SELL
+type	LIMIT
+type	MARKET
+type	STOP_LIMIT
+type	STOP_MARKET
+type	TRAILING_STOP
+type	TAKE_PROFIT
+type	TAKE_PROFIT_MARKET
+Example responses
+
+200 Response
+
+[
+  {
+    "id": "string",
+    "subaccountId": "string",
+    "clientId": "string",
+    "clobPairId": "string",
+    "side": "BUY",
+    "size": "string",
+    "totalFilled": "string",
+    "price": "string",
+    "type": "LIMIT",
+    "reduceOnly": true,
+    "orderFlags": "string",
+    "goodTilBlock": "string",
+    "goodTilBlockTime": "string",
+    "createdAtHeight": "string",
+    "clientMetadata": "string",
+    "triggerPrice": "string",
+    "timeInForce": "GTT",
+    "status": "OPEN",
+    "postOnly": true,
+    "ticker": "string",
+    "updatedAt": "string",
+    "updatedAtHeight": "string",
+    "subaccountNumber": 0.1
+  }
+]
+Responses
+Status	Meaning	Description	Schema
+200	OK(opens in a new tab)	Ok	Inline
+Response Schema
+Status Code 200
+
+Name	Type	Required	Restrictions	Description
+anonymous	[OrderResponseObject]	false	none	none
+» id	string	true	none	none
+» subaccountId	string	true	none	none
+» clientId	string	true	none	none
+» clobPairId	string	true	none	none
+» side	OrderSide	true	none	none
+» size	string	true	none	none
+» totalFilled	string	true	none	none
+» price	string	true	none	none
+» type	OrderType	true	none	none
+» reduceOnly	boolean	true	none	none
+» orderFlags	string	true	none	none
+» goodTilBlock	string	false	none	none
+» goodTilBlockTime	string	false	none	none
+» createdAtHeight	string	false	none	none
+» clientMetadata	string	true	none	none
+» triggerPrice	string	false	none	none
+» timeInForce	APITimeInForce	true	none	none
+» status	any	true	none	none
+anyOf
+
+Name	Type	Required	Restrictions	Description
+»» anonymous	OrderStatus	false	none	none
+or
+
+Name	Type	Required	Restrictions	Description
+»» anonymous	BestEffortOpenedStatus	false	none	none
+continued
+
+Name	Type	Required	Restrictions	Description
+» postOnly	boolean	true	none	none
+» ticker	string	true	none	none
+» updatedAt	IsoString	false	none	none
+» updatedAtHeight	string	false	none	none
+» subaccountNumber	number(double)	true	none	none
+Enumerated Values
+Property	Value
+side	BUY
+side	SELL
+type	LIMIT
+type	MARKET
+type	STOP_LIMIT
+type	STOP_MARKET
+type	TRAILING_STOP
+type	TAKE_PROFIT
+type	TAKE_PROFIT_MARKET
+timeInForce	GTT
+timeInForce	FOK
+timeInForce	IOC
+anonymous	OPEN
+anonymous	FILLED
+anonymous	CANCELED
+anonymous	BEST_EFFORT_CANCELED
+anonymous	UNTRIGGERED
+anonymous	BEST_EFFORT_OPENED
+This operation does not require authentication
+
+GetOrder
+Code samples
+
+import requests
+headers = {
+  'Accept': 'application/json'
+}
+ 
+# For the deployment by DYDX token holders, use
+# baseURL = 'https://indexer.dydx.trade/v4'
+baseURL = 'https://dydx-testnet.imperator.co/v4'
+ 
+r = requests.get(f'{baseURL}/orders/{orderId}', headers = headers)
+ 
+print(r.json())
+ 
+ 
+const headers = {
+  'Accept':'application/json'
+};
+ 
+// For the deployment by DYDX token holders, use
+// const baseURL = 'https://indexer.dydx.trade/v4';
+const baseURL = 'https://dydx-testnet.imperator.co/v4';
+ 
+fetch(`${baseURL}/orders/{orderId}`,
+{
+  method: 'GET',
+ 
+  headers: headers
+})
+.then(function(res) {
+    return res.json();
+}).then(function(body) {
+    console.log(body);
+});
+ 
+GET /orders/{orderId}
+
+Parameters
+Name	In	Type	Required	Description
+orderId	path	string	true	none
+Example responses
+
+200 Response
+
+{
+  "id": "string",
+  "subaccountId": "string",
+  "clientId": "string",
+  "clobPairId": "string",
+  "side": "BUY",
+  "size": "string",
+  "totalFilled": "string",
+  "price": "string",
+  "type": "LIMIT",
+  "reduceOnly": true,
+  "orderFlags": "string",
+  "goodTilBlock": "string",
+  "goodTilBlockTime": "string",
+  "createdAtHeight": "string",
+  "clientMetadata": "string",
+  "triggerPrice": "string",
+  "timeInForce": "GTT",
+  "status": "OPEN",
+  "postOnly": true,
+  "ticker": "string",
+  "updatedAt": "string",
+  "updatedAtHeight": "string",
+  "subaccountNumber": 0.1
+}
+Responses
+Status	Meaning	Description	Schema
+200	OK(opens in a new tab)	Ok	OrderResponseObject
+This operation does not require authentication
+
+ListPerpetualMarkets
+Code samples
+
+import requests
+headers = {
+  'Accept': 'application/json'
+}
+ 
+# For the deployment by DYDX token holders, use
+# baseURL = 'https://indexer.dydx.trade/v4'
+baseURL = 'https://dydx-testnet.imperator.co/v4'
+ 
+r = requests.get(f'{baseURL}/perpetualMarkets', headers = headers)
+ 
+print(r.json())
+ 
+ 
+const headers = {
+  'Accept':'application/json'
+};
+ 
+// For the deployment by DYDX token holders, use
+// const baseURL = 'https://indexer.dydx.trade/v4';
+const baseURL = 'https://dydx-testnet.imperator.co/v4';
+ 
+fetch(`${baseURL}/perpetualMarkets`,
+{
+  method: 'GET',
+ 
+  headers: headers
+})
+.then(function(res) {
+    return res.json();
+}).then(function(body) {
+    console.log(body);
+});
+ 
+GET /perpetualMarkets
+
+Parameters
+Name	In	Type	Required	Description
+limit	query	number(double)	false	none
+ticker	query	string	false	none
+Example responses
+
+200 Response
+
+{
+  "markets": {
+    "property1": {
+      "clobPairId": "string",
+      "ticker": "string",
+      "status": "ACTIVE",
+      "oraclePrice": "string",
+      "priceChange24H": "string",
+      "volume24H": "string",
+      "trades24H": 0.1,
+      "nextFundingRate": "string",
+      "initialMarginFraction": "string",
+      "maintenanceMarginFraction": "string",
+      "openInterest": "string",
+      "atomicResolution": 0.1,
+      "quantumConversionExponent": 0.1,
+      "tickSize": "string",
+      "stepSize": "string",
+      "stepBaseQuantums": 0.1,
+      "subticksPerTick": 0.1,
+      "marketType": "CROSS",
+      "openInterestLowerCap": "string",
+      "openInterestUpperCap": "string",
+      "baseOpenInterest": "string"
+    },
+    "property2": {
+      "clobPairId": "string",
+      "ticker": "string",
+      "status": "ACTIVE",
+      "oraclePrice": "string",
+      "priceChange24H": "string",
+      "volume24H": "string",
+      "trades24H": 0.1,
+      "nextFundingRate": "string",
+      "initialMarginFraction": "string",
+      "maintenanceMarginFraction": "string",
+      "openInterest": "string",
+      "atomicResolution": 0.1,
+      "quantumConversionExponent": 0.1,
+      "tickSize": "string",
+      "stepSize": "string",
+      "stepBaseQuantums": 0.1,
+      "subticksPerTick": 0.1,
+      "marketType": "CROSS",
+      "openInterestLowerCap": "string",
+      "openInterestUpperCap": "string",
+      "baseOpenInterest": "string"
+    }
+  }
+}
+Responses
+Status	Meaning	Description	Schema
+200	OK(opens in a new tab)	Ok	PerpetualMarketResponse
+This operation does not require authentication
+
+ListPositions
+Code samples
+
+import requests
+headers = {
+  'Accept': 'application/json'
+}
+ 
+# For the deployment by DYDX token holders, use
+# baseURL = 'https://indexer.dydx.trade/v4'
+baseURL = 'https://dydx-testnet.imperator.co/v4'
+ 
+r = requests.get(f'{baseURL}/perpetualPositions', params={
+  'address': 'string',  'subaccountNumber': '0.1'
+}, headers = headers)
+ 
+print(r.json())
+ 
+ 
+const headers = {
+  'Accept':'application/json'
+};
+ 
+// For the deployment by DYDX token holders, use
+// const baseURL = 'https://indexer.dydx.trade/v4';
+const baseURL = 'https://dydx-testnet.imperator.co/v4';
+ 
+fetch(`${baseURL}/perpetualPositions?address=string&subaccountNumber=0.1`,
+{
+  method: 'GET',
+ 
+  headers: headers
+})
+.then(function(res) {
+    return res.json();
+}).then(function(body) {
+    console.log(body);
+});
+ 
+GET /perpetualPositions
+
+Parameters
+Name	In	Type	Required	Description
+address	query	string	true	none
+subaccountNumber	query	number(double)	true	none
+status	query	array[string]	false	none
+limit	query	number(double)	false	none
+createdBeforeOrAtHeight	query	number(double)	false	none
+createdBeforeOrAt	query	IsoString	false	none
+Enumerated Values
+Parameter	Value
+status	OPEN
+status	CLOSED
+status	LIQUIDATED
+Example responses
+
+200 Response
+
+{
+  "positions": [
+    {
+      "market": "string",
+      "status": "OPEN",
+      "side": "LONG",
+      "size": "string",
+      "maxSize": "string",
+      "entryPrice": "string",
+      "realizedPnl": "string",
+      "createdAt": "string",
+      "createdAtHeight": "string",
+      "sumOpen": "string",
+      "sumClose": "string",
+      "netFunding": "string",
+      "unrealizedPnl": "string",
+      "closedAt": "string",
+      "exitPrice": "string",
+      "subaccountNumber": 0.1
+    }
+  ]
+}
+Responses
+Status	Meaning	Description	Schema
+200	OK(opens in a new tab)	Ok	PerpetualPositionResponse
+This operation does not require authentication
+
+ListPositionsForParentSubaccount
+Code samples
+
+import requests
+headers = {
+  'Accept': 'application/json'
+}
+ 
+# For the deployment by DYDX token holders, use
+# baseURL = 'https://indexer.dydx.trade/v4'
+baseURL = 'https://dydx-testnet.imperator.co/v4'
+ 
+r = requests.get(f'{baseURL}/perpetualPositions/parentSubaccountNumber', params={
+  'address': 'string',  'parentSubaccountNumber': '0.1'
+}, headers = headers)
+ 
+print(r.json())
+ 
+ 
+const headers = {
+  'Accept':'application/json'
+};
+ 
+// For the deployment by DYDX token holders, use
+// const baseURL = 'https://indexer.dydx.trade/v4';
+const baseURL = 'https://dydx-testnet.imperator.co/v4';
+ 
+fetch(`${baseURL}/perpetualPositions/parentSubaccountNumber?address=string&parentSubaccountNumber=0.1`,
+{
+  method: 'GET',
+ 
+  headers: headers
+})
+.then(function(res) {
+    return res.json();
+}).then(function(body) {
+    console.log(body);
+});
+ 
+GET /perpetualPositions/parentSubaccountNumber
+
+Parameters
+Name	In	Type	Required	Description
+address	query	string	true	none
+parentSubaccountNumber	query	number(double)	true	none
+status	query	array[string]	false	none
+limit	query	number(double)	false	none
+createdBeforeOrAtHeight	query	number(double)	false	none
+createdBeforeOrAt	query	IsoString	false	none
+Enumerated Values
+Parameter	Value
+status	OPEN
+status	CLOSED
+status	LIQUIDATED
+Example responses
+
+200 Response
+
+{
+  "positions": [
+    {
+      "market": "string",
+      "status": "OPEN",
+      "side": "LONG",
+      "size": "string",
+      "maxSize": "string",
+      "entryPrice": "string",
+      "realizedPnl": "string",
+      "createdAt": "string",
+      "createdAtHeight": "string",
+      "sumOpen": "string",
+      "sumClose": "string",
+      "netFunding": "string",
+      "unrealizedPnl": "string",
+      "closedAt": "string",
+      "exitPrice": "string",
+      "subaccountNumber": 0.1
+    }
+  ]
+}
+Responses
+Status	Meaning	Description	Schema
+200	OK(opens in a new tab)	Ok	PerpetualPositionResponse
+This operation does not require authentication
+
+Get
+Code samples
+
+import requests
+headers = {
+  'Accept': 'application/json'
+}
+ 
+# For the deployment by DYDX token holders, use
+# baseURL = 'https://indexer.dydx.trade/v4'
+baseURL = 'https://dydx-testnet.imperator.co/v4'
+ 
+r = requests.get(f'{baseURL}/sparklines', params={
+  'timePeriod': 'ONE_DAY'
+}, headers = headers)
+ 
+print(r.json())
+ 
+ 
+const headers = {
+  'Accept':'application/json'
+};
+ 
+// For the deployment by DYDX token holders, use
+// const baseURL = 'https://indexer.dydx.trade/v4';
+const baseURL = 'https://dydx-testnet.imperator.co/v4';
+ 
+fetch(`${baseURL}/sparklines?timePeriod=ONE_DAY`,
+{
+  method: 'GET',
+ 
+  headers: headers
+})
+.then(function(res) {
+    return res.json();
+}).then(function(body) {
+    console.log(body);
+});
+ 
+GET /sparklines
+
+Parameters
+Name	In	Type	Required	Description
+timePeriod	query	SparklineTimePeriod	true	none
+Enumerated Values
+Parameter	Value
+timePeriod	ONE_DAY
+timePeriod	SEVEN_DAYS
+Example responses
+
+200 Response
+
+{
+  "property1": [
+    "string"
+  ],
+  "property2": [
+    "string"
+  ]
+}
+Responses
+Status	Meaning	Description	Schema
+200	OK(opens in a new tab)	Ok	SparklineResponseObject
+This operation does not require authentication
+
+GetTime
+Code samples
+
+import requests
+headers = {
+  'Accept': 'application/json'
+}
+ 
+# For the deployment by DYDX token holders, use
+# baseURL = 'https://indexer.dydx.trade/v4'
+baseURL = 'https://dydx-testnet.imperator.co/v4'
+ 
+r = requests.get(f'{baseURL}/time', headers = headers)
+ 
+print(r.json())
+ 
+ 
+const headers = {
+  'Accept':'application/json'
+};
+ 
+// For the deployment by DYDX token holders, use
+// const baseURL = 'https://indexer.dydx.trade/v4';
+const baseURL = 'https://dydx-testnet.imperator.co/v4';
+ 
+fetch(`${baseURL}/time`,
+{
+  method: 'GET',
+ 
+  headers: headers
+})
+.then(function(res) {
+    return res.json();
+}).then(function(body) {
+    console.log(body);
+});
+ 
+GET /time
+
+Example responses
+
+200 Response
+
+{
+  "iso": "string",
+  "epoch": 0.1
+}
+Responses
+Status	Meaning	Description	Schema
+200	OK(opens in a new tab)	Ok	TimeResponse
+This operation does not require authentication
+
+GetTrades
+Code samples
+
+import requests
+headers = {
+  'Accept': 'application/json'
+}
+ 
+# For the deployment by DYDX token holders, use
+# baseURL = 'https://indexer.dydx.trade/v4'
+baseURL = 'https://dydx-testnet.imperator.co/v4'
+ 
+r = requests.get(f'{baseURL}/trades/perpetualMarket/{ticker}', headers = headers)
+ 
+print(r.json())
+ 
+ 
+const headers = {
+  'Accept':'application/json'
+};
+ 
+// For the deployment by DYDX token holders, use
+// const baseURL = 'https://indexer.dydx.trade/v4';
+const baseURL = 'https://dydx-testnet.imperator.co/v4';
+ 
+fetch(`${baseURL}/trades/perpetualMarket/{ticker}`,
+{
+  method: 'GET',
+ 
+  headers: headers
+})
+.then(function(res) {
+    return res.json();
+}).then(function(body) {
+    console.log(body);
+});
+ 
+GET /trades/perpetualMarket/{ticker}
+
+Parameters
+Name	In	Type	Required	Description
+ticker	path	string	true	none
+limit	query	number(double)	false	none
+createdBeforeOrAtHeight	query	number(double)	false	none
+createdBeforeOrAt	query	IsoString	false	none
+page	query	number(double)	false	none
+Example responses
+
+200 Response
+
+{
+  "pageSize": 0.1,
+  "totalResults": 0.1,
+  "offset": 0.1,
+  "trades": [
+    {
+      "id": "string",
+      "side": "BUY",
+      "size": "string",
+      "price": "string",
+      "type": "LIMIT",
+      "createdAt": "string",
+      "createdAtHeight": "string"
+    }
+  ]
+}
+Responses
+Status	Meaning	Description	Schema
+200	OK(opens in a new tab)	Ok	TradeResponse
+This operation does not require authentication
+
+GetTransfers
+Code samples
+
+import requests
+headers = {
+  'Accept': 'application/json'
+}
+ 
+# For the deployment by DYDX token holders, use
+# baseURL = 'https://indexer.dydx.trade/v4'
+baseURL = 'https://dydx-testnet.imperator.co/v4'
+ 
+r = requests.get(f'{baseURL}/transfers', params={
+  'address': 'string',  'subaccountNumber': '0.1'
+}, headers = headers)
+ 
+print(r.json())
+ 
+ 
+const headers = {
+  'Accept':'application/json'
+};
+ 
+// For the deployment by DYDX token holders, use
+// const baseURL = 'https://indexer.dydx.trade/v4';
+const baseURL = 'https://dydx-testnet.imperator.co/v4';
+ 
+fetch(`${baseURL}/transfers?address=string&subaccountNumber=0.1`,
+{
+  method: 'GET',
+ 
+  headers: headers
+})
+.then(function(res) {
+    return res.json();
+}).then(function(body) {
+    console.log(body);
+});
+ 
+GET /transfers
+
+Parameters
+Name	In	Type	Required	Description
+address	query	string	true	none
+subaccountNumber	query	number(double)	true	none
+limit	query	number(double)	false	none
+createdBeforeOrAtHeight	query	number(double)	false	none
+createdBeforeOrAt	query	IsoString	false	none
+page	query	number(double)	false	none
+Example responses
+
+200 Response
+
+{
+  "pageSize": 0.1,
+  "totalResults": 0.1,
+  "offset": 0.1,
+  "transfers": [
+    {
+      "id": "string",
+      "sender": {
+        "subaccountNumber": 0.1,
+        "address": "string"
+      },
+      "recipient": {
+        "subaccountNumber": 0.1,
+        "address": "string"
+      },
+      "size": "string",
+      "createdAt": "string",
+      "createdAtHeight": "string",
+      "symbol": "string",
+      "type": "TRANSFER_IN",
+      "transactionHash": "string"
+    }
+  ]
+}
+Responses
+Status	Meaning	Description	Schema
+200	OK(opens in a new tab)	Ok	TransferResponse
+This operation does not require authentication
+
+GetTransfersForParentSubaccount
+Code samples
+
+import requests
+headers = {
+  'Accept': 'application/json'
+}
+ 
+# For the deployment by DYDX token holders, use
+# baseURL = 'https://indexer.dydx.trade/v4'
+baseURL = 'https://dydx-testnet.imperator.co/v4'
+ 
+r = requests.get(f'{baseURL}/transfers/parentSubaccountNumber', params={
+  'address': 'string',  'parentSubaccountNumber': '0.1'
+}, headers = headers)
+ 
+print(r.json())
+ 
+ 
+const headers = {
+  'Accept':'application/json'
+};
+ 
+// For the deployment by DYDX token holders, use
+// const baseURL = 'https://indexer.dydx.trade/v4';
+const baseURL = 'https://dydx-testnet.imperator.co/v4';
+ 
+fetch(`${baseURL}/transfers/parentSubaccountNumber?address=string&parentSubaccountNumber=0.1`,
+{
+  method: 'GET',
+ 
+  headers: headers
+})
+.then(function(res) {
+    return res.json();
+}).then(function(body) {
+    console.log(body);
+});
+ 
+GET /transfers/parentSubaccountNumber
+
+Parameters
+Name	In	Type	Required	Description
+address	query	string	true	none
+parentSubaccountNumber	query	number(double)	true	none
+limit	query	number(double)	false	none
+createdBeforeOrAtHeight	query	number(double)	false	none
+createdBeforeOrAt	query	IsoString	false	none
+page	query	number(double)	false	none
+Example responses
+
+200 Response
+
+{
+  "pageSize": 0.1,
+  "totalResults": 0.1,
+  "offset": 0.1,
+  "transfers": [
+    {
+      "id": "string",
+      "sender": {
+        "subaccountNumber": 0.1,
+        "address": "string"
+      },
+      "recipient": {
+        "subaccountNumber": 0.1,
+        "address": "string"
+      },
+      "size": "string",
+      "createdAt": "string",
+      "createdAtHeight": "string",
+      "symbol": "string",
+      "type": "TRANSFER_IN",
+      "transactionHash": "string"
+    }
+  ]
+}
+Responses
+Status	Meaning	Description	Schema
+200	OK(opens in a new tab)	Ok	ParentSubaccountTransferResponse
+This operation does not require authentication
+
+Schemas
+PerpetualPositionStatus
+"OPEN"
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+anonymous	string	false	none	none
+Enumerated Values
+Property	Value
+anonymous	OPEN
+anonymous	CLOSED
+anonymous	LIQUIDATED
+PositionSide
+"LONG"
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+anonymous	string	false	none	none
+Enumerated Values
+Property	Value
+anonymous	LONG
+anonymous	SHORT
+IsoString
+"string"
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+anonymous	string	false	none	none
+PerpetualPositionResponseObject
+{
+  "market": "string",
+  "status": "OPEN",
+  "side": "LONG",
+  "size": "string",
+  "maxSize": "string",
+  "entryPrice": "string",
+  "realizedPnl": "string",
+  "createdAt": "string",
+  "createdAtHeight": "string",
+  "sumOpen": "string",
+  "sumClose": "string",
+  "netFunding": "string",
+  "unrealizedPnl": "string",
+  "closedAt": "string",
+  "exitPrice": "string",
+  "subaccountNumber": 0.1
+}
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+market	string	true	none	none
+status	PerpetualPositionStatus	true	none	none
+side	PositionSide	true	none	none
+size	string	true	none	none
+maxSize	string	true	none	none
+entryPrice	string	true	none	none
+realizedPnl	string	true	none	none
+createdAt	IsoString	true	none	none
+createdAtHeight	string	true	none	none
+sumOpen	string	true	none	none
+sumClose	string	true	none	none
+netFunding	string	true	none	none
+unrealizedPnl	string	true	none	none
+closedAt	IsoString¦null	false	none	none
+exitPrice	string¦null	false	none	none
+subaccountNumber	number(double)	true	none	none
+PerpetualPositionsMap
+{
+  "property1": {
+    "market": "string",
+    "status": "OPEN",
+    "side": "LONG",
+    "size": "string",
+    "maxSize": "string",
+    "entryPrice": "string",
+    "realizedPnl": "string",
+    "createdAt": "string",
+    "createdAtHeight": "string",
+    "sumOpen": "string",
+    "sumClose": "string",
+    "netFunding": "string",
+    "unrealizedPnl": "string",
+    "closedAt": "string",
+    "exitPrice": "string",
+    "subaccountNumber": 0.1
+  },
+  "property2": {
+    "market": "string",
+    "status": "OPEN",
+    "side": "LONG",
+    "size": "string",
+    "maxSize": "string",
+    "entryPrice": "string",
+    "realizedPnl": "string",
+    "createdAt": "string",
+    "createdAtHeight": "string",
+    "sumOpen": "string",
+    "sumClose": "string",
+    "netFunding": "string",
+    "unrealizedPnl": "string",
+    "closedAt": "string",
+    "exitPrice": "string",
+    "subaccountNumber": 0.1
+  }
+}
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+additionalProperties	PerpetualPositionResponseObject	false	none	none
+AssetPositionResponseObject
+{
+  "symbol": "string",
+  "side": "LONG",
+  "size": "string",
+  "assetId": "string",
+  "subaccountNumber": 0.1
+}
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+symbol	string	true	none	none
+side	PositionSide	true	none	none
+size	string	true	none	none
+assetId	string	true	none	none
+subaccountNumber	number(double)	true	none	none
+AssetPositionsMap
+{
+  "property1": {
+    "symbol": "string",
+    "side": "LONG",
+    "size": "string",
+    "assetId": "string",
+    "subaccountNumber": 0.1
+  },
+  "property2": {
+    "symbol": "string",
+    "side": "LONG",
+    "size": "string",
+    "assetId": "string",
+    "subaccountNumber": 0.1
+  }
+}
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+additionalProperties	AssetPositionResponseObject	false	none	none
+SubaccountResponseObject
+{
+  "address": "string",
+  "subaccountNumber": 0.1,
+  "equity": "string",
+  "freeCollateral": "string",
+  "openPerpetualPositions": {
+    "property1": {
+      "market": "string",
+      "status": "OPEN",
+      "side": "LONG",
+      "size": "string",
+      "maxSize": "string",
+      "entryPrice": "string",
+      "realizedPnl": "string",
+      "createdAt": "string",
+      "createdAtHeight": "string",
+      "sumOpen": "string",
+      "sumClose": "string",
+      "netFunding": "string",
+      "unrealizedPnl": "string",
+      "closedAt": "string",
+      "exitPrice": "string",
+      "subaccountNumber": 0.1
+    },
+    "property2": {
+      "market": "string",
+      "status": "OPEN",
+      "side": "LONG",
+      "size": "string",
+      "maxSize": "string",
+      "entryPrice": "string",
+      "realizedPnl": "string",
+      "createdAt": "string",
+      "createdAtHeight": "string",
+      "sumOpen": "string",
+      "sumClose": "string",
+      "netFunding": "string",
+      "unrealizedPnl": "string",
+      "closedAt": "string",
+      "exitPrice": "string",
+      "subaccountNumber": 0.1
+    }
+  },
+  "assetPositions": {
+    "property1": {
+      "symbol": "string",
+      "side": "LONG",
+      "size": "string",
+      "assetId": "string",
+      "subaccountNumber": 0.1
+    },
+    "property2": {
+      "symbol": "string",
+      "side": "LONG",
+      "size": "string",
+      "assetId": "string",
+      "subaccountNumber": 0.1
+    }
+  },
+  "marginEnabled": true,
+  "updatedAtHeight": "string"
+}
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+address	string	true	none	none
+subaccountNumber	number(double)	true	none	none
+equity	string	true	none	none
+freeCollateral	string	true	none	none
+openPerpetualPositions	PerpetualPositionsMap	true	none	none
+assetPositions	AssetPositionsMap	true	none	none
+marginEnabled	boolean	true	none	none
+updatedAtHeight	string	true	none	none
+AddressResponse
+{
+  "subaccounts": [
+    {
+      "address": "string",
+      "subaccountNumber": 0.1,
+      "equity": "string",
+      "freeCollateral": "string",
+      "openPerpetualPositions": {
+        "property1": {
+          "market": "string",
+          "status": "OPEN",
+          "side": "LONG",
+          "size": "string",
+          "maxSize": "string",
+          "entryPrice": "string",
+          "realizedPnl": "string",
+          "createdAt": "string",
+          "createdAtHeight": "string",
+          "sumOpen": "string",
+          "sumClose": "string",
+          "netFunding": "string",
+          "unrealizedPnl": "string",
+          "closedAt": null,
+          "exitPrice": "string",
+          "subaccountNumber": 0.1
+        },
+        "property2": {
+          "market": "string",
+          "status": "OPEN",
+          "side": "LONG",
+          "size": "string",
+          "maxSize": "string",
+          "entryPrice": "string",
+          "realizedPnl": "string",
+          "createdAt": "string",
+          "createdAtHeight": "string",
+          "sumOpen": "string",
+          "sumClose": "string",
+          "netFunding": "string",
+          "unrealizedPnl": "string",
+          "closedAt": null,
+          "exitPrice": "string",
+          "subaccountNumber": 0.1
+        }
+      },
+      "assetPositions": {
+        "property1": {
+          "symbol": "string",
+          "side": "LONG",
+          "size": "string",
+          "assetId": "string",
+          "subaccountNumber": 0.1
+        },
+        "property2": {
+          "symbol": "string",
+          "side": "LONG",
+          "size": "string",
+          "assetId": "string",
+          "subaccountNumber": 0.1
+        }
+      },
+      "marginEnabled": true,
+      "updatedAtHeight": "string"
+    }
+  ],
+  "totalTradingRewards": "string"
+}
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+subaccounts	[SubaccountResponseObject]	true	none	none
+totalTradingRewards	string	true	none	none
+ParentSubaccountResponse
+{
+  "address": "string",
+  "parentSubaccountNumber": 0.1,
+  "equity": "string",
+  "freeCollateral": "string",
+  "childSubaccounts": [
+    {
+      "address": "string",
+      "subaccountNumber": 0.1,
+      "equity": "string",
+      "freeCollateral": "string",
+      "openPerpetualPositions": {
+        "property1": {
+          "market": "string",
+          "status": "OPEN",
+          "side": "LONG",
+          "size": "string",
+          "maxSize": "string",
+          "entryPrice": "string",
+          "realizedPnl": "string",
+          "createdAt": "string",
+          "createdAtHeight": "string",
+          "sumOpen": "string",
+          "sumClose": "string",
+          "netFunding": "string",
+          "unrealizedPnl": "string",
+          "closedAt": null,
+          "exitPrice": "string",
+          "subaccountNumber": 0.1
+        },
+        "property2": {
+          "market": "string",
+          "status": "OPEN",
+          "side": "LONG",
+          "size": "string",
+          "maxSize": "string",
+          "entryPrice": "string",
+          "realizedPnl": "string",
+          "createdAt": "string",
+          "createdAtHeight": "string",
+          "sumOpen": "string",
+          "sumClose": "string",
+          "netFunding": "string",
+          "unrealizedPnl": "string",
+          "closedAt": null,
+          "exitPrice": "string",
+          "subaccountNumber": 0.1
+        }
+      },
+      "assetPositions": {
+        "property1": {
+          "symbol": "string",
+          "side": "LONG",
+          "size": "string",
+          "assetId": "string",
+          "subaccountNumber": 0.1
+        },
+        "property2": {
+          "symbol": "string",
+          "side": "LONG",
+          "size": "string",
+          "assetId": "string",
+          "subaccountNumber": 0.1
+        }
+      },
+      "marginEnabled": true,
+      "updatedAtHeight": "string"
+    }
+  ]
+}
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+address	string	true	none	none
+parentSubaccountNumber	number(double)	true	none	none
+equity	string	true	none	none
+freeCollateral	string	true	none	none
+childSubaccounts	[SubaccountResponseObject]	true	none	none
+AssetPositionResponse
+{
+  "positions": [
+    {
+      "symbol": "string",
+      "side": "LONG",
+      "size": "string",
+      "assetId": "string",
+      "subaccountNumber": 0.1
+    }
+  ]
+}
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+positions	[AssetPositionResponseObject]	true	none	none
+CandleResolution
+"1MIN"
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+anonymous	string	false	none	none
+Enumerated Values
+Property	Value
+anonymous	1MIN
+anonymous	5MINS
+anonymous	15MINS
+anonymous	30MINS
+anonymous	1HOUR
+anonymous	4HOURS
+anonymous	1DAY
+CandleResponseObject
+{
+  "startedAt": "string",
+  "ticker": "string",
+  "resolution": "1MIN",
+  "low": "string",
+  "high": "string",
+  "open": "string",
+  "close": "string",
+  "baseTokenVolume": "string",
+  "usdVolume": "string",
+  "trades": 0.1,
+  "startingOpenInterest": "string",
+  "id": "string"
+}
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+startedAt	IsoString	true	none	none
+ticker	string	true	none	none
+resolution	CandleResolution	true	none	none
+low	string	true	none	none
+high	string	true	none	none
+open	string	true	none	none
+close	string	true	none	none
+baseTokenVolume	string	true	none	none
+usdVolume	string	true	none	none
+trades	number(double)	true	none	none
+startingOpenInterest	string	true	none	none
+id	string	true	none	none
+CandleResponse
+{
+  "candles": [
+    {
+      "startedAt": "string",
+      "ticker": "string",
+      "resolution": "1MIN",
+      "low": "string",
+      "high": "string",
+      "open": "string",
+      "close": "string",
+      "baseTokenVolume": "string",
+      "usdVolume": "string",
+      "trades": 0.1,
+      "startingOpenInterest": "string",
+      "id": "string"
+    }
+  ]
+}
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+candles	[CandleResponseObject]	true	none	none
+ComplianceResponse
+{
+  "restricted": true,
+  "reason": "string"
+}
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+restricted	boolean	true	none	none
+reason	string	false	none	none
+ComplianceStatus
+"COMPLIANT"
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+anonymous	string	false	none	none
+Enumerated Values
+Property	Value
+anonymous	COMPLIANT
+anonymous	FIRST_STRIKE_CLOSE_ONLY
+anonymous	FIRST_STRIKE
+anonymous	CLOSE_ONLY
+anonymous	BLOCKED
+ComplianceReason
+"MANUAL"
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+anonymous	string	false	none	none
+Enumerated Values
+Property	Value
+anonymous	MANUAL
+anonymous	US_GEO
+anonymous	CA_GEO
+anonymous	SANCTIONED_GEO
+anonymous	COMPLIANCE_PROVIDER
+ComplianceV2Response
+{
+  "status": "COMPLIANT",
+  "reason": "MANUAL",
+  "updatedAt": "string"
+}
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+status	ComplianceStatus	true	none	none
+reason	ComplianceReason	false	none	none
+updatedAt	string	false	none	none
+OrderSide
+"BUY"
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+anonymous	string	false	none	none
+Enumerated Values
+Property	Value
+anonymous	BUY
+anonymous	SELL
+Liquidity
+"TAKER"
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+anonymous	string	false	none	none
+Enumerated Values
+Property	Value
+anonymous	TAKER
+anonymous	MAKER
+FillType
+"LIMIT"
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+anonymous	string	false	none	none
+Enumerated Values
+Property	Value
+anonymous	LIMIT
+anonymous	LIQUIDATED
+anonymous	LIQUIDATION
+anonymous	DELEVERAGED
+anonymous	OFFSETTING
+MarketType
+"PERPETUAL"
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+anonymous	string	false	none	none
+Enumerated Values
+Property	Value
+anonymous	PERPETUAL
+anonymous	SPOT
+FillResponseObject
+{
+  "id": "string",
+  "side": "BUY",
+  "liquidity": "TAKER",
+  "type": "LIMIT",
+  "market": "string",
+  "marketType": "PERPETUAL",
+  "price": "string",
+  "size": "string",
+  "fee": "string",
+  "createdAt": "string",
+  "createdAtHeight": "string",
+  "orderId": "string",
+  "clientMetadata": "string",
+  "subaccountNumber": 0.1
+}
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+id	string	true	none	none
+side	OrderSide	true	none	none
+liquidity	Liquidity	true	none	none
+type	FillType	true	none	none
+market	string	true	none	none
+marketType	MarketType	true	none	none
+price	string	true	none	none
+size	string	true	none	none
+fee	string	true	none	none
+createdAt	IsoString	true	none	none
+createdAtHeight	string	true	none	none
+orderId	string	false	none	none
+clientMetadata	string	false	none	none
+subaccountNumber	number(double)	true	none	none
+FillResponse
+{
+  "pageSize": 0.1,
+  "totalResults": 0.1,
+  "offset": 0.1,
+  "fills": [
+    {
+      "id": "string",
+      "side": "BUY",
+      "liquidity": "TAKER",
+      "type": "LIMIT",
+      "market": "string",
+      "marketType": "PERPETUAL",
+      "price": "string",
+      "size": "string",
+      "fee": "string",
+      "createdAt": "string",
+      "createdAtHeight": "string",
+      "orderId": "string",
+      "clientMetadata": "string",
+      "subaccountNumber": 0.1
+    }
+  ]
+}
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+pageSize	number(double)	false	none	none
+totalResults	number(double)	false	none	none
+offset	number(double)	false	none	none
+fills	[FillResponseObject]	true	none	none
+HeightResponse
+{
+  "height": "string",
+  "time": "string"
+}
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+height	string	true	none	none
+time	IsoString	true	none	none
+HistoricalBlockTradingReward
+{
+  "tradingReward": "string",
+  "createdAt": "string",
+  "createdAtHeight": "string"
+}
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+tradingReward	string	true	none	none
+createdAt	IsoString	true	none	none
+createdAtHeight	string	true	none	none
+HistoricalBlockTradingRewardsResponse
+{
+  "rewards": [
+    {
+      "tradingReward": "string",
+      "createdAt": "string",
+      "createdAtHeight": "string"
+    }
+  ]
+}
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+rewards	[HistoricalBlockTradingReward]	true	none	none
+HistoricalFundingResponseObject
+{
+  "ticker": "string",
+  "rate": "string",
+  "price": "string",
+  "effectiveAt": "string",
+  "effectiveAtHeight": "string"
+}
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+ticker	string	true	none	none
+rate	string	true	none	none
+price	string	true	none	none
+effectiveAt	IsoString	true	none	none
+effectiveAtHeight	string	true	none	none
+HistoricalFundingResponse
+{
+  "historicalFunding": [
+    {
+      "ticker": "string",
+      "rate": "string",
+      "price": "string",
+      "effectiveAt": "string",
+      "effectiveAtHeight": "string"
+    }
+  ]
+}
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+historicalFunding	[HistoricalFundingResponseObject]	true	none	none
+PnlTicksResponseObject
+{
+  "id": "string",
+  "subaccountId": "string",
+  "equity": "string",
+  "totalPnl": "string",
+  "netTransfers": "string",
+  "createdAt": "string",
+  "blockHeight": "string",
+  "blockTime": "string"
+}
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+id	string	true	none	none
+subaccountId	string	true	none	none
+equity	string	true	none	none
+totalPnl	string	true	none	none
+netTransfers	string	true	none	none
+createdAt	string	true	none	none
+blockHeight	string	true	none	none
+blockTime	IsoString	true	none	none
+HistoricalPnlResponse
+{
+  "pageSize": 0.1,
+  "totalResults": 0.1,
+  "offset": 0.1,
+  "historicalPnl": [
+    {
+      "id": "string",
+      "subaccountId": "string",
+      "equity": "string",
+      "totalPnl": "string",
+      "netTransfers": "string",
+      "createdAt": "string",
+      "blockHeight": "string",
+      "blockTime": "string"
+    }
+  ]
+}
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+pageSize	number(double)	false	none	none
+totalResults	number(double)	false	none	none
+offset	number(double)	false	none	none
+historicalPnl	[PnlTicksResponseObject]	true	none	none
+TradingRewardAggregationPeriod
+"DAILY"
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+anonymous	string	false	none	none
+Enumerated Values
+Property	Value
+anonymous	DAILY
+anonymous	WEEKLY
+anonymous	MONTHLY
+HistoricalTradingRewardAggregation
+{
+  "tradingReward": "string",
+  "startedAt": "string",
+  "startedAtHeight": "string",
+  "endedAt": "string",
+  "endedAtHeight": "string",
+  "period": "DAILY"
+}
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+tradingReward	string	true	none	none
+startedAt	IsoString	true	none	none
+startedAtHeight	string	true	none	none
+endedAt	IsoString	false	none	none
+endedAtHeight	string	false	none	none
+period	TradingRewardAggregationPeriod	true	none	none
+HistoricalTradingRewardAggregationsResponse
+{
+  "rewards": [
+    {
+      "tradingReward": "string",
+      "startedAt": "string",
+      "startedAtHeight": "string",
+      "endedAt": "string",
+      "endedAtHeight": "string",
+      "period": "DAILY"
+    }
+  ]
+}
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+rewards	[HistoricalTradingRewardAggregation]	true	none	none
+OrderbookResponsePriceLevel
+{
+  "price": "string",
+  "size": "string"
+}
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+price	string	true	none	none
+size	string	true	none	none
+OrderbookResponseObject
+{
+  "bids": [
+    {
+      "price": "string",
+      "size": "string"
+    }
+  ],
+  "asks": [
+    {
+      "price": "string",
+      "size": "string"
+    }
+  ]
+}
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+bids	[OrderbookResponsePriceLevel]	true	none	none
+asks	[OrderbookResponsePriceLevel]	true	none	none
+APITimeInForce
+"GTT"
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+anonymous	string	false	none	none
+Enumerated Values
+Property	Value
+anonymous	GTT
+anonymous	FOK
+anonymous	IOC
+OrderStatus
+"OPEN"
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+anonymous	string	false	none	none
+Enumerated Values
+Property	Value
+anonymous	OPEN
+anonymous	FILLED
+anonymous	CANCELED
+anonymous	BEST_EFFORT_CANCELED
+anonymous	UNTRIGGERED
+BestEffortOpenedStatus
+"BEST_EFFORT_OPENED"
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+anonymous	string	false	none	none
+Enumerated Values
+Property	Value
+anonymous	BEST_EFFORT_OPENED
+APIOrderStatus
+"OPEN"
+ 
+Properties
+anyOf
+
+Name	Type	Required	Restrictions	Description
+anonymous	OrderStatus	false	none	none
+or
+
+Name	Type	Required	Restrictions	Description
+anonymous	BestEffortOpenedStatus	false	none	none
+OrderType
+"LIMIT"
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+anonymous	string	false	none	none
+Enumerated Values
+Property	Value
+anonymous	LIMIT
+anonymous	MARKET
+anonymous	STOP_LIMIT
+anonymous	STOP_MARKET
+anonymous	TRAILING_STOP
+anonymous	TAKE_PROFIT
+anonymous	TAKE_PROFIT_MARKET
+OrderResponseObject
+{
+  "id": "string",
+  "subaccountId": "string",
+  "clientId": "string",
+  "clobPairId": "string",
+  "side": "BUY",
+  "size": "string",
+  "totalFilled": "string",
+  "price": "string",
+  "type": "LIMIT",
+  "reduceOnly": true,
+  "orderFlags": "string",
+  "goodTilBlock": "string",
+  "goodTilBlockTime": "string",
+  "createdAtHeight": "string",
+  "clientMetadata": "string",
+  "triggerPrice": "string",
+  "timeInForce": "GTT",
+  "status": "OPEN",
+  "postOnly": true,
+  "ticker": "string",
+  "updatedAt": "string",
+  "updatedAtHeight": "string",
+  "subaccountNumber": 0.1
+}
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+id	string	true	none	none
+subaccountId	string	true	none	none
+clientId	string	true	none	none
+clobPairId	string	true	none	none
+side	OrderSide	true	none	none
+size	string	true	none	none
+totalFilled	string	true	none	none
+price	string	true	none	none
+type	OrderType	true	none	none
+reduceOnly	boolean	true	none	none
+orderFlags	string	true	none	none
+goodTilBlock	string	false	none	none
+goodTilBlockTime	string	false	none	none
+createdAtHeight	string	false	none	none
+clientMetadata	string	true	none	none
+triggerPrice	string	false	none	none
+timeInForce	APITimeInForce	true	none	none
+status	APIOrderStatus	true	none	none
+postOnly	boolean	true	none	none
+ticker	string	true	none	none
+updatedAt	IsoString	false	none	none
+updatedAtHeight	string	false	none	none
+subaccountNumber	number(double)	true	none	none
+PerpetualMarketStatus
+"ACTIVE"
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+anonymous	string	false	none	none
+Enumerated Values
+Property	Value
+anonymous	ACTIVE
+anonymous	PAUSED
+anonymous	CANCEL_ONLY
+anonymous	POST_ONLY
+anonymous	INITIALIZING
+anonymous	FINAL_SETTLEMENT
+PerpetualMarketType
+"CROSS"
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+anonymous	string	false	none	none
+Enumerated Values
+Property	Value
+anonymous	CROSS
+anonymous	ISOLATED
+PerpetualMarketResponseObject
+{
+  "clobPairId": "string",
+  "ticker": "string",
+  "status": "ACTIVE",
+  "oraclePrice": "string",
+  "priceChange24H": "string",
+  "volume24H": "string",
+  "trades24H": 0.1,
+  "nextFundingRate": "string",
+  "initialMarginFraction": "string",
+  "maintenanceMarginFraction": "string",
+  "openInterest": "string",
+  "atomicResolution": 0.1,
+  "quantumConversionExponent": 0.1,
+  "tickSize": "string",
+  "stepSize": "string",
+  "stepBaseQuantums": 0.1,
+  "subticksPerTick": 0.1,
+  "marketType": "CROSS",
+  "openInterestLowerCap": "string",
+  "openInterestUpperCap": "string",
+  "baseOpenInterest": "string"
+}
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+clobPairId	string	true	none	none
+ticker	string	true	none	none
+status	PerpetualMarketStatus	true	none	none
+oraclePrice	string	true	none	none
+priceChange24H	string	true	none	none
+volume24H	string	true	none	none
+trades24H	number(double)	true	none	none
+nextFundingRate	string	true	none	none
+initialMarginFraction	string	true	none	none
+maintenanceMarginFraction	string	true	none	none
+openInterest	string	true	none	none
+atomicResolution	number(double)	true	none	none
+quantumConversionExponent	number(double)	true	none	none
+tickSize	string	true	none	none
+stepSize	string	true	none	none
+stepBaseQuantums	number(double)	true	none	none
+subticksPerTick	number(double)	true	none	none
+marketType	PerpetualMarketType	true	none	none
+openInterestLowerCap	string	false	none	none
+openInterestUpperCap	string	false	none	none
+baseOpenInterest	string	true	none	none
+PerpetualMarketResponse
+{
+  "markets": {
+    "property1": {
+      "clobPairId": "string",
+      "ticker": "string",
+      "status": "ACTIVE",
+      "oraclePrice": "string",
+      "priceChange24H": "string",
+      "volume24H": "string",
+      "trades24H": 0.1,
+      "nextFundingRate": "string",
+      "initialMarginFraction": "string",
+      "maintenanceMarginFraction": "string",
+      "openInterest": "string",
+      "atomicResolution": 0.1,
+      "quantumConversionExponent": 0.1,
+      "tickSize": "string",
+      "stepSize": "string",
+      "stepBaseQuantums": 0.1,
+      "subticksPerTick": 0.1,
+      "marketType": "CROSS",
+      "openInterestLowerCap": "string",
+      "openInterestUpperCap": "string",
+      "baseOpenInterest": "string"
+    },
+    "property2": {
+      "clobPairId": "string",
+      "ticker": "string",
+      "status": "ACTIVE",
+      "oraclePrice": "string",
+      "priceChange24H": "string",
+      "volume24H": "string",
+      "trades24H": 0.1,
+      "nextFundingRate": "string",
+      "initialMarginFraction": "string",
+      "maintenanceMarginFraction": "string",
+      "openInterest": "string",
+      "atomicResolution": 0.1,
+      "quantumConversionExponent": 0.1,
+      "tickSize": "string",
+      "stepSize": "string",
+      "stepBaseQuantums": 0.1,
+      "subticksPerTick": 0.1,
+      "marketType": "CROSS",
+      "openInterestLowerCap": "string",
+      "openInterestUpperCap": "string",
+      "baseOpenInterest": "string"
+    }
+  }
+}
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+markets	object	true	none	none
+» additionalProperties	PerpetualMarketResponseObject	false	none	none
+PerpetualPositionResponse
+{
+  "positions": [
+    {
+      "market": "string",
+      "status": "OPEN",
+      "side": "LONG",
+      "size": "string",
+      "maxSize": "string",
+      "entryPrice": "string",
+      "realizedPnl": "string",
+      "createdAt": "string",
+      "createdAtHeight": "string",
+      "sumOpen": "string",
+      "sumClose": "string",
+      "netFunding": "string",
+      "unrealizedPnl": "string",
+      "closedAt": "string",
+      "exitPrice": "string",
+      "subaccountNumber": 0.1
+    }
+  ]
+}
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+positions	[PerpetualPositionResponseObject]	true	none	none
+SparklineResponseObject
+{
+  "property1": [
+    "string"
+  ],
+  "property2": [
+    "string"
+  ]
+}
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+additionalProperties	[string]	false	none	none
+SparklineTimePeriod
+"ONE_DAY"
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+anonymous	string	false	none	none
+Enumerated Values
+Property	Value
+anonymous	ONE_DAY
+anonymous	SEVEN_DAYS
+TimeResponse
+{
+  "iso": "string",
+  "epoch": 0.1
+}
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+iso	IsoString	true	none	none
+epoch	number(double)	true	none	none
+TradeType
+"LIMIT"
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+anonymous	string	false	none	none
+Enumerated Values
+Property	Value
+anonymous	LIMIT
+anonymous	LIQUIDATED
+anonymous	DELEVERAGED
+TradeResponseObject
+{
+  "id": "string",
+  "side": "BUY",
+  "size": "string",
+  "price": "string",
+  "type": "LIMIT",
+  "createdAt": "string",
+  "createdAtHeight": "string"
+}
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+id	string	true	none	none
+side	OrderSide	true	none	none
+size	string	true	none	none
+price	string	true	none	none
+type	TradeType	true	none	none
+createdAt	IsoString	true	none	none
+createdAtHeight	string	true	none	none
+TradeResponse
+{
+  "pageSize": 0.1,
+  "totalResults": 0.1,
+  "offset": 0.1,
+  "trades": [
+    {
+      "id": "string",
+      "side": "BUY",
+      "size": "string",
+      "price": "string",
+      "type": "LIMIT",
+      "createdAt": "string",
+      "createdAtHeight": "string"
+    }
+  ]
+}
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+pageSize	number(double)	false	none	none
+totalResults	number(double)	false	none	none
+offset	number(double)	false	none	none
+trades	[TradeResponseObject]	true	none	none
+TransferType
+"TRANSFER_IN"
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+anonymous	string	false	none	none
+Enumerated Values
+Property	Value
+anonymous	TRANSFER_IN
+anonymous	TRANSFER_OUT
+anonymous	DEPOSIT
+anonymous	WITHDRAWAL
+TransferResponseObject
+{
+  "id": "string",
+  "sender": {
+    "subaccountNumber": 0.1,
+    "address": "string"
+  },
+  "recipient": {
+    "subaccountNumber": 0.1,
+    "address": "string"
+  },
+  "size": "string",
+  "createdAt": "string",
+  "createdAtHeight": "string",
+  "symbol": "string",
+  "type": "TRANSFER_IN",
+  "transactionHash": "string"
+}
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+id	string	true	none	none
+sender	object	true	none	none
+» subaccountNumber	number(double)	false	none	none
+» address	string	true	none	none
+recipient	object	true	none	none
+» subaccountNumber	number(double)	false	none	none
+» address	string	true	none	none
+size	string	true	none	none
+createdAt	string	true	none	none
+createdAtHeight	string	true	none	none
+symbol	string	true	none	none
+type	TransferType	true	none	none
+transactionHash	string	true	none	none
+TransferResponse
+{
+  "pageSize": 0.1,
+  "totalResults": 0.1,
+  "offset": 0.1,
+  "transfers": [
+    {
+      "id": "string",
+      "sender": {
+        "subaccountNumber": 0.1,
+        "address": "string"
+      },
+      "recipient": {
+        "subaccountNumber": 0.1,
+        "address": "string"
+      },
+      "size": "string",
+      "createdAt": "string",
+      "createdAtHeight": "string",
+      "symbol": "string",
+      "type": "TRANSFER_IN",
+      "transactionHash": "string"
+    }
+  ]
+}
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+pageSize	number(double)	false	none	none
+totalResults	number(double)	false	none	none
+offset	number(double)	false	none	none
+transfers	[TransferResponseObject]	true	none	none
+ParentSubaccountTransferResponse
+{
+  "pageSize": 0.1,
+  "totalResults": 0.1,
+  "offset": 0.1,
+  "transfers": [
+    {
+      "id": "string",
+      "sender": {
+        "subaccountNumber": 0.1,
+        "address": "string"
+      },
+      "recipient": {
+        "subaccountNumber": 0.1,
+        "address": "string"
+      },
+      "size": "string",
+      "createdAt": "string",
+      "createdAtHeight": "string",
+      "symbol": "string",
+      "type": "TRANSFER_IN",
+      "transactionHash": "string"
+    }
+  ]
+}
+ 
+Properties
+Name	Type	Required	Restrictions	Description
+pageSize	number(double)	false	none	none
+totalResults	number(double)	false	none	none
+offset	number(double)	false	none	none
+transfers	[TransferResponseObject]	true	none	none
+Composite Client
+Indexer Websocket
+Disclaimer: Note that as of the date hereof, the testnet and dYdX Chain deployment by DYDX token holders are the only known deployments of the dYdX v4 software, and other deployment options may be added. For more information, please see https://dydx.exchange/dydx-chain-front-end-options
