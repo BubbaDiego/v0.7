@@ -58,28 +58,42 @@ class PositionService:
             raise
 
     @staticmethod
+    @staticmethod
     def enrich_position(position: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Enrich a single position dictionary with computed profit, leverage, travel percent,
-        liquidation distance, and heat index.
-        """
         try:
             calc = CalcServices()
+            # List of required numeric fields
+            required_fields = ['entry_price', 'current_price', 'liquidation_price', 'collateral', 'size']
+            for field in required_fields:
+                if position.get(field) is None:
+                    # For current_price, fallback to entry_price if available
+                    if field == 'current_price' and position.get('entry_price') is not None:
+                        position[field] = position['entry_price']
+                    else:
+                        position[field] = 0.0
+
+            # Convert values to float explicitly
+            position['entry_price'] = float(position['entry_price'])
+            position['current_price'] = float(position['current_price'])
+            position['liquidation_price'] = float(position['liquidation_price'])
+            position['collateral'] = float(position['collateral'])
+            position['size'] = float(position['size'])
+
             # Compute profit value
             position['profit'] = calc.calculate_value(position)
 
             # Compute leverage
-            collateral = float(position.get('collateral', 0))
-            size = float(position.get('size', 0))
+            collateral = position['collateral']
+            size = position['size']
             position['leverage'] = calc.calculate_leverage(size, collateral) if collateral > 0 else None
 
             # Compute travel percent if relevant data exists
             if all(k in position for k in ['entry_price', 'current_price', 'liquidation_price']):
                 position['travel_percent'] = calc.calculate_travel_percent(
                     position.get('position_type', ''),
-                    float(position['entry_price']),
-                    float(position['current_price']),
-                    float(position['liquidation_price'])
+                    position['entry_price'],
+                    position['current_price'],
+                    position['liquidation_price']
                 )
             else:
                 position['travel_percent'] = None
@@ -87,8 +101,8 @@ class PositionService:
             # Compute liquidation distance (absolute difference)
             if 'current_price' in position and 'liquidation_price' in position:
                 position['liquidation_distance'] = calc.calculate_liquid_distance(
-                    float(position['current_price']),
-                    float(position['liquidation_price'])
+                    position['current_price'],
+                    position['liquidation_price']
                 )
             else:
                 position['liquidation_distance'] = None

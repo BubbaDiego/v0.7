@@ -126,19 +126,35 @@
               </td>
               <!-- Collateral Column -->
               <td class="{{ pos.collateral_alert_class }}">
-                {{ "{:,.2f}".format(pos.collateral) }}
+                {% if pos.collateral is not none %}
+                  {{ "{:,.2f}".format(pos.collateral) }}
+                {% else %}
+                  N/A
+                {% endif %}
               </td>
               <!-- Value Column -->
               <td class="{{ pos.value_alert_class }}">
-                {{ "{:,.2f}".format(pos.value) }}
+                {% if pos.value is not none %}
+                  {{ "{:,.2f}".format(pos.value) }}
+                {% else %}
+                  N/A
+                {% endif %}
               </td>
               <!-- Size Column -->
               <td class="{{ pos.size_alert_class }}">
-                {{ "{:,.2f}".format(pos.size) }}
+                {% if pos.size is not none %}
+                  {{ "{:,.2f}".format(pos.size) }}
+                {% else %}
+                  N/A
+                {% endif %}
               </td>
               <!-- Leverage Column -->
               <td class="{{ pos.leverage_alert_class }}">
-                {{ "{:,.2f}".format(pos.leverage) }}
+                {% if pos.leverage is not none %}
+                  {{ "{:,.2f}".format(pos.leverage) }}
+                {% else %}
+                  N/A
+                {% endif %}
               </td>
               <!-- Travel % Column -->
               <td class="{{ pos.travel_liquid_alert_class }}">
