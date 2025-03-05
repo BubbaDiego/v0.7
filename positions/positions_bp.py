@@ -22,6 +22,10 @@ from data.data_locker import DataLocker
 from config.config_constants import DB_PATH, CONFIG_PATH
 from utils.calc_services import CalcServices, get_profit_alert_class
 from positions.position_service import PositionService
+from positions.Dydx_api import DydxAPI
+from api.Dydx_api import DydxAPI
+from api.Dydx_API import DydxAPI
+
 
 
 import asyncio  # Ensure asyncio is imported
@@ -129,6 +133,29 @@ def list_positions():
         logger.error(f"Error in listing positions: {e}", exc_info=True)
         return jsonify({"error": str(e)}), 500
 
+
+@positions_bp.route("/dydx", methods=["GET"])
+def dydx_data():
+    try:
+        # Import the dYdX API client. This module should implement methods such as get_subaccounts
+        # and get_perpetual_positions as per our earlier design.
+        from Dydx_API import DydxAPI
+        client = DydxAPI()
+
+        # Retrieve the wallet address and subaccount number from the configuration.
+        # You can set these in your config; otherwise, default values are used.
+        wallet_address = current_app.config.get("DYDX_WALLET_ADDRESS", "default_wallet_address")
+        subaccount_number = current_app.config.get("DYDX_SUBACCOUNT_NUMBER", 0)
+
+        # Fetch data from the dYdX API
+        subaccounts = client.get_subaccounts(wallet_address)
+        positions = client.get_perpetual_positions(wallet_address, subaccount_number)
+
+        # Render the dxdy.html template with the fetched data.
+        return render_template("dxdy.html", subaccounts=subaccounts, positions=positions)
+    except Exception as e:
+        current_app.logger.error("Error fetching dYdX data: %s", e, exc_info=True)
+        return jsonify({"error": str(e)}), 500
 
 @positions_bp.route("/position_trends", methods=["GET"])
 def position_trends():
