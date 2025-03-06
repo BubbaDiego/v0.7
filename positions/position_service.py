@@ -58,58 +58,78 @@ class PositionService:
             raise
 
     @staticmethod
-    @staticmethod
     def enrich_position(position: Dict[str, Any]) -> Dict[str, Any]:
         try:
+            logger.debug(f"Enriching position: {position}")
             calc = CalcServices()
-            # List of required numeric fields
+            # List of required numeric fields and their fallbacks
             required_fields = ['entry_price', 'current_price', 'liquidation_price', 'collateral', 'size']
             for field in required_fields:
                 if position.get(field) is None:
-                    # For current_price, fallback to entry_price if available
                     if field == 'current_price' and position.get('entry_price') is not None:
+                        logger.debug(f"Field '{field}' is None, defaulting to entry_price: {position['entry_price']}")
                         position[field] = position['entry_price']
                     else:
+                        logger.debug(f"Field '{field}' is None, defaulting to 0.0")
                         position[field] = 0.0
 
             # Convert values to float explicitly
-            position['entry_price'] = float(position['entry_price'])
-            position['current_price'] = float(position['current_price'])
-            position['liquidation_price'] = float(position['liquidation_price'])
-            position['collateral'] = float(position['collateral'])
-            position['size'] = float(position['size'])
+            try:
+                position['entry_price'] = float(position['entry_price'])
+                position['current_price'] = float(position['current_price'])
+                position['liquidation_price'] = float(position['liquidation_price'])
+                position['collateral'] = float(position['collateral'])
+                position['size'] = float(position['size'])
+                logger.debug("Converted required fields to float.")
+            except Exception as conv_err:
+                logger.error(f"Error converting fields to float: {conv_err}")
+                raise
 
             # Compute profit value
-            position['profit'] = calc.calculate_value(position)
+            profit = calc.calculate_value(position)
+            position['profit'] = profit
+            logger.debug(f"Calculated profit: {profit}")
 
             # Compute leverage
             collateral = position['collateral']
             size = position['size']
-            position['leverage'] = calc.calculate_leverage(size, collateral) if collateral > 0 else None
+            if collateral > 0:
+                leverage = calc.calculate_leverage(size, collateral)
+                position['leverage'] = leverage
+                logger.debug(f"Calculated leverage: {leverage}")
+            else:
+                position['leverage'] = None
+                logger.debug("Collateral is zero or negative; leverage set to None.")
 
             # Compute travel percent if relevant data exists
             if all(k in position for k in ['entry_price', 'current_price', 'liquidation_price']):
-                position['travel_percent'] = calc.calculate_travel_percent(
+                travel_percent = calc.calculate_travel_percent(
                     position.get('position_type', ''),
                     position['entry_price'],
                     position['current_price'],
                     position['liquidation_price']
                 )
+                position['travel_percent'] = travel_percent
+                logger.debug(f"Calculated travel_percent: {travel_percent}")
             else:
                 position['travel_percent'] = None
+                logger.debug(
+                    "Missing one of entry_price, current_price, or liquidation_price; travel_percent set to None.")
 
             # Compute liquidation distance (absolute difference)
-            if 'current_price' in position and 'liquidation_price' in position:
-                position['liquidation_distance'] = calc.calculate_liquid_distance(
-                    position['current_price'],
-                    position['liquidation_price']
-                )
-            else:
-                position['liquidation_distance'] = None
+            liq_distance = calc.calculate_liquid_distance(
+                position['current_price'],
+                position['liquidation_price']
+            )
+            position['liquidation_distance'] = liq_distance
+            logger.debug(f"Calculated liquidation_distance: {liq_distance}")
 
             # Compute heat index
-            position['heat_index'] = calc.calculate_heat_index(position)
+            heat_index = calc.calculate_heat_index(position)
+            position['heat_index'] = heat_index
+            logger.debug(f"Calculated heat_index: {heat_index}")
 
+            logger.debug(f"Enriched position: {position}")
             return position
         except Exception as e:
             logger.error(f"Error enriching position data: {e}", exc_info=True)

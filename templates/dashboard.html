@@ -9,6 +9,7 @@
     background: url("{{ url_for('static', filename='images/wallpaper.png') }}") no-repeat center center fixed;
     background-size: cover;
   }
+
   /* -------------------- General Card Header Styling -------------------- */
   .card-header {
     position: relative;
@@ -35,6 +36,7 @@
     color: #000;
     margin-left: auto;
   }
+
   /* -------------------- Liquidation Bar Styles -------------------- */
   .progress.liquidation {
     position: relative;
@@ -73,14 +75,11 @@
     background-size: 1rem 1rem;
   }
   .asset-icon {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
     width: 30px;
     height: 30px;
     border-radius: 50%;
     border: 1px solid #ccc;
-    z-index: 10;
+    margin-bottom: 4px; /* slightly less bottom space */
   }
   .asset-change {
     font-size: 1rem;
@@ -93,6 +92,7 @@
     color: white;
     z-index: 20;
   }
+
   /* -------------------- Logs Header Icon & Title Styling -------------------- */
   .logs-card .card-header .row {
     display: flex;
@@ -110,6 +110,7 @@
     margin-right: 5px;
     font-size: 1.5rem;
   }
+
   /* -------------------- Dashboard Layout -------------------- */
   .card-container {
     margin: 2.5px auto;
@@ -126,6 +127,7 @@
       max-width: 100%;
     }
   }
+
   /* -------------------- Update Button Row -------------------- */
   .update-row {
     text-align: center;
@@ -142,58 +144,19 @@
     height: 70px;
     border-radius: 50%;
   }
-  /* -------------------- Unified Status Bar Layout -------------------- */
-  .status-bar-container {
-    display: flex;
-    flex-wrap: wrap;
-    margin-bottom: 2rem;
-  }
-  .status-col-left, .status-col-right {
-    flex: 0 0 50%;
-    max-width: 50%;
-  }
-  @media (max-width: 768px) {
-    .status-col-left, .status-col-right {
-      flex: 0 0 100%;
-      max-width: 100%;
-    }
-  }
-  .status-bar {
-    width: 100%;
-    min-height: 120px;
+
+  /* -------------------- City Cards for Row 2 -------------------- */
+  .city-card {
+    border-radius: 0.5rem;
     background: url("{{ url_for('static', filename='images/cityscape.jpg') }}") no-repeat center center;
     background-size: cover;
-    border-radius: 0.5rem;
+    min-height: 130px; /* Ensures both left & right match in height */
   }
-  .status-bar .card {
-    background-color: rgba(255,255,255,0.5);
-    border: none;
-    border-radius: 0.5rem;
-    min-height: 120px;
+  .city-card .card-body {
+    /* Move content up by reducing default card-body padding */
+    padding: 0.5rem 0.75rem;
   }
-  .status-bar .card-body {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-around;
-    padding: 0.5rem 0.5rem;
-    min-height: 120px;
-  }
-  .status-bar .col {
-    flex: 1 1 25%;
-    text-align: center;
-    padding: 0 0.5rem;
-  }
-  .status-bar .col span.label {
-    display: block;
-    font-size: 1rem;
-    color: #333;
-  }
-  .status-bar .col h5 {
-    font-size: 1.2rem;
-    font-weight: bold;
-    margin: 0;
-  }
+
   /* -------------------- Composition & Balance Sections -------------------- */
   .composition-header {
     display: flex;
@@ -245,6 +208,7 @@
     margin: 2px 0;
     font-size: 10px;
   }
+
   /* -------------------- Logs Card Styles -------------------- */
   .logs-card {
     max-width: 100%;
@@ -268,13 +232,13 @@
     </button>
   </div>
 
-  <!-- Row 2: Status Bars (time/source info removed) -->
-  <div class="row status-bar-container">
-    <!-- LEFT Status Bar -->
-    <div class="col-md-6 status-col-left">
-      <div class="status-bar mt-2">
-        <div class="card">
-          <div class="card-body">
+  <!-- Row 2: Two Rounded Rectangles with Cityscape BG, same height -->
+  <div class="row">
+    <!-- Left City Card -->
+    <div class="col-md-6">
+      <div class="card city-card shadow mb-2">
+        <div class="card-body">
+          <div class="row text-center">
             <!-- BTC -->
             <div class="col">
               <img class="asset-icon" src="{{ url_for('static', filename='images/btc_logo.png') }}" alt="BTC">
@@ -299,11 +263,12 @@
         </div>
       </div>
     </div>
-    <!-- RIGHT Status Bar -->
-    <div class="col-md-6 status-col-right">
-      <div class="status-bar mt-2" style="background: url('{{ url_for('static', filename='images/cityscape.jpg') }}') no-repeat center center; background-size: cover;">
-        <div class="card">
-          <div class="card-body">
+
+    <!-- Right City Card -->
+    <div class="col-md-6">
+      <div class="card city-card shadow mb-2">
+        <div class="card-body">
+          <div class="row text-center">
             <!-- Value -->
             <div class="col">
               <span class="label">Value</span>
@@ -673,6 +638,7 @@
         })
         .catch(err => console.error("Error fetching size composition data:", err));
     }
+
     // Collateral Composition Pie
     const collateralChartContainer = document.getElementById("collateral-composition-chart");
     if (collateralChartContainer) {
@@ -712,6 +678,7 @@
         })
         .catch(err => console.error("Error fetching collateral composition data:", err));
     }
+
     // Size Balance (Multi-series Bar Chart)
     const sizeChartContainer = document.getElementById("size-chart");
     if (sizeChartContainer) {
