@@ -12,6 +12,10 @@ CONFIG_FILENAME = os.getenv("CONFIG_FILENAME", "sonic_config.json")
 DB_PATH = BASE_DIR / "data" / DB_FILENAME
 CONFIG_PATH = BASE_DIR / CONFIG_FILENAME
 
+ALERT_LIMITS_FILENAME = os.getenv("ALERT_LIMITS_FILENAME", "alert_limits.json")
+ALERT_LIMITS_PATH = BASE_DIR / "config" / ALERT_LIMITS_FILENAME
+
+
 # Image asset paths
 SPACE_WALL_IMAGE = "images/space_wall2.jpg"
 

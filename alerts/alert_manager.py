@@ -107,17 +107,19 @@ class AlertManager:
     def reload_config(self):
         from config.config_manager import load_config
         db_conn = self.data_locker.get_db_connection()
+        op_logger = OperationsLogger(log_filename=os.path.join(os.getcwd(), "operations_log.txt"))
         try:
             self.config = load_config(self.config_path, db_conn)
             self.cooldown = self.config.get("alert_cooldown_seconds", 900)
             self.call_refractory_period = self.config.get("call_refractory_period", 3600)
             logger.info("Alert configuration reloaded.")
-            op_logger = OperationsLogger(log_filename=os.path.join(os.getcwd(), "operations_log.txt"))
-            op_logger.log("Alerts configuration reloaded successfully", source="AlertManager", operation_type="Alerts Configuration Successful")
+            op_logger.log("Alerts configuration reloaded successfully", source="AlertManager",
+                          operation_type="Alerts Configuration Successful")
         except Exception as e:
             logger.error("Failed to reload alert configuration: %s", e)
-            op_logger = OperationsLogger(log_filename=os.path.join(os.getcwd(), "operations_log.txt"))
-            op_logger.log("Alert configuration reload failed", source="AlertManager", operation_type="Alert Configuration Failed")
+            # Log the failure with our new operation type:
+            op_logger.log("Alert Configuration Failed", source="system", operation_type="Alert Configuration Failed", file_name=str(ALERT_LIMITS_PATH))
+
 
     def run(self):
         logger.info("Starting alert monitoring loop.")
@@ -126,11 +128,13 @@ class AlertManager:
             time.sleep(self.poll_interval)
 
     def check_alerts(self, source: Optional[str] = None):
+        logger.debug("check_alerts method called. Source: %s", source)
+        print(f"[DEBUG] check_alerts method called. Source: {source}")
+
         if not self.monitor_enabled:
             logger.info("Alert monitoring disabled.")
             return
 
-        # Reset suppressed counter for this cycle.
         self.suppressed_count = 0
         aggregated_alerts: List[str] = []
         positions = self.data_locker.read_positions()
@@ -157,12 +161,15 @@ class AlertManager:
         if aggregated_alerts:
             op_message = f"{len(aggregated_alerts)} alerts triggered"
             op_logger.log(op_message, source=source, operation_type="Alert Triggered")
+            print(f"[DEBUG] {op_message}")
         elif self.suppressed_count > 0:
             op_message = f"{self.suppressed_count} alerts suppressed"
             op_logger.log(op_message, source=source, operation_type="Alert Silenced")
+            print(f"[DEBUG] {op_message}")
         else:
-            op_message = "✅ No alerts found"
+            op_message = "No Alerts Found"
             op_logger.log(op_message, source=source, operation_type="No Alerts Found")
+            print(f"[DEBUG] {op_message}")
 
     def check_travel_percent_liquid(self, pos: Dict[str, Any]) -> str:
         asset_code = pos.get("asset_type", "???").upper()
@@ -182,55 +189,48 @@ class AlertManager:
         print(f"[DEBUG] Checking travel percent for {asset_full} {position_type} (ID: {position_id}): current_travel_percent = {current_val}")
 
         if current_val >= 0:
-            logger.debug("%s %s (ID: %s): Travel percent is non-negative (%s), no alert needed.",
-                         asset_full, position_type, position_id, current_val)
-            print(f"[DEBUG] {asset_full} {position_type} (ID: {position_id}): Travel percent is non-negative ({current_val}), no alert needed.")
-            return ""
-
-        tpli_config = self.config.get("alert_ranges", {}).get("travel_percent_liquid_ranges", {})
-        print(f"[DEBUG] Loaded travel_percent_liquid_ranges config: {tpli_config}")
-
-        if not tpli_config.get("enabled", True):
-            logger.debug("Travel percent alert not enabled in config for %s %s (ID: %s).",
-                         asset_full, position_type, position_id)
-            print(f"[DEBUG] Travel percent alert not enabled in config for {asset_full} {position_type} (ID: {position_id}).")
-            return ""
-
-        def parse_threshold(value, default):
-            return float(value) if value not in (None, "") else default
-
-        try:
-            low = parse_threshold(tpli_config.get("low"), -25.0)
-            medium = parse_threshold(tpli_config.get("medium"), -50.0)
-            high = parse_threshold(tpli_config.get("high"), -75.0)
-        except Exception as e:
-            logger.error("%s %s (ID: %s): Error parsing travel percent thresholds.", asset_full, position_type, position_id)
-            print(f"[ERROR] {asset_full} {position_type} (ID: {position_id}): Error parsing travel percent thresholds: {e}")
-            return ""
-
-        logger.debug(
-            "[Travel Percent Alert Debug] %s %s (ID: %s): Actual Travel%% = %.2f, Thresholds - Low: %.2f, Medium: %.2f, High: %.2f",
-            asset_full, position_type, position_id, current_val, low, medium, high
-        )
-        print(f"[DEBUG] [Travel Percent Alert Debug] {asset_full} {position_type} (ID: {position_id}): Actual Travel% = {current_val:.2f}, Thresholds - Low: {low:.2f}, Medium: {medium:.2f}, High: {high:.2f}")
-
-        alert_level = ""
-        if current_val <= high:
-            alert_level = "HIGH"
-        elif current_val <= medium:
-            alert_level = "MEDIUM"
-        elif current_val <= low:
-            alert_level = "LOW"
+            pos_config = self.config.get("alert_ranges", {}).get("travel_percent_liquid_ranges_positive", {})
+            low = float(pos_config.get("low", 25.0))
+            medium = float(pos_config.get("medium", 50.0))
+            high = float(pos_config.get("high", 75.0))
+            logger.debug("Using positive thresholds: low=%s, medium=%s, high=%s", low, medium, high)
+            print(f"[DEBUG] Using positive thresholds: low={low}, medium={medium}, high={high}")
+            if current_val >= high:
+                alert_level = "HIGH"
+            elif current_val >= medium:
+                alert_level = "MEDIUM"
+            elif current_val >= low:
+                alert_level = "LOW"
+            else:
+                logger.debug("%s %s (ID: %s): Travel percent (%s) is below positive thresholds, no alert triggered.",
+                             asset_full, position_type, position_id, current_val)
+                print(f"[DEBUG] {asset_full} {position_type} (ID: {position_id}): Travel percent ({current_val}) is below positive thresholds, no alert triggered.")
+                return ""
         else:
-            logger.debug("%s %s (ID: %s): No travel percent alert level triggered.", asset_full, position_type, position_id)
-            print(f"[DEBUG] {asset_full} {position_type} (ID: {position_id}): No travel percent alert level triggered.")
-            return ""
+            neg_config = self.config.get("alert_ranges", {}).get("travel_percent_liquid_ranges_negative", {})
+            low = float(neg_config.get("low", -25.0))
+            medium = float(neg_config.get("medium", -50.0))
+            high = float(neg_config.get("high", -75.0))
+            logger.debug("Using negative thresholds: low=%s, medium=%s, high=%s", low, medium, high)
+            print(f"[DEBUG] Using negative thresholds: low={low}, medium={medium}, high={high}")
+            if current_val <= high:
+                alert_level = "HIGH"
+            elif current_val <= medium:
+                alert_level = "MEDIUM"
+            elif current_val <= low:
+                alert_level = "LOW"
+            else:
+                logger.debug("%s %s (ID: %s): Travel percent (%s) does not trigger a negative alert.", asset_full,
+                             position_type, position_id, current_val)
+                print(f"[DEBUG] {asset_full} {position_type} (ID: {position_id}): Travel percent ({current_val}) does not trigger a negative alert.")
+                return ""
 
         key = f"{asset_full}-{position_type}-{position_id}-travel-{alert_level}"
         now = time.time()
         last_time = self.last_triggered.get(key, 0)
         if now - last_time < self.cooldown:
-            logger.debug("%s %s (ID: %s): Alert for key '%s' suppressed due to cooldown.", asset_full, position_type, position_id, key)
+            logger.debug("%s %s (ID: %s): Alert for key '%s' suppressed due to cooldown.", asset_full, position_type,
+                         position_id, key)
             print(f"[DEBUG] {asset_full} {position_type} (ID: {position_id}): Alert for key '{key}' suppressed due to cooldown.")
             self.suppressed_count += 1
             return ""

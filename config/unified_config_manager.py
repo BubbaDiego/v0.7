@@ -131,10 +131,20 @@ class UnifiedConfigManager:
         logger.debug("Configuration updated and saved to %s", self.config_path)
         return updated_config
 
-    def get_alert_config(self) -> Dict[str, Any]:
-        """Returns the 'alert_ranges' section of the configuration."""
-        config = self.load_config()
-        return config.get("alert_ranges", {})
+    def load_alert_limits(self, alert_limits_path: str) -> Dict[str, Any]:
+        try:
+            with open(alert_limits_path, "r", encoding="utf-8") as f:
+                alert_limits = json.load(f)
+            logger.debug("Loaded alert limits from %s: %s", alert_limits_path, alert_limits)
+            return alert_limits
+        except Exception as e:
+            logger.error("Error loading alert limits from %s: %s", alert_limits_path, e)
+            return {}
+
+   # def get_alert_config(self) -> Dict[str, Any]:
+      #  """Returns the 'alert_ranges' section of the configuration."""
+       # config = self.load_config()
+      #  return config.get("alert_ranges", {})
 
     def update_alert_config(self, new_alerts: Dict[str, Any]) -> None:
         """

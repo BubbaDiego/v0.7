@@ -148,7 +148,6 @@ def index():
     )
 
 
-
 @app.route("/add_broker", methods=["POST"])
 def add_broker():
     dl = DataLocker.get_instance(DB_PATH)
@@ -160,9 +159,7 @@ def add_broker():
     }
     try:
         dl.create_broker(broker_dict)
-    # flash(f"Broker {broker_dict['name']} added successfully!", "success")
     except Exception as e:
-        # flash(f"Error adding broker: {e}", "danger")
         print("")
     return redirect(url_for("assets"))
 
@@ -237,12 +234,10 @@ def exchanges():
 def jupiter_trade():
     result = None
     if request.method == "POST":
-        # Retrieve form data
         wallet_address = request.form.get("walletAddress")
         action = request.form.get("action")
 
         if action == "open":
-            # Extract parameters for opening a position
             leverage = request.form.get("leverage")
             collateral_token_delta = request.form.get("collateralTokenDelta")
             input_mint = request.form.get("inputMint")
@@ -251,15 +246,11 @@ def jupiter_trade():
             side = request.form.get("side")
             max_slippage_bps = request.form.get("maxSlippageBps")
             collateral_mint = request.form.get("collateralMint")
-
-            # Here you would call your automation logic (e.g., a function that invokes Playwright)
-            # For now, we'll simulate the trade execution.
             result = (
                 f"Executed open leveraged position for wallet {wallet_address} "
                 f"with {side} side, {leverage}x leverage, and size delta {size_usd_delta}."
             )
         elif action == "close":
-            # If implementing closing functionality, call the appropriate function here.
             result = f"Executed close position for wallet {wallet_address}."
     return render_template("jupiter_trade.html", result=result)
 
@@ -351,10 +342,8 @@ def api_update_row():
         if table == 'wallets':
             dl.update_wallet(pk_value, row_data)
         elif table == 'positions':
-            # Implement update for positions if needed
             pass
         else:
-            # Handle other tables as needed
             pass
 
         return jsonify({"status": "success"}), 200
@@ -378,7 +367,6 @@ def api_delete_row():
         elif table == 'positions':
             dl.delete_position(pk_value)
         else:
-            # Handle other tables as needed
             pass
 
         return jsonify({"status": "success"}), 200
@@ -407,34 +395,21 @@ def database_viewer():
 
 @app.route("/system_config", methods=["GET"])
 def system_config_page():
-    # Get a database connection from your DataLocker.
     dl = DataLocker.get_instance(DB_PATH)
     db_conn = dl.get_db_connection()
-    # Initialize the UnifiedConfigManager with your config path and the DB connection.
     config_manager = UnifiedConfigManager(CONFIG_PATH, db_conn=db_conn)
-    # Load the configuration as a dictionary.
     config = config_manager.load_config()
-    # Render the system_config template with the loaded config.
     return render_template("system_config.html", config=config)
 
 
 @app.route("/update_system_config", methods=["POST"])
 def update_system_config():
-    # Get the database connection using DataLocker
     dl = DataLocker.get_instance(DB_PATH)
     db_conn = dl.get_db_connection()
-
-    # Initialize the UnifiedConfigManager with the config file path and DB connection
     config_manager = UnifiedConfigManager(CONFIG_PATH, db_conn=db_conn)
-
-    # Build a new configuration dictionary from form data:
     new_config = {}
-
-    # Update system_config section
     new_config.setdefault("system_config", {})["db_path"] = request.form.get("db_path")
     new_config["system_config"]["log_file"] = request.form.get("log_file")
-
-    # Update twilio_config section
     new_config["twilio_config"] = {
         "account_sid": request.form.get("account_sid"),
         "auth_token": request.form.get("auth_token"),
@@ -442,12 +417,7 @@ def update_system_config():
         "to_phone": request.form.get("to_phone"),
         "from_phone": request.form.get("from_phone")
     }
-
-    # Optionally, update other sections as needed.
-
-    # Merge and save the updated configuration using the unified manager
     config_manager.update_config(new_config)
-
     flash("Configuration updated successfully!", "success")
     return redirect(url_for("system_config_page"))
 
@@ -460,9 +430,7 @@ def update_theme_context():
     except Exception as e:
         conf = {}
     theme_config = conf.get("theme_config", {})
-    # Return the entire theme_config so your template can access both 'selected_profile' and 'profiles'
     return dict(theme=theme_config)
-
 
 @app.route('/test_twilio', methods=["POST"])
 def test_twilio():
@@ -472,44 +440,41 @@ def test_twilio():
     op_logger = OperationsLogger(log_filename=os.path.join(os.getcwd(), "operations_log.txt"))
 
     try:
-        # Get the test message from the POST data; use a default if not provided.
         message = request.form.get("message", "Test message from system config")
         execution_sid = trigger_twilio_flow(message)
-        # Log the "Notification Sent" event.
         op_logger.log(f"Testing Twilio", source="system test", operation_type="Notification Sent")
         return jsonify({"success": True, "sid": execution_sid})
     except Exception as e:
         op_logger.log(f"Testing Twilio Failed", source="system test", operation_type="Notification Failed")
         return jsonify({"success": False, "error": str(e)}), 500
 
-
 # NEW: Global update route alias using the update_jupiter function from positions_bp.
 @app.route("/update", methods=["GET"])
 def update():
-    from positions.positions_bp import update_jupiter  # Make sure update_jupiter is defined and returns a Response
+    from positions.positions_bp import update_jupiter
     return update_jupiter()
-
 
 # NEW: Additional alias to allow "/dashboard/update" as well.
 @app.route("/dashboard/update", methods=["GET"])
 def dashboard_update():
     return update()
 
+# NEW: Debug endpoint to manually trigger check_alerts for testing.
+@app.route("/debug_check_alerts")
+def debug_check_alerts():
+    from alerts.alert_manager import manager
+    manager.check_alerts(source="Debug Endpoint")
+    return "check_alerts executed; please check the logs for debug messages."
 
 if __name__ == "__main__":
     monitor = False
     if len(sys.argv) > 1 and sys.argv[1] == "--monitor":
         monitor = True
-
-        # Call the OperationsLogger on startup with the source "System Start-up"
         from utils.operations_logger import OperationsLogger
-
         op_logger = OperationsLogger(use_color=False)
         op_logger.log("Launch Pad - Started MANUAL", source="System")
-
     if monitor:
         import subprocess
-
         try:
             CREATE_NEW_CONSOLE = 0x00000010  # Windows flag for new console window
             monitor_script = os.path.join(BASE_DIR, "local_monitor.py")
@@ -517,5 +482,4 @@ if __name__ == "__main__":
             logger.info("Launched local_monitor.py in a new console window.")
         except Exception as e:
             logger.error(f"Error launching local_monitor.py: {e}", exc_info=True)
-
     app.run(debug=True, host="0.0.0.0", port=5001)

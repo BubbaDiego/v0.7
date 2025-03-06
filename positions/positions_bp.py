@@ -637,8 +637,8 @@ def update_jupiter():
     try:
         logger.debug("Step 2.1: Updating dYdX positions via PositionService...")
         #update_dydx_result = PositionService.update_dydx_positions(DB_PATH)
-        logger.debug(f"Step 2.1 complete: dYdX positions update result: {update_dydx_result}")
-        print(f"[DEBUG] dYdX positions update result: {update_dydx_result}")
+  #      logger.debug(f"Step 2.1 complete: dYdX positions update result: {update_dydx_result}")
+     #    print(f"[DEBUG] dYdX positions update result: {update_dydx_result}")
       #  if "error" in update_dydx_result:
      #       logger.error("Error during dYdX positions update: " + str(update_dydx_result))
       #      print("[ERROR] Error during dYdX positions update:", update_dydx_result)

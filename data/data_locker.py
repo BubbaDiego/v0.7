@@ -389,7 +389,9 @@ class DataLocker:
             num_rows = len(rows)
             self.logger.debug("Number of positions fetched: %d", num_rows)
             if num_rows > 0:
-                sample = [dict(rows[i]) for i in range(min(5, num_rows))]
+                #sample = [dict(rows[i]) for i in range(min(5, num_rows))]
+                sample = [dict(row) for row in rows[:min(5, num_rows)]]
+
                 self.logger.debug("Sample positions: %s", sample)
             else:
                 self.logger.debug("No positions found in the table.")

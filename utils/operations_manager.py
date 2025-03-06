@@ -20,12 +20,12 @@ OPERATION_CONFIG = {
         "icon": "🪐",
         "color": "blue"
     },
-    "Alerts Configuration Successful": {
+    "Alerts Config Successful": {
         "icon": "⚙✅",
         "color": "green"
     },
-    "Alert Configuration Failed": {
-        "icon": "⚙❌",
+    "Alert Config Failed": {
+        "icon": "⚙💀",
         "color": "red"
     },
     "Alert Triggered": {

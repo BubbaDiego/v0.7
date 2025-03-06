@@ -2,12 +2,15 @@ import os
 import json
 import logging
 from flask import Blueprint, request, jsonify, render_template
-from config.config_constants import CONFIG_PATH
+from config.config_constants import CONFIG_PATH, BASE_DIR, ALERT_LIMITS_PATH
 from pathlib import Path
+from utils.operations_manager import OperationsLogger
+from config.unified_config_manager import UnifiedConfigManager
 
-# -------------------------------
+# Create the blueprint
+alerts_bp = Blueprint('alerts_bp', __name__, url_prefix='/alerts')
+
 # Logger Setup
-# -------------------------------
 logger = logging.getLogger("AlertManagerLogger")
 logger.setLevel(logging.DEBUG)
 if not logger.handlers:
@@ -17,13 +20,8 @@ if not logger.handlers:
     ch.setFormatter(formatter)
     logger.addHandler(ch)
 
-# -------------------------------
-# Deep Merge Function
-# -------------------------------
+# Deep merge function
 def deep_merge(source: dict, updates: dict) -> dict:
-    """
-    Recursively merge 'updates' into 'source'.
-    """
     for key, value in updates.items():
         if key in source and isinstance(source[key], dict) and isinstance(value, dict):
             logger.debug("Deep merging key: %s", key)
@@ -33,52 +31,11 @@ def deep_merge(source: dict, updates: dict) -> dict:
             source[key] = value
     return source
 
-# -------------------------------
-# SonicConfigManager Class
-# -------------------------------
-class SonicConfigManager:
-    def __init__(self, config_path: str, lock_path: str = "sonic_config.lock"):
-        self.config_path = config_path
-        self.lock_path = lock_path
-
-    def load_config(self) -> dict:
-        if not os.path.exists(self.config_path):
-            logger.error("Configuration file not found: %s", self.config_path)
-            raise FileNotFoundError("Configuration file not found")
-        with open(self.config_path, "r", encoding="utf-8") as f:
-            config = json.load(f)
-        logger.debug("Loaded config: %s", config)
-        return config
-
-    def save_config(self, config: dict) -> None:
-        with open(self.config_path, "w", encoding="utf-8") as f:
-            json.dump(config, f, indent=2)
-        logger.info("Configuration saved to %s", self.config_path)
-
-    def update_alert_config(self, new_alerts: dict) -> None:
-        config = self.load_config()
-        current_alerts = config.get("alert_ranges", {})
-        logger.debug("Existing alert config: %s", current_alerts)
-        merged = deep_merge(current_alerts, new_alerts)
-        config["alert_ranges"] = merged
-        self.save_config(config)
-        logger.info("Alert configuration updated successfully.")
-
-# -------------------------------
-# Blueprint Setup and Helpers
-# -------------------------------
-alerts_bp = Blueprint('alerts_bp', __name__, url_prefix='/alerts')
-
-# Use the robust CONFIG_PATH from config_constants
-CONFIG_PATH = str(CONFIG_PATH)
-config_mgr = SonicConfigManager(CONFIG_PATH)
+# Create an instance of UnifiedConfigManager for the alert limits file.
+# (UnifiedConfigManager is the new way.)
+config_mgr = UnifiedConfigManager(str(ALERT_LIMITS_PATH))
 
 def convert_types_in_dict(d):
-    """
-    Recursively convert string values:
-      - "true"/"false" into booleans,
-      - Numeric strings to floats.
-    """
     if isinstance(d, dict):
         new_d = {}
         for k, v in d.items():
@@ -101,13 +58,6 @@ def convert_types_in_dict(d):
         return d
 
 def parse_nested_form(form: dict) -> dict:
-    """
-    Convert flat form keys (like:
-       alert_ranges[profit_ranges][enabled]
-    ) into a nested dictionary.
-    Assumes 'form' is a dict whose values may be lists.
-    It also removes the outer "alert_ranges" key if present.
-    """
     updated = {}
     for full_key, value in form.items():
         # If value is a list (e.g. hidden + checkbox), take the last one.
@@ -129,7 +79,7 @@ def parse_nested_form(form: dict) -> dict:
                 part += char
         if part:
             keys.append(part)
-        # Remove the outer "alert_ranges" if present.
+        # Remove the outer "alert_ranges" key if present.
         if keys and keys[0] == "alert_ranges":
             keys = keys[1:]
         current = updated
@@ -156,9 +106,6 @@ def parse_nested_form(form: dict) -> dict:
     return updated
 
 def format_alert_config_table(alert_ranges: dict) -> str:
-    """
-    Returns an HTML table string summarizing the alert ranges.
-    """
     metrics = [
         "heat_index_ranges", "collateral_ranges", "value_ranges",
         "size_ranges", "leverage_ranges", "liquidation_distance_ranges",
@@ -166,8 +113,10 @@ def format_alert_config_table(alert_ranges: dict) -> str:
     ]
     html = "<table border='1' style='border-collapse: collapse; width:100%;'>"
     html += "<tr><th>Metric</th><th>Enabled</th><th>Low</th><th>Medium</th><th>High</th></tr>"
+    # Reload alert limits from the file
+    alert_data = config_mgr.load_json_config()
     for m in metrics:
-        data = alert_ranges.get(m, {})
+        data = alert_data.get(m, {})
         enabled = data.get("enabled", False)
         low = data.get("low", "")
         medium = data.get("medium", "")
@@ -176,55 +125,52 @@ def format_alert_config_table(alert_ranges: dict) -> str:
     html += "</table>"
     return html
 
-# -------------------------------
-# Routes
-# -------------------------------
 @alerts_bp.route('/config', methods=['GET'], endpoint="alert_config_page")
-def config():
+def config_page():
     try:
-        config_data = config_mgr.load_config()
-        theme_config = config_data.get("theme_config", {})
-        return render_template(
-            "alert_manager_config.html",
-            alert_ranges=config_data.get("alert_ranges", {}),
-            theme=theme_config
-        )
+        config_data = config_mgr.load_json_config()
     except Exception as e:
-        logger.error("Error loading config: %s", str(e))
-        return "Error loading config", 500
+        op_logger = OperationsLogger(log_filename=os.path.join(os.getcwd(), "operations_log.txt"))
+        op_logger.log("Alert Configuration Failed", source="system",
+                      operation_type="Alert Configuration Failed",
+                      file_name=str(ALERT_LIMITS_PATH))
+        logger.error("Error loading alert limits: %s", str(e))
+        return render_template("alert_manager_config.html", error_message="Error loading alert configuration."), 500
+    # Load theme config from the main configuration file using UnifiedConfigManager
+    main_config = UnifiedConfigManager(str(CONFIG_PATH)).load_config()
+    theme_config = main_config.get("theme_config", {})
+    return render_template("alert_manager_config.html", alert_ranges=config_data, theme=theme_config)
 
 @alerts_bp.route('/update_config', methods=['POST'], endpoint="update_alert_config")
-def update_alert_config():
+def update_alert_config_route():
     logger.debug("Entered update_alert_config endpoint")
+    op_logger = OperationsLogger(log_filename=os.path.join(os.getcwd(), "operations_log.txt"))
     try:
         flat_form = request.form.to_dict(flat=False)
         logger.debug("POST Data Received:\n%s", json.dumps(flat_form, indent=2))
-
         nested_update = parse_nested_form(flat_form)
         logger.debug("Parsed Nested Form Data (raw):\n%s", json.dumps(nested_update, indent=2))
-
         nested_update = convert_types_in_dict(nested_update)
         logger.debug("Parsed Nested Form Data (converted):\n%s", json.dumps(nested_update, indent=2))
-
+        # Use UnifiedConfigManager’s update_alert_config method
         config_mgr.update_alert_config(nested_update)
         logger.debug("update_alert_config() called successfully with merged data.")
-
-        updated_config = config_mgr.load_config()
+        op_logger.log("Alerts configuration updated successfully", source="AlertManager",
+                      operation_type="Alerts Configuration Successful")
+        updated_config = UnifiedConfigManager(str(CONFIG_PATH)).load_config()
         logger.debug("New Config Loaded After Update:\n%s", json.dumps(updated_config, indent=2))
-
         formatted_table = format_alert_config_table(updated_config.get("alert_ranges", {}))
         logger.debug("Formatted HTML Table for Alert Config:\n%s", formatted_table)
         return jsonify({"success": True, "formatted_table": formatted_table})
     except Exception as e:
         logger.error("Error updating alert config: %s", str(e))
+        op_logger.log("Alert Configuration Failed", source="AlertManager",
+                      operation_type="Alert Configuration Failed", file_name=str(ALERT_LIMITS_PATH))
         return jsonify({"success": False, "error": str(e)}), 500
 
-# -------------------------------
 # For running this file directly (for testing)
-# -------------------------------
 if __name__ == "__main__":
     from flask import Flask
-
     app = Flask(__name__)
     app.register_blueprint(alerts_bp)
     app.run(debug=True, port=5001)
