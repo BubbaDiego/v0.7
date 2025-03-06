@@ -8,7 +8,7 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime
 from twilio.rest import Client
 from config.unified_config_manager import UnifiedConfigManager
-from config.config_constants import DB_PATH, CONFIG_PATH
+from config.config_constants import DB_PATH, CONFIG_PATH, ALERT_LIMITS_PATH
 from pathlib import Path
 from utils.operations_manager import OperationsLogger
 
@@ -113,7 +113,7 @@ class AlertManager:
             self.cooldown = self.config.get("alert_cooldown_seconds", 900)
             self.call_refractory_period = self.config.get("call_refractory_period", 3600)
             logger.info("Alert configuration reloaded.")
-            op_logger.log("Alerts configuration reloaded successfully", source="AlertManager",
+            op_logger.log("Alerts Config Reloaded", source="AlertManager",
                           operation_type="Alerts Configuration Successful")
         except Exception as e:
             logger.error("Failed to reload alert configuration: %s", e)

@@ -2,10 +2,12 @@ import os
 import json
 import logging
 from flask import Blueprint, request, jsonify, render_template
-from config.config_constants import CONFIG_PATH, BASE_DIR, ALERT_LIMITS_PATH
+from config.config_constants import BASE_DIR, ALERT_LIMITS_PATH
 from pathlib import Path
 from utils.operations_manager import OperationsLogger
+from config.unified_config_manager import UnifiedConfigManager  # Use the unified config manager
 from config.unified_config_manager import UnifiedConfigManager
+
 
 # Create the blueprint
 alerts_bp = Blueprint('alerts_bp', __name__, url_prefix='/alerts')
@@ -31,8 +33,8 @@ def deep_merge(source: dict, updates: dict) -> dict:
             source[key] = value
     return source
 
-# Create an instance of UnifiedConfigManager for the alert limits file.
-# (UnifiedConfigManager is the new way.)
+# Create an instance for alert limits using the ALERT_LIMITS_PATH
+# (We use UnifiedConfigManager here instead of SonicConfigManager)
 config_mgr = UnifiedConfigManager(str(ALERT_LIMITS_PATH))
 
 def convert_types_in_dict(d):
@@ -60,7 +62,6 @@ def convert_types_in_dict(d):
 def parse_nested_form(form: dict) -> dict:
     updated = {}
     for full_key, value in form.items():
-        # If value is a list (e.g. hidden + checkbox), take the last one.
         if isinstance(value, list):
             value = value[-1]
         full_key = full_key.strip()
@@ -79,7 +80,6 @@ def parse_nested_form(form: dict) -> dict:
                 part += char
         if part:
             keys.append(part)
-        # Remove the outer "alert_ranges" key if present.
         if keys and keys[0] == "alert_ranges":
             keys = keys[1:]
         current = updated
@@ -113,7 +113,7 @@ def format_alert_config_table(alert_ranges: dict) -> str:
     ]
     html = "<table border='1' style='border-collapse: collapse; width:100%;'>"
     html += "<tr><th>Metric</th><th>Enabled</th><th>Low</th><th>Medium</th><th>High</th></tr>"
-    # Reload alert limits from the file
+    # Reload alert limits from the file using the current config_mgr instance
     alert_data = config_mgr.load_json_config()
     for m in metrics:
         data = alert_data.get(m, {})
@@ -131,13 +131,13 @@ def config_page():
         config_data = config_mgr.load_json_config()
     except Exception as e:
         op_logger = OperationsLogger(log_filename=os.path.join(os.getcwd(), "operations_log.txt"))
-        op_logger.log("Alert Configuration Failed", source="system",
+        op_logger.log("Alert Configuration Failed", source="System",
                       operation_type="Alert Configuration Failed",
                       file_name=str(ALERT_LIMITS_PATH))
         logger.error("Error loading alert limits: %s", str(e))
         return render_template("alert_manager_config.html", error_message="Error loading alert configuration."), 500
     # Load theme config from the main configuration file using UnifiedConfigManager
-    main_config = UnifiedConfigManager(str(CONFIG_PATH)).load_config()
+    main_config = UnifiedConfigManager(str(ALERT_LIMITS_PATH)).load_config()
     theme_config = main_config.get("theme_config", {})
     return render_template("alert_manager_config.html", alert_ranges=config_data, theme=theme_config)
 
@@ -152,20 +152,20 @@ def update_alert_config_route():
         logger.debug("Parsed Nested Form Data (raw):\n%s", json.dumps(nested_update, indent=2))
         nested_update = convert_types_in_dict(nested_update)
         logger.debug("Parsed Nested Form Data (converted):\n%s", json.dumps(nested_update, indent=2))
-        # Use UnifiedConfigManager’s update_alert_config method
         config_mgr.update_alert_config(nested_update)
         logger.debug("update_alert_config() called successfully with merged data.")
-        op_logger.log("Alerts configuration updated successfully", source="AlertManager",
-                      operation_type="Alerts Configuration Successful")
-        updated_config = UnifiedConfigManager(str(CONFIG_PATH)).load_config()
+        # Log success with source "System" and include the alert limits file name
+        op_logger.log("Alerts configuration updated successfully", source="System",
+                      operation_type="Alerts Config Successful", file_name=str(ALERT_LIMITS_PATH))
+        updated_config = UnifiedConfigManager(str(ALERT_LIMITS_PATH)).load_config()
         logger.debug("New Config Loaded After Update:\n%s", json.dumps(updated_config, indent=2))
         formatted_table = format_alert_config_table(updated_config.get("alert_ranges", {}))
         logger.debug("Formatted HTML Table for Alert Config:\n%s", formatted_table)
         return jsonify({"success": True, "formatted_table": formatted_table})
     except Exception as e:
         logger.error("Error updating alert config: %s", str(e))
-        op_logger.log("Alert Configuration Failed", source="AlertManager",
-                      operation_type="Alert Configuration Failed", file_name=str(ALERT_LIMITS_PATH))
+        op_logger.log("Alert Configuration Failed", source="System",
+                      operation_type="Alert Config Failed", file_name=str(ALERT_LIMITS_PATH))
         return jsonify({"success": False, "error": str(e)}), 500
 
 # For running this file directly (for testing)
