@@ -136,10 +136,16 @@ def config_page():
                       file_name=str(ALERT_LIMITS_PATH))
         logger.error("Error loading alert limits: %s", str(e))
         return render_template("alert_manager_config.html", error_message="Error loading alert configuration."), 500
-    # Load theme config from the main configuration file using UnifiedConfigManager
+
+    # Extract only the alert_ranges from the config data
+    alert_config = config_data.get("alert_ranges", {})
+
+    # Load theme configuration
     main_config = UnifiedConfigManager(str(ALERT_LIMITS_PATH)).load_config()
     theme_config = main_config.get("theme_config", {})
-    return render_template("alert_manager_config.html", alert_ranges=config_data, theme=theme_config)
+
+    return render_template("alert_manager_config.html", alert_ranges=alert_config, theme=theme_config)
+
 
 @alerts_bp.route('/update_config', methods=['POST'], endpoint="update_alert_config")
 def update_alert_config_route():
