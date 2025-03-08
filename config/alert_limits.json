@@ -1,0 +1,200 @@
+{
+  "alert_ranges": {
+    "heat_index_ranges": {
+      "enabled": false,
+      "low": "",
+      "low_notifications": {
+        "call": false,
+        "sms": false,
+        "email": false
+      },
+      "medium": "",
+      "medium_notifications": {
+        "call": false,
+        "sms": false,
+        "email": false
+      },
+      "high": "",
+      "high_notifications": {
+        "call": false,
+        "sms": false,
+        "email": false
+      }
+    },
+    "collateral_ranges": {
+      "enabled": false,
+      "low": "",
+      "medium": "",
+      "high": "",
+      "low_notifications": {
+        "call": false,
+        "sms": false,
+        "email": false
+      },
+      "medium_notifications": {
+        "call": false,
+        "sms": false,
+        "email": false
+      },
+      "high_notifications": {
+        "call": false,
+        "sms": false,
+        "email": false
+      }
+    },
+    "value_ranges": {
+      "enabled": false,
+      "low": "",
+      "medium": "",
+      "high": "",
+      "low_notifications": {
+        "call": false,
+        "sms": false,
+        "email": false
+      },
+      "medium_notifications": {
+        "call": false,
+        "sms": false,
+        "email": false
+      },
+      "high_notifications": {
+        "call": false,
+        "sms": false,
+        "email": false
+      }
+    },
+    "size_ranges": {
+      "enabled": false,
+      "low": "",
+      "medium": "",
+      "high": "",
+      "low_notifications": {
+        "call": false,
+        "sms": false,
+        "email": false
+      },
+      "medium_notifications": {
+        "call": false,
+        "sms": false,
+        "email": false
+      },
+      "high_notifications": {
+        "call": false,
+        "sms": false,
+        "email": false
+      }
+    },
+    "leverage_ranges": {
+      "enabled": false,
+      "low": "",
+      "medium": "",
+      "high": "",
+      "low_notifications": {
+        "call": false,
+        "sms": false,
+        "email": false
+      },
+      "medium_notifications": {
+        "call": false,
+        "sms": false,
+        "email": false
+      },
+      "high_notifications": {
+        "call": false,
+        "sms": false,
+        "email": false
+      }
+    },
+    "liquidation_distance_ranges": {
+      "enabled": false,
+      "low": "",
+      "medium": "",
+      "high": "",
+      "low_notifications": {
+        "call": false,
+        "sms": false,
+        "email": false
+      },
+      "medium_notifications": {
+        "call": false,
+        "sms": false,
+        "email": false
+      },
+      "high_notifications": {
+        "call": false,
+        "sms": false,
+        "email": false
+      }
+    },
+    "travel_percent_liquid_ranges": {
+      "enabled": true,
+      "low": -5.0,
+      "low_notifications": {
+        "call": true,
+        "sms": false,
+        "email": false
+      },
+      "medium": -50.0,
+      "medium_notifications": {
+        "call": true,
+        "sms": false,
+        "email": false
+      },
+      "high": -75.0,
+      "high_notifications": {
+        "call": true,
+        "sms": false,
+        "email": false
+      }
+    },
+    "travel_percent_profit_ranges": {
+      "enabled": true,
+      "low": -5.0,
+      "medium": -50.0,
+      "high": -100.0,
+      "low_notifications": {
+        "call": true,
+        "sms": false,
+        "email": false
+      },
+      "medium_notifications": {
+        "call": true,
+        "sms": false,
+        "email": false
+      },
+      "high_notifications": {
+        "call": true,
+        "sms": false,
+        "email": false
+      }
+    },
+    "profit_ranges": {
+      "enabled": true,
+      "low": 1.0,
+      "low_notifications": {
+        "call": true,
+        "sms": false,
+        "email": false
+      },
+      "medium": 2.0,
+      "medium_notifications": {
+        "call": true,
+        "sms": false,
+        "email": false
+      },
+      "high": 3.0,
+      "high_notifications": {
+        "call": true,
+        "sms": false,
+        "email": false
+      }
+    },
+    "one_day_blast_radius": {
+      "BTC": 17.6,
+      "ETH": 18.0,
+      "SOL": 23.0
+    }
+  },
+  "alert_cooldown_seconds": 6000,
+  "call_refractory_period": 1
+}

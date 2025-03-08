@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+{% block title %}Theme Configuration{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+  <h1 class="mb-4">Theme Configuration</h1>
+  <form id="themeConfigForm">
+    {% for profile_key, profile in theme.profiles.items() %}
+    <fieldset class="border p-3 mb-4">
+      <legend class="w-auto px-2">{{ profile_key | capitalize }}</legend>
+      
+      <!-- Row 1: Title Bar, Side Bar, Wallpaper -->
+      <div class="row mb-3">
+        <div class="col-md-4">
+          <label>Title Bar Color:</label>
+          <div id="{{ profile_key }}_title_bar_pickr" class="pickr-container"></div>
+          <input type="hidden" name="{{ profile_key }}_title_bar" value="{{ profile.title_bar.color }}">
+        </div>
+        <div class="col-md-4">
+          <label>Side Bar Color:</label>
+          <div id="{{ profile_key }}_side_bar_pickr" class="pickr-container"></div>
+          <input type="hidden" name="{{ profile_key }}_side_bar" value="{{ profile.side_bar.color }}">
+        </div>
+        <div class="col-md-4">
+          <label>Wallpaper Color:</label>
+          <div id="{{ profile_key }}_wallpaper_pickr" class="pickr-container"></div>
+          <input type="hidden" name="{{ profile_key }}_wallpaper" value="{{ profile.wallpaper.color }}">
+        </div>
+      </div>
+      
+      <!-- Row 2: Card Title, Card Background, Text -->
+      <div class="row mb-3">
+        <div class="col-md-4">
+          <label>Card Title Color:</label>
+          <div id="{{ profile_key }}_card_title_pickr" class="pickr-container"></div>
+          <input type="hidden" name="{{ profile_key }}_card_title" value="{{ profile['card title'].color }}">
+        </div>
+        <div class="col-md-4">
+          <label>Card Background Color:</label>
+          <div id="{{ profile_key }}_card_background_pickr" class="pickr-container"></div>
+          <input type="hidden" name="{{ profile_key }}_card_background" value="{{ profile['card background'].color }}">
+        </div>
+        <div class="col-md-4">
+          <label>Text Color:</label>
+          <div id="{{ profile_key }}_text_pickr" class="pickr-container"></div>
+          <input type="hidden" name="{{ profile_key }}_text" value="{{ profile.text.color }}">
+        </div>
+      </div>
+      
+      <!-- Preview Section -->
+      <div class="border p-2" id="{{ profile_key }}_preview">
+        <p style="background-color: {{ profile['card title'].color }}; color: {{ profile.text.color }}; padding: 5px;">
+          Card Title Preview
+        </p>
+        <p style="background-color: {{ profile['card background'].color }}; color: {{ profile.text.color }}; padding: 5px;">
+          Card Background Preview
+        </p>
+        <p style="background-color: {{ profile.wallpaper.color }}; color: {{ profile.text.color }}; padding: 5px;">
+          Wallpaper Preview
+        </p>
+      </div>
+    </fieldset>
+    {% endfor %}
+    <button type="submit" class="btn btn-primary">Save Theme Configuration</button>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- Include Pickr assets from CDN -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/classic.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/@simonwep/pickr"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  // For each profile and each field, initialize Pickr.
+  // Define the fields we need: note that for JSON we map "card title" to "card_title" and "card background" to "card_background"
+  const fields = [
+    { key: "title_bar" },
+    { key: "side_bar" },
+    { key: "wallpaper" },
+    { key: "card_title", jsonKey: "card title" },
+    { key: "card_background", jsonKey: "card background" },
+    { key: "text" }
+  ];
+
+  {% for profile_key, profile in theme.profiles.items() %}
+    fields.forEach(function(field) {
+      // Determine the container ID and hidden input name
+      var containerId = "{{ profile_key }}_" + field.key + "_pickr";
+      var hiddenInputName = "{{ profile_key }}_" + field.key;
+      // Get the initial color from the hidden input's value
+      var initialColor = document.querySelector('input[name="' + hiddenInputName + '"]').value;
+      
+      // Initialize Pickr instance
+      const pickr = Pickr.create({
+          el: '#' + containerId,
+          theme: 'classic',
+          default: initialColor,
+          components: {
+              preview: true,
+              opacity: false,
+              hue: true,
+              interaction: {
+                  hex: true,
+                  input: true,
+                  clear: false,
+                  save: true
+              }
+          }
+      });
+      
+      // On saving a color, update the hidden input and the preview box
+      pickr.on('save', (color, instance) => {
+          var hexColor = color.toHEXA().toString();
+          document.querySelector('input[name="' + hiddenInputName + '"]').value = hexColor;
+          var previewDiv = document.getElementById("{{ profile_key }}_preview");
+          if (field.key === "card_title") {
+              var p = previewDiv.querySelector("p:nth-child(1)");
+              p.style.backgroundColor = hexColor;
+          } else if (field.key === "card_background") {
+              var p = previewDiv.querySelector("p:nth-child(2)");
+              p.style.backgroundColor = hexColor;
+          } else if (field.key === "wallpaper") {
+              var p = previewDiv.querySelector("p:nth-child(3)");
+              p.style.backgroundColor = hexColor;
+          } else if (field.key === "text") {
+              previewDiv.querySelectorAll("p").forEach(function(p) {
+                  p.style.color = hexColor;
+              });
+          }
+          // For title_bar and side_bar, you could optionally update a preview if desired.
+          pickr.hide();
+      });
+    });
+  {% endfor %}
+
+  // Handle form submission via AJAX
+  document.getElementById("themeConfigForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+    var formData = new FormData(this);
+    var themeData = { profiles: {} };
+
+    formData.forEach(function(value, key) {
+      var parts = key.split("_"); // e.g. profile1_card_title or profile2_text
+      var profileKey = parts[0];
+      if (!themeData.profiles[profileKey]) {
+        themeData.profiles[profileKey] = {};
+      }
+      if (parts.length === 2) {
+        // For fields like title_bar, side_bar, wallpaper, text
+        if (parts[1] === "text") {
+          themeData.profiles[profileKey]["text"] = { color: value, image: null };
+        } else if (key.indexOf("title_bar") > -1) {
+          themeData.profiles[profileKey]["title_bar"] = { color: value, image: null };
+        } else if (key.indexOf("side_bar") > -1) {
+          themeData.profiles[profileKey]["side_bar"] = { color: value, image: null };
+        } else if (parts[1] === "wallpaper") {
+          themeData.profiles[profileKey]["wallpaper"] = { color: value, image: null };
+        }
+      } else if (parts.length === 3) {
+        // For fields like card_title and card_background
+        var fieldName = parts[1] + " " + parts[2]; // "card title" or "card background"
+        themeData.profiles[profileKey][fieldName] = { color: value, image: null };
+      }
+    });
+    // Preserve the currently selected profile
+    themeData.selected_profile = "{{ theme.selected_profile }}";
+
+    fetch("{{ url_for('dashboard.save_theme_config_route') }}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(themeData)
+    })
+    .then(response => response.json())
+    .then(data => {
+      if(data.success) {
+        alert("Theme configuration saved successfully!");
+        window.location.reload();
+      } else {
+        alert("Error saving theme configuration: " + data.error);
+      }
+    })
+    .catch(err => {
+      console.error("Error:", err);
+      alert("Error saving theme configuration.");
+    });
+  });
+});
+</script>
+{% endblock %}
