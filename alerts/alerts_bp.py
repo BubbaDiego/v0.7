@@ -149,7 +149,6 @@ def config_page():
 
 @alerts_bp.route('/update_config', methods=['POST'], endpoint="update_alert_config")
 def update_alert_config_route():
-    logger.debug("Entered update_alert_config endpoint")
     op_logger = OperationsLogger(log_filename=os.path.join(os.getcwd(), "operations_log.txt"))
     try:
         flat_form = request.form.to_dict(flat=False)
@@ -160,7 +159,6 @@ def update_alert_config_route():
         logger.debug("Parsed Nested Form Data (converted):\n%s", json.dumps(nested_update, indent=2))
         config_mgr.update_alert_config(nested_update)
         logger.debug("update_alert_config() called successfully with merged data.")
-        # Log success with source "System" and include the alert limits file name
         op_logger.log("Alerts configuration updated successfully", source="System",
                       operation_type="Alerts Config Successful", file_name=str(ALERT_LIMITS_PATH))
         updated_config = UnifiedConfigManager(str(ALERT_LIMITS_PATH)).load_config()

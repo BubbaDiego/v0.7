@@ -92,7 +92,8 @@ class CalcServices:
         Example function that calculates travel_percent for both LONG and SHORT.
         Adjust as needed to fit your exact logic.
         """
-        ptype = position_type.upper()
+
+        ptype = (position_type or "").upper()
 
         # Basic checks
         if entry_price <= 0 or liquidation_price <= 0:

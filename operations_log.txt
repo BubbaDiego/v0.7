@@ -1403,3 +1403,439 @@
 {"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-6-25 : 4:49:27 PM", "file_name": "price_monitor.py"}
 {"message": "No Alerts Found", "source": "user", "operation_type": "No Alerts Found", "timestamp": "3-6-25 : 4:49:27 PM"}
 {"message": "Alerts configuration updated successfully", "source": "System", "operation_type": "Alerts Config Successful", "timestamp": "3-6-25 : 4:50:12 PM", "file_name": "C:\\v0.7\\config\\alert_limits.json"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-6-25 : 5:03:11 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-6-25 : 5:03:12 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-6-25 : 5:06:38 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-6-25 : 5:06:39 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-6-25 : 5:19:29 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-6-25 : 5:19:30 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-6-25 : 6:08:12 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-6-25 : 6:08:13 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-6-25 : 6:08:30 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-6-25 : 6:08:32 PM", "file_name": "price_monitor.py"}
+{"message": "No Alerts Found", "source": "user", "operation_type": "No Alerts Found", "timestamp": "3-6-25 : 6:08:32 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-6-25 : 6:18:11 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-6-25 : 6:18:12 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-6-25 : 6:18:27 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-6-25 : 6:18:29 PM", "file_name": "price_monitor.py"}
+{"message": "No Alerts Found", "source": "user", "operation_type": "No Alerts Found", "timestamp": "3-6-25 : 6:18:29 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-6-25 : 6:28:17 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-6-25 : 6:28:18 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-6-25 : 6:28:26 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-6-25 : 6:28:28 PM", "file_name": "price_monitor.py"}
+{"message": "No Alerts Found", "source": "user", "operation_type": "No Alerts Found", "timestamp": "3-6-25 : 6:28:28 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-6-25 : 6:29:53 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-6-25 : 6:29:54 PM", "file_name": "price_monitor.py"}
+{"message": "No Alerts Found", "source": "user", "operation_type": "No Alerts Found", "timestamp": "3-6-25 : 6:29:54 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-6-25 : 6:36:24 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-6-25 : 6:36:25 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-6-25 : 6:36:31 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-6-25 : 6:36:34 PM", "file_name": "price_monitor.py"}
+{"message": "No Alerts Found", "source": "user", "operation_type": "No Alerts Found", "timestamp": "3-6-25 : 6:36:34 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-6-25 : 6:37:10 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-6-25 : 6:37:12 PM", "file_name": "price_monitor.py"}
+{"message": "No Alerts Found", "source": "user", "operation_type": "No Alerts Found", "timestamp": "3-6-25 : 6:37:12 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-6-25 : 6:42:59 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-6-25 : 6:43:00 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-6-25 : 6:43:03 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-6-25 : 6:43:06 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-6-25 : 6:43:08 PM", "file_name": "price_monitor.py"}
+{"message": "No Alerts Found", "source": "user", "operation_type": "No Alerts Found", "timestamp": "3-6-25 : 6:43:08 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-6-25 : 6:44:43 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-6-25 : 6:44:44 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-6-25 : 6:44:49 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-6-25 : 6:44:51 PM", "file_name": "price_monitor.py"}
+{"message": "No Alerts Found", "source": "user", "operation_type": "No Alerts Found", "timestamp": "3-6-25 : 6:44:51 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-6-25 : 6:47:15 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-6-25 : 6:47:16 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-6-25 : 6:47:22 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-6-25 : 6:47:24 PM", "file_name": "price_monitor.py"}
+{"message": "No Alerts Found", "source": "user", "operation_type": "No Alerts Found", "timestamp": "3-6-25 : 6:47:24 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-6-25 : 7:25:32 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-6-25 : 7:25:33 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-6-25 : 7:25:37 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-6-25 : 7:25:40 PM", "file_name": "price_monitor.py"}
+{"message": "No Alerts Found", "source": "user", "operation_type": "No Alerts Found", "timestamp": "3-6-25 : 7:25:40 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-6-25 : 7:27:42 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-6-25 : 7:27:43 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-6-25 : 7:27:49 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-6-25 : 7:27:51 PM", "file_name": "price_monitor.py"}
+{"message": "No Alerts Found", "source": "user", "operation_type": "No Alerts Found", "timestamp": "3-6-25 : 7:27:51 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-6-25 : 7:34:02 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-6-25 : 7:36:08 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-6-25 : 7:36:12 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-6-25 : 7:36:13 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-6-25 : 7:36:19 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-6-25 : 7:36:21 PM", "file_name": "price_monitor.py"}
+{"message": "No Alerts Found", "source": "user", "operation_type": "No Alerts Found", "timestamp": "3-6-25 : 7:36:21 PM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 3:54:10 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 3:54:11 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 4:06:37 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 4:06:38 AM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 4:06:46 AM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 4:06:49 AM", "file_name": "price_monitor.py"}
+{"message": "No Alerts Found", "source": "user", "operation_type": "No Alerts Found", "timestamp": "3-7-25 : 4:06:49 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 4:16:38 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 4:29:35 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 4:29:37 AM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 4:29:48 AM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 4:29:48 AM", "file_name": "price_monitor.py"}
+{"message": "No Alerts Found", "source": "user", "operation_type": "No Alerts Found", "timestamp": "3-7-25 : 4:29:48 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 4:30:19 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 4:30:22 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 4:30:45 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 4:30:51 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 4:30:53 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 4:31:37 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 4:31:40 AM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 4:31:55 AM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 4:31:55 AM", "file_name": "price_monitor.py"}
+{"message": "No Alerts Found", "source": "user", "operation_type": "No Alerts Found", "timestamp": "3-7-25 : 4:31:55 AM"}
+{"message": "Alerts configuration updated successfully", "source": "System", "operation_type": "Alerts Config Successful", "timestamp": "3-7-25 : 4:32:22 AM", "file_name": "C:\\v0.7\\config\\alert_limits.json"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 4:35:28 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 4:35:31 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 4:41:26 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 4:49:50 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 4:49:52 AM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 4:49:57 AM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 4:49:58 AM", "file_name": "price_monitor.py"}
+{"message": "No Alerts Found", "source": "user", "operation_type": "No Alerts Found", "timestamp": "3-7-25 : 4:49:58 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 4:54:03 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 4:54:05 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 4:57:56 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 4:57:58 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 4:59:14 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 4:59:16 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 5:29:43 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 5:29:45 AM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 5:29:53 AM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 5:29:54 AM", "file_name": "price_monitor.py"}
+{"message": "No Alerts Found", "source": "user", "operation_type": "No Alerts Found", "timestamp": "3-7-25 : 5:29:54 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 5:35:49 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 5:38:35 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 5:38:37 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 5:42:57 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 5:42:59 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 5:46:17 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 5:46:19 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 6:08:25 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 6:11:24 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 6:11:27 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 6:19:55 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 6:19:58 AM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 7:29:21 AM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 7:29:22 AM", "file_name": "price_monitor.py"}
+{"message": "No Alerts Found", "source": "user", "operation_type": "No Alerts Found", "timestamp": "3-7-25 : 7:29:22 AM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 7:37:29 AM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 7:37:30 AM", "file_name": "price_monitor.py"}
+{"message": "No Alerts Found", "source": "user", "operation_type": "No Alerts Found", "timestamp": "3-7-25 : 7:37:30 AM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 8:55:58 AM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 8:55:59 AM", "file_name": "price_monitor.py"}
+{"message": "1 alerts triggered", "source": "user", "operation_type": "Alert Triggered", "timestamp": "3-7-25 : 8:55:59 AM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 9:32:15 AM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 9:32:15 AM", "file_name": "price_monitor.py"}
+{"message": "1 alerts suppressed", "source": "user", "operation_type": "Alert Silenced", "timestamp": "3-7-25 : 9:32:15 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 9:35:00 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 9:35:59 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 9:39:18 AM"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 9:39:40 AM"}
+{"timestamp": "2025-03-07 09:46:17,217", "name": "UnifiedLogger", "level": "INFO", "message": "AlertManager initialized", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 9:46:17 AM"}
+{"timestamp": "2025-03-07 09:46:19,510", "name": "UnifiedLogger", "level": "INFO", "message": "AlertManager initialized", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 9:46:19 AM"}
+{"timestamp": "3-7-25 : 9:51:51 AM", "name": "UnifiedLogger", "level": "INFO", "message": "AlertManager initialized", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 9:51:51 AM"}
+{"timestamp": "3-7-25 : 9:52:05 AM", "name": "UnifiedLogger", "level": "INFO", "message": "AlertManager initialized", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 9:52:05 AM"}
+{"timestamp": "3-7-25 : 9:52:07 AM", "name": "UnifiedLogger", "level": "INFO", "message": "AlertManager initialized", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 9:52:07 AM"}
+{"timestamp": "3-7-25 : 9:54:03 AM", "name": "UnifiedLogger", "level": "INFO", "message": "AlertManager initialized", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 9:54:03 AM"}
+{"timestamp": "3-7-25 : 9:54:48 AM", "name": "UnifiedLogger", "level": "INFO", "message": "AlertManager initialized", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 9:54:48 AM"}
+{"timestamp": "3-7-25 : 9:56:22 AM", "name": "UnifiedLogger", "level": "INFO", "message": "AlertManager initialized", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 9:56:22 AM"}
+{"timestamp": "3-7-25 : 10:00:39 AM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃initialized", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 10:00:39 AM"}
+{"timestamp": "3-7-25 : 10:00:41 AM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃initialized", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 10:00:41 AM"}
+{"timestamp": "3-7-25 : 10:01:17 AM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃initialized", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 10:01:17 AM"}
+{"timestamp": "3-7-25 : 10:01:19 AM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃initialized", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 10:01:19 AM"}
+{"timestamp": "3-7-25 : 10:05:57 AM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 10:05:57 AM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 10:11:49 AM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 10:11:50 AM", "file_name": "price_monitor.py"}
+{"timestamp": "3-7-25 : 10:11:50 AM", "name": "UnifiedLogger", "level": "INFO", "message": "check_alerts method called", "source": "user", "log_type": "operation"}
+{"timestamp": "3-7-25 : 10:11:50 AM", "name": "UnifiedLogger", "level": "INFO", "message": "Checking 2 positions for alerts", "source": "AlertManager", "log_type": "operation"}
+{"timestamp": "3-7-25 : 10:15:17 AM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 10:15:17 AM"}
+{"timestamp": "3-7-25 : 10:18:23 AM", "name": "UnifiedLogger", "level": "INFO", "source": "system", "operation_type": "AlertManager initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 10:18:23 AM"}
+{"timestamp": "3-7-25 : 10:18:25 AM", "name": "UnifiedLogger", "level": "INFO", "source": "system", "operation_type": "AlertManager initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 10:18:25 AM"}
+{"timestamp": "3-7-25 : 10:35:25 AM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 10:35:25 AM"}
+{"timestamp": "3-7-25 : 10:35:28 AM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 10:35:28 AM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 10:35:49 AM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 10:35:49 AM", "file_name": "price_monitor.py"}
+{"timestamp": "3-7-25 : 10:35:49 AM", "name": "UnifiedLogger", "level": "INFO", "message": "check_alerts method called", "source": "user", "log_type": "operation"}
+{"timestamp": "3-7-25 : 10:35:49 AM", "name": "UnifiedLogger", "level": "INFO", "message": "Checking 2 positions for alerts", "source": "AlertManager", "log_type": "operation"}
+{"timestamp": "3-7-25 : 10:36:13 AM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 10:36:13 AM"}
+{"timestamp": "3-7-25 : 10:36:15 AM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 10:36:15 AM"}
+{"timestamp": "3-7-25 : 10:38:30 AM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 10:38:30 AM"}
+{"timestamp": "3-7-25 : 10:38:57 AM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 10:38:57 AM"}
+{"timestamp": "3-7-25 : 10:39:44 AM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 10:39:44 AM"}
+{"timestamp": "3-7-25 : 10:39:46 AM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 10:39:46 AM"}
+{"timestamp": "3-7-25 : 10:41:01 AM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 10:41:01 AM"}
+{"timestamp": "3-7-25 : 10:41:04 AM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 10:41:04 AM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 10:41:07 AM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 10:41:08 AM", "file_name": "price_monitor.py"}
+{"timestamp": "3-7-25 : 10:41:08 AM", "name": "UnifiedLogger", "level": "INFO", "message": "check_alerts method called", "source": "user", "log_type": "operation"}
+{"timestamp": "3-7-25 : 10:41:08 AM", "name": "UnifiedLogger", "level": "INFO", "message": "Checking 2 positions for alerts", "source": "AlertManager", "log_type": "operation"}
+{"timestamp": "3-7-25 : 10:43:51 AM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 10:43:51 AM"}
+{"timestamp": "3-7-25 : 10:43:53 AM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 10:43:53 AM"}
+{"timestamp": "3-7-25 : 10:43:55 AM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 10:43:55 AM"}
+{"timestamp": "3-7-25 : 10:44:40 AM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 10:44:40 AM"}
+{"timestamp": "3-7-25 : 10:44:42 AM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 10:44:42 AM"}
+{"timestamp": "3-7-25 : 10:58:14 AM", "name": "UnifiedLogger", "level": "INFO", "message": "✅ Alert Manager 🏃", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 10:58:14 AM"}
+{"timestamp": "3-7-25 : 10:58:17 AM", "name": "UnifiedLogger", "level": "INFO", "message": "✅ Alert Manager 🏃", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 10:58:17 AM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 10:58:18 AM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 10:58:19 AM", "file_name": "price_monitor.py"}
+{"timestamp": "3-7-25 : 10:58:19 AM", "name": "UnifiedLogger", "level": "INFO", "message": "Checking 0 positions for alerts", "source": "AlertManager", "log_type": "operation"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 10:58:23 AM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 10:58:23 AM", "file_name": "price_monitor.py"}
+{"timestamp": "3-7-25 : 10:58:23 AM", "name": "UnifiedLogger", "level": "INFO", "message": "Checking 2 positions for alerts", "source": "AlertManager", "log_type": "operation"}
+{"timestamp": "3-7-25 : 10:59:39 AM", "name": "UnifiedLogger", "level": "INFO", "message": "✅ Alert Manager 🏃", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 10:59:39 AM"}
+{"timestamp": "3-7-25 : 10:59:41 AM", "name": "UnifiedLogger", "level": "INFO", "message": "✅ Alert Manager 🏃", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 10:59:41 AM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 10:59:43 AM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 10:59:43 AM", "file_name": "price_monitor.py"}
+{"timestamp": "3-7-25 : 10:59:43 AM", "name": "UnifiedLogger", "level": "INFO", "message": "Checking 2 positions for alerts", "source": "AlertManager", "log_type": "operation"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 11:48:56 AM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 11:48:56 AM", "file_name": "price_monitor.py"}
+{"timestamp": "3-7-25 : 11:48:56 AM", "name": "UnifiedLogger", "level": "INFO", "message": "Checking 2 positions for alerts", "source": "AlertManager", "log_type": "operation"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 12:17:08 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 12:17:08 PM", "file_name": "price_monitor.py"}
+{"timestamp": "3-7-25 : 12:17:08 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Checking 2 positions for alerts", "source": "AlertManager", "log_type": "operation"}
+{"timestamp": "3-7-25 : 12:31:48 PM", "name": "UnifiedLogger", "level": "INFO", "message": "✅ Alert Manager 🏃", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 12:31:48 PM"}
+{"timestamp": "3-7-25 : 12:31:50 PM", "name": "UnifiedLogger", "level": "INFO", "message": "✅ Alert Manager 🏃", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 12:31:50 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 12:32:07 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 12:32:08 PM", "file_name": "price_monitor.py"}
+{"timestamp": "3-7-25 : 12:32:08 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Checking 2 positions for alerts", "source": "AlertManager", "log_type": "operation"}
+{"timestamp": "3-7-25 : 12:36:48 PM", "name": "UnifiedLogger", "level": "INFO", "message": "✅ Alert Manager 🏃", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 12:36:48 PM"}
+{"timestamp": "3-7-25 : 12:38:11 PM", "name": "UnifiedLogger", "level": "INFO", "message": "✅ Alert Manager 🏃", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 12:38:11 PM"}
+{"timestamp": "3-7-25 : 12:38:56 PM", "name": "UnifiedLogger", "level": "INFO", "message": "✅ Alert Manager 🏃", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 12:38:56 PM"}
+{"timestamp": "3-7-25 : 12:38:58 PM", "name": "UnifiedLogger", "level": "INFO", "message": "✅ Alert Manager 🏃", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 12:38:58 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 12:39:12 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 12:39:13 PM", "file_name": "price_monitor.py"}
+{"timestamp": "3-7-25 : 12:43:31 PM", "name": "UnifiedLogger", "level": "INFO", "message": "✅ Alert Manager 🏃", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 12:43:31 PM"}
+{"timestamp": "3-7-25 : 12:43:33 PM", "name": "UnifiedLogger", "level": "INFO", "message": "✅ Alert Manager 🏃", "source": "system", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 12:43:33 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 12:43:57 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 12:43:57 PM", "file_name": "price_monitor.py"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 1:41:34 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 1:41:34 PM", "file_name": "price_monitor.py"}
+{"timestamp": "3-7-25 : 1:54:57 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 1:54:57 PM"}
+{"timestamp": "3-7-25 : 1:54:59 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 1:54:59 PM"}
+{"timestamp": "3-7-25 : 1:56:37 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 1:56:37 PM"}
+{"timestamp": "3-7-25 : 1:56:40 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 1:56:40 PM"}
+{"timestamp": "3-7-25 : 1:59:10 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 1:59:10 PM"}
+{"timestamp": "3-7-25 : 1:59:12 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 1:59:12 PM"}
+{"timestamp": "3-7-25 : 2:00:52 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 2:00:52 PM"}
+{"timestamp": "3-7-25 : 2:00:55 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 2:00:55 PM"}
+{"timestamp": "3-7-25 : 2:02:50 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 2:02:50 PM"}
+{"timestamp": "3-7-25 : 2:02:52 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 2:02:52 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 2:02:58 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 2:02:59 PM", "file_name": "price_monitor.py"}
+{"timestamp": "3-7-25 : 2:02:59 PM", "name": "UnifiedLogger", "level": "INFO", "message": "check_alerts method called", "source": "user", "operation_type": "Monitor Loop", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-7-25 : 2:02:59 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Checking 2 positions for alerts", "source": "AlertManager", "operation_type": "Monitor Loop", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-7-25 : 2:02:59 PM", "name": "UnifiedLogger", "level": "INFO", "message": "No Alerts Found", "source": "user", "operation_type": "No Alerts Found", "file": "alert_manager", "log_type": "operation"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 2:03:24 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 2:03:24 PM", "file_name": "price_monitor.py"}
+{"timestamp": "3-7-25 : 2:03:24 PM", "name": "UnifiedLogger", "level": "INFO", "message": "check_alerts method called", "source": "user", "operation_type": "Monitor Loop", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-7-25 : 2:03:24 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Checking 2 positions for alerts", "source": "AlertManager", "operation_type": "Monitor Loop", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-7-25 : 2:03:24 PM", "name": "UnifiedLogger", "level": "INFO", "message": "No Alerts Found", "source": "user", "operation_type": "No Alerts Found", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-7-25 : 2:03:31 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 2:03:31 PM"}
+{"timestamp": "3-7-25 : 2:03:33 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 2:03:33 PM"}
+{"timestamp": "3-7-25 : 2:08:51 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 2:08:52 PM"}
+{"timestamp": "3-7-25 : 2:08:54 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 2:08:54 PM"}
+{"timestamp": "3-7-25 : 2:10:36 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 2:10:36 PM"}
+{"timestamp": "3-7-25 : 2:10:38 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 2:10:38 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 2:10:53 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 2:10:53 PM", "file_name": "price_monitor.py"}
+{"timestamp": "3-7-25 : 2:10:53 PM", "name": "UnifiedLogger", "level": "INFO", "message": "check_alerts method called", "source": "user", "operation_type": "Monitor Loop", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-7-25 : 2:10:53 PM", "name": "UnifiedLogger", "level": "INFO", "message": "No Alerts Found", "source": "user", "operation_type": "No Alerts Found", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-7-25 : 2:14:44 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 2:14:44 PM"}
+{"timestamp": "3-7-25 : 2:14:46 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 2:14:46 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 2:14:54 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 2:14:54 PM", "file_name": "price_monitor.py"}
+{"timestamp": "3-7-25 : 2:14:54 PM", "name": "UnifiedLogger", "level": "INFO", "message": "check_alerts method called", "source": "user", "operation_type": "Monitor Loop", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-7-25 : 2:14:54 PM", "name": "UnifiedLogger", "level": "INFO", "message": "No Alerts Found", "source": "user", "operation_type": "No Alerts Found", "file": "alert_manager", "log_type": "operation"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 2:14:58 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 2:14:58 PM", "file_name": "price_monitor.py"}
+{"timestamp": "3-7-25 : 2:14:58 PM", "name": "UnifiedLogger", "level": "INFO", "message": "check_alerts method called", "source": "user", "operation_type": "Monitor Loop", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-7-25 : 2:14:58 PM", "name": "UnifiedLogger", "level": "INFO", "message": "No Alerts Found", "source": "user", "operation_type": "No Alerts Found", "file": "alert_manager", "log_type": "operation"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 5:12:43 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 5:12:44 PM", "file_name": "price_monitor.py"}
+{"timestamp": "3-7-25 : 5:12:44 PM", "name": "UnifiedLogger", "level": "INFO", "message": "check_alerts method called", "source": "user", "operation_type": "Monitor Loop", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-7-25 : 5:12:44 PM", "name": "UnifiedLogger", "level": "INFO", "message": "No Alerts Found", "source": "user", "operation_type": "No Alerts Found", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-7-25 : 5:14:19 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 5:14:19 PM"}
+{"timestamp": "3-7-25 : 5:14:21 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 5:14:21 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 5:14:31 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 5:14:32 PM", "file_name": "price_monitor.py"}
+{"timestamp": "3-7-25 : 5:14:32 PM", "name": "UnifiedLogger", "level": "INFO", "message": "check_alerts method called", "source": "user", "operation_type": "Monitor Loop", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-7-25 : 5:14:32 PM", "name": "UnifiedLogger", "level": "INFO", "message": "No Alerts Found", "source": "user", "operation_type": "No Alerts Found", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-7-25 : 5:16:35 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 5:16:35 PM"}
+{"timestamp": "3-7-25 : 5:16:37 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 5:16:37 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 5:16:43 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 5:16:43 PM", "file_name": "price_monitor.py"}
+{"timestamp": "3-7-25 : 5:16:43 PM", "name": "UnifiedLogger", "level": "INFO", "message": "check_alerts method called", "source": "user", "operation_type": "Monitor Loop", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-7-25 : 5:16:43 PM", "name": "UnifiedLogger", "level": "INFO", "message": "No Alerts Found", "source": "user", "operation_type": "No Alerts Found", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-7-25 : 5:16:53 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 5:16:53 PM"}
+{"timestamp": "3-7-25 : 5:16:55 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 5:16:55 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 5:16:57 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 5:16:57 PM", "file_name": "price_monitor.py"}
+{"timestamp": "3-7-25 : 5:16:57 PM", "name": "UnifiedLogger", "level": "INFO", "message": "check_alerts method called", "source": "user", "operation_type": "Monitor Loop", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-7-25 : 5:16:57 PM", "name": "UnifiedLogger", "level": "INFO", "message": "No Alerts Found", "source": "user", "operation_type": "No Alerts Found", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-7-25 : 5:17:26 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 5:17:26 PM"}
+{"timestamp": "3-7-25 : 5:24:02 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 5:24:02 PM"}
+{"timestamp": "3-7-25 : 5:24:04 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 5:24:04 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 5:24:10 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 5:24:11 PM", "file_name": "price_monitor.py"}
+{"timestamp": "3-7-25 : 5:24:11 PM", "name": "UnifiedLogger", "level": "INFO", "message": "check_alerts method called", "source": "user", "operation_type": "Monitor Loop", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-7-25 : 5:24:11 PM", "name": "UnifiedLogger", "level": "INFO", "message": "No Alerts Found", "source": "user", "operation_type": "No Alerts Found", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-7-25 : 5:27:55 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 5:27:55 PM"}
+{"timestamp": "3-7-25 : 5:27:57 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 5:27:57 PM"}
+{"timestamp": "3-7-25 : 5:28:22 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 5:28:22 PM"}
+{"timestamp": "3-7-25 : 5:28:24 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 5:28:24 PM"}
+{"timestamp": "3-7-25 : 5:28:28 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 5:28:28 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 5:28:29 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 5:28:30 PM", "file_name": "price_monitor.py"}
+{"timestamp": "3-7-25 : 5:28:30 PM", "name": "UnifiedLogger", "level": "INFO", "message": "check_alerts method called", "source": "user", "operation_type": "Monitor Loop", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-7-25 : 5:28:30 PM", "name": "UnifiedLogger", "level": "INFO", "message": "No Alerts Found", "source": "user", "operation_type": "No Alerts Found", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-7-25 : 5:29:57 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 5:29:57 PM"}
+{"timestamp": "3-7-25 : 5:29:59 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 5:29:59 PM"}
+{"timestamp": "3-7-25 : 5:30:02 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 5:30:02 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 5:30:09 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 5:30:09 PM", "file_name": "price_monitor.py"}
+{"timestamp": "3-7-25 : 5:30:09 PM", "name": "UnifiedLogger", "level": "INFO", "message": "check_alerts method called", "source": "user", "operation_type": "Monitor Loop", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-7-25 : 5:30:09 PM", "name": "UnifiedLogger", "level": "INFO", "message": "No Alerts Found", "source": "user", "operation_type": "No Alerts Found", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-7-25 : 5:32:55 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 5:32:55 PM"}
+{"timestamp": "3-7-25 : 5:36:03 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 5:36:03 PM"}
+{"timestamp": "3-7-25 : 5:36:05 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 5:36:05 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 5:36:11 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 5:36:11 PM", "file_name": "price_monitor.py"}
+{"timestamp": "3-7-25 : 5:36:11 PM", "name": "UnifiedLogger", "level": "INFO", "message": "check_alerts method called", "source": "user", "operation_type": "Monitor Loop", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-7-25 : 5:36:11 PM", "name": "UnifiedLogger", "level": "INFO", "message": "1 alerts triggered", "source": "user", "operation_type": "Alert Triggered", "file": "alert_manager", "log_type": "operation"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 5:39:58 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 5:39:59 PM", "file_name": "price_monitor.py"}
+{"timestamp": "3-7-25 : 5:39:59 PM", "name": "UnifiedLogger", "level": "INFO", "message": "check_alerts method called", "source": "user", "operation_type": "Monitor Loop", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-7-25 : 5:39:59 PM", "name": "UnifiedLogger", "level": "INFO", "message": "1 alerts suppressed", "source": "user", "operation_type": "Alert Silenced", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-7-25 : 5:41:19 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 5:41:19 PM"}
+{"timestamp": "3-7-25 : 5:41:21 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 5:41:21 PM"}
+{"timestamp": "3-7-25 : 5:41:24 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 5:41:24 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 5:41:25 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 5:41:26 PM", "file_name": "price_monitor.py"}
+{"timestamp": "3-7-25 : 5:41:26 PM", "name": "UnifiedLogger", "level": "INFO", "message": "1 alerts triggered", "source": "user", "operation_type": "Alert Triggered", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-7-25 : 5:49:11 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 5:49:11 PM"}
+{"timestamp": "3-7-25 : 5:49:14 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 5:49:14 PM"}
+{"timestamp": "3-7-25 : 5:51:10 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 5:51:10 PM"}
+{"timestamp": "3-7-25 : 5:54:17 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 5:54:17 PM"}
+{"timestamp": "3-7-25 : 5:54:37 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 5:54:37 PM"}
+{"timestamp": "3-7-25 : 5:54:40 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 5:54:40 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 5:54:43 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 5:54:44 PM", "file_name": "price_monitor.py"}
+{"timestamp": "3-7-25 : 5:54:44 PM", "name": "UnifiedLogger", "level": "INFO", "message": "No Alerts Found", "source": "user", "operation_type": "No Alerts Found", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-7-25 : 5:56:02 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 5:56:02 PM"}
+{"timestamp": "3-7-25 : 5:56:04 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 5:56:04 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 5:56:14 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 5:56:15 PM", "file_name": "price_monitor.py"}
+{"timestamp": "3-7-25 : 6:20:33 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 6:20:33 PM"}
+{"timestamp": "3-7-25 : 6:20:36 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-7-25 : 6:20:36 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 6:20:41 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 6:20:41 PM", "file_name": "price_monitor.py"}
+{"message": "Alerts configuration updated successfully", "source": "System", "operation_type": "Alerts Config Successful", "timestamp": "3-7-25 : 6:21:33 PM", "file_name": "C:\\v0.7\\config\\alert_limits.json"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 6:21:42 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 6:21:42 PM", "file_name": "price_monitor.py"}
+{"message": "Alerts configuration updated successfully", "source": "System", "operation_type": "Alerts Config Successful", "timestamp": "3-7-25 : 6:22:52 PM", "file_name": "C:\\v0.7\\config\\alert_limits.json"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 6:23:01 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 6:23:02 PM", "file_name": "price_monitor.py"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-7-25 : 6:23:50 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-7-25 : 6:23:51 PM", "file_name": "price_monitor.py"}

@@ -101,8 +101,10 @@ def fuzzy_find_op_type(op_type: str, config_keys) -> str:
 ###############################################################################
 class OperationsLogger:
     def __init__(self, log_filename: str = None):
+        from config.config_constants import BASE_DIR
+        # Use BASE_DIR for the log file if none is provided
         if log_filename is None:
-            log_filename = os.path.join(os.getcwd(), "operations_log.txt")
+            log_filename = os.path.join(str(BASE_DIR), "operations_log.txt")
         self.log_filename = log_filename
 
         # Create the log file if it doesn't exist
@@ -110,7 +112,7 @@ class OperationsLogger:
             with open(self.log_filename, "w", encoding="utf-8") as f:
                 pass
 
-        print("Reading log file from:", os.path.abspath(log_filename))
+        print("Reading log file from:", os.path.abspath(self.log_filename))
 
         # Create a logger with a fixed name.
         self.logger = logging.getLogger("OperationsLogger")
@@ -121,7 +123,7 @@ class OperationsLogger:
             self.logger.removeHandler(h)
 
         # FileHandler with UTF-8 encoding; we output only the message (our JSON string).
-        file_handler = logging.FileHandler(log_filename, encoding="utf-8")
+        file_handler = logging.FileHandler(self.log_filename, encoding="utf-8")
         file_handler.setFormatter(logging.Formatter("%(message)s"))
         self.logger.addHandler(file_handler)
 
@@ -210,7 +212,6 @@ class OperationsViewer:
             date_part = timestamp_str
 
         # Build the HTML using a flex container with three columns.
-        # Updated the margin and padding values to reduce the container height.
         line_html = f"""
     <div class="alert {line_color_class} d-flex align-items-center justify-content-between mb-1" 
          style="margin: 2px 0; padding: 3px; white-space: nowrap;">

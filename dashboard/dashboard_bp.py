@@ -17,15 +17,18 @@ import logging
 import sqlite3
 import pytz
 from datetime import datetime, timedelta
+import os
 
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, current_app
-from config.config_constants import DB_PATH, CONFIG_PATH
+from config.config_constants import DB_PATH, CONFIG_PATH, BASE_DIR
 from data.data_locker import DataLocker
 from positions.position_service import PositionService
 from utils.calc_services import CalcServices
 
-# Import the OperationsViewer from operations_logger.py (ensure it's updated as above)
+# Import the OperationsViewer from operations_manager.py (unchanged)
 from utils.operations_manager import OperationsViewer
+# Use AlertViewer to format alert monitor log entries
+from alerts.ee import AlertViewer
 
 logger = logging.getLogger("DashboardBlueprint")
 logger.setLevel(logging.CRITICAL)
@@ -178,9 +181,10 @@ def dashboard():
             last_update_time_only = "N/A"
             last_update_date_only = "N/A"
 
-        # Build Live System Feed using the OperationsViewer (which now returns entries in reverse order)
+        # Read Operations Log using absolute path from BASE_DIR.
+        OPERATIONS_LOG_FILE = os.path.join(str(BASE_DIR), "operations_log.txt")
         try:
-            viewer = OperationsViewer("operations_log.txt")
+            viewer = OperationsViewer(OPERATIONS_LOG_FILE)
             system_feed_entries = viewer.get_all_display_strings()
         except Exception as e:
             system_feed_entries = '<div class="alert alert-secondary p-1 mb-1" role="alert">No feed data available</div>'
@@ -188,7 +192,7 @@ def dashboard():
         # Parse JSON for Operation Log (last 5 lines)
         ops_log_entries = []
         try:
-            with open("operations_log.txt", "r", encoding="utf-8") as f:
+            with open(OPERATIONS_LOG_FILE, "r", encoding="utf-8") as f:
                 lines = [line.strip() for line in f if line.strip()]
                 for line in lines[-5:]:
                     try:
@@ -199,8 +203,14 @@ def dashboard():
         except Exception:
             pass
 
-        # Alerts from DataLocker.
-        alert_entries = dl.get_alerts() or []
+        # Read Alert Monitor Log using absolute path from BASE_DIR.
+        ALERT_MONITOR_LOG_FILE = os.path.join(str(BASE_DIR), "alert_monitor_log.txt")
+        try:
+            # Use AlertViewer to format the alert monitor log
+            alert_viewer = AlertViewer(ALERT_MONITOR_LOG_FILE)
+            alert_entries = alert_viewer.get_all_display_strings()
+        except Exception as e:
+            alert_entries = '<div class="alert alert-secondary p-1 mb-1" role="alert">No alert data available</div>'
 
         return render_template(
             "dashboard.html",
@@ -244,7 +254,7 @@ def dashboard():
             last_update_positions_source="N/A",
             system_feed_entries='<div class="alert alert-secondary p-1 mb-1" role="alert">No feed data available</div>',
             ops_log_entries=[],
-            alert_entries=[]
+            alert_entries='<div class="alert alert-secondary p-1 mb-1" role="alert">No alert data available</div>'
         )
 
 
@@ -262,7 +272,6 @@ def theme_options():
 # -------------------------------
 # API Endpoints for Chart Data
 # -------------------------------
-
 @dashboard_bp.route("/api/size_composition")
 def api_size_composition():
     try:
