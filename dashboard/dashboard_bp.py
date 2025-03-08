@@ -274,7 +274,7 @@ def dash_performance():
 
 @dashboard_bp.route("/theme")
 def theme_options():
-    return render_template("theme.html")
+    return render_template("theme_config.html")
 
 
 # -------------------------------
@@ -380,6 +380,42 @@ def save_theme_route():
     except Exception as e:
         logger.error("Error saving theme", exc_info=True)
         return jsonify({"success": False, "error": str(e)}), 500
+
+
+@dashboard_bp.route("/theme_config", methods=["GET"])
+def theme_config_page():
+    """
+    Renders the theme configuration page.
+    Loads the current theme configuration from the JSON file and passes it into the template.
+    """
+    try:
+        from config.config_constants import THEME_CONFIG_PATH
+        with open(THEME_CONFIG_PATH, "r", encoding="utf-8") as f:
+            theme_config = json.load(f)
+        return render_template("theme_config.html", theme=theme_config)
+    except Exception as e:
+        logger.error("Error loading theme configuration", exc_info=True)
+        return render_template("theme_config.html", theme={})
+
+
+@dashboard_bp.route("/save_theme_config", methods=["POST"], endpoint="save_theme_config_route")
+def save_theme_config_route():
+    """
+    Receives updated theme configuration data from the theme_config.html form.
+    Writes the updated configuration back to the JSON file.
+    Returns a JSON response indicating success or failure.
+    """
+    try:
+        data = request.get_json()
+        # Optionally add validation for data structure here
+        from config.config_constants import THEME_CONFIG_PATH
+        with open(THEME_CONFIG_PATH, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+        return jsonify({"success": True})
+    except Exception as e:
+        logger.error("Error saving theme configuration", exc_info=True)
+        return jsonify({"success": False, "error": str(e)}), 500
+
 
 
 @dashboard_bp.route("/api/asset_percent_changes")

@@ -127,6 +127,13 @@
                     <i class="bi bi-check-lg ms-auto d-none"></i>
                   </button>
                 </li>
+                <!-- New option: Gear icon that links to the theme configuration page -->
+                <li>
+                  <a class="dropdown-item d-flex align-items-center" href="{{ url_for('dashboard.theme_options') }}">
+                    <i class="bi bi-gear me-2"></i>
+                    Theme Config
+                  </a>
+                </li>
               </ul>
             </li>
             <!-- End Theme Toggler -->
