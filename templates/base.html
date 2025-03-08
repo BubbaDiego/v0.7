@@ -43,6 +43,26 @@
           {% endif %};
         --text-color: {{ theme.get('profiles', {}).get(theme.selected_profile, {}).get('text', {}).get('color', '#FFFFFF') }};
       }
+
+      /* --- NEW: Apply primary, secondary, and text colors to elements --- */
+      body {
+        color: var(--text-color);
+      }
+      .btn-primary {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+      }
+      .btn-secondary {
+        background-color: var(--secondary-color);
+        border-color: var(--secondary-color);
+      }
+      a {
+        color: var(--primary-color);
+      }
+      a:hover {
+        color: var(--secondary-color);
+      }
+      /* You can add more selectors here that should use these theme colors */
     </style>
   </head>
   <body class="layout-fixed sidebar-expand-lg sidebar-mini sidebar-collapse" style="
@@ -136,7 +156,7 @@
                   <p>Dashboard</p>
                 </a>
               </li>
-              <!-- Additional menu items -->
+              <!-- Additional menu items as needed -->
               <li class="nav-item">
                 <a href="{{ url_for('positions.positions_table') }}" class="nav-link">
                   <i class="nav-icon bi bi-table"></i>
