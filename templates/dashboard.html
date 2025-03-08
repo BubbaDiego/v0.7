@@ -4,11 +4,8 @@
 {% block extra_styles %}
 <meta charset="utf-8">
 <style>
-  /* -------------------- Background Wallpaper -------------------- */
-  body {
-    background: url("{{ url_for('static', filename='images/wallpaper.png') }}") no-repeat center center fixed;
-    background-size: cover;
-  }
+  /* -------------------- Removed Static Background Wallpaper -------------------- */
+  /* Background is now controlled via the theme configuration in base.html. */
 
   /* -------------------- General Card Header Styling -------------------- */
   .card-header {

@@ -22,11 +22,25 @@
 
     {% block extra_styles %}{% endblock %}
 
+    <!-- Global Theme Config (Passed from Server) -->
+    <script>
+      // The theme configuration is injected by the server as the "theme" variable.
+      console.log("Theme config passed from server:", {{ theme|tojson|safe }});
+    </script>
+
     <!-- CSS Variables for Primary, Secondary, and Text Colors using theme_config -->
     <style>
       :root {
-        --primary-color: {% if theme.get('profiles') and theme.profiles.get(theme.selected_profile) and theme.profiles[theme.selected_profile].primary.image %}url('{{ url_for('static', filename=theme.profiles[theme.selected_profile].primary.image) }}'){% else %}{{ theme.get('profiles', {}).get(theme.selected_profile, {}).get('primary', {}).get('color', '#581845') }}{% endif %};
-        --secondary-color: {% if theme.get('profiles') and theme.profiles.get(theme.selected_profile) and theme.profiles[theme.selected_profile].secondary.image %}url('{{ url_for('static', filename=theme.profiles[theme.selected_profile].secondary.image) }}'){% else %}{{ theme.get('profiles', {}).get(theme.selected_profile, {}).get('secondary', {}).get('color', '#FFC300') }}{% endif %};
+        --primary-color: {% if theme.get('profiles') and theme.profiles.get(theme.selected_profile) and theme.profiles[theme.selected_profile].primary.image %}
+          url('{{ url_for('static', filename=theme.profiles[theme.selected_profile].primary.image) }}')
+          {% else %}
+          {{ theme.get('profiles', {}).get(theme.selected_profile, {}).get('primary', {}).get('color', '#581845') }}
+          {% endif %};
+        --secondary-color: {% if theme.get('profiles') and theme.profiles.get(theme.selected_profile) and theme.profiles[theme.selected_profile].secondary.image %}
+          url('{{ url_for('static', filename=theme.profiles[theme.selected_profile].secondary.image) }}')
+          {% else %}
+          {{ theme.get('profiles', {}).get(theme.selected_profile, {}).get('secondary', {}).get('color', '#FFC300') }}
+          {% endif %};
         --text-color: {{ theme.get('profiles', {}).get(theme.selected_profile, {}).get('text', {}).get('color', '#FFFFFF') }};
       }
     </style>
@@ -56,16 +70,15 @@
             </li>
           </ul>
           <ul class="navbar-nav ms-auto">
-            <!-- Title Bar Theme Toggler (manages themes dynamically) -->
+            <!-- Title Bar Theme Toggler -->
             <li class="nav-item dropdown">
               <button class="btn btn-link nav-link py-2 px-0 px-lg-2 dropdown-toggle d-flex align-items-center" id="bd-theme" type="button" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
                 <span class="theme-icon-active"><i class="my-1"></i></span>
                 <span class="d-lg-none ms-2" id="bd-theme-text">Themes</span>
               </button>
               <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="bd-theme-text" style="--bs-dropdown-min-width: 8rem">
-                <!-- The options here can be modified per your new theme management -->
                 <li>
-                  <button type="button" class="dropdown-item d-flex align-items-center active theme-option" data-profile="profile1">
+                  <button type="button" class="dropdown-item d-flex align-items-center theme-option" data-profile="profile1">
                     <i class="bi bi-sun-fill me-2"></i>
                     Profile 1
                     <i class="bi bi-check-lg ms-auto d-none"></i>
@@ -123,7 +136,7 @@
                   <p>Dashboard</p>
                 </a>
               </li>
-              <!-- Removed Jupiter Trade -->
+              <!-- Additional menu items -->
               <li class="nav-item">
                 <a href="{{ url_for('positions.positions_table') }}" class="nav-link">
                   <i class="nav-icon bi bi-table"></i>
@@ -160,7 +173,6 @@
                   <p>Portfolio</p>
                 </a>
               </li>
-              <!-- Simulator Sidebar Item -->
               <li class="nav-item">
                 <a href="{{ url_for('simulator.compare_simulation') }}" class="nav-link">
                   <i class="nav-icon bi bi-controller"></i>
@@ -173,8 +185,6 @@
                   <p>Database</p>
                 </a>
               </li>
-              <!-- Removed Theme, Console View, and ChatGPT menu items -->
-              <!-- New Blast Radius Menu Item -->
               <li class="nav-item">
                 <a href="{{ url_for('positions.blast_radius') }}" class="nav-link">
                   <i class="nav-icon bi bi-lightning-charge-fill"></i>

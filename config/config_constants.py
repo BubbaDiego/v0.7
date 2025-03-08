@@ -18,6 +18,9 @@ ALERT_MONITOR_LOG_PATH = BASE_DIR / ALERT_MONITOR_LOG_FILENAME
 ALERT_LIMITS_FILENAME = os.getenv("ALERT_LIMITS_FILENAME", "alert_limits.json")
 ALERT_LIMITS_PATH = BASE_DIR / "config" / ALERT_LIMITS_FILENAME
 
+# Added new theme config constants
+THEME_CONFIG_FILENAME = os.getenv("THEME_CONFIG_FILENAME", "theme_config.json")
+THEME_CONFIG_PATH = BASE_DIR / "config" / THEME_CONFIG_FILENAME
 
 # Image asset paths
 SPACE_WALL_IMAGE = "images/space_wall2.jpg"

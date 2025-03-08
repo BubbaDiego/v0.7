@@ -206,14 +206,21 @@ def dashboard():
         # Read Alert Monitor Log using absolute path from BASE_DIR.
         ALERT_MONITOR_LOG_FILE = os.path.join(str(BASE_DIR), "alert_monitor_log.txt")
         try:
-            # Use AlertViewer to format the alert monitor log
+            from alerts.ee import AlertViewer
             alert_viewer = AlertViewer(ALERT_MONITOR_LOG_FILE)
             alert_entries = alert_viewer.get_all_display_strings()
         except Exception as e:
             alert_entries = '<div class="alert alert-secondary p-1 mb-1" role="alert">No alert data available</div>'
 
+        # Load the theme configuration freshly from file
+        from config.config_constants import THEME_CONFIG_PATH
+        with open(THEME_CONFIG_PATH, "r", encoding="utf-8") as f:
+            theme_config = json.load(f)
+        logger.debug(f"Loaded theme config: {theme_config}")
+
         return render_template(
             "dashboard.html",
+            theme=theme_config,  # Pass the theme config here!
             top_positions=top_positions,
             bottom_positions=bottom_positions,
             liquidation_positions=liquidation_positions,
@@ -237,6 +244,7 @@ def dashboard():
         logger.exception("Error rendering dashboard:")
         return render_template(
             "dashboard.html",
+            theme={},  # Ensure theme is at least an empty dict to avoid template errors
             top_positions=[],
             bottom_positions=[],
             liquidation_positions=[],
@@ -343,6 +351,35 @@ def api_collateral_composition():
     except Exception as e:
         logger.error(f"Error in api_collateral_composition: {e}", exc_info=True)
         return jsonify({"error": str(e)}), 500
+
+
+@dashboard_bp.route("/save_theme", methods=["POST"], endpoint="save_theme_route")
+def save_theme_route():
+    try:
+        data = request.get_json() or {}
+        profile = data.get("profile")
+        if not profile:
+            return jsonify({"success": False, "error": "No profile provided"}), 400
+
+        # Import THEME_CONFIG_PATH from config constants.
+        from config.config_constants import THEME_CONFIG_PATH
+
+        # Read the existing theme configuration.
+        with open(THEME_CONFIG_PATH, "r", encoding="utf-8") as f:
+            theme_config = json.load(f)
+
+        # Update the selected_profile.
+        theme_config["selected_profile"] = profile
+        logger.debug(f"Updated theme config: {theme_config}")
+
+        # Write back the updated theme configuration.
+        with open(THEME_CONFIG_PATH, "w", encoding="utf-8") as f:
+            json.dump(theme_config, f, indent=2)
+
+        return jsonify({"success": True})
+    except Exception as e:
+        logger.error("Error saving theme", exc_info=True)
+        return jsonify({"success": False, "error": str(e)}), 500
 
 
 @dashboard_bp.route("/api/asset_percent_changes")
