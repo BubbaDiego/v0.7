@@ -28,57 +28,59 @@
       console.log("Theme config passed from server:", {{ theme|tojson|safe }});
     </script>
 
-    <!-- CSS Variables for Primary, Secondary, and Text Colors using theme_config -->
+    <!-- CSS Variables for Theme Colors -->
     <style>
       :root {
-        --primary-color: {% if theme.get('profiles') and theme.profiles.get(theme.selected_profile) and theme.profiles[theme.selected_profile].primary.image %}
-          url('{{ url_for('static', filename=theme.profiles[theme.selected_profile].primary.image) }}')
+        --title-bar-color: {{ theme.get('profiles', {}).get(theme.selected_profile, {}).get('title_bar', {}).get('color', '#FF5733') }};
+        --side-bar-color: {{ theme.get('profiles', {}).get(theme.selected_profile, {}).get('side_bar', {}).get('color', '#C70039') }};
+        --wallpaper-color: {{ theme.get('profiles', {}).get(theme.selected_profile, {}).get('wallpaper', {}).get('color', '#900C3F') }};
+        --card-title-color: {% if theme.get('profiles', {}).get(theme.selected_profile, {}).get('card title') %}
+            {{ theme.get('profiles', {}).get(theme.selected_profile, {}).get('card title', {}).get('color', '#581845') }}
           {% else %}
-          {{ theme.get('profiles', {}).get(theme.selected_profile, {}).get('primary', {}).get('color', '#581845') }}
+            {{ theme.get('profiles', {}).get(theme.selected_profile, {}).get('primary', {}).get('color', '#581845') }}
           {% endif %};
-        --secondary-color: {% if theme.get('profiles') and theme.profiles.get(theme.selected_profile) and theme.profiles[theme.selected_profile].secondary.image %}
-          url('{{ url_for('static', filename=theme.profiles[theme.selected_profile].secondary.image) }}')
+        --card-background-color: {% if theme.get('profiles', {}).get(theme.selected_profile, {}).get('card background') %}
+            {{ theme.get('profiles', {}).get(theme.selected_profile, {}).get('card background', {}).get('color', '#FFC300') }}
           {% else %}
-          {{ theme.get('profiles', {}).get(theme.selected_profile, {}).get('secondary', {}).get('color', '#FFC300') }}
+            {{ theme.get('profiles', {}).get(theme.selected_profile, {}).get('secondary', {}).get('color', '#FFC300') }}
           {% endif %};
         --text-color: {{ theme.get('profiles', {}).get(theme.selected_profile, {}).get('text', {}).get('color', '#FFFFFF') }};
       }
 
-      /* --- NEW: Apply primary, secondary, and text colors to elements --- */
+      /* Global application of theme colors */
       body {
         color: var(--text-color);
       }
-      .btn-primary {
-        background-color: var(--primary-color);
-        border-color: var(--primary-color);
-      }
-      .btn-secondary {
-        background-color: var(--secondary-color);
-        border-color: var(--secondary-color);
-      }
       a {
-        color: var(--primary-color);
+        color: var(--card-title-color);
       }
       a:hover {
-        color: var(--secondary-color);
+        color: var(--card-background-color);
       }
-      /* You can add more selectors here that should use these theme colors */
+      .btn-primary {
+        background-color: var(--card-title-color);
+        border-color: var(--card-title-color);
+      }
+      .btn-secondary {
+        background-color: var(--card-background-color);
+        border-color: var(--card-background-color);
+      }
     </style>
   </head>
   <body class="layout-fixed sidebar-expand-lg sidebar-mini sidebar-collapse" style="
-    {% if theme.get('profiles') and theme.profiles.get(theme.selected_profile) and theme.profiles[theme.selected_profile].wallpaper.image %}
-      background-image: url('{{ url_for('static', filename=theme.profiles[theme.selected_profile].wallpaper.image) }}');
+    {% if theme.get('profiles', {}).get(theme.selected_profile, {}).get('wallpaper', {}).get('image') %}
+      background-image: url('{{ url_for('static', filename=theme.get('profiles', {}).get(theme.selected_profile, {}).get('wallpaper', {}).get('image') ) }}');
     {% else %}
-      background-color: {{ theme.get('profiles', {}).get(theme.selected_profile, {}).get('wallpaper', {}).get('color', '#900C3F') }};
+      background-color: var(--wallpaper-color);
     {% endif %}
     ">
     <div class="app-wrapper">
       <!-- Header / Title Bar -->
       <nav class="app-header navbar navbar-expand" style="
-        {% if theme.get('profiles') and theme.profiles.get(theme.selected_profile) and theme.profiles[theme.selected_profile].title_bar.image %}
-          background-image: url('{{ url_for('static', filename=theme.profiles[theme.selected_profile].title_bar.image) }}');
+        {% if theme.get('profiles', {}).get(theme.selected_profile, {}).get('title_bar', {}).get('image') %}
+          background-image: url('{{ url_for('static', filename=theme.get('profiles', {}).get(theme.selected_profile, {}).get('title_bar', {}).get('image') ) }}');
         {% else %}
-          background-color: {{ theme.get('profiles', {}).get(theme.selected_profile, {}).get('title_bar', {}).get('color', '#FF5733') }};
+          background-color: var(--title-bar-color);
         {% endif %}
         ">
         <div class="container-fluid">
@@ -135,10 +137,10 @@
 
       <!-- Sidebar -->
       <aside class="app-sidebar shadow" style="
-        {% if theme.get('profiles') and theme.profiles.get(theme.selected_profile) and theme.profiles[theme.selected_profile].side_bar.image %}
-          background-image: url('{{ url_for('static', filename=theme.profiles[theme.selected_profile].side_bar.image) }}');
+        {% if theme.get('profiles', {}).get(theme.selected_profile, {}).get('side_bar', {}).get('image') %}
+          background-image: url('{{ url_for('static', filename=theme.get('profiles', {}).get(theme.selected_profile, {}).get('side_bar', {}).get('image') ) }}');
         {% else %}
-          background-color: {{ theme.get('profiles', {}).get(theme.selected_profile, {}).get('side_bar', {}).get('color', '#C70039') }};
+          background-color: var(--side-bar-color);
         {% endif %}
         ">
         <div class="sidebar-brand">
@@ -255,8 +257,8 @@
     <script>
       document.addEventListener('DOMContentLoaded', () => {
         console.log("Global Theme Script: DOMContentLoaded fired.");
-        console.log("--primary-color:", getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim());
-        console.log("--secondary-color:", getComputedStyle(document.documentElement).getPropertyValue('--secondary-color').trim());
+        console.log("--card-title-color:", getComputedStyle(document.documentElement).getPropertyValue('--card-title-color').trim());
+        console.log("--card-background-color:", getComputedStyle(document.documentElement).getPropertyValue('--card-background-color').trim());
         console.log("--text-color:", getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim());
         document.querySelectorAll('.theme-option').forEach(item => {
           item.addEventListener('click', (event) => {

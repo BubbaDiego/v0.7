@@ -13,7 +13,9 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: #e7f0fd;
+    /* Use the card title color from the theme */
+    background-color: var(--card-title-color) !important;
+    color: var(--text-color) !important;
     padding: 0.5rem 1rem;
     height: 50px;
   }
@@ -32,6 +34,12 @@
     font-size: 1.5rem;
     color: #000;
     margin-left: auto;
+  }
+
+  /* -------------------- Card Background Styling -------------------- */
+  .card {
+    background-color: var(--card-background-color) !important;
+    color: var(--text-color);
   }
 
   /* -------------------- Liquidation Bar Styles -------------------- */
