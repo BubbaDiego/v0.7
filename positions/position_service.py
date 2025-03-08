@@ -50,8 +50,8 @@ class PositionService:
             for pos in raw_positions:
                 # Explicitly convert sqlite3.Row to a dict using its keys.
                 pos_dict = { key: pos[key] for key in pos.keys() }
-                enriched = PositionService.enrich_position(pos_dict)
-                positions.append(enriched)
+                #enriched = PositionService.enrich_position(pos_dict)
+                positions.append(pos_dict)# enriched)
             return positions
         except Exception as e:
             logger.error(f"Error retrieving positions: {e}", exc_info=True)

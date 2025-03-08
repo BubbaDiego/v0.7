@@ -79,7 +79,7 @@
     height: 30px;
     border-radius: 50%;
     border: 1px solid #ccc;
-    margin-bottom: 4px; /* slightly less bottom space */
+    margin-bottom: 4px;
   }
   .asset-change {
     font-size: 1rem;
@@ -131,7 +131,7 @@
   /* -------------------- Update Button Row -------------------- */
   .update-row {
     text-align: center;
-    margin: 2px 0;  /* Reduced top/bottom margin for less space */
+    margin: 2px 0;
   }
   .update-row button {
     background: none;
@@ -150,10 +150,9 @@
     border-radius: 0.5rem;
     background: url("{{ url_for('static', filename='images/cityscape.jpg') }}") no-repeat center center;
     background-size: cover;
-    min-height: 130px; /* Ensures both left & right match in height */
+    min-height: 130px;
   }
   .city-card .card-body {
-    /* Move content up by reducing default card-body padding */
     padding: 0.5rem 0.75rem;
   }
 
@@ -325,7 +324,7 @@
     </div>
   </div>
 
-  <!-- Row 3: Liquidation Bar Card, Composition Card, and Logs Cards Column -->
+  <!-- New Row 3: Liquidation Bar Card, Composition Card, and Operational Log Card -->
   <div class="row">
     <!-- Liquidation Bar Card -->
     <div class="col-md-4">
@@ -388,9 +387,8 @@
       </div>
     </div>
 
-    <!-- Logs Cards Column: Stack Operational Log and Alert Log Cards -->
+    <!-- Operational Log Card -->
     <div class="col-md-4">
-      <!-- Operational Log Card -->
       <div class="card card-outline logs-card">
         <div class="card-header">
           <h3 class="card-title mb-0"><span class="log-icon">🔧</span> Operational Log</h3>
@@ -399,23 +397,13 @@
           {{ system_feed_entries|safe }}
         </div>
       </div>
-      <br>
-      <!-- Alert Log Card: Integrated with real alert data -->
-      <div class="card card-outline logs-card">
-        <div class="card-header">
-          <h3 class="card-title mb-0"><span class="log-icon">⚠️</span> Alert Log</h3>
-        </div>
-        <div class="card-body" style="max-height: 300px; overflow-y: auto;">
-          {{ alert_entries|safe }}
-        </div>
-      </div>
     </div>
   </div>
 
-  <!-- Row 4: Performance Card & Size Balance Card -->
+  <!-- New Row 4: Performance, Size Balance, and Alert Log Card -->
   <div class="row">
     <!-- Performance Card -->
-    <div class="col-md-6">
+    <div class="col-md-4">
       <div class="card" style="min-height: 400px;">
         <div class="card-header d-flex align-items-center">
           <h3 class="card-title mb-0">Performance</h3>
@@ -434,7 +422,7 @@
       </div>
     </div>
     <!-- Size Balance Card -->
-    <div class="col-md-6">
+    <div class="col-md-4">
       <div class="card shadow" style="min-height: 400px;">
         <div class="card-header d-flex align-items-center justify-content-between">
           <h3 class="card-title mb-0">Size Balance</h3>
@@ -456,6 +444,17 @@
         <div class="card-body">
           <div id="size-chart"></div>
           <div class="asset-labels"></div>
+        </div>
+      </div>
+    </div>
+    <!-- Alert Log Card -->
+    <div class="col-md-4">
+      <div class="card card-outline logs-card">
+        <div class="card-header">
+          <h3 class="card-title mb-0"><span class="log-icon">⚠️</span> Alert Log</h3>
+        </div>
+        <div class="card-body" style="max-height: 300px; overflow-y: auto;">
+          {{ alert_entries|safe }}
         </div>
       </div>
     </div>

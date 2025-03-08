@@ -16,6 +16,15 @@ from utils.unified_logger import UnifiedLogger
 # Instantiate the unified logger
 u_logger = UnifiedLogger()
 
+# Create a dedicated logger for travel percent check details
+travel_logger = logging.getLogger("TravelCheckLogger")
+travel_logger.setLevel(logging.DEBUG)
+if not travel_logger.handlers:
+    travel_handler = logging.FileHandler("travel_check.txt")
+    travel_formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+    travel_handler.setFormatter(travel_formatter)
+    travel_logger.addHandler(travel_handler)
+
 def trigger_twilio_flow(custom_message: str, twilio_config: dict) -> str:
     account_sid = twilio_config.get("account_sid")
     auth_token = twilio_config.get("auth_token")
@@ -102,12 +111,6 @@ class AlertManager:
             source="system",
             file="alert_manager"
         )
-    #    u_logger.log_alert(
-     #       operation_type="Alert Manager Initialized",
-      #      primary_text="Alert Manager 🏃‍♂️",
-      #      source="system",
-       #     file="alert_manager"
-      #  )
 
     def reload_config(self):
         from config.config_manager import load_config
@@ -155,7 +158,6 @@ class AlertManager:
         self.suppressed_count = 0
         aggregated_alerts: List[str] = []
         positions = self.data_locker.read_positions()
-
 
         u_logger.log_alert(
             operation_type="Alert Check",
@@ -212,38 +214,25 @@ class AlertManager:
             current_val = float(pos.get("current_travel_percent", 0.0))
         except Exception as e:
             logging.error("%s %s (ID: %s): Error converting travel percent.", asset_full, position_type, position_id)
-            print(f"[ERROR] {asset_full} {position_type} (ID: {position_id}): Error converting travel percent: {e}")
+            travel_logger.error(f"{asset_full} {position_type} (ID: {position_id}): Error converting travel percent: {e}")
             return ""
 
-        logging.debug("Checking travel percent for %s %s (ID: %s): current_travel_percent = %s",
-                     asset_full, position_type, position_id, current_val)
-        print(f"[DEBUG] Checking travel percent for {asset_full} {position_type} (ID: {position_id}): current_travel_percent = {current_val}")
+        travel_logger.debug(f"Checking travel percent for {asset_full} {position_type} (ID: {position_id}): current_travel_percent = {current_val}")
+        travel_logger.debug(f"Position Data: {json.dumps(pos)}")
 
+        # For travel percent liquid, we expect negative values (0 to -100)
         if current_val >= 0:
-            pos_config = self.config.get("alert_ranges", {}).get("travel_percent_liquid_ranges_positive", {})
-            low = float(pos_config.get("low", 25.0))
-            medium = float(pos_config.get("medium", 50.0))
-            high = float(pos_config.get("high", 75.0))
-            logging.debug("Using positive thresholds: low=%s, medium=%s, high=%s", low, medium, high)
-            print(f"[DEBUG] Using positive thresholds: low={low}, medium={medium}, high={high}")
-            if current_val >= high:
-                alert_level = "HIGH"
-            elif current_val >= medium:
-                alert_level = "MEDIUM"
-            elif current_val >= low:
-                alert_level = "LOW"
-            else:
-                logging.debug("%s %s (ID: %s): Travel percent (%s) is below positive thresholds, no alert triggered.",
-                             asset_full, position_type, position_id, current_val)
-                print(f"[DEBUG] {asset_full} {position_type} (ID: {position_id}): Travel percent ({current_val}) is below positive thresholds, no alert triggered.")
-                return ""
+            # For positive values, the liquid alert is not applicable.
+            travel_logger.debug(f"{asset_full} {position_type} (ID: {position_id}): current_val {current_val} is non-negative; skipping liquid alert.")
+            return ""
         else:
-            neg_config = self.config.get("alert_ranges", {}).get("travel_percent_liquid_ranges_negative", {})
-            low = float(neg_config.get("low", -25.0))
-            medium = float(neg_config.get("medium", -50.0))
+            neg_config = self.config.get("alert_ranges", {}).get("travel_percent_liquid_ranges", {})
+            travel_logger.debug(f"Negative config used: {neg_config}")
+            low = float(neg_config.get("low", -10.0))
+            medium = float(neg_config.get("medium", -60.0))
             high = float(neg_config.get("high", -75.0))
-            logging.debug("Using negative thresholds: low=%s, medium=%s, high=%s", low, medium, high)
-            print(f"[DEBUG] Using negative thresholds: low={low}, medium={medium}, high={high}")
+            travel_logger.debug(f"Using negative thresholds: low={low}, medium={medium}, high={high}")
+
             if current_val <= high:
                 alert_level = "HIGH"
             elif current_val <= medium:
@@ -251,25 +240,24 @@ class AlertManager:
             elif current_val <= low:
                 alert_level = "LOW"
             else:
-                logging.debug("%s %s (ID: %s): Travel percent (%s) does not trigger a negative alert.", asset_full,
-                             position_type, position_id, current_val)
-                print(f"[DEBUG] {asset_full} {position_type} (ID: {position_id}): Travel percent ({current_val}) does not trigger a negative alert.")
+                travel_logger.debug(f"{asset_full} {position_type} (ID: {position_id}): Travel percent ({current_val}) does not trigger a negative alert.")
                 return ""
+
+        travel_logger.debug(f"Determined alert level: {alert_level} for current_val: {current_val}")
 
         key = f"{asset_full}-{position_type}-{position_id}-travel-{alert_level}"
         now = time.time()
         last_time = self.last_triggered.get(key, 0)
-        if now - last_time < self.cooldown:
-            logging.debug("%s %s (ID: %s): Alert for key '%s' suppressed due to cooldown.", asset_full, position_type,
-                         position_id, key)
-            print(f"[DEBUG] {asset_full} {position_type} (ID: {position_id}): Alert for key '{key}' suppressed due to cooldown.")
+        time_since_last = now - last_time
+        if time_since_last < self.cooldown:
+            travel_logger.debug(f"{asset_full} {position_type} (ID: {position_id}): Alert for key '{key}' suppressed due to cooldown (time since last: {time_since_last:.2f} seconds).")
             self.suppressed_count += 1
             return ""
         self.last_triggered[key] = now
         wallet_name = pos.get("wallet_name", "Unknown")
-        msg = f"Travel Percent Liquid ALERT: {asset_full} {position_type} (Wallet: {wallet_name}) - Travel% = {current_val:.2f}%, Level = {alert_level}"
-        logging.debug("Triggered travel percent alert: %s", msg)
-        print(f"[DEBUG] Triggered travel percent alert: {msg}")
+        msg = (f"Travel Percent Liquid ALERT: {asset_full} {position_type} (Wallet: {wallet_name}) - "
+               f"Travel% = {current_val:.2f}%, Level = {alert_level}")
+        travel_logger.debug(f"Triggered travel percent alert: {msg}")
         return msg
 
     def check_swing_alert(self, pos: Dict[str, Any]) -> str:
@@ -284,9 +272,7 @@ class AlertManager:
             return ""
         hardcoded_swing_thresholds = {"BTC": 6.24, "ETH": 8.0, "SOL": 13.0}
         swing_threshold = hardcoded_swing_thresholds.get(asset, 0)
-        logging.debug(
-            f"[Swing Alert Debug] {asset_full} {position_type} (ID: {position_id}): Actual Value = {current_value:.2f} vs Hardcoded Swing Threshold = {swing_threshold:.2f}"
-        )
+        logging.debug(f"[Swing Alert Debug] {asset_full} {position_type} (ID: {position_id}): Actual Value = {current_value:.2f} vs Hardcoded Swing Threshold = {swing_threshold:.2f}")
         if current_value >= swing_threshold:
             key = f"swing-{asset_full}-{position_type}-{position_id}"
             now = time.time()
@@ -312,9 +298,7 @@ class AlertManager:
         except Exception as e:
             logging.error("Error parsing blast threshold for %s: %s", asset_full, e)
             return ""
-        logging.debug(
-            f"[Blast Alert Debug] {asset_full} {position_type} (ID: {position_id}): Actual Value = {current_value:.2f} vs Blast Threshold = {blast_threshold:.2f}"
-        )
+        logging.debug(f"[Blast Alert Debug] {asset_full} {position_type} (ID: {position_id}): Actual Value = {current_value:.2f} vs Blast Threshold = {blast_threshold:.2f}")
         if current_value >= blast_threshold:
             key = f"blast-{asset_full}-{position_type}-{position_id}"
             now = time.time()
@@ -342,15 +326,13 @@ class AlertManager:
         if not profit_config.get("enabled", False):
             return ""
         try:
-            low_thresh = float(profit_config.get("low", 25))
-            med_thresh = float(profit_config.get("medium", 50))
-            high_thresh = float(profit_config.get("high", 75))
+            low_thresh = float(profit_config.get("low", 46.23))
+            med_thresh = float(profit_config.get("medium", 101.3))
+            high_thresh = float(profit_config.get("high", 202.0))
         except Exception:
             logging.error("%s %s (ID: %s): Error parsing profit thresholds.", asset_full, position_type, position_id)
             return ""
-        logging.debug(
-            f"[Profit Alert Debug] {asset_full} {position_type} (ID: {position_id}): Profit = {profit_val:.2f}, Thresholds: Low = {low_thresh:.2f}, Medium = {med_thresh:.2f}, High = {high_thresh:.2f}"
-        )
+        logging.debug(f"[Profit Alert Debug] {asset_full} {position_type} (ID: {position_id}): Profit = {profit_val:.2f}, Thresholds: Low = {low_thresh:.2f}, Medium = {med_thresh:.2f}, High = {high_thresh:.2f}")
         if profit_val < low_thresh:
             return ""
         elif profit_val < med_thresh:
@@ -394,9 +376,7 @@ class AlertManager:
             if not price_info:
                 continue
             current_price = float(price_info.get("current_price", 0.0))
-            logging.debug(
-                f"[Price Alert Debug] {asset_full}: Condition = {condition}, Trigger Value = {trigger_val:.2f}, Current Price = {current_price:.2f}"
-            )
+            logging.debug(f"[Price Alert Debug] {asset_full}: Condition = {condition}, Trigger Value = {trigger_val:.2f}, Current Price = {current_price:.2f}")
             if (condition == "ABOVE" and current_price >= trigger_val) or (condition != "ABOVE" and current_price <= trigger_val):
                 msg = self.handle_price_alert_trigger(alert, current_price, asset_full)
                 if msg:
