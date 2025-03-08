@@ -222,7 +222,6 @@ class AlertManager:
 
         # For travel percent liquid, we expect negative values (0 to -100)
         if current_val >= 0:
-            # For positive values, the liquid alert is not applicable.
             travel_logger.debug(f"{asset_full} {position_type} (ID: {position_id}): current_val {current_val} is non-negative; skipping liquid alert.")
             return ""
         else:
@@ -234,11 +233,11 @@ class AlertManager:
             travel_logger.debug(f"Using negative thresholds: low={low}, medium={medium}, high={high}")
 
             if current_val <= high:
-                alert_level = "HIGH"
+                alert_level = "High"
             elif current_val <= medium:
-                alert_level = "MEDIUM"
+                alert_level = "Medium"
             elif current_val <= low:
-                alert_level = "LOW"
+                alert_level = "Low"
             else:
                 travel_logger.debug(f"{asset_full} {position_type} (ID: {position_id}): Travel percent ({current_val}) does not trigger a negative alert.")
                 return ""
@@ -257,7 +256,72 @@ class AlertManager:
         wallet_name = pos.get("wallet_name", "Unknown")
         msg = (f"Travel Percent Liquid ALERT: {asset_full} {position_type} (Wallet: {wallet_name}) - "
                f"Travel% = {current_val:.2f}%, Level = {alert_level}")
+        # Log this alert with our custom alert_details field.
+        alert_details = {
+            "status": alert_level,
+            "type": "Travel Percent Liquid ALERT",
+            "limit": f"{low}%",
+            "current": f"{current_val:.2f}%"
+        }
+        u_logger.logger.info(msg, extra={"source": "System", "operation_type": "Travel Percent Liquid ALERT", "log_type": "alert", "file": "alert_manager", "alert_details": alert_details})
         travel_logger.debug(f"Triggered travel percent alert: {msg}")
+        return msg
+
+    def check_profit(self, pos: Dict[str, Any]) -> str:
+        asset_code = pos.get("asset_type", "???").upper()
+        asset_full = self.ASSET_FULL_NAMES.get(asset_code, asset_code)
+        position_type = pos.get("position_type", "").capitalize()
+        position_id = pos.get("position_id") or pos.get("id") or "unknown"
+        raw_profit = pos.get("profit")
+        try:
+            profit_val = float(raw_profit) if raw_profit is not None else 0.0
+        except Exception:
+            logging.error("%s %s (ID: %s): Error converting profit.", asset_full, position_type, position_id)
+            return ""
+        if profit_val <= 0:
+            return ""
+        profit_config = self.config.get("alert_ranges", {}).get("profit_ranges", {})
+        if not profit_config.get("enabled", False):
+            return ""
+        try:
+            low_thresh = float(profit_config.get("low", 46.23))
+            med_thresh = float(profit_config.get("medium", 101.3))
+            high_thresh = float(profit_config.get("high", 202.0))
+        except Exception:
+            logging.error("%s %s (ID: %s): Error parsing profit thresholds.", asset_full, position_type, position_id)
+            return ""
+        logging.debug(f"[Profit Alert Debug] {asset_full} {position_type} (ID: {position_id}): Profit = {profit_val:.2f}, Thresholds: Low = {low_thresh:.2f}, Medium = {med_thresh:.2f}, High = {high_thresh:.2f}")
+        if profit_val < low_thresh:
+            return ""
+        elif profit_val < med_thresh:
+            current_level = "Low"
+        elif profit_val < high_thresh:
+            current_level = "Medium"
+        else:
+            current_level = "High"
+        profit_key = f"profit-{asset_full}-{position_type}-{position_id}"
+        last_level = self.last_profit.get(profit_key, "none")
+        level_order = {"none": 0, "Low": 1, "Medium": 2, "High": 3}
+        if level_order[current_level] <= level_order.get(last_level, 0):
+            self.last_profit[profit_key] = current_level
+            return ""
+        now = time.time()
+        last_time = self.last_triggered.get(profit_key, 0)
+        if now - last_time < self.cooldown:
+            self.last_profit[profit_key] = current_level
+            self.suppressed_count += 1
+            return ""
+        self.last_triggered[profit_key] = now
+        msg = f"Profit ALERT: {asset_full} {position_type} profit of {profit_val:.2f} (Level: {current_level.upper()})"
+        self.last_profit[profit_key] = current_level
+        # Log this profit alert with alert_details.
+        alert_details = {
+            "status": current_level,
+            "type": "Profit ALERT",
+            "limit": f"{low_thresh} / {med_thresh} / {high_thresh}",
+            "current": f"{profit_val:.2f}"
+        }
+        u_logger.logger.info(msg, extra={"source": "System", "operation_type": "Profit ALERT", "log_type": "alert", "file": "alert_manager", "alert_details": alert_details})
         return msg
 
     def check_swing_alert(self, pos: Dict[str, Any]) -> str:
@@ -308,55 +372,6 @@ class AlertManager:
                 return (f"One Day Blast Radius ALERT: {asset_full} {position_type} (ID: {position_id}) - "
                         f"Actual Value = {current_value:.2f} exceeds Blast Threshold of {blast_threshold:.2f}")
         return ""
-
-    def check_profit(self, pos: Dict[str, Any]) -> str:
-        asset_code = pos.get("asset_type", "???").upper()
-        asset_full = self.ASSET_FULL_NAMES.get(asset_code, asset_code)
-        position_type = pos.get("position_type", "").capitalize()
-        position_id = pos.get("position_id") or pos.get("id") or "unknown"
-        raw_profit = pos.get("profit")
-        try:
-            profit_val = float(raw_profit) if raw_profit is not None else 0.0
-        except Exception:
-            logging.error("%s %s (ID: %s): Error converting profit.", asset_full, position_type, position_id)
-            return ""
-        if profit_val <= 0:
-            return ""
-        profit_config = self.config.get("alert_ranges", {}).get("profit_ranges", {})
-        if not profit_config.get("enabled", False):
-            return ""
-        try:
-            low_thresh = float(profit_config.get("low", 46.23))
-            med_thresh = float(profit_config.get("medium", 101.3))
-            high_thresh = float(profit_config.get("high", 202.0))
-        except Exception:
-            logging.error("%s %s (ID: %s): Error parsing profit thresholds.", asset_full, position_type, position_id)
-            return ""
-        logging.debug(f"[Profit Alert Debug] {asset_full} {position_type} (ID: {position_id}): Profit = {profit_val:.2f}, Thresholds: Low = {low_thresh:.2f}, Medium = {med_thresh:.2f}, High = {high_thresh:.2f}")
-        if profit_val < low_thresh:
-            return ""
-        elif profit_val < med_thresh:
-            current_level = "low"
-        elif profit_val < high_thresh:
-            current_level = "medium"
-        else:
-            current_level = "high"
-        profit_key = f"profit-{asset_full}-{position_type}-{position_id}"
-        last_level = self.last_profit.get(profit_key, "none")
-        level_order = {"none": 0, "low": 1, "medium": 2, "high": 3}
-        if level_order[current_level] <= level_order.get(last_level, 0):
-            self.last_profit[profit_key] = current_level
-            return ""
-        now = time.time()
-        last_time = self.last_triggered.get(profit_key, 0)
-        if now - last_time < self.cooldown:
-            self.last_profit[profit_key] = current_level
-            self.suppressed_count += 1
-            return ""
-        self.last_triggered[profit_key] = now
-        msg = f"Profit ALERT: {asset_full} {position_type} profit of {profit_val:.2f} (Level: {current_level.upper()})"
-        self.last_profit[profit_key] = current_level
-        return msg
 
     def check_price_alerts(self) -> List[str]:
         alerts = self.data_locker.get_alerts()
