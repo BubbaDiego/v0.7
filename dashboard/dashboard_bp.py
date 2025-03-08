@@ -272,11 +272,6 @@ def dash_performance():
     return render_template("dash_performance.html", portfolio_data=portfolio_data)
 
 
-@dashboard_bp.route("/theme")
-def theme_options():
-    return render_template("theme_config.html")
-
-
 # -------------------------------
 # API Endpoints for Chart Data
 # -------------------------------
