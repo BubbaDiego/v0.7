@@ -145,7 +145,6 @@ class AlertManager:
             time.sleep(self.poll_interval)
 
     def check_alerts(self, source: Optional[str] = None):
-
         if not self.monitor_enabled:
             u_logger.log_operation(
                 operation_type="Monitor Loop",
@@ -189,6 +188,9 @@ class AlertManager:
                 source=source or "",
                 file="alert_manager"
             )
+            # Combine alerts and trigger the call
+            combined_message = "\n".join(aggregated_alerts)
+            self.send_call(combined_message, "all_alerts")
         elif self.suppressed_count > 0:
             u_logger.log_alert(
                 operation_type="Alert Silenced",
