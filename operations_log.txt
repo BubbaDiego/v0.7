@@ -2042,3 +2042,139 @@
 {"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-8-25 : 3:15:23 PM", "file_name": "price_monitor.py"}
 {"timestamp": "3-8-25 : 3:15:24 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Twilio alert sent", "source": "AlertManager", "operation_type": "Twilio Notification", "file": "alert_manager", "log_type": "operation"}
 {"timestamp": "3-8-25 : 3:15:24 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Notification Sent: all_alerts", "source": "AlertManager", "operation_type": "Notification Sent", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-8-25 : 3:20:14 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 3:20:14 PM"}
+{"timestamp": "3-8-25 : 3:20:16 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 3:20:16 PM"}
+{"timestamp": "3-8-25 : 3:20:55 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 3:20:55 PM"}
+{"timestamp": "3-8-25 : 3:20:57 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 3:20:57 PM"}
+{"timestamp": "3-8-25 : 3:21:17 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 3:21:17 PM"}
+{"timestamp": "3-8-25 : 3:21:20 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 3:21:20 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-8-25 : 3:26:28 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-8-25 : 3:26:28 PM", "file_name": "price_monitor.py"}
+{"timestamp": "3-8-25 : 3:26:29 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Twilio alert sent", "source": "AlertManager", "operation_type": "Twilio Notification", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-8-25 : 3:26:29 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Notification Sent: all_alerts", "source": "AlertManager", "operation_type": "Notification Sent", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-8-25 : 3:27:38 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 3:27:38 PM"}
+{"timestamp": "3-8-25 : 3:27:40 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 3:27:40 PM"}
+{"timestamp": "3-8-25 : 3:27:45 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 3:27:45 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-8-25 : 3:27:46 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-8-25 : 3:27:47 PM", "file_name": "price_monitor.py"}
+{"timestamp": "3-8-25 : 3:27:47 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Twilio alert sent", "source": "AlertManager", "operation_type": "Twilio Notification", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-8-25 : 3:27:47 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Notification Sent: all_alerts", "source": "AlertManager", "operation_type": "Notification Sent", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-8-25 : 3:30:27 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 3:30:27 PM"}
+{"timestamp": "3-8-25 : 3:30:29 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 3:30:29 PM"}
+{"timestamp": "3-8-25 : 3:53:18 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 3:53:18 PM"}
+{"timestamp": "3-8-25 : 3:53:21 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 3:53:21 PM"}
+{"timestamp": "3-8-25 : 4:05:36 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 4:05:36 PM"}
+{"timestamp": "3-8-25 : 4:06:10 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 4:06:10 PM"}
+{"timestamp": "3-8-25 : 4:09:00 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 4:09:01 PM"}
+{"timestamp": "3-8-25 : 4:09:03 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 4:09:03 PM"}
+{"timestamp": "3-8-25 : 4:15:03 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 4:15:03 PM"}
+{"timestamp": "3-8-25 : 4:15:05 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 4:15:05 PM"}
+{"timestamp": "3-8-25 : 4:15:24 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 4:15:24 PM"}
+{"timestamp": "3-8-25 : 4:15:26 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 4:15:26 PM"}
+{"timestamp": "3-8-25 : 4:15:52 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 4:15:52 PM"}
+{"timestamp": "3-8-25 : 4:15:54 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 4:15:55 PM"}
+{"timestamp": "3-8-25 : 4:20:49 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 4:20:49 PM"}
+{"timestamp": "3-8-25 : 4:21:57 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-8-25 : 4:23:51 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 4:23:51 PM"}
+{"timestamp": "3-8-25 : 4:23:53 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 4:23:53 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-8-25 : 4:25:48 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-8-25 : 4:25:49 PM", "file_name": "price_monitor.py"}
+{"timestamp": "3-8-25 : 4:25:49 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Twilio alert sent", "source": "AlertManager", "operation_type": "Twilio Notification", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-8-25 : 4:25:49 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Notification Sent: all_alerts", "source": "AlertManager", "operation_type": "Notification Sent", "file": "alert_manager", "log_type": "operation"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-8-25 : 4:26:01 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-8-25 : 4:26:01 PM", "file_name": "price_monitor.py"}
+{"timestamp": "3-8-25 : 4:45:35 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 4:45:35 PM"}
+{"timestamp": "3-8-25 : 4:46:01 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-8-25 : 4:46:08 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 4:46:08 PM"}
+{"timestamp": "3-8-25 : 4:46:11 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 4:46:11 PM"}
+{"timestamp": "3-8-25 : 4:49:10 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 4:49:10 PM"}
+{"timestamp": "3-8-25 : 4:49:12 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 4:49:12 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-8-25 : 4:49:22 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-8-25 : 4:49:23 PM", "file_name": "price_monitor.py"}
+{"timestamp": "3-8-25 : 4:49:23 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Twilio alert sent", "source": "AlertManager", "operation_type": "Twilio Notification", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-8-25 : 4:49:23 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Notification Sent: all_alerts", "source": "AlertManager", "operation_type": "Notification Sent", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-8-25 : 4:54:13 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 4:54:13 PM"}
+{"timestamp": "3-8-25 : 4:54:15 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 4:54:15 PM"}
+{"timestamp": "3-8-25 : 4:55:35 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 4:55:35 PM"}
+{"timestamp": "3-8-25 : 4:55:37 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 4:55:37 PM"}
+{"timestamp": "3-8-25 : 4:57:52 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 4:57:52 PM"}
+{"timestamp": "3-8-25 : 4:57:54 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 4:57:54 PM"}
+{"timestamp": "3-8-25 : 4:58:30 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 4:58:30 PM"}
+{"timestamp": "3-8-25 : 4:58:32 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 4:58:32 PM"}
+{"timestamp": "3-8-25 : 4:59:08 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 4:59:08 PM"}
+{"timestamp": "3-8-25 : 4:59:10 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 4:59:10 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-8-25 : 4:59:15 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-8-25 : 4:59:16 PM", "file_name": "price_monitor.py"}
+{"timestamp": "3-8-25 : 4:59:16 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Twilio alert sent", "source": "AlertManager", "operation_type": "Twilio Notification", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-8-25 : 4:59:16 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Notification Sent: all_alerts", "source": "AlertManager", "operation_type": "Notification Sent", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-8-25 : 4:59:25 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 4:59:25 PM"}
+{"timestamp": "3-8-25 : 4:59:27 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 4:59:27 PM"}
+{"timestamp": "3-8-25 : 4:59:47 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 4:59:47 PM"}
+{"timestamp": "3-8-25 : 4:59:49 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 4:59:49 PM"}
+{"timestamp": "3-8-25 : 4:59:51 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 4:59:51 PM"}
+{"timestamp": "3-8-25 : 5:00:31 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 5:00:31 PM"}
+{"timestamp": "3-8-25 : 5:00:37 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 5:00:37 PM"}
+{"timestamp": "3-8-25 : 5:00:40 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 5:00:40 PM"}
+{"timestamp": "3-8-25 : 5:00:42 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 5:00:42 PM"}
+{"timestamp": "3-8-25 : 7:24:21 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 7:24:21 PM"}
+{"timestamp": "3-8-25 : 7:24:23 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 7:24:23 PM"}
+{"timestamp": "3-8-25 : 7:39:38 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 7:39:38 PM"}
+{"timestamp": "3-8-25 : 7:39:41 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 7:39:41 PM"}
+{"timestamp": "3-8-25 : 7:43:11 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 7:43:11 PM"}
+{"timestamp": "3-8-25 : 7:43:13 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-8-25 : 7:43:13 PM"}
