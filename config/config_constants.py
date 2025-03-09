@@ -22,12 +22,16 @@ ALERT_LIMITS_PATH = BASE_DIR / "config" / ALERT_LIMITS_FILENAME
 THEME_CONFIG_FILENAME = os.getenv("THEME_CONFIG_FILENAME", "theme_config.json")
 THEME_CONFIG_PATH = BASE_DIR / "config" / THEME_CONFIG_FILENAME
 
+
+
 # Image asset paths
 SPACE_WALL_IMAGE = "images/space_wall2.jpg"
 
 BTC_LOGO_IMAGE = "images/btc_logo.png"
 ETH_LOGO_IMAGE = "images/eth_logo.png"
 SOL_LOGO_IMAGE = "images/sol_logo.png"
+THEME_CONFIG_WALLPAPER = "images/wallpaper_theme_page"
+
 
 R2VAULT_IMAGE = "images/r2vault.jpg"
 OBIVAULT_IMAGE = "images/obivault.jpg"

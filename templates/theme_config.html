@@ -46,37 +46,40 @@
         </div>
 
         <!-- Mini Page Preview -->
-        <div id="{{ profile_key }}_preview" class="mini-preview" style="border: 1px solid #ccc; border-radius: 10px; width: 640px; height: 480px; margin: 0 auto; box-shadow: 2px 2px 8px rgba(0,0,0,0.2); overflow: hidden;">
-          <!-- Wallpaper (outer container) -->
-          <div class="mini-wallpaper" style="background-color: {{ profile.get('wallpaper', {}).get('color', '#ffffff') }}; height: 100%; display: flex; flex-direction: column;">
-            <!-- Title Bar with unique id -->
-            <div id="{{ profile_key }}_mini_title_bar" class="mini-title-bar" style="background-color: {{ profile.get('title_bar', {}).get('color', '#000000') }}; color: {{ profile.get('text', {}).get('color', '#ffffff') }}; padding: 10px; text-align: center;">
-              Title Bar
+        <div id="{{ profile_key }}_preview" class="mini-preview"
+             style="border: 1px solid #ccc; border-radius: 10px; width: 640px; height: 480px; margin: 0 auto; box-shadow: 2px 2px 8px rgba(0,0,0,0.2); overflow: hidden;
+             {% if profile.get('wallpaper', {}).get('image') %}
+                background: url('{{ url_for('static', filename=profile.get('wallpaper', {}).get('image') ) }}') no-repeat center center; background-size: cover;
+             {% else %}
+                background: url('{{ url_for('static', filename=THEME_CONFIG_WALLPAPER) }}') no-repeat center center; background-size: cover;
+             {% endif %}">
+          <!-- Title Bar with unique ID -->
+          <div id="{{ profile_key }}_mini_title_bar" class="mini-title-bar" style="background-color: {{ profile.get('title_bar', {}).get('color', '#000000') }}; color: {{ profile.get('text', {}).get('color', '#ffffff') }}; padding: 10px; text-align: center;">
+            Title Bar
+          </div>
+          <div style="flex: 1; display: flex;">
+            <!-- Side Bar with unique ID -->
+            <div id="{{ profile_key }}_mini_side_bar" class="mini-side-bar" style="background-color: {{ profile.get('side_bar', {}).get('color', '#000000') }}; color: {{ profile.get('text', {}).get('color', '#ffffff') }}; width: 80px; padding: 10px;">
+              Sidebar
             </div>
-            <div style="flex: 1; display: flex;">
-              <!-- Side Bar with unique id -->
-              <div id="{{ profile_key }}_mini_side_bar" class="mini-side-bar" style="background-color: {{ profile.get('side_bar', {}).get('color', '#000000') }}; color: {{ profile.get('text', {}).get('color', '#ffffff') }}; width: 80px; padding: 10px;">
-                Sidebar
-              </div>
-              <!-- Main Content Area with Two Cards -->
-              <div class="mini-content" style="flex: 1; padding: 10px; display: flex; flex-direction: column; gap: 10px;">
-                <!-- Card 1 -->
-                <div class="mini-card" style="border: 1px solid #ccc; background-color: {{ profile.get('card background', {}).get('color', '#ffffff') }}; border-radius: 5px;">
-                  <div class="mini-card-header" style="background-color: {{ profile.get('card title', {}).get('color', '#000000') }}; color: {{ profile.get('text', {}).get('color', '#ffffff') }}; padding: 5px; text-align: center;">
-                    Card Title 1
-                  </div>
-                  <div class="mini-card-body" style="padding: 5px; color: {{ profile.get('text', {}).get('color', '#000000') }};">
-                    This is a preview of card content.
-                  </div>
+            <!-- Main Content Area with Two Cards -->
+            <div class="mini-content" style="flex: 1; padding: 10px; display: flex; flex-direction: column; gap: 10px;">
+              <!-- Card 1 -->
+              <div class="mini-card" style="border: 1px solid #ccc; background-color: {{ profile.get('card background', {}).get('color', '#ffffff') }}; border-radius: 5px;">
+                <div class="mini-card-header" style="background-color: {{ profile.get('card title', {}).get('color', '#000000') }}; color: {{ profile.get('text', {}).get('color', '#ffffff') }}; padding: 5px; text-align: center;">
+                  Card Title 1
                 </div>
-                <!-- Card 2 -->
-                <div class="mini-card" style="border: 1px solid #ccc; background-color: {{ profile.get('card background', {}).get('color', '#ffffff') }}; border-radius: 5px;">
-                  <div class="mini-card-header" style="background-color: {{ profile.get('card title', {}).get('color', '#000000') }}; color: {{ profile.get('text', {}).get('color', '#ffffff') }}; padding: 5px; text-align: center;">
-                    Card Title 2
-                  </div>
-                  <div class="mini-card-body" style="padding: 5px; color: {{ profile.get('text', {}).get('color', '#000000') }};">
-                    Additional preview content.
-                  </div>
+                <div class="mini-card-body" style="padding: 5px; color: {{ profile.get('text', {}).get('color', '#000000') }};">
+                  This is a preview of card content.
+                </div>
+              </div>
+              <!-- Card 2 -->
+              <div class="mini-card" style="border: 1px solid #ccc; background-color: {{ profile.get('card background', {}).get('color', '#ffffff') }}; border-radius: 5px;">
+                <div class="mini-card-header" style="background-color: {{ profile.get('card title', {}).get('color', '#000000') }}; color: {{ profile.get('text', {}).get('color', '#ffffff') }}; padding: 5px; text-align: center;">
+                  Card Title 2
+                </div>
+                <div class="mini-card-body" style="padding: 5px; color: {{ profile.get('text', {}).get('color', '#000000') }};">
+                  Additional preview content.
                 </div>
               </div>
             </div>
@@ -134,14 +137,13 @@ document.addEventListener("DOMContentLoaded", function() {
       pickr.on('save', (color, instance) => {
           var hexColor = color.toHEXA().toString();
           document.querySelector('input[name="' + hiddenInputName + '"]').value = hexColor;
-          // Update preview based on field key using unique IDs where applicable
           if (field.key === "title_bar") {
               document.getElementById("{{ profile_key }}_mini_title_bar").style.backgroundColor = hexColor;
           } else if (field.key === "side_bar") {
               document.getElementById("{{ profile_key }}_mini_side_bar").style.backgroundColor = hexColor;
           } else if (field.key === "wallpaper") {
-              // Update the wallpaper background in the preview container
-              document.querySelector("#{{ profile_key }}_preview .mini-wallpaper").style.backgroundColor = hexColor;
+              // When wallpaper is updated, force the preview to use the static wallpaper image constant.
+              document.querySelector("#{{ profile_key }}_preview .mini-wallpaper").style.backgroundImage = "url('{{ url_for('static', filename=THEME_CONFIG_WALLPAPER) }}')";
           } else if (field.key === "card_title") {
               document.querySelectorAll("#{{ profile_key }}_preview .mini-card-header").forEach(function(el) {
                   el.style.backgroundColor = hexColor;
@@ -179,10 +181,10 @@ document.addEventListener("DOMContentLoaded", function() {
         } else if (key.indexOf("side_bar") > -1) {
           themeData.profiles[profileKey]["side_bar"] = { color: value, image: null };
         } else if (parts[1] === "wallpaper") {
-          themeData.profiles[profileKey]["wallpaper"] = { color: value, image: null };
+          themeData.profiles[profileKey]["wallpaper"] = { color: value, image: THEME_CONFIG_WALLPAPER };
         }
       } else if (parts.length === 3) {
-        var fieldName = parts[1] + " " + parts[2];
+        var fieldName = parts[1] + "_" + parts[2];
         themeData.profiles[profileKey][fieldName] = { color: value, image: null };
       }
     });
