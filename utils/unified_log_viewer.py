@@ -7,10 +7,9 @@ import sys
 from fuzzywuzzy import fuzz
 from config.config_constants import BASE_DIR
 
-if sys.platform.startswith('win'):
-    DATE_FORMAT = "%#m-%#d-%y : %#I:%M:%S %p"
-else:
-    DATE_FORMAT = "%-m-%-d-%y : %-I:%M:%S %p"
+DEBUG = True  # Set to True for verbose debugging; set to False in production.
+
+DATE_FORMAT = "%m-%d-%y : %I:%M:%S %p"
 
 # Unified configuration for display: mapping messages to icons/colors.
 UNIFIED_LOG_CONFIG = {
@@ -82,8 +81,11 @@ class UnifiedLogViewer:
 
     def _read_logs(self):
         for file_path in self.log_files:
+            if DEBUG:
+                print(f"Reading log file: {file_path}")
             if os.path.exists(file_path):
                 with open(file_path, "r", encoding="utf-8") as f:
+                    file_entries = 0
                     for line in f:
                         line = line.strip()
                         if not line:
@@ -98,7 +100,16 @@ class UnifiedLogViewer:
                         except Exception:
                             record["parsed_time"] = datetime.min
                         self.entries.append(record)
+                        file_entries += 1
+                    if DEBUG:
+                        print(f"Found {file_entries} entries in {file_path}")
+            else:
+                if DEBUG:
+                    print(f"Log file does not exist: {file_path}")
+        # Sort entries in descending order (newest first)
         self.entries.sort(key=lambda r: r.get("parsed_time", datetime.min), reverse=True)
+        if DEBUG:
+            print(f"Total entries read: {len(self.entries)}")
 
     def get_line_color_class(self, color_name: str) -> str:
         color_map = {
@@ -149,65 +160,62 @@ class UnifiedLogViewer:
         return html
 
     def get_display_string(self, record: dict) -> str:
-        print(f"--- get_display_string() called for record: {record}")
+        if DEBUG:
+            print(f"--- get_display_string() called for record: {record}")
         if record.get("log_type", "").lower() == "alert":
             config_source = ALERT_VIEW_CONFIG
-            print("Using ALERT_VIEW_CONFIG for log_type 'alert'")
+            if DEBUG:
+                print("Using ALERT_VIEW_CONFIG for log_type 'alert'")
         else:
             config_source = UNIFIED_LOG_CONFIG
-            print("Using UNIFIED_LOG_CONFIG for log_type other than 'alert'")
-
-       # operation_type = record.get("operation_type", "")
+            if DEBUG:
+                print("Using UNIFIED_LOG_CONFIG for log_type other than 'alert'")
 
         operation_type = record.get("operation_type", "").strip()
         if operation_type:
-            print(f"[DEBUG] Raw operation_type: '{operation_type}'")
-            for key in config_source.keys():
-                norm_op = re.sub(r'[^a-z0-9]+', '', operation_type.lower())
-                norm_key = re.sub(r'[^a-z0-9]+', '', key.lower())
-                from fuzzywuzzy import fuzz
-                score = fuzz.ratio(norm_op, norm_key)
-                print(f"[DEBUG] Comparing '{operation_type}' with key '{key}' => score: {score}")
+            if DEBUG:
+                print(f"[DEBUG] Raw operation_type: '{operation_type}'")
+                for key in config_source.keys():
+                    norm_op = re.sub(r'[^a-z0-9]+', '', operation_type.lower())
+                    norm_key = re.sub(r'[^a-z0-9]+', '', key.lower())
+                    score = fuzz.ratio(norm_op, norm_key)
+                    print(f"[DEBUG] Comparing '{operation_type}' with key '{key}' => score: {score}")
             if operation_type in config_source:
                 best_key = operation_type
-                print(f"[DEBUG] Exact match found for operation_type: '{operation_type}'")
+                if DEBUG:
+                    print(f"[DEBUG] Exact match found for operation_type: '{operation_type}'")
             else:
                 best_key = fuzzy_find_log_type(operation_type, config_source.keys())
-                print(f"[DEBUG] No exact match; fuzzy matched key: '{best_key}' for operation_type: '{operation_type}'")
-            display_text = operation_type
-
-
-        if operation_type:
-            if operation_type in config_source:
-                best_key = operation_type
-                print(f"Exact match found for operation_type: {operation_type}")
-            else:
-                best_key = fuzzy_find_log_type(operation_type, config_source.keys())
-                print(f"No exact match; fuzzy matched key: {best_key} for operation_type: {operation_type}")
+                if DEBUG:
+                    print(f"[DEBUG] No exact match; fuzzy matched key: '{best_key}' for operation_type: '{operation_type}'")
             display_text = operation_type
         else:
             message_text = record.get("message", "")
             raw_text = record.get("raw", "")
             display_text = message_text or raw_text
             best_key = fuzzy_find_log_type(display_text, config_source.keys())
-            print(f"Using message/raw; fuzzy matched key: {best_key} for display_text: {display_text}")
+            if DEBUG:
+                print(f"Using message/raw; fuzzy matched key: {best_key} for display_text: {display_text}")
 
         config = config_source.get(best_key, {}) if best_key else {}
         icon = config.get("icon", "")
         color_name = config.get("color", "secondary")
         line_color_class = self.get_line_color_class(color_name)
-        print(f"Determined config for key '{best_key}': icon='{icon}', color='{color_name}' => line_color_class='{line_color_class}'")
+        if DEBUG:
+            print(f"Determined config for key '{best_key}': icon='{icon}', color='{color_name}' => line_color_class='{line_color_class}'")
 
         source_text = record.get("source", "")
         source_icon = SOURCE_ICONS.get(source_text.lower(), DEFAULT_SOURCE_ICON) if source_text else DEFAULT_SOURCE_ICON
-        print(f"Determined source: '{source_text}' -> source_icon='{source_icon}'")
+        if DEBUG:
+            print(f"Determined source: '{source_text}' -> source_icon='{source_icon}'")
 
         ts = record.get("timestamp", "")
         if " : " in ts:
             date_part, time_part = ts.split(" : ", 1)
         else:
             date_part, time_part = ts, ""
-        print(f"Timestamp split into date_part='{date_part}' and time_part='{time_part}'")
+        if DEBUG:
+            print(f"Timestamp split into date_part='{date_part}' and time_part='{time_part}'")
 
         line_html = f"""
     <div class="alert {line_color_class} d-flex align-items-center justify-content-between mb-1" 
@@ -226,11 +234,14 @@ class UnifiedLogViewer:
       </div>
     </div>
     """.strip()
-        print(f"Final HTML generated: {line_html}")
+        if DEBUG:
+            print(f"Final HTML generated: {line_html}")
         return line_html
 
     def get_all_display_strings(self) -> str:
-        display_list = [self.get_display_string(e) for e in self.entries]
+        # Re-sort entries to ensure newest to oldest (descending order)
+        sorted_entries = sorted(self.entries, key=lambda r: r.get("parsed_time", datetime.min), reverse=True)
+        display_list = [self.get_display_string(e) for e in sorted_entries]
         final_html = f"""
 <div style="background-color: white; padding: 8px;">
   {''.join(display_list)}

@@ -6,7 +6,6 @@ import pytz
 from datetime import datetime
 from config.config_constants import BASE_DIR
 
-# Set the date format to match your current operations log.
 if sys.platform.startswith('win'):
     DATE_FORMAT = "%#m-%#d-%y : %#I:%M:%S %p"
 else:
@@ -83,21 +82,17 @@ class UnifiedLogger:
         self.pst = pytz.timezone("US/Pacific")
 
     def log_operation(self, operation_type: str, primary_text: str, source: str = "", file: str = ""):
-        # Debug statement before logging.
         self.logger.debug("About to log operation: operation_type=%s, primary_text=%s, source=%s, file=%s",
                           operation_type, primary_text, source, file)
         extra = {"source": source, "operation_type": operation_type, "log_type": "operation", "file": file}
         self.logger.info(primary_text, extra=extra)
-        # Debug statement after logging.
         self.logger.debug("Logged operation entry with operation_type=%s", operation_type)
 
     def log_alert(self, operation_type: str, primary_text: str, source: str = "", file: str = ""):
-        # Debug statement before logging.
         self.logger.debug("About to log alert: operation_type=%s, primary_text=%s, source=%s, file=%s",
                           operation_type, primary_text, source, file)
         extra = {"source": source, "operation_type": operation_type, "log_type": "alert", "file": file}
         self.logger.info(primary_text, extra=extra)
-        # Debug statement after logging.
         self.logger.debug("Logged alert entry with operation_type=%s", operation_type)
 
 # Example usage:

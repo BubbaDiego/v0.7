@@ -25,9 +25,8 @@ from data.data_locker import DataLocker
 from positions.position_service import PositionService
 from utils.calc_services import CalcServices
 
-# Import the OperationsViewer from operations_manager.py (unchanged)
-from utils.operations_manager import OperationsViewer
-
+# Import UnifiedLogViewer to handle both operational and alert logs.
+from utils.unified_log_viewer import UnifiedLogViewer
 
 logger = logging.getLogger("DashboardBlueprint")
 logger.setLevel(logging.CRITICAL)
@@ -180,36 +179,13 @@ def dashboard():
             last_update_time_only = "N/A"
             last_update_date_only = "N/A"
 
-        # Read Operations Log using absolute path from BASE_DIR.
-        OPERATIONS_LOG_FILE = os.path.join(str(BASE_DIR), "operations_log.txt")
-        try:
-            viewer = OperationsViewer(OPERATIONS_LOG_FILE)
-            system_feed_entries = viewer.get_all_display_strings()
-        except Exception as e:
-            system_feed_entries = '<div class="alert alert-secondary p-1 mb-1" role="alert">No feed data available</div>'
-
-        # Parse JSON for Operation Log (last 5 lines)
-        ops_log_entries = []
-        try:
-            with open(OPERATIONS_LOG_FILE, "r", encoding="utf-8") as f:
-                lines = [line.strip() for line in f if line.strip()]
-                for line in lines[-5:]:
-                    try:
-                        parsed_line = json.loads(line)
-                        ops_log_entries.append(parsed_line)
-                    except json.JSONDecodeError:
-                        ops_log_entries.append({"raw": line})
-        except Exception:
-            pass
-
-        # Read Alert Monitor Log using absolute path from BASE_DIR.
-        ALERT_MONITOR_LOG_FILE = os.path.join(str(BASE_DIR), "alert_monitor_log.txt")
-        try:
-            from alerts.ee import AlertViewer
-            alert_viewer = AlertViewer(ALERT_MONITOR_LOG_FILE)
-            alert_entries = alert_viewer.get_all_display_strings()
-        except Exception as e:
-            alert_entries = '<div class="alert alert-secondary p-1 mb-1" role="alert">No alert data available</div>'
+        # Read log files using UnifiedLogViewer for both operational and alert logs.
+        operations_log_file = os.path.join(str(BASE_DIR), "operations_log.txt")
+        alert_log_file = os.path.join(str(BASE_DIR), "alert_monitor_log.txt")
+        ops_viewer = UnifiedLogViewer([operations_log_file])
+        system_feed_entries = ops_viewer.get_all_display_strings()
+        alert_viewer = UnifiedLogViewer([alert_log_file])
+        alert_entries = alert_viewer.get_all_display_strings()
 
         # Load the theme configuration freshly from file
         from config.config_constants import THEME_CONFIG_PATH
@@ -236,7 +212,6 @@ def dashboard():
             last_update_date_only=last_update_date_only,
             last_update_positions_source=last_update_positions_source,
             system_feed_entries=system_feed_entries,
-            ops_log_entries=ops_log_entries,
             alert_entries=alert_entries
         )
     except Exception as e:
@@ -260,7 +235,6 @@ def dashboard():
             last_update_date_only="N/A",
             last_update_positions_source="N/A",
             system_feed_entries='<div class="alert alert-secondary p-1 mb-1" role="alert">No feed data available</div>',
-            ops_log_entries=[],
             alert_entries='<div class="alert alert-secondary p-1 mb-1" role="alert">No alert data available</div>'
         )
 
@@ -409,7 +383,6 @@ def save_theme_config_route():
     except Exception as e:
         logger.error("Error saving theme configuration", exc_info=True)
         return jsonify({"success": False, "error": str(e)}), 500
-
 
 
 @dashboard_bp.route("/api/asset_percent_changes")

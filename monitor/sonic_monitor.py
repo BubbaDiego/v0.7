@@ -18,7 +18,8 @@ logging.basicConfig(
 )
 
 # URL for the update call
-URL = "http://127.0.0.1:5001/positions/update_jupiter"
+URL = "http://www.deadlypanda.com/positions/update_jupiter"
+#URL = "http://127.0.0.1:5001/positions/update_jupiter"
 SLEEP_INTERVAL = 120  # 2 minutes in seconds
 
 
