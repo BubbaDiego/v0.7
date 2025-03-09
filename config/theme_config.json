@@ -1,0 +1,37 @@
+{
+  "selected_profile": "profile1",
+  "profiles": {
+    "profile1": {
+      "title_bar": { "color": "#000000", "image": null },
+      "side_bar": { "color": "#111111", "image": null },
+      "wallpaper": { "color": "#222222", "image": null },
+      "card title": { "color": "#333333", "image": null },
+      "card background": { "color": "#444444", "image": null },
+      "text": { "color": "#555555", "image": null }
+    },
+    "profile2": {
+      "title_bar": { "color": "#aaaaaa", "image": null },
+      "side_bar": { "color": "#bbbbbb", "image": null },
+      "wallpaper": { "color": "#cccccc", "image": null },
+      "card title": { "color": "#dddddd", "image": null },
+      "card background": { "color": "#eeeeee", "image": null },
+      "text": { "color": "#ffffff", "image": null }
+    },
+    "profile3": {
+      "title_bar": { "color": "#ff0000", "image": null },
+      "side_bar": { "color": "#00ff00", "image": null },
+      "wallpaper": { "color": "#0000ff", "image": null },
+      "card title": { "color": "#ffff00", "image": null },
+      "card background": { "color": "#00ffff", "image": null },
+      "text": { "color": "#ff00ff", "image": null }
+    },
+    "profile4": {
+      "title_bar": { "color": "#123456", "image": null },
+      "side_bar": { "color": "#654321", "image": null },
+      "wallpaper": { "color": "#abcdef", "image": null },
+      "card title": { "color": "#fedcba", "image": null },
+      "card background": { "color": "#112233", "image": null },
+      "text": { "color": "#332211", "image": null }
+    }
+  }
+}
