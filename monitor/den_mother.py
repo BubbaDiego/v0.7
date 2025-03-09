@@ -4,7 +4,7 @@ import time
 import json
 import logging
 import argparse
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from config.config_constants import HEARTBEAT_FILE, BASE_DIR  # Using the heartbeat file constant
 from utils.unified_logger import UnifiedLogger
 
@@ -29,7 +29,7 @@ system_config = sonic_config.get("system_config", {})
 alert_monitor_enabled = system_config.get("alert_monitor_enabled", True)
 
 # Set threshold (in minutes) for considering the monitor as down
-THRESHOLD_MINUTES = 6
+THRESHOLD_MINUTES = 2
 
 # Create an instance of the UnifiedLogger
 unified_logger = UnifiedLogger()
@@ -39,6 +39,9 @@ def check_heartbeat():
     try:
         with open(HEARTBEAT_FILE, "r") as f:
             timestamp_str = f.read().strip()
+            if not timestamp_str:
+                raise ValueError("Heartbeat file is empty")
+            # Parse the heartbeat timestamp as an offset-aware datetime.
             last_update = datetime.fromisoformat(timestamp_str)
     except Exception as e:
         alert_msg = (f"\033[91mWatchdog alert: Could not read heartbeat file: {e}. "
@@ -46,11 +49,12 @@ def check_heartbeat():
         unified_logger.log_alert("Heartbeat Failure", alert_msg, source="system", file="watchdog")
         return
 
-    now = datetime.utcnow()
+    # Use timezone-aware current UTC time.
+    now = datetime.now(timezone.utc)
     elapsed_minutes = (now - last_update).seconds // 60
 
     if now - last_update > timedelta(minutes=THRESHOLD_MINUTES):
-        # Log red alert message with notification details
+        # Log red alert message with notification details.
         alert_msg = (f"\033[91mWatchdog alert: No heartbeat update for {elapsed_minutes} minutes! "
                      f"Notifications: email to {email_recipient}, SMS to {sms_recipient}\033[0m")
         if alert_monitor_enabled:
@@ -58,13 +62,13 @@ def check_heartbeat():
         else:
             unified_logger.log_operation("Heartbeat Failure", alert_msg, source="system", file="watchdog")
     else:
-        # Log green success message
+        # Log green success message.
         success_msg = f"\033[92mHeartbeat is fresh. Last update was {elapsed_minutes} minutes ago.\033[0m"
         unified_logger.log_operation("Heartbeat Success", success_msg, source="system", file="watchdog")
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Watchdog Script for Sonic Monitor.")
+    parser = argparse.ArgumentParser(description="Watchdog Script for Jupiter Monitor.")
     parser.add_argument('--mode', choices=['oneshot', 'monitor'], default='oneshot',
                         help="Mode of operation: 'oneshot' to run once, 'monitor' to continuously check.")
     args = parser.parse_args()

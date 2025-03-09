@@ -2243,3 +2243,33 @@
 {"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-9-25 : 8:55:26 AM"}
 {"timestamp": "3-9-25 : 8:55:28 AM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
 {"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-9-25 : 8:55:28 AM"}
+{"message": "Monitor Loop # 1", "source": "system", "operation_type": "Monitor Loop", "timestamp": "3-9-25 : 9:01:27 AM"}
+{"message": "Monitor Loop # 1", "source": "system", "operation_type": "Monitor Loop", "timestamp": "3-9-25 : 9:05:09 AM"}
+{"message": "Monitor Loop # 2", "source": "system", "operation_type": "Monitor Loop", "timestamp": "3-9-25 : 9:07:11 AM"}
+{"message": "Monitor Loop # 1", "source": "system", "operation_type": "Monitor Loop", "timestamp": "3-9-25 : 9:08:52 AM"}
+{"message": "Heartbeat updated at 2025-03-09T16:08:52.739912+00:00", "source": "system", "operation_type": "Heartbeat", "timestamp": "3-9-25 : 9:08:52 AM"}
+{"message": "Monitor Loop # 1", "source": "system", "operation_type": "Monitor Loop", "timestamp": "3-9-25 : 9:09:19 AM"}
+{"message": "Heartbeat updated at 2025-03-09T16:09:19.696221+00:00", "source": "system", "operation_type": "Heartbeat", "timestamp": "3-9-25 : 9:09:19 AM"}
+{"timestamp": "3-9-25 : 9:10:43 AM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-9-25 : 9:10:43 AM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-9-25 : 9:11:01 AM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-9-25 : 9:11:01 AM", "file_name": "price_monitor.py"}
+{"timestamp": "3-9-25 : 9:11:01 AM", "name": "UnifiedLogger", "level": "INFO", "message": "Notification Failed: all_alerts", "source": "AlertManager", "operation_type": "Notification Failed", "file": "alert_manager", "log_type": "operation"}
+{"message": "Monitor Loop # 2", "source": "system", "operation_type": "Monitor Loop", "timestamp": "3-9-25 : 9:11:21 AM"}
+{"message": "Heartbeat updated at 2025-03-09T16:11:21.732126+00:00", "source": "system", "operation_type": "Heartbeat", "timestamp": "3-9-25 : 9:11:21 AM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-9-25 : 9:11:54 AM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-9-25 : 9:11:55 AM", "file_name": "price_monitor.py"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-9-25 : 9:12:37 AM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-9-25 : 9:12:37 AM", "file_name": "price_monitor.py"}
+{"message": "Monitor Loop # 3", "source": "system", "operation_type": "Monitor Loop", "timestamp": "3-9-25 : 9:13:23 AM"}
+{"message": "Heartbeat updated at 2025-03-09T16:13:23.787307+00:00", "source": "system", "operation_type": "Heartbeat", "timestamp": "3-9-25 : 9:13:23 AM"}
+{"timestamp": "3-9-25 : 9:14:08 AM", "name": "UnifiedLogger", "level": "INFO", "message": "\u001b[92mHeartbeat is fresh. Last update was 0 minutes ago.\u001b[0m", "source": "system", "operation_type": "Heartbeat Success", "file": "watchdog", "log_type": "operation"}
+{"message": "Monitor Loop # 4", "source": "system", "operation_type": "Monitor Loop", "timestamp": "3-9-25 : 9:15:25 AM"}
+{"message": "Heartbeat updated at 2025-03-09T16:15:25.833289+00:00", "source": "system", "operation_type": "Heartbeat", "timestamp": "3-9-25 : 9:15:25 AM"}
+{"timestamp": "3-9-25 : 9:15:50 AM", "name": "UnifiedLogger", "level": "INFO", "message": "\u001b[92mHeartbeat is fresh. Last update was 0 minutes ago.\u001b[0m", "source": "system", "operation_type": "Heartbeat Success", "file": "watchdog", "log_type": "operation"}
+{"timestamp": "3-9-25 : 9:17:12 AM", "name": "UnifiedLogger", "level": "INFO", "message": "\u001b[92mHeartbeat is fresh. Last update was 1 minutes ago.\u001b[0m", "source": "system", "operation_type": "Heartbeat Success", "file": "watchdog", "log_type": "operation"}
+{"message": "Monitor Loop # 5", "source": "system", "operation_type": "Monitor Loop", "timestamp": "3-9-25 : 9:17:27 AM"}
+{"message": "Heartbeat updated at 2025-03-09T16:17:27.877656+00:00", "source": "system", "operation_type": "Heartbeat", "timestamp": "3-9-25 : 9:17:27 AM"}
+{"timestamp": "3-9-25 : 9:18:39 AM", "name": "UnifiedLogger", "level": "INFO", "message": "\u001b[92mHeartbeat is fresh. Last update was 1 minutes ago.\u001b[0m", "source": "system", "operation_type": "Heartbeat Success", "file": "watchdog", "log_type": "operation"}
+{"timestamp": "3-9-25 : 9:18:56 AM", "name": "UnifiedLogger", "level": "INFO", "message": "\u001b[92mHeartbeat is fresh. Last update was 1 minutes ago.\u001b[0m", "source": "system", "operation_type": "Heartbeat Success", "file": "watchdog", "log_type": "operation"}
+{"timestamp": "3-9-25 : 9:19:22 AM", "name": "UnifiedLogger", "level": "INFO", "message": "\u001b[92mHeartbeat is fresh. Last update was 1 minutes ago.\u001b[0m", "source": "system", "operation_type": "Heartbeat Success", "file": "watchdog", "log_type": "operation"}

@@ -3,7 +3,10 @@ import time
 import requests
 import logging
 import urllib3
+import os
+from datetime import datetime, timezone
 from utils.operations_manager import OperationsLogger  # Import from external module
+from config.config_constants import HEARTBEAT_FILE  # Import heartbeat constant
 
 # Disable InsecureRequestWarning
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -14,9 +17,10 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
-#URL = "http://www.deadlypanda.com/update_jupiter"
+# URL for the update call
 URL = "http://127.0.0.1:5001/positions/update_jupiter"
 SLEEP_INTERVAL = 120  # 2 minutes in seconds
+
 
 def call_update_jupiter():
     try:
@@ -26,19 +30,37 @@ def call_update_jupiter():
     except Exception as e:
         logging.error("Error calling update_jupiter at URL %s: %s", URL, e)
 
+
 def main():
     loop_counter = 0
     op_logger = OperationsLogger()
     logging.info("Starting always‑on task for update_jupiter. URL: %s", URL)
+
+    def write_heartbeat():
+        # Ensure the directory for the heartbeat file exists
+        heartbeat_dir = os.path.dirname(HEARTBEAT_FILE)
+        os.makedirs(heartbeat_dir, exist_ok=True)
+
+        # Use timezone-aware UTC time
+        timestamp = datetime.now(timezone.utc).isoformat()
+        try:
+            with open(HEARTBEAT_FILE, "w") as f:
+                f.write(timestamp)
+            logging.info("Heartbeat updated.")
+            op_logger.log(f"Heartbeat updated at {timestamp}", source="system", operation_type="Heartbeat")
+        except Exception as e:
+            logging.error("Failed to update heartbeat: %s", e)
+
     while True:
         loop_counter += 1
         logging.info("Loop count: %d. Calling URL: %s", loop_counter, URL)
         call_update_jupiter()
-
-        # Log the operation with the loop count, source set to "monitor", and operation type "Jupiter Updated"
         op_logger.log(f"Monitor Loop # {loop_counter}", source="system", operation_type="Monitor Loop")
 
+        write_heartbeat()
+
         time.sleep(SLEEP_INTERVAL)
+
 
 if __name__ == '__main__':
     main()
