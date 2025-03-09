@@ -27,8 +27,7 @@ from utils.calc_services import CalcServices
 
 # Import the OperationsViewer from operations_manager.py (unchanged)
 from utils.operations_manager import OperationsViewer
-# Use AlertViewer to format alert monitor log entries
-from alerts.ee import AlertViewer
+
 
 logger = logging.getLogger("DashboardBlueprint")
 logger.setLevel(logging.CRITICAL)

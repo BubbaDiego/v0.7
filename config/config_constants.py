@@ -22,6 +22,7 @@ ALERT_LIMITS_PATH = BASE_DIR / "config" / ALERT_LIMITS_FILENAME
 THEME_CONFIG_FILENAME = os.getenv("THEME_CONFIG_FILENAME", "theme_config.json")
 THEME_CONFIG_PATH = BASE_DIR / "config" / THEME_CONFIG_FILENAME
 
+HEARTBEAT_FILE = os.getenv("HEARTBEAT_FILE", "/monitor/heartbeat.txt")
 
 
 # Image asset paths
