@@ -46,26 +46,36 @@
         </div>
 
         <!-- Mini Page Preview -->
-        <div id="{{ profile_key }}_preview" class="mini-preview" style="border: 1px solid #ccc; width: 320px; height: 480px; margin: 0 auto; box-shadow: 2px 2px 8px rgba(0,0,0,0.2); overflow: hidden;">
+        <div id="{{ profile_key }}_preview" class="mini-preview" style="border: 1px solid #ccc; border-radius: 10px; width: 640px; height: 480px; margin: 0 auto; box-shadow: 2px 2px 8px rgba(0,0,0,0.2); overflow: hidden;">
           <!-- Wallpaper (outer container) -->
           <div class="mini-wallpaper" style="background-color: {{ profile.get('wallpaper', {}).get('color', '#ffffff') }}; height: 100%; display: flex; flex-direction: column;">
-            <!-- Title Bar -->
-            <div class="mini-title-bar" style="background-color: {{ profile.get('title_bar', {}).get('color', '#000000') }}; color: {{ profile.get('text', {}).get('color', '#ffffff') }}; padding: 10px; text-align: center;">
+            <!-- Title Bar with unique id -->
+            <div id="{{ profile_key }}_mini_title_bar" class="mini-title-bar" style="background-color: {{ profile.get('title_bar', {}).get('color', '#000000') }}; color: {{ profile.get('text', {}).get('color', '#ffffff') }}; padding: 10px; text-align: center;">
               Title Bar
             </div>
             <div style="flex: 1; display: flex;">
-              <!-- Side Bar -->
-              <div class="mini-side-bar" style="background-color: {{ profile.get('side_bar', {}).get('color', '#000000') }}; color: {{ profile.get('text', {}).get('color', '#ffffff') }}; width: 80px; padding: 10px;">
+              <!-- Side Bar with unique id -->
+              <div id="{{ profile_key }}_mini_side_bar" class="mini-side-bar" style="background-color: {{ profile.get('side_bar', {}).get('color', '#000000') }}; color: {{ profile.get('text', {}).get('color', '#ffffff') }}; width: 80px; padding: 10px;">
                 Sidebar
               </div>
-              <!-- Main Content Card -->
-              <div class="mini-content" style="flex: 1; padding: 10px;">
-                <div class="mini-card" style="border: 1px solid #ccc; background-color: {{ profile.get('card background', {}).get('color', '#ffffff') }};">
+              <!-- Main Content Area with Two Cards -->
+              <div class="mini-content" style="flex: 1; padding: 10px; display: flex; flex-direction: column; gap: 10px;">
+                <!-- Card 1 -->
+                <div class="mini-card" style="border: 1px solid #ccc; background-color: {{ profile.get('card background', {}).get('color', '#ffffff') }}; border-radius: 5px;">
                   <div class="mini-card-header" style="background-color: {{ profile.get('card title', {}).get('color', '#000000') }}; color: {{ profile.get('text', {}).get('color', '#ffffff') }}; padding: 5px; text-align: center;">
-                    Card Title
+                    Card Title 1
                   </div>
                   <div class="mini-card-body" style="padding: 5px; color: {{ profile.get('text', {}).get('color', '#000000') }};">
                     This is a preview of card content.
+                  </div>
+                </div>
+                <!-- Card 2 -->
+                <div class="mini-card" style="border: 1px solid #ccc; background-color: {{ profile.get('card background', {}).get('color', '#ffffff') }}; border-radius: 5px;">
+                  <div class="mini-card-header" style="background-color: {{ profile.get('card title', {}).get('color', '#000000') }}; color: {{ profile.get('text', {}).get('color', '#ffffff') }}; padding: 5px; text-align: center;">
+                    Card Title 2
+                  </div>
+                  <div class="mini-card-body" style="padding: 5px; color: {{ profile.get('text', {}).get('color', '#000000') }};">
+                    Additional preview content.
                   </div>
                 </div>
               </div>
@@ -89,7 +99,6 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-  // Define the fields to initialize Pickr for.
   const fields = [
     { key: "title_bar" },
     { key: "side_bar" },
@@ -125,21 +134,24 @@ document.addEventListener("DOMContentLoaded", function() {
       pickr.on('save', (color, instance) => {
           var hexColor = color.toHEXA().toString();
           document.querySelector('input[name="' + hiddenInputName + '"]').value = hexColor;
-          // Update preview based on which field changed:
-          var preview = document.getElementById("{{ profile_key }}_preview");
+          // Update preview based on field key using unique IDs where applicable
           if (field.key === "title_bar") {
-              preview.querySelector(".mini-title-bar").style.backgroundColor = hexColor;
+              document.getElementById("{{ profile_key }}_mini_title_bar").style.backgroundColor = hexColor;
           } else if (field.key === "side_bar") {
-              preview.querySelector(".mini-side-bar").style.backgroundColor = hexColor;
+              document.getElementById("{{ profile_key }}_mini_side_bar").style.backgroundColor = hexColor;
           } else if (field.key === "wallpaper") {
-              preview.querySelector(".mini-wallpaper").style.backgroundColor = hexColor;
+              // Update the wallpaper background in the preview container
+              document.querySelector("#{{ profile_key }}_preview .mini-wallpaper").style.backgroundColor = hexColor;
           } else if (field.key === "card_title") {
-              preview.querySelector(".mini-card-header").style.backgroundColor = hexColor;
+              document.querySelectorAll("#{{ profile_key }}_preview .mini-card-header").forEach(function(el) {
+                  el.style.backgroundColor = hexColor;
+              });
           } else if (field.key === "card_background") {
-              preview.querySelector(".mini-card").style.backgroundColor = hexColor;
+              document.querySelectorAll("#{{ profile_key }}_preview .mini-card").forEach(function(el) {
+                  el.style.backgroundColor = hexColor;
+              });
           } else if (field.key === "text") {
-              // Update text color for all text elements in the preview.
-              preview.querySelectorAll(".mini-title-bar, .mini-side-bar, .mini-card-header, .mini-card-body").forEach(function(el) {
+              document.querySelectorAll("#{{ profile_key }}_preview .mini-title-bar, #{{ profile_key }}_preview .mini-side-bar, #{{ profile_key }}_preview .mini-card-header, #{{ profile_key }}_preview .mini-card-body").forEach(function(el) {
                   el.style.color = hexColor;
               });
           }
@@ -148,7 +160,6 @@ document.addEventListener("DOMContentLoaded", function() {
     });
   {% endfor %}
 
-  // Handle form submission via AJAX.
   document.getElementById("themeConfigForm").addEventListener("submit", function(e) {
     e.preventDefault();
     var formData = new FormData(this);

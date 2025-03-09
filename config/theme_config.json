@@ -2,11 +2,11 @@
   "profiles": {
     "profile1": {
       "title bar": {
-        "color": "#000000",
+        "color": "#B9A5A5",
         "image": null
       },
       "side bar": {
-        "color": "#000000",
+        "color": "#30CD58",
         "image": null
       },
       "wallpaper": {
@@ -22,7 +22,7 @@
         "image": null
       },
       "text": {
-        "color": "#201F1F",
+        "color": "#3918D3",
         "image": null
       }
     },
