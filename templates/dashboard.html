@@ -166,14 +166,14 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: #e7f0fd;
+    /* Changed to match card headers */
+    background-color: var(--card-title-color) !important;
+    color: var(--text-color) !important;
     padding: 0.5rem 1rem;
-  }
-  .composition-header h3 {
-    margin: 0;
-    text-align: center;
-    font-size: 1.5rem;
-    font-weight: bold;
+    height: 50px;
+    /* Add matching corner radius on top */
+    border-top-left-radius: 0.25rem;
+    border-top-right-radius: 0.25rem;
   }
   .composition-container {
     display: flex;
@@ -379,6 +379,7 @@
     <!-- Composition Card (2 Pie Charts) -->
     <div class="col-md-4">
       <div class="card">
+        <!-- Updated header to match the theme-based style -->
         <div class="composition-header">
           <h3 class="card-title mb-0">📐 Size</h3>
           <h3 class="card-title mb-0">Collateral 💸</h3>

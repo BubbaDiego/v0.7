@@ -2384,3 +2384,23 @@
 {"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-9-25 : 1:31:46 PM"}
 {"timestamp": "3-9-25 : 1:31:48 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
 {"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-9-25 : 1:31:48 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-9-25 : 1:34:08 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-9-25 : 1:34:08 PM", "file_name": "price_monitor.py"}
+{"timestamp": "3-9-25 : 1:34:09 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Twilio alert sent", "source": "AlertManager", "operation_type": "Twilio Notification", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-9-25 : 1:34:09 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Notification Sent: all_alerts", "source": "AlertManager", "operation_type": "Notification Sent", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-9-25 : 1:40:48 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-9-25 : 1:40:48 PM"}
+{"timestamp": "3-9-25 : 1:40:50 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-9-25 : 1:40:50 PM"}
+{"timestamp": "3-9-25 : 1:50:12 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-9-25 : 1:50:12 PM"}
+{"timestamp": "3-9-25 : 1:50:14 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Alert Manager 🏃‍♂️", "source": "system", "operation_type": "Alert Manager Initialized", "file": "alert_manager", "log_type": "operation"}
+{"message": "Launch Pad - Started", "source": "System", "operation_type": "Start Launch Pad", "timestamp": "3-9-25 : 1:50:14 PM"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-9-25 : 4:26:46 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-9-25 : 4:26:47 PM", "file_name": "price_monitor.py"}
+{"timestamp": "3-9-25 : 4:26:48 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Twilio alert sent", "source": "AlertManager", "operation_type": "Twilio Notification", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-9-25 : 4:26:48 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Notification Sent: all_alerts", "source": "AlertManager", "operation_type": "Notification Sent", "file": "alert_manager", "log_type": "operation"}
+{"message": "Jupiter Updated", "source": "user", "operation_type": "Jupiter Updated", "timestamp": "3-9-25 : 6:36:37 PM"}
+{"message": "Prices Updated", "source": "user", "operation_type": "Prices Updated", "timestamp": "3-9-25 : 6:36:39 PM", "file_name": "price_monitor.py"}
+{"timestamp": "3-9-25 : 6:36:39 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Twilio alert sent", "source": "AlertManager", "operation_type": "Twilio Notification", "file": "alert_manager", "log_type": "operation"}
+{"timestamp": "3-9-25 : 6:36:39 PM", "name": "UnifiedLogger", "level": "INFO", "message": "Notification Sent: all_alerts", "source": "AlertManager", "operation_type": "Notification Sent", "file": "alert_manager", "log_type": "operation"}
