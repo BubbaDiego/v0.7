@@ -34,6 +34,45 @@ logger.setLevel(logging.CRITICAL)
 dashboard_bp = Blueprint("dashboard", __name__, template_folder="templates")
 
 
+
+def get_strategy_performance():
+    dl = DataLocker.get_instance()
+    portfolio_history = dl.get_portfolio_history() or []
+    if portfolio_history:
+        # For this example we assume the performance is measured from the very first snapshot.
+        start_entry = portfolio_history[0]
+        current_entry = portfolio_history[-1]
+        try:
+            start_value = float(start_entry.get("total_value", 0))
+        except Exception:
+            start_value = 0
+        try:
+            current_value = float(current_entry.get("total_value", 0))
+        except Exception:
+            current_value = 0
+        description = "Strategy performance since reset"
+        start_date = start_entry.get("snapshot_time", "N/A")
+        diff = current_value - start_value
+        percent_change = (diff / start_value * 100) if start_value != 0 else 0
+        return {
+            "description": description,
+            "start_date": start_date,
+            "start_value": start_value,
+            "current_value": current_value,
+            "diff": diff,
+            "percent_change": percent_change
+        }
+    else:
+        return {
+            "description": "No performance data available",
+            "start_date": "N/A",
+            "start_value": 0,
+            "current_value": 0,
+            "diff": 0,
+            "percent_change": 0
+        }
+
+
 # Helper: Convert ISO timestamp to PST formatted string.
 def _convert_iso_to_pst(iso_str):
     if not iso_str or iso_str == "N/A":
@@ -159,6 +198,8 @@ def dashboard():
         formatted_sol_price = "{:,.2f}".format(float(sol_data.get("current_price", 0)))
         formatted_sp500_value = "{:,.2f}".format(float(sp500_data.get("current_price", 0)))
 
+        strategy_performance = get_strategy_performance()
+
         update_times = dl.get_last_update_times() or {}
         raw_last_update = update_times.get("last_update_time_positions")
         last_update_positions_source = update_times.get("last_update_positions_source", "N/A")
@@ -212,7 +253,8 @@ def dashboard():
             last_update_date_only=last_update_date_only,
             last_update_positions_source=last_update_positions_source,
             system_feed_entries=system_feed_entries,
-            alert_entries=alert_entries
+            alert_entries=alert_entries,
+            strategy_performance = strategy_performance
         )
     except Exception as e:
         logger.exception("Error rendering dashboard:")
