@@ -224,6 +224,70 @@
   .logs-card .card-body {
     padding: 0.25rem;
   }
+
+  /* -------------------- Fixed Height for Consistency -------------------- */
+  .fixed-height {
+    height: 400px;
+  }
+
+  /* -------------------- New Strategy Performance Card Styles -------------------- */
+  .performance-card {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: var(--card-background-color);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    overflow: hidden;
+    height: 100%;
+  }
+  .performance-card .card-header {
+    background-color: var(--card-title-color);
+    color: var(--text-color);
+    padding: 10px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.25rem;
+    font-weight: bold;
+  }
+  .performance-card .card-body {
+    padding: 15px;
+  }
+  .performance-display {
+    text-align: center;
+    margin-top: 10px;
+  }
+  .performance-display h2 {
+    font-size: 2.5rem;
+    margin: 0;
+    font-weight: bold;
+  }
+  .performance-display .change {
+    font-size: 1.5rem;
+    margin-top: 5px;
+  }
+  .change-positive {
+    color: green;
+  }
+  .change-negative {
+    color: red;
+  }
+  .details-box {
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 10px;
+    font-size: 0.9rem;
+    color: #555;
+    background-color: #f7f7f7;
+    margin-bottom: 10px;
+  }
+  .details-box .data-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+  }
+  .details-box .data-label {
+    font-weight: bold;
+  }
 </style>
 {% endblock %}
 
@@ -332,8 +396,8 @@
   <!-- New Row 3: Liquidation Bar Card, Composition Card, and Operational Log Card -->
   <div class="row">
     <!-- Liquidation Bar Card -->
-    <div class="col-md-4">
-      <div class="card">
+    <div class="col-md-4 fixed-height">
+      <div class="card h-100">
         <div class="card-header">
           <div class="header-icon left"><i class="bi bi-currency-dollar"></i></div>
           <div class="header-icon center"><span>⚖</span></div>
@@ -377,8 +441,8 @@
     </div>
 
     <!-- Composition Card (2 Pie Charts) -->
-    <div class="col-md-4">
-      <div class="card">
+    <div class="col-md-4 fixed-height">
+      <div class="card h-100">
         <!-- Updated header to match the theme-based style -->
         <div class="composition-header">
           <h3 class="card-title mb-0">📐 Size</h3>
@@ -394,22 +458,22 @@
     </div>
 
     <!-- Operational Log Card -->
-    <div class="col-md-4">
-      <div class="card card-outline logs-card">
+    <div class="col-md-4 fixed-height">
+      <div class="card card-outline logs-card h-100">
         <div class="card-header">
           <h3 class="card-title mb-0"><span class="log-icon">🔧</span> Operational Log</h3>
         </div>
-        <div class="card-body" style="max-height: 300px; overflow-y: auto;">
+        <div class="card-body" style="max-height: 100%; overflow-y: auto;">
           {{ system_feed_entries|safe }}
         </div>
       </div>
     </div>
   </div>
 
-  <!-- New Row 4: Performance, Size Balance, and Alert Log Card -->
+  <!-- New Row 4: Performance (Original), New Strategy Performance Card, and Alert Log Card -->
   <div class="row">
-    <!-- Performance Card -->
-    <div class="col-md-4">
+    <!-- Performance Card (unchanged) -->
+    <div class="col-md-4 fixed-height">
       <div class="card" style="min-height: 400px;">
         <div class="card-header d-flex align-items-center">
           <h3 class="card-title mb-0">Performance</h3>
@@ -427,39 +491,44 @@
         </div>
       </div>
     </div>
-    <!-- Size Balance Card -->
-    <div class="col-md-4">
-      <div class="card shadow" style="min-height: 400px;">
-        <div class="card-header d-flex align-items-center justify-content-between">
-          <h3 class="card-title mb-0">Size Balance</h3>
-          <div class="legend">
-            <span class="me-3">
-              <i class="bi bi-square-fill" style="color:#0d6efd;"></i>
-              Long(<b id="legend-long-value">0K</b>)
-            </span>
-            <span class="me-3">
-              <i class="bi bi-square-fill" style="color:#20c997;"></i>
-              Short(<b id="legend-short-value">0K</b>)
-            </span>
-            <span>
-              <i class="bi bi-square-fill" style="color:#ab79e8;"></i>
-              Total(<b id="legend-total-value">0K</b>)
-            </span>
-          </div>
+    <!-- New Strategy Performance Card (replacing the original Size Balance card) -->
+    <div class="col-md-4 fixed-height">
+      <div class="card performance-card h-100">
+        <div class="card-header d-flex align-items-center">
+          <span>Strategy Performance <i class="bi bi-pencil-square" title="Edit"></i></span>
         </div>
-        <div class="card-body">
-          <div id="size-chart"></div>
-          <div class="asset-labels"></div>
+        <div class="card-body" id="card-content">
+          <!-- Details box: description, start date, start value placed on top -->
+          <div class="details-box">
+            <div class="data-row">
+              <div class="data-label">Description:</div>
+              <div id="description-display">Strategy A – Momentum Trading</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Start Date:</div>
+              <div id="start-date-display">03/01/2025</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Start Value:</div>
+              <div id="start-value-display">$10,000.00</div>
+            </div>
+          </div>
+          <!-- Main performance display: current value, absolute change, percent change -->
+          <div class="performance-display">
+            <h2 id="current-value-display">$12,500.00</h2>
+            <div id="change-display" class="change change-positive">+$2,500.00</div>
+            <div id="percent-change-display" class="change change-positive">+25.00%</div>
+          </div>
         </div>
       </div>
     </div>
-    <!-- Alert Log Card -->
-    <div class="col-md-4">
-      <div class="card card-outline logs-card">
+    <!-- Alert Log Card (unchanged) -->
+    <div class="col-md-4 fixed-height">
+      <div class="card card-outline logs-card h-100">
         <div class="card-header">
           <h3 class="card-title mb-0"><span class="log-icon">⚠️</span> Alert Log</h3>
         </div>
-        <div class="card-body" style="max-height: 300px; overflow-y: auto;">
+        <div class="card-body" style="max-height: 100%; overflow-y: auto;">
           {{ alert_entries|safe }}
         </div>
       </div>
@@ -565,6 +634,360 @@
       })
       .catch(err => console.error("Error fetching asset percent changes:", err));
   }
+</script>
+
+<!-- ApexCharts for Composition & Size Balance -->
+<script src="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.min.js" crossorigin="anonymous"></script>
+<script>
+  window.onload = function() {
+    if (typeof ApexCharts === 'undefined') {
+      console.error("ApexCharts library not loaded!");
+      return;
+    }
+    // Size Composition Pie
+    const positionsChartContainer = document.getElementById("positions-chart");
+    if (positionsChartContainer) {
+      fetch("/api/size_composition")
+        .then(response => response.json())
+        .then(data => {
+          const seriesData = data.series || [0, 0];
+          const options = {
+            series: seriesData,
+            chart: {
+              type: 'pie',
+              height: 233,
+              events: {
+                click: function() {
+                  const currentType = positionsChartInstance.w.config.chart.type;
+                  const newType = (currentType === 'pie') ? 'donut' : 'pie';
+                  positionsChartInstance.updateOptions({ chart: { type: newType } });
+                }
+              }
+            },
+            labels: ['Long Positions', 'Short Positions'],
+            colors: ['#0d6efd', '#5dcc8e'],
+            legend: { position: 'bottom' },
+            dataLabels: {
+              enabled: true,
+              style: { fontSize: '1rem' },
+              formatter: function(val) {
+                return val.toFixed(2) + "%";
+              }
+            },
+            plotOptions: {
+              pie: { dataLabels: { offset: -5 } }
+            }
+          };
+          const positionsChartInstance = new ApexCharts(positionsChartContainer, options);
+          positionsChartInstance.render().catch(err => console.error("ApexCharts (Size) render error:", err));
+        })
+        .catch(err => console.error("Error fetching size composition data:", err));
+    }
+
+    // Collateral Composition Pie
+    const collateralChartContainer = document.getElementById("collateral-composition-chart");
+    if (collateralChartContainer) {
+      fetch("/api/collateral_composition")
+        .then(response => response.json())
+        .then(data => {
+          const seriesData = data.series || [0, 0];
+          const collateralOptions = {
+            series: seriesData,
+            chart: {
+              type: 'pie',
+              height: 233,
+              events: {
+                click: function() {
+                  const currentType = collateralChartInstance.w.config.chart.type;
+                  const newType = (currentType === 'pie') ? 'donut' : 'pie';
+                  collateralChartInstance.updateOptions({ chart: { type: newType } });
+                }
+              }
+            },
+            labels: ['Long Collateral', 'Short Collateral'],
+            colors: ['#ca477d', '#d1ef9a'],
+            legend: { position: 'bottom' },
+            dataLabels: {
+              enabled: true,
+              style: { fontSize: '1rem' },
+              formatter: function(val) {
+                return val.toFixed(2) + "%";
+              }
+            },
+            plotOptions: {
+              pie: { dataLabels: { offset: -5 } }
+            }
+          };
+          const collateralChartInstance = new ApexCharts(collateralChartContainer, collateralOptions);
+          collateralChartInstance.render().catch(err => console.error("ApexCharts (Collateral) render error:", err));
+        })
+        .catch(err => console.error("Error fetching collateral composition data:", err));
+    }
+
+    // Size Balance (Multi-series Bar Chart)
+    const sizeChartContainer = document.getElementById("size-chart");
+    if (sizeChartContainer) {
+      fetch("/api/size_balance")
+        .then(response => response.json())
+        .then(data => {
+          const groups = data.groups;
+          const categories = groups.map(g => `${g.wallet} ${g.asset}`);
+          const longData = groups.map(g => g.long);
+          const shortData = groups.map(g => g.short);
+          const totalData = groups.map(g => g.total);
+
+          const chartOptions = {
+            series: [
+              { name: 'Long',  data: longData },
+              { name: 'Short', data: shortData },
+              { name: 'Total', data: totalData }
+            ],
+            chart: {
+              type: 'bar',
+              height: 400,
+              toolbar: { show: false }
+            },
+            grid: { padding: { bottom: 120 } },
+            plotOptions: {
+              bar: {
+                horizontal: false,
+                columnWidth: '55%',
+                endingShape: 'rounded'
+              }
+            },
+            dataLabels: { enabled: false },
+            stroke: { show: true, width: 2, colors: ['transparent'] },
+            colors: ['#0d6efd', '#20c997', '#ab79e8'],
+            xaxis: {
+              categories: categories,
+              labels: { show: true }
+            },
+            yaxis: {
+              title: { text: 'Size Amount' },
+              labels: {
+                formatter: function(val) {
+                  return Math.round(val / 1000) + "k";
+                }
+              }
+            },
+            fill: { opacity: 1 },
+            tooltip: {
+              y: { formatter: (val) => "$" + val }
+            },
+            legend: { show: false },
+            annotations: {
+              yaxis: [
+                {
+                  y: data.avg_short || 2683.33,
+                  borderColor: '#20c997',
+                  label: {
+                    borderColor: '#20c997',
+                    style: { color: '#fff', background: '#20c997' },
+                    text: 'Avg Short'
+                  },
+                  strokeDashArray: 4
+                },
+                {
+                  y: data.avg_long || 4500,
+                  borderColor: '#0d6efd',
+                  label: {
+                    borderColor: '#0d6efd',
+                    style: { color: '#fff', background: '#0d6efd' },
+                    text: 'Avg Long'
+                  },
+                  strokeDashArray: 4
+                }
+              ]
+            }
+          };
+          const sizeChart = new ApexCharts(sizeChartContainer, chartOptions);
+          sizeChart.render().catch(err => console.error("ApexCharts (Size Balance) render error:", err));
+
+          // Compute overall totals
+          const sumLong = longData.reduce((acc, val) => acc + val, 0);
+          const sumShort = shortData.reduce((acc, val) => acc + val, 0);
+          const sumTotal = totalData.reduce((acc, val) => acc + val, 0);
+
+          function formatK(num) {
+            return num >= 1000 ? (num / 1000).toFixed(1) + "K" : num;
+          }
+          document.getElementById("legend-long-value").textContent = formatK(sumLong);
+          document.getElementById("legend-short-value").textContent = formatK(sumShort);
+          document.getElementById("legend-total-value").textContent = formatK(sumTotal);
+
+          // Dynamically generate asset labels row
+          const labelsContainer = document.querySelector(".asset-labels");
+          labelsContainer.innerHTML = "";
+          groups.forEach(g => {
+            const col = document.createElement("div");
+            col.className = "size-chart-col";
+            const walletImg = document.createElement("img");
+            walletImg.className = "wallet-icon";
+            walletImg.src = `/static/images/${g.wallet.toLowerCase()}.jpg`;
+            walletImg.alt = g.wallet;
+            const assetImg = document.createElement("img");
+            assetImg.className = "asset-icon2";
+            assetImg.src = `/static/images/${g.asset.toLowerCase()}_logo.png`;
+            assetImg.alt = g.asset;
+            col.appendChild(walletImg);
+            col.appendChild(assetImg);
+            labelsContainer.appendChild(col);
+          });
+        })
+        .catch(err => console.error("Error fetching size balance data:", err));
+    }
+  };
+
+  // Jupiter update button functionality
+  document.addEventListener("DOMContentLoaded", function() {
+    const container = document.querySelector('.update-button[data-type="jupiter"]');
+    if (!container) return;
+    const img = container.querySelector('img');
+    container.addEventListener("click", function() {
+      img.classList.add("spin");
+      fetch("/positions/update_jupiter?source=User", { method: "POST" })
+        .then(response => response.json())
+        .then(() => {
+          img.classList.remove("spin");
+          window.location.reload();
+        })
+        .catch(err => {
+          img.classList.remove("spin");
+          console.error(err);
+        });
+    });
+  });
+</script>
+
+<style>
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  .spin { animation: spin 1s linear infinite; }
+</style>
+
+<script>
+  // Performance Card Edit Mode Logic (canned data)
+  document.addEventListener('DOMContentLoaded', function() {
+    const perfData = {
+      description: "Strategy A – Momentum Trading",
+      startDate: "03/01/2025",
+      startValue: 10000,
+      currentValue: 12500
+    };
+
+    const cardContent = document.getElementById("card-content");
+    const editToggleBtn = document.querySelector(".performance-card .card-header i");
+    let isEditing = false;
+    let originalData = { ...perfData };
+
+    function calculateChanges() {
+      const change = perfData.currentValue - perfData.startValue;
+      const percent = perfData.startValue > 0 ? (change / perfData.startValue) * 100 : 0;
+      return { change, percent };
+    }
+
+    function updateViewMode() {
+      const { change, percent } = calculateChanges();
+      cardContent.innerHTML = `
+        <div class="details-box">
+          <div class="data-row">
+            <div class="data-label">Description:</div>
+            <div id="description-display">${perfData.description}</div>
+          </div>
+          <div class="data-row">
+            <div class="data-label">Start Date:</div>
+            <div id="start-date-display">${perfData.startDate}</div>
+          </div>
+          <div class="data-row">
+            <div class="data-label">Start Value:</div>
+            <div id="start-value-display">$${perfData.startValue.toFixed(2)}</div>
+          </div>
+        </div>
+        <div class="performance-display">
+          <h2 id="current-value-display">$${perfData.currentValue.toFixed(2)}</h2>
+          <div id="change-display" class="change ${change >= 0 ? 'change-positive' : 'change-negative'}">
+            ${change >= 0 ? '+' : ''}$${change.toFixed(2)}
+          </div>
+          <div id="percent-change-display" class="change ${percent >= 0 ? 'change-positive' : 'change-negative'}">
+            ${percent >= 0 ? '+' : ''}${percent.toFixed(2)}%
+          </div>
+        </div>
+      `;
+    }
+
+    function switchToEditMode() {
+      isEditing = true;
+      editToggleBtn.innerHTML = '<i class="bi bi-check-lg"></i> <i class="bi bi-x-lg"></i>';
+      cardContent.innerHTML = `
+        <div class="details-box">
+          <div class="data-row">
+            <div class="data-label">Description:</div>
+            <div><input type="text" id="description-input" class="edit-input" value="${perfData.description}"></div>
+          </div>
+          <div class="data-row">
+            <div class="data-label">Start Date:</div>
+            <div><input type="text" id="start-date-input" class="edit-input" value="${perfData.startDate}"></div>
+          </div>
+          <div class="data-row">
+            <div class="data-label">Start Value:</div>
+            <div><input type="number" id="start-value-input" class="edit-input" value="${perfData.startValue}"></div>
+          </div>
+        </div>
+        <div class="performance-display">
+          <h2><input type="number" id="current-value-input" class="edit-input" value="${perfData.currentValue}" style="text-align:center; font-size:2.5rem; font-weight:bold;"></h2>
+          <div id="change-display" class="change">${(perfData.currentValue - perfData.startValue >= 0 ? '+' : '')}$${(perfData.currentValue - perfData.startValue).toFixed(2)}</div>
+          <div id="percent-change-display" class="change">${(perfData.startValue > 0 ? ((perfData.currentValue - perfData.startValue) / perfData.startValue * 100).toFixed(2) : 0)}%</div>
+        </div>
+      `;
+      document.getElementById("current-value-input").addEventListener("input", updateComputedFields);
+      document.getElementById("start-value-input").addEventListener("input", updateComputedFields);
+    }
+
+    function updateComputedFields() {
+      const startVal = parseFloat(document.getElementById("start-value-input").value) || 0;
+      const currentVal = parseFloat(document.getElementById("current-value-input").value) || 0;
+      const change = currentVal - startVal;
+      const percent = startVal > 0 ? (change / startVal) * 100 : 0;
+      document.getElementById("change-display").textContent = (change >= 0 ? '+' : '') + "$" + change.toFixed(2);
+      document.getElementById("percent-change-display").textContent = (percent >= 0 ? '+' : '') + percent.toFixed(2) + "%";
+      document.getElementById("change-display").className = "change " + (change >= 0 ? "change-positive" : "change-negative");
+      document.getElementById("percent-change-display").className = "change " + (percent >= 0 ? "change-positive" : "change-negative");
+    }
+
+    function saveEdits() {
+      perfData.description = document.getElementById("description-input").value;
+      perfData.startDate = document.getElementById("start-date-input").value;
+      perfData.startValue = parseFloat(document.getElementById("start-value-input").value) || 0;
+      perfData.currentValue = parseFloat(document.getElementById("current-value-input").value) || 0;
+      isEditing = false;
+      editToggleBtn.innerHTML = '<i class="bi bi-pencil-square"></i>';
+      updateViewMode();
+    }
+
+    function cancelEdits() {
+      perfData = { ...originalData };
+      isEditing = false;
+      editToggleBtn.innerHTML = '<i class="bi bi-pencil-square"></i>';
+      updateViewMode();
+    }
+
+    editToggleBtn.addEventListener("click", function() {
+      if (!isEditing) {
+        originalData = { ...perfData };
+        switchToEditMode();
+      } else {
+        if (confirm("Save changes? Click OK to save, Cancel to discard.")) {
+          saveEdits();
+        } else {
+          cancelEdits();
+        }
+      }
+    });
+
+    updateViewMode();
+  });
 </script>
 
 <!-- ApexCharts for Composition & Size Balance -->
