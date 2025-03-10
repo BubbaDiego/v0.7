@@ -33,7 +33,6 @@ from flask_socketio import SocketIO, emit
 
 # Import configuration and data modules
 from config.config_constants import DB_PATH, CONFIG_PATH, BASE_DIR
-#from config.config_manager import load_config, update_config, deep_merge_dicts
 from config.unified_config_manager import UnifiedConfigManager
 from data.data_locker import DataLocker
 from positions.position_service import PositionService
@@ -44,16 +43,18 @@ from positions.positions_bp import positions_bp
 from alerts.alerts_bp import alerts_bp
 from prices.prices_bp import prices_bp
 from dashboard.dashboard_bp import dashboard_bp  # Dashboard-specific routes and API endpoints
-from utils.operations_manager import OperationsLogger
 
 # *** NEW: Import the portfolio blueprint ***
 from portfolio.portfolio_bp import portfolio_bp
 
 # *** NEW: Import the ChatGPT blueprint ***
-#from chat_gpt.chat_gpt_bp import chat_gpt_bp
+# from chat_gpt.chat_gpt_bp import chat_gpt_bp
 
 # *** NEW: Import the Simulator Dashboard blueprint ***
 from simulator.simulator_bp import simulator_bp as simulator_bp
+
+# *** NEW: Import the UnifiedLogger and remove the old OperationsLogger ***
+from utils.unified_logger import UnifiedLogger
 
 # Setup logging
 logger = logging.getLogger("WebAppLogger")
@@ -85,18 +86,14 @@ app.register_blueprint(dashboard_bp)  # Dashboard-specific routes and API endpoi
 app.register_blueprint(portfolio_bp, url_prefix="/portfolio")
 
 # *** NEW: Register the ChatGPT blueprint ***
-#app.register_blueprint(chat_gpt_bp)
+# app.register_blueprint(chat_gpt_bp)
 
 # *** NEW: Register the Simulator Dashboard blueprint ***
 app.register_blueprint(simulator_bp, url_prefix="/simulator")
 
-# Call the OperationsLogger on startup with the source "System Start-up"
-op_logger = OperationsLogger()
-op_logger.log(
-    "Launch Pad - Started",
-    source="System",
-    operation_type="Start Launch Pad"
-)
+# Call the UnifiedLogger on startup with the source "System Start-up"
+unified_logger = UnifiedLogger()
+unified_logger.log_operation("Start Launch Pad", "Launch Pad - Started", source="System")
 
 # --- Alias endpoints if needed ---
 if "dashboard.index" in app.view_functions:
@@ -294,7 +291,7 @@ def console_view():
 @app.route("/api/get_config")
 def api_get_config():
     try:
-        conf = load_config()
+        conf = UnifiedConfigManager.load_config()  # Assuming load_config is a static method if needed.
         logger.debug("Loaded config: %s", conf)
         return jsonify(conf)
     except Exception as e:
@@ -435,17 +432,15 @@ def update_theme_context():
 @app.route('/test_twilio', methods=["POST"])
 def test_twilio():
     from twilio_message_api import trigger_twilio_flow
-    from utils.operations_manager import OperationsLogger
-
-    op_logger = OperationsLogger(log_filename=os.path.join(os.getcwd(), "operations_log.txt"))
-
+    # Using UnifiedLogger here as well.
+    unified_logger = UnifiedLogger()
     try:
         message = request.form.get("message", "Test message from system config")
         execution_sid = trigger_twilio_flow(message)
-        op_logger.log(f"Testing Twilio", source="system test", operation_type="Notification Sent")
+        unified_logger.log_operation("Notification Sent", "Testing Twilio", source="system test")
         return jsonify({"success": True, "sid": execution_sid})
     except Exception as e:
-        op_logger.log(f"Testing Twilio Failed", source="system test", operation_type="Notification Failed")
+        unified_logger.log_operation("Notification Failed", "Testing Twilio Failed", source="system test")
         return jsonify({"success": False, "error": str(e)}), 500
 
 # NEW: Global update route alias using the update_jupiter function from positions_bp.
@@ -470,9 +465,9 @@ if __name__ == "__main__":
     monitor = False
     if len(sys.argv) > 1 and sys.argv[1] == "--monitor":
         monitor = True
-        from utils.operations_logger import OperationsLogger
-        op_logger = OperationsLogger(use_color=False)
-        op_logger.log("Launch Pad - Started MANUAL", source="System")
+        # Using UnifiedLogger here instead of OperationsLogger.
+        unified_logger = UnifiedLogger()
+        unified_logger.log_operation("Manual Launch Pad Start", "Launch Pad - Started MANUAL", source="System")
     if monitor:
         import subprocess
         try:
