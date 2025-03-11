@@ -14,7 +14,7 @@
         <div class="col-md-6">
           <h5>📈 Long Position</h5>
           <div class="mb-2">
-            <label for="longSelect" class="form-label">Select Long Position</label>
+            <label for="longSelect" class="form-label"><strong>Select Long Position</strong></label>
             <select id="longSelect" class="form-select" onchange="loadLongPosition()">
               <option value="" disabled selected>-- Choose a Position --</option>
               {% for pos in long_positions %}
@@ -23,12 +23,11 @@
             </select>
           </div>
           <div class="mb-2">
-            <label for="longEntry" class="form-label">Entry Price ($):</label>
+            <label for="longEntry" class="form-label"><strong>Entry Price ($):</strong></label>
             <input type="number" id="longEntry" class="form-control" step="any" readonly />
           </div>
           <div class="mb-2">
-            <label for="longSize" class="form-label">Position Size (USD):</label>
-            <!-- Prepopulated from pos.size and editable -->
+            <label for="longSize" class="form-label"><strong>Position Size (USD):</strong></label>
             <input type="number" id="longSize" class="form-control" step="any" />
           </div>
         </div>
@@ -36,7 +35,7 @@
         <div class="col-md-6">
           <h5>📉 Short Position</h5>
           <div class="mb-2">
-            <label for="shortSelect" class="form-label">Select Short Position</label>
+            <label for="shortSelect" class="form-label"><strong>Select Short Position</strong></label>
             <select id="shortSelect" class="form-select" onchange="loadShortPosition()">
               <option value="" disabled selected>-- Choose a Position --</option>
               {% for pos in short_positions %}
@@ -45,12 +44,11 @@
             </select>
           </div>
           <div class="mb-2">
-            <label for="shortEntry" class="form-label">Entry Price ($):</label>
+            <label for="shortEntry" class="form-label"><strong>Entry Price ($):</strong></label>
             <input type="number" id="shortEntry" class="form-control" step="any" readonly />
           </div>
           <div class="mb-2">
-            <label for="shortSize" class="form-label">Position Size (USD):</label>
-            <!-- Prepopulated from pos.size and editable -->
+            <label for="shortSize" class="form-label"><strong>Position Size (USD):</strong></label>
             <input type="number" id="shortSize" class="form-control" step="any" />
           </div>
         </div>
@@ -60,24 +58,21 @@
       <!-- Slider Section -->
       <div class="mb-4">
         <h5>Simulated Price</h5>
-        <input
-          type="range"
-          id="priceSlider"
-          min="75"
-          max="125"
-          step="0.1"
-          value="100"
-          class="form-range"
-          oninput="sliderChanged()"
-        />
+        <input type="range" id="priceSlider" min="75" max="125" step="0.1" value="100" class="form-range" oninput="sliderChanged()" />
         <div class="slider-output" id="sliderValueDisplay">100%</div>
+        <!-- Price ticks references -->
+        <div class="d-flex justify-content-between mt-2">
+          <span id="tick75"><small>75%: $0.00</small></span>
+          <span id="tick100"><small>100%: $0.00</small></span>
+          <span id="tick125"><small>125%: $0.00</small></span>
+        </div>
       </div>
 
       <!-- Output Section -->
       <div class="row">
         <div class="col-md-6">
-          <div class="card shadow-sm">
-            <div class="card-body">
+          <div id="longOutputCard" class="card shadow-sm">
+            <div class="card-body fs-5">
               <h6 class="fw-bold">📈 Long Position</h6>
               <p id="longSimPrice"><strong>Simulated Price: $-</strong></p>
               <p id="longPnL"><strong>P&L: $-</strong></p>
@@ -86,8 +81,8 @@
           </div>
         </div>
         <div class="col-md-6">
-          <div class="card shadow-sm">
-            <div class="card-body">
+          <div id="shortOutputCard" class="card shadow-sm">
+            <div class="card-body fs-5">
               <h6 class="fw-bold">📉 Short Position</h6>
               <p id="shortSimPrice"><strong>Simulated Price: $-</strong></p>
               <p id="shortPnL"><strong>P&L: $-</strong></p>
@@ -103,7 +98,7 @@
 
 <script>
   let referencePrice = 100;
-  // Use the provided long and short positions passed from the backend.
+  // Provided positions from backend
   const longPositions = {{ long_positions|tojson }};
   const shortPositions = {{ short_positions|tojson }};
 
@@ -112,7 +107,7 @@
     const pos = longPositions.find(p => p.id === selectedId);
     if (pos) {
       document.getElementById("longEntry").value = pos.entry_price;
-      // Use pos.size instead of pos.positionSize
+      // Use pos.size for the size field
       document.getElementById("longSize").value = pos.size;
       updateReferencePrice();
     }
@@ -123,7 +118,6 @@
     const pos = shortPositions.find(p => p.id === selectedId);
     if (pos) {
       document.getElementById("shortEntry").value = pos.entry_price;
-      // Use pos.size instead of pos.positionSize
       document.getElementById("shortSize").value = pos.size;
       updateReferencePrice();
     }
@@ -148,8 +142,15 @@
     const perc = parseFloat(slider.value);
     document.getElementById("sliderValueDisplay").textContent = perc.toFixed(1) + "%";
     const simPrice = (perc / 100) * referencePrice;
+    updatePriceTicks();
     updateLong(simPrice);
     updateShort(simPrice);
+  }
+
+  function updatePriceTicks() {
+    document.getElementById("tick75").innerHTML = "<small>75%: $" + ((75 / 100) * referencePrice).toFixed(2) + "</small>";
+    document.getElementById("tick100").innerHTML = "<small>100%: $" + referencePrice.toFixed(2) + "</small>";
+    document.getElementById("tick125").innerHTML = "<small>125%: $" + ((125 / 100) * referencePrice).toFixed(2) + "</small>";
   }
 
   function updateLong(simPrice) {
@@ -176,8 +177,13 @@
     let pnlColor = "";
     if (pnl > 0) {
       pnlColor = "text-success";
+      document.getElementById("longOutputCard").className = "card shadow-sm border border-2 border-success";
     } else if (pnl < 0) {
       pnlColor = "text-danger";
+      document.getElementById("longOutputCard").className = "card shadow-sm border border-2 border-danger";
+    } else {
+      pnlColor = "";
+      document.getElementById("longOutputCard").className = "card shadow-sm";
     }
     document.getElementById("longPnL").innerHTML = "<strong>P&L: <span class='" + pnlColor + "'>" + (pnl >= 0 ? "▲ " : "▼ ") + "$" + pnl.toFixed(2) + "</span></strong>";
     document.getElementById("longSLTP").innerHTML = "<strong>Recommended: " + recIcon + recommendation + "</strong>";
@@ -207,8 +213,13 @@
     let pnlColor = "";
     if (pnl > 0) {
       pnlColor = "text-success";
+      document.getElementById("shortOutputCard").className = "card shadow-sm border border-2 border-success";
     } else if (pnl < 0) {
       pnlColor = "text-danger";
+      document.getElementById("shortOutputCard").className = "card shadow-sm border border-2 border-danger";
+    } else {
+      pnlColor = "";
+      document.getElementById("shortOutputCard").className = "card shadow-sm";
     }
     document.getElementById("shortPnL").innerHTML = "<strong>P&L: <span class='" + pnlColor + "'>" + (pnl >= 0 ? "▲ " : "▼ ") + "$" + pnl.toFixed(2) + "</span></strong>";
     document.getElementById("shortSLTP").innerHTML = "<strong>Recommended: " + recIcon + recommendation + "</strong>";

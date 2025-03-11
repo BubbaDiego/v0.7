@@ -216,6 +216,7 @@ class DataLocker:
             self.logger.debug(f"Created directory for DB: {db_dir}")
         if self.conn is None:
             self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
+            self.conn.execute("PRAGMA journal_mode=WAL;")
             self.conn.row_factory = self.DictRow
         if self.cursor is None:
             self.cursor = self.conn.cursor()
@@ -775,8 +776,11 @@ class DataLocker:
     def delete_positions_for_wallet(self, wallet_name: str):
         self._init_sqlite_if_needed()
         self.logger.info(f"Deleting positions for wallet: {wallet_name}")
-        self.cursor.execute("DELETE FROM positions WHERE wallet_name=?", (wallet_name,))
+
+        self.cursor = dl.conn.cursor()
+        self.cursor.execute("DELETE FROM positions WHERE wallet_name IS NOT NULL")
         self.conn.commit()
+        self.cursor.close()
 
     def update_position(self, position_id: str, size: float, collateral: float):
         try:

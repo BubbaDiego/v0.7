@@ -31,8 +31,8 @@
     <!-- CSS Variables for Theme Colors -->
     <style>
       :root {
-        --title-bar-color: {{ theme.get('profiles', {}).get(theme.selected_profile, {}).get('title_bar', {}).get('color', '#34495E') }};
-        --side-bar-color: {{ theme.get('profiles', {}).get(theme.selected_profile, {}).get('side_bar', {}).get('color', '#2C3E50') }};
+        --title-bar-color: {{ theme.get('profiles', {}).get(theme.selected_profile, {}).get('title bar', {}).get('color', '#34495E') }};
+        --side-bar-color: {{ theme.get('profiles', {}).get(theme.selected_profile, {}).get('side bar', {}).get('color', '#2C3E50') }};
         --wallpaper-color: {{ theme.get('profiles', {}).get(theme.selected_profile, {}).get('wallpaper', {}).get('color', '#900C3F') }};
         --card-title-color: {% if theme.get('profiles', {}).get(theme.selected_profile, {}).get('card title') %}
             {{ theme.get('profiles', {}).get(theme.selected_profile, {}).get('card title', {}).get('color', '#581845') }}
@@ -85,8 +85,8 @@
     <div class="app-wrapper">
       <!-- Header / Title Bar -->
       <nav class="app-header navbar navbar-expand" style="
-        {% if theme.get('profiles', {}).get(theme.selected_profile, {}).get('title_bar', {}).get('image') %}
-          background-image: url('{{ url_for('static', filename=theme.get('profiles', {}).get(theme.selected_profile, {}).get('title_bar', {}).get('image') ) }}');
+        {% if theme.get('profiles', {}).get(theme.selected_profile, {}).get('title bar', {}).get('image') %}
+          background-image: url('{{ url_for('static', filename=theme.get('profiles', {}).get(theme.selected_profile, {}).get('title bar', {}).get('image') ) }}');
         {% else %}
           background-color: var(--title-bar-color);
         {% endif %}
@@ -152,8 +152,8 @@
 
       <!-- Sidebar -->
       <aside class="app-sidebar shadow" style="
-        {% if theme.get('profiles', {}).get(theme.selected_profile, {}).get('side_bar', {}).get('image') %}
-          background-image: url('{{ url_for('static', filename=theme.get('profiles', {}).get(theme.selected_profile, {}).get('side_bar', {}).get('image') ) }}');
+        {% if theme.get('profiles', {}).get(theme.selected_profile, {}).get('side bar', {}).get('image') %}
+          background-image: url('{{ url_for('static', filename=theme.get('profiles', {}).get(theme.selected_profile, {}).get('side bar', {}).get('image') ) }}');
         {% else %}
           background-color: var(--side-bar-color);
         {% endif %}
@@ -232,6 +232,13 @@
                 <a href="{{ url_for('system_config_page') }}" class="nav-link">
                   <i class="nav-icon bi bi-gear-fill"></i>
                   <p>System Config</p>
+                </a>
+              </li>
+              <!-- New Hedge Calculator Menu Option -->
+              <li class="nav-item">
+                <a href="{{ url_for('positions.hedge_calculator') }}" class="nav-link">
+                  <i class="nav-icon">📈📉</i>
+                  <p>Hedge Calculator</p>
                 </a>
               </li>
             </ul>

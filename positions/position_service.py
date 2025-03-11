@@ -262,8 +262,10 @@ class PositionService:
         """
         try:
             dl = DataLocker.get_instance(db_path)
-            dl.cursor.execute("DELETE FROM positions WHERE wallet_name IS NOT NULL")
+            cursor = dl.conn.cursor()  # Create a new cursor
+            cursor.execute("DELETE FROM positions WHERE wallet_name IS NOT NULL")
             dl.conn.commit()
+            cursor.close()  # Close the cursor after use
             logger.info("All Jupiter positions deleted.")
         except Exception as e:
             logger.error(f"Error deleting Jupiter positions: {e}", exc_info=True)
