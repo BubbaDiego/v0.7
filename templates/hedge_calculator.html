@@ -1,16 +1,19 @@
 {% extends "base.html" %}
 {% block title %}Hedge Calculator{% endblock %}
-{% block page_title %}Hedge Calculator{% endblock %}
+<!-- Remove the outer Hedge Calculator heading by overriding page_title -->
+{% block page_title %}{% endblock %}
+
 {% block content %}
 <div class="container-fluid">
   <div class="card shadow mb-4">
     <div class="card-header">
-      <h4 class="mb-0">Hedge Calculator</h4>
+      <!-- Hedgehog icon 🦔 plus “Hedge Calculator” -->
+      <h4 class="mb-0">🦔 Hedge Calculator</h4>
     </div>
     <div class="card-body">
       <!-- Position Selection -->
       <div class="row mb-4">
-        <!-- Long Position Selection -->
+        <!-- Long Position -->
         <div class="col-md-6">
           <h5>📈 Long Position</h5>
           <div class="mb-2">
@@ -30,8 +33,12 @@
             <label for="longSize" class="form-label"><strong>Position Size (USD):</strong></label>
             <input type="number" id="longSize" class="form-control" step="any" />
           </div>
+          <!-- We'll store collateral in a hidden field so we can do net-value calculations -->
+          <input type="hidden" id="longCollateral" />
+          <input type="hidden" id="longLiqPrice" />
         </div>
-        <!-- Short Position Selection -->
+
+        <!-- Short Position -->
         <div class="col-md-6">
           <h5>📉 Short Position</h5>
           <div class="mb-2">
@@ -51,6 +58,8 @@
             <label for="shortSize" class="form-label"><strong>Position Size (USD):</strong></label>
             <input type="number" id="shortSize" class="form-control" step="any" />
           </div>
+          <input type="hidden" id="shortCollateral" />
+          <input type="hidden" id="shortLiqPrice" />
         </div>
       </div>
       <hr />
@@ -58,13 +67,18 @@
       <!-- Slider Section -->
       <div class="mb-4">
         <h5>Simulated Price</h5>
-        <input type="range" id="priceSlider" min="75" max="125" step="0.1" value="100" class="form-range" oninput="sliderChanged()" />
-        <div class="slider-output" id="sliderValueDisplay">100%</div>
-        <!-- Price ticks references -->
+        <div class="position-relative">
+          <input type="range" id="priceSlider" step="0.1" class="form-range" oninput="sliderChanged()" />
+          <!-- Marker that moves with the slider -->
+          <div id="currentMarker" class="position-absolute" style="top: -35px; left: 0; font-size: 0.9rem; background-color: rgba(0,0,0,0.5); color: #fff; padding: 2px 4px; border-radius: 4px;">
+            Price: $0.00
+          </div>
+        </div>
+        <div class="slider-output mt-2" id="sliderValueDisplay">$0.00</div>
+        <!-- Price tick references -->
         <div class="d-flex justify-content-between mt-2">
-          <span id="tick75"><small>75%: $0.00</small></span>
-          <span id="tick100"><small>100%: $0.00</small></span>
-          <span id="tick125"><small>125%: $0.00</small></span>
+          <span id="tickLeft"><small>Long Liquidation: $0.00</small></span>
+          <span id="tickRight"><small>Short Liquidation: $0.00</small></span>
         </div>
       </div>
 
@@ -75,6 +89,7 @@
             <div class="card-body fs-5">
               <h6 class="fw-bold">📈 Long Position</h6>
               <p id="longSimPrice"><strong>Simulated Price: $-</strong></p>
+              <p id="longValue"><strong>Position Value: $-</strong></p>
               <p id="longPnL"><strong>P&L: $-</strong></p>
               <p id="longSLTP"><strong>Recommended: -</strong></p>
             </div>
@@ -85,6 +100,7 @@
             <div class="card-body fs-5">
               <h6 class="fw-bold">📉 Short Position</h6>
               <p id="shortSimPrice"><strong>Simulated Price: $-</strong></p>
+              <p id="shortValue"><strong>Position Value: $-</strong></p>
               <p id="shortPnL"><strong>P&L: $-</strong></p>
               <p id="shortSLTP"><strong>Recommended: -</strong></p>
             </div>
@@ -98,69 +114,109 @@
 
 <script>
   let referencePrice = 100;
+
   // Provided positions from backend
   const longPositions = {{ long_positions|tojson }};
   const shortPositions = {{ short_positions|tojson }};
 
+  let longLiquidation = null;
+  let shortLiquidation = null;
+
+  // Load the selected long position data
   function loadLongPosition() {
     const selectedId = document.getElementById("longSelect").value;
     const pos = longPositions.find(p => p.id === selectedId);
     if (pos) {
       document.getElementById("longEntry").value = pos.entry_price;
-      // Use pos.size for the size field
       document.getElementById("longSize").value = pos.size;
+      document.getElementById("longCollateral").value = pos.collateral || 0;
+      document.getElementById("longLiqPrice").value = pos.liquidation_price || 0;
+      longLiquidation = pos.liquidation_price;
       updateReferencePrice();
     }
   }
 
+  // Load the selected short position data
   function loadShortPosition() {
     const selectedId = document.getElementById("shortSelect").value;
     const pos = shortPositions.find(p => p.id === selectedId);
     if (pos) {
       document.getElementById("shortEntry").value = pos.entry_price;
       document.getElementById("shortSize").value = pos.size;
+      document.getElementById("shortCollateral").value = pos.collateral || 0;
+      document.getElementById("shortLiqPrice").value = pos.liquidation_price || 0;
+      shortLiquidation = pos.liquidation_price;
       updateReferencePrice();
     }
   }
 
+  // Determine the current price and set the slider range
   function updateReferencePrice() {
     const longEntry = parseFloat(document.getElementById("longEntry").value) || 0;
     const shortEntry = parseFloat(document.getElementById("shortEntry").value) || 0;
+    let currentPrice = 0;
     if (longEntry > 0 && shortEntry > 0) {
-      referencePrice = (longEntry + shortEntry) / 2;
+      currentPrice = (longEntry + shortEntry) / 2;
     } else if (longEntry > 0) {
-      referencePrice = longEntry;
+      currentPrice = longEntry;
     } else if (shortEntry > 0) {
-      referencePrice = shortEntry;
+      currentPrice = shortEntry;
     }
-    document.getElementById("priceSlider").value = 100;
+
+    const slider = document.getElementById("priceSlider");
+    // If we have both liquidation prices, use them as min/max
+    if (longLiquidation && shortLiquidation) {
+      slider.min = longLiquidation;
+      slider.max = shortLiquidation;
+    } else {
+      slider.min = currentPrice * 0.75;
+      slider.max = currentPrice * 1.25;
+    }
+    slider.value = currentPrice;
     sliderChanged();
   }
 
   function sliderChanged() {
     const slider = document.getElementById("priceSlider");
-    const perc = parseFloat(slider.value);
-    document.getElementById("sliderValueDisplay").textContent = perc.toFixed(1) + "%";
-    const simPrice = (perc / 100) * referencePrice;
+    const simPrice = parseFloat(slider.value);
+    document.getElementById("sliderValueDisplay").textContent = "$" + simPrice.toFixed(2);
     updatePriceTicks();
+    updateMarker();
     updateLong(simPrice);
     updateShort(simPrice);
   }
 
   function updatePriceTicks() {
-    document.getElementById("tick75").innerHTML = "<small>75%: $" + ((75 / 100) * referencePrice).toFixed(2) + "</small>";
-    document.getElementById("tick100").innerHTML = "<small>100%: $" + referencePrice.toFixed(2) + "</small>";
-    document.getElementById("tick125").innerHTML = "<small>125%: $" + ((125 / 100) * referencePrice).toFixed(2) + "</small>";
+    const slider = document.getElementById("priceSlider");
+    document.getElementById("tickLeft").innerHTML = "<small>Long Liquidation: $" + parseFloat(slider.min).toFixed(2) + "</small>";
+    document.getElementById("tickRight").innerHTML = "<small>Short Liquidation: $" + parseFloat(slider.max).toFixed(2) + "</small>";
   }
 
+  function updateMarker() {
+    const slider = document.getElementById("priceSlider");
+    const simPrice = parseFloat(slider.value);
+    const sliderRect = slider.getBoundingClientRect();
+    const sliderWidth = sliderRect.width;
+    const markerLeft = ((simPrice - parseFloat(slider.min)) / (parseFloat(slider.max) - parseFloat(slider.min))) * sliderWidth;
+    const marker = document.getElementById("currentMarker");
+    marker.style.left = markerLeft + "px";
+    marker.innerHTML = "Price: $" + simPrice.toFixed(2);
+  }
+
+  // For a LONG: netValue = collateral + (simPrice - entryPrice) * tokenCount
   function updateLong(simPrice) {
     const longEntry = parseFloat(document.getElementById("longEntry").value) || 0;
     const longSize = parseFloat(document.getElementById("longSize").value) || 0;
+    const collateral = parseFloat(document.getElementById("longCollateral").value) || 0;
+
     let pnl = 0;
+    let netValue = collateral;  // start with collateral
     if (longEntry > 0) {
       const tokenCount = longSize / longEntry;
       pnl = (simPrice - longEntry) * tokenCount;
+      netValue += pnl;
     }
+
     let recommendation = "";
     let recIcon = "";
     if (simPrice < longEntry) {
@@ -173,30 +229,38 @@
       recommendation = "At Entry Price";
       recIcon = "— ";
     }
+    // Display values
     document.getElementById("longSimPrice").innerHTML = "<strong>Simulated Price: $" + simPrice.toFixed(2) + "</strong>";
+    document.getElementById("longValue").innerHTML = "<strong>Position Value: $" + netValue.toFixed(2) + "</strong>";
+
     let pnlColor = "";
+    let bgClass = "";
     if (pnl > 0) {
       pnlColor = "text-success";
-      document.getElementById("longOutputCard").className = "card shadow-sm border border-2 border-success";
+      bgClass = "bg-success bg-opacity-10 border border-2 border-success";
     } else if (pnl < 0) {
       pnlColor = "text-danger";
-      document.getElementById("longOutputCard").className = "card shadow-sm border border-2 border-danger";
-    } else {
-      pnlColor = "";
-      document.getElementById("longOutputCard").className = "card shadow-sm";
+      bgClass = "bg-danger bg-opacity-10 border border-2 border-danger";
     }
     document.getElementById("longPnL").innerHTML = "<strong>P&L: <span class='" + pnlColor + "'>" + (pnl >= 0 ? "▲ " : "▼ ") + "$" + pnl.toFixed(2) + "</span></strong>";
     document.getElementById("longSLTP").innerHTML = "<strong>Recommended: " + recIcon + recommendation + "</strong>";
+    document.getElementById("longOutputCard").className = "card shadow-sm " + bgClass;
   }
 
+  // For a SHORT: netValue = collateral + (entryPrice - simPrice) * tokenCount
   function updateShort(simPrice) {
     const shortEntry = parseFloat(document.getElementById("shortEntry").value) || 0;
     const shortSize = parseFloat(document.getElementById("shortSize").value) || 0;
+    const collateral = parseFloat(document.getElementById("shortCollateral").value) || 0;
+
     let pnl = 0;
+    let netValue = collateral;  // start with collateral
     if (shortEntry > 0) {
       const tokenCount = shortSize / shortEntry;
       pnl = (shortEntry - simPrice) * tokenCount;
+      netValue += pnl;
     }
+
     let recommendation = "";
     let recIcon = "";
     if (simPrice > shortEntry) {
@@ -209,20 +273,22 @@
       recommendation = "At Entry Price";
       recIcon = "— ";
     }
+    // Display values
     document.getElementById("shortSimPrice").innerHTML = "<strong>Simulated Price: $" + simPrice.toFixed(2) + "</strong>";
+    document.getElementById("shortValue").innerHTML = "<strong>Position Value: $" + netValue.toFixed(2) + "</strong>";
+
     let pnlColor = "";
+    let bgClass = "";
     if (pnl > 0) {
       pnlColor = "text-success";
-      document.getElementById("shortOutputCard").className = "card shadow-sm border border-2 border-success";
+      bgClass = "bg-success bg-opacity-10 border border-2 border-success";
     } else if (pnl < 0) {
       pnlColor = "text-danger";
-      document.getElementById("shortOutputCard").className = "card shadow-sm border border-2 border-danger";
-    } else {
-      pnlColor = "";
-      document.getElementById("shortOutputCard").className = "card shadow-sm";
+      bgClass = "bg-danger bg-opacity-10 border border-2 border-danger";
     }
     document.getElementById("shortPnL").innerHTML = "<strong>P&L: <span class='" + pnlColor + "'>" + (pnl >= 0 ? "▲ " : "▼ ") + "$" + pnl.toFixed(2) + "</span></strong>";
     document.getElementById("shortSLTP").innerHTML = "<strong>Recommended: " + recIcon + recommendation + "</strong>";
+    document.getElementById("shortOutputCard").className = "card shadow-sm " + bgClass;
   }
 </script>
 {% endblock %}
