@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
+import sys
+import os
+# Add the parent directory to the Python path so that "utils" can be imported.
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 import time
 import requests
 import logging
 import urllib3
-import os
 from datetime import datetime, timezone
-from utils.operations_manager import OperationsLogger  # Import from external module
+from utils.unified_logger import UnifiedLogger  # Using UnifiedLogger now
 from config.config_constants import HEARTBEAT_FILE  # Import heartbeat constant
 
 # Disable InsecureRequestWarning
@@ -19,9 +23,8 @@ logging.basicConfig(
 
 # URL for the update call
 URL = "http://www.deadlypanda.com/positions/update_jupiter"
-#URL = "http://127.0.0.1:5001/positions/update_jupiter"
+# URL = "http://127.0.0.1:5001/positions/update_jupiter"
 SLEEP_INTERVAL = 120  # 2 minutes in seconds
-
 
 def call_update_jupiter():
     try:
@@ -31,10 +34,9 @@ def call_update_jupiter():
     except Exception as e:
         logging.error("Error calling update_jupiter at URL %s: %s", URL, e)
 
-
 def main():
     loop_counter = 0
-    op_logger = OperationsLogger()
+    logger = UnifiedLogger()  # Using UnifiedLogger
     logging.info("Starting always‑on task for update_jupiter. URL: %s", URL)
 
     def write_heartbeat():
@@ -48,7 +50,7 @@ def main():
             with open(HEARTBEAT_FILE, "w") as f:
                 f.write(timestamp)
             logging.info("Heartbeat updated.")
-            op_logger.log(f"Heartbeat updated at {timestamp}", source="system", operation_type="Heartbeat")
+            logger.log_operation(operation_type="Heartbeat", primary_text=f"Heartbeat updated at {timestamp}", source="system")
         except Exception as e:
             logging.error("Failed to update heartbeat: %s", e)
 
@@ -56,12 +58,9 @@ def main():
         loop_counter += 1
         logging.info("Loop count: %d. Calling URL: %s", loop_counter, URL)
         call_update_jupiter()
-        op_logger.log(f"Monitor Loop # {loop_counter}", source="system", operation_type="Monitor Loop")
-
+        logger.log_operation(operation_type="Monitor Loop", primary_text=f"Monitor Loop # {loop_counter}", source="system")
         write_heartbeat()
-
         time.sleep(SLEEP_INTERVAL)
-
 
 if __name__ == '__main__':
     main()

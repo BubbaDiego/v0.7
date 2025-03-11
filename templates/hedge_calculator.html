@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+{% block title %}Hedge Calculator{% endblock %}
+{% block page_title %}Hedge Calculator{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <div class="card shadow mb-4">
+    <div class="card-header">
+      <h4 class="mb-0">Hedge Calculator</h4>
+    </div>
+    <div class="card-body">
+      <!-- Position Selection -->
+      <div class="row mb-4">
+        <!-- Long Position Selection -->
+        <div class="col-md-6">
+          <h5>📈 Long Position</h5>
+          <div class="mb-2">
+            <label for="longSelect" class="form-label">Select Long Position</label>
+            <select id="longSelect" class="form-select" onchange="loadLongPosition()">
+              <option value="" disabled selected>-- Choose a Position --</option>
+              {% for pos in long_positions %}
+              <option value="{{ pos.id }}">{{ pos.asset_type }} - Entry: ${{ pos.entry_price }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-2">
+            <label for="longEntry" class="form-label">Entry Price ($):</label>
+            <input type="number" id="longEntry" class="form-control" step="any" readonly />
+          </div>
+          <div class="mb-2">
+            <label for="longSize" class="form-label">Position Size (USD):</label>
+            <!-- Prepopulated from pos.size and editable -->
+            <input type="number" id="longSize" class="form-control" step="any" />
+          </div>
+        </div>
+        <!-- Short Position Selection -->
+        <div class="col-md-6">
+          <h5>📉 Short Position</h5>
+          <div class="mb-2">
+            <label for="shortSelect" class="form-label">Select Short Position</label>
+            <select id="shortSelect" class="form-select" onchange="loadShortPosition()">
+              <option value="" disabled selected>-- Choose a Position --</option>
+              {% for pos in short_positions %}
+              <option value="{{ pos.id }}">{{ pos.asset_type }} - Entry: ${{ pos.entry_price }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-2">
+            <label for="shortEntry" class="form-label">Entry Price ($):</label>
+            <input type="number" id="shortEntry" class="form-control" step="any" readonly />
+          </div>
+          <div class="mb-2">
+            <label for="shortSize" class="form-label">Position Size (USD):</label>
+            <!-- Prepopulated from pos.size and editable -->
+            <input type="number" id="shortSize" class="form-control" step="any" />
+          </div>
+        </div>
+      </div>
+      <hr />
+
+      <!-- Slider Section -->
+      <div class="mb-4">
+        <h5>Simulated Price</h5>
+        <input
+          type="range"
+          id="priceSlider"
+          min="75"
+          max="125"
+          step="0.1"
+          value="100"
+          class="form-range"
+          oninput="sliderChanged()"
+        />
+        <div class="slider-output" id="sliderValueDisplay">100%</div>
+      </div>
+
+      <!-- Output Section -->
+      <div class="row">
+        <div class="col-md-6">
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <h6 class="fw-bold">📈 Long Position</h6>
+              <p id="longSimPrice"><strong>Simulated Price: $-</strong></p>
+              <p id="longPnL"><strong>P&L: $-</strong></p>
+              <p id="longSLTP"><strong>Recommended: -</strong></p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <h6 class="fw-bold">📉 Short Position</h6>
+              <p id="shortSimPrice"><strong>Simulated Price: $-</strong></p>
+              <p id="shortPnL"><strong>P&L: $-</strong></p>
+              <p id="shortSLTP"><strong>Recommended: -</strong></p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- End Output Section -->
+    </div>
+  </div>
+</div>
+
+<script>
+  let referencePrice = 100;
+  // Use the provided long and short positions passed from the backend.
+  const longPositions = {{ long_positions|tojson }};
+  const shortPositions = {{ short_positions|tojson }};
+
+  function loadLongPosition() {
+    const selectedId = document.getElementById("longSelect").value;
+    const pos = longPositions.find(p => p.id === selectedId);
+    if (pos) {
+      document.getElementById("longEntry").value = pos.entry_price;
+      // Use pos.size instead of pos.positionSize
+      document.getElementById("longSize").value = pos.size;
+      updateReferencePrice();
+    }
+  }
+
+  function loadShortPosition() {
+    const selectedId = document.getElementById("shortSelect").value;
+    const pos = shortPositions.find(p => p.id === selectedId);
+    if (pos) {
+      document.getElementById("shortEntry").value = pos.entry_price;
+      // Use pos.size instead of pos.positionSize
+      document.getElementById("shortSize").value = pos.size;
+      updateReferencePrice();
+    }
+  }
+
+  function updateReferencePrice() {
+    const longEntry = parseFloat(document.getElementById("longEntry").value) || 0;
+    const shortEntry = parseFloat(document.getElementById("shortEntry").value) || 0;
+    if (longEntry > 0 && shortEntry > 0) {
+      referencePrice = (longEntry + shortEntry) / 2;
+    } else if (longEntry > 0) {
+      referencePrice = longEntry;
+    } else if (shortEntry > 0) {
+      referencePrice = shortEntry;
+    }
+    document.getElementById("priceSlider").value = 100;
+    sliderChanged();
+  }
+
+  function sliderChanged() {
+    const slider = document.getElementById("priceSlider");
+    const perc = parseFloat(slider.value);
+    document.getElementById("sliderValueDisplay").textContent = perc.toFixed(1) + "%";
+    const simPrice = (perc / 100) * referencePrice;
+    updateLong(simPrice);
+    updateShort(simPrice);
+  }
+
+  function updateLong(simPrice) {
+    const longEntry = parseFloat(document.getElementById("longEntry").value) || 0;
+    const longSize = parseFloat(document.getElementById("longSize").value) || 0;
+    let pnl = 0;
+    if (longEntry > 0) {
+      const tokenCount = longSize / longEntry;
+      pnl = (simPrice - longEntry) * tokenCount;
+    }
+    let recommendation = "";
+    let recIcon = "";
+    if (simPrice < longEntry) {
+      recommendation = "Stop Loss at $" + simPrice.toFixed(2);
+      recIcon = "▼ ";
+    } else if (simPrice > longEntry) {
+      recommendation = "Take Profit at $" + simPrice.toFixed(2);
+      recIcon = "▲ ";
+    } else {
+      recommendation = "At Entry Price";
+      recIcon = "— ";
+    }
+    document.getElementById("longSimPrice").innerHTML = "<strong>Simulated Price: $" + simPrice.toFixed(2) + "</strong>";
+    let pnlColor = "";
+    if (pnl > 0) {
+      pnlColor = "text-success";
+    } else if (pnl < 0) {
+      pnlColor = "text-danger";
+    }
+    document.getElementById("longPnL").innerHTML = "<strong>P&L: <span class='" + pnlColor + "'>" + (pnl >= 0 ? "▲ " : "▼ ") + "$" + pnl.toFixed(2) + "</span></strong>";
+    document.getElementById("longSLTP").innerHTML = "<strong>Recommended: " + recIcon + recommendation + "</strong>";
+  }
+
+  function updateShort(simPrice) {
+    const shortEntry = parseFloat(document.getElementById("shortEntry").value) || 0;
+    const shortSize = parseFloat(document.getElementById("shortSize").value) || 0;
+    let pnl = 0;
+    if (shortEntry > 0) {
+      const tokenCount = shortSize / shortEntry;
+      pnl = (shortEntry - simPrice) * tokenCount;
+    }
+    let recommendation = "";
+    let recIcon = "";
+    if (simPrice > shortEntry) {
+      recommendation = "Stop Loss at $" + simPrice.toFixed(2);
+      recIcon = "▲ ";
+    } else if (simPrice < shortEntry) {
+      recommendation = "Take Profit at $" + simPrice.toFixed(2);
+      recIcon = "▼ ";
+    } else {
+      recommendation = "At Entry Price";
+      recIcon = "— ";
+    }
+    document.getElementById("shortSimPrice").innerHTML = "<strong>Simulated Price: $" + simPrice.toFixed(2) + "</strong>";
+    let pnlColor = "";
+    if (pnl > 0) {
+      pnlColor = "text-success";
+    } else if (pnl < 0) {
+      pnlColor = "text-danger";
+    }
+    document.getElementById("shortPnL").innerHTML = "<strong>P&L: <span class='" + pnlColor + "'>" + (pnl >= 0 ? "▲ " : "▼ ") + "$" + pnl.toFixed(2) + "</span></strong>";
+    document.getElementById("shortSLTP").innerHTML = "<strong>Recommended: " + recIcon + recommendation + "</strong>";
+  }
+</script>
+{% endblock %}

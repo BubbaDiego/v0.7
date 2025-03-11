@@ -346,6 +346,30 @@ def delete_all_positions():
         logger.error(f"Error deleting all positions: {e}", exc_info=True)
         return jsonify({"error": str(e)}), 500
 
+@positions_bp.route("/hedge_calculator", methods=["GET"])
+def hedge_calculator():
+    try:
+        # Get all positions and split into long and short
+        positions = PositionService.get_all_positions(DB_PATH)
+        long_positions = [p for p in positions if p.get("position_type", "").upper() == "LONG"]
+        short_positions = [p for p in positions if p.get("position_type", "").upper() == "SHORT"]
+
+        # Load the theme configuration using the constant directly.
+        from config.config_constants import THEME_CONFIG_PATH
+        import json
+        with open(THEME_CONFIG_PATH, "r", encoding="utf-8") as f:
+            theme_config = json.load(f)
+        return render_template(
+            "hedge_calculator.html",
+            theme=theme_config,
+            long_positions=long_positions,
+            short_positions=short_positions
+        )
+    except Exception as e:
+        logger.error(f"Error rendering Hedge Calculator: {e}", exc_info=True)
+        return jsonify({"error": str(e)}), 500
+
+
 
 @positions_bp.route("/upload", methods=["POST"])
 def upload_positions():
