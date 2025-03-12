@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Jupiter TP/SL Order Dashboard</title>
+  <!-- AdminLTE and Bootstrap CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.2.0/css/adminlte.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/css/bootstrap.min.css">
+</head>
+<body class="hold-transition sidebar-mini">
+<div class="wrapper">
+  <!-- Navbar -->
+  <nav class="main-header navbar navbar-expand navbar-white navbar-light">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" data-widget="pushmenu" href="#" role="button">
+          <i class="fas fa-bars"></i>
+        </a>
+      </li>
+      <li class="nav-item d-none d-sm-inline-block">
+        <a href="#" class="nav-link">Home</a>
+      </li>
+    </ul>
+  </nav>
+  <!-- /.navbar -->
+
+  <!-- Main Sidebar Container -->
+  <aside class="main-sidebar sidebar-dark-primary elevation-4">
+    <a href="#" class="brand-link">
+      <span class="brand-text font-weight-light">Jupiter Perps</span>
+    </a>
+    <div class="sidebar">
+      <nav class="mt-2">
+        <ul class="nav nav-pills nav-sidebar flex-column" role="menu">
+          <li class="nav-item">
+            <a href="#" class="nav-link active">
+              <i class="nav-icon fas fa-chart-line"></i>
+              <p>Dashboard</p>
+            </a>
+          </li>
+          <!-- Additional sidebar items can be added here -->
+        </ul>
+      </nav>
+    </div>
+  </aside>
+
+  <!-- Content Wrapper -->
+  <div class="content-wrapper">
+    <!-- Content Header -->
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1>TP/SL Order Generator</h1>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="container-fluid">
+        <!-- Market Data Card -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Market Data</h3>
+          </div>
+          <div class="card-body">
+            <table class="table table-bordered" id="priceTable">
+              <thead>
+                <tr>
+                  <th>Symbol</th>
+                  <th>Price (USD)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- These rows can be dynamically updated via JavaScript -->
+                <tr>
+                  <td>SOL</td>
+                  <td id="solPrice">$20.00</td>
+                </tr>
+                <tr>
+                  <td>ETH</td>
+                  <td id="ethPrice">$1500.00</td>
+                </tr>
+                <tr>
+                  <td>BTC</td>
+                  <td id="btcPrice">$25000.00</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Order Generation Card -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Generate TP/SL Order</h3>
+          </div>
+          <div class="card-body">
+            <form id="orderForm">
+              <!-- New: Dropdown to select a position -->
+              <div class="form-group">
+                <label for="positionSelect">Select Position</label>
+                <select class="form-control" id="positionSelect">
+                  <option value="">-- Select a position --</option>
+                  {% for pos in positions %}
+                    <!--
+                      data-current-price: from pos.current_price
+                      data-symbol: optionally from pos (if you want to store a recommended symbol)
+                    -->
+                    <option value="{{ pos.id }}"
+                            data-current-price="{{ pos.current_price }}"
+                            data-symbol="{{ pos.asset_type }}-PERP">
+                      {{ pos.asset_type }} - {{ pos.position_type }}
+                      | Entry: {{ pos.entry_price }}
+                      | Size: {{ pos.size }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="symbol">Trading Pair (e.g., SOL-PERP)</label>
+                <input type="text" class="form-control" id="symbol" placeholder="Enter symbol" value="SOL-PERP">
+              </div>
+              <div class="form-group">
+                <label for="currentPrice">Current Price (USD)</label>
+                <input type="number" class="form-control" id="currentPrice" placeholder="Current market price" step="0.01">
+              </div>
+              <div class="form-group">
+                <label for="takeProfit">Take Profit Price (USD)</label>
+                <input type="number" class="form-control" id="takeProfit" placeholder="Enter TP price" step="0.01">
+              </div>
+              <div class="form-group">
+                <label for="stopLoss">Stop Loss Price (USD)</label>
+                <input type="number" class="form-control" id="stopLoss" placeholder="Enter SL price" step="0.01">
+              </div>
+              <button type="button" class="btn btn-primary" id="generateOrder">
+                Generate TP/SL Order
+              </button>
+            </form>
+            <br>
+            <div id="orderStatus"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- /.content -->
+  </div>
+  <!-- /.content-wrapper -->
+
+  <!-- Footer -->
+  <footer class="main-footer">
+    <div class="float-right d-none d-sm-block">
+      <b>Version</b> 1.0.0
+    </div>
+    <strong>Jupiter Perps</strong>
+  </footer>
+</div>
+<!-- ./wrapper -->
+
+<!-- jQuery -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+<!-- Bootstrap 4 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/js/bootstrap.bundle.min.js"></script>
+<!-- AdminLTE App -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.2.0/js/adminlte.min.js"></script>
+
+<script>
+  // When a position is selected, update the Current Price and Symbol fields
+  $("#positionSelect").on("change", function(){
+    var selectedOption = $("#positionSelect option:selected");
+    var positionId = selectedOption.val();
+    if (positionId) {
+      // Get data attributes from the selected <option>
+      var currentPrice = selectedOption.data("current-price");
+      var recommendedSymbol = selectedOption.data("symbol");
+
+      // Prepopulate the fields
+      $("#currentPrice").val(currentPrice);
+      $("#symbol").val(recommendedSymbol);
+
+      console.log("Selected Position ID:", positionId);
+      console.log("Prepopulating current price:", currentPrice);
+      console.log("Prepopulating symbol:", recommendedSymbol);
+    }
+  });
+
+  // Handler for the Generate TP/SL Order button click
+  $("#generateOrder").on("click", function(){
+    // Retrieve form values
+    var positionId = $("#positionSelect").val();
+    var symbol = $("#symbol").val();
+    var currentPrice = $("#currentPrice").val();
+    var takeProfit = $("#takeProfit").val();
+    var stopLoss = $("#stopLoss").val();
+
+    // Basic validation
+    if (!positionId) {
+      $("#orderStatus").html('<div class="alert alert-danger">Please select a position.</div>');
+      return;
+    }
+    if (!symbol || !currentPrice || !takeProfit || !stopLoss) {
+      $("#orderStatus").html('<div class="alert alert-danger">Please fill out all fields.</div>');
+      return;
+    }
+
+    // Send the data to your Flask backend
+    $.ajax({
+      url: "/jupiter/generate_order",  // Make sure this matches your Flask route
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify({
+        positionId: positionId,
+        symbol: symbol,
+        currentPrice: currentPrice,
+        takeProfit: takeProfit,
+        stopLoss: stopLoss
+      }),
+      success: function(response) {
+        // Handle success response from server
+        $("#orderStatus").html(
+          '<div class="alert alert-success">' + response.message + '</div>'
+        );
+      },
+      error: function(xhr, status, error) {
+        // Handle error response
+        $("#orderStatus").html(
+          '<div class="alert alert-danger">Error generating order: ' + error + '</div>'
+        );
+      }
+    });
+  });
+</script>
+</body>
+</html>
