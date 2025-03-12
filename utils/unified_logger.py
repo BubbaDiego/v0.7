@@ -7,14 +7,25 @@ from datetime import datetime
 from config.config_constants import BASE_DIR
 
 if sys.platform.startswith('win'):
-    DATE_FORMAT = "%#m-%#d-%y : %#I:%M:%S %p"
+    DATE_FORMAT = "%#m-%#d-%y : %#I:%M:%S %p %Z"
 else:
-    DATE_FORMAT = "%-m-%-d-%y : %-I:%M:%S %p"
+    DATE_FORMAT = "%-m-%-d-%y : %-I:%M:%S %p %Z"
+
 
 # Custom JSON formatter using the unified DATE_FORMAT.
 class JsonFormatter(logging.Formatter):
     def __init__(self, fmt=None, datefmt=DATE_FORMAT):
         super().__init__(fmt, datefmt)
+
+    def formatTime(self, record, datefmt=None):
+        # Always convert the record's creation time to US/Pacific time.
+        pst = pytz.timezone("US/Pacific")
+        dt = datetime.fromtimestamp(record.created, pytz.utc).astimezone(pst)
+        if datefmt:
+            s = dt.strftime(datefmt)
+        else:
+            s = dt.isoformat()
+        return s
 
     def format(self, record):
         record_dict = {
@@ -78,8 +89,6 @@ class UnifiedLogger:
         self.logger.addHandler(op_handler)
         self.logger.addHandler(alert_handler)
         self.logger.addHandler(console_handler)
-
-        self.pst = pytz.timezone("US/Pacific")
 
     def log_operation(self, operation_type: str, primary_text: str, source: str = "", file: str = ""):
         self.logger.debug("About to log operation: operation_type=%s, primary_text=%s, source=%s, file=%s",

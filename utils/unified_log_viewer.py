@@ -7,8 +7,9 @@ import sys
 from fuzzywuzzy import fuzz
 from config.config_constants import BASE_DIR
 
-# Updated DATE_FORMAT for both Windows and other platforms
+
 DATE_FORMAT = "%m-%d-%y : %I:%M:%S %p"
+
 
 # Unified configuration for display: mapping messages to icons/colors.
 UNIFIED_LOG_CONFIG = {
@@ -21,6 +22,8 @@ UNIFIED_LOG_CONFIG = {
     "Alert Silenced": {"icon": "🔕", "color": "yellow"},
     "Monitor Loop": {"icon": "🔁", "color": "blue"},
     "No Alerts Found": {"icon": "✅", "color": "green"},
+    "Heartbeat Success": {"icon": "❤️", "color": "green"},
+    "Heartbeat Failure": {"icon": " ♥", "color": "red"},
     "Notification Sent": {"icon": "📱", "color": "blue"},
     "Notification Failed": {"icon": "💀", "color": "red"},
     "Prices Updated": {"icon": "📈", "color": "blue"},

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import os
 import sys
-sys.path.insert(0, '/home/BubbaDiego/v0.7') 
+sys.path.insert(0, '/home/BubbaDiego/v0.7')
 
 import time
 import json
@@ -10,6 +10,7 @@ import argparse
 from datetime import datetime, timedelta, timezone
 from config.config_constants import HEARTBEAT_FILE, BASE_DIR  # Using the heartbeat file constant
 from utils.unified_logger import UnifiedLogger
+from alerts.alert_manager import trigger_twilio_flow
 
 # Load sonic configuration from sonic_config.json
 sonic_config_path = os.path.join(BASE_DIR, "sonic_config.json")
@@ -32,7 +33,7 @@ system_config = sonic_config.get("system_config", {})
 alert_monitor_enabled = system_config.get("alert_monitor_enabled", True)
 
 # Set threshold (in minutes) for considering the monitor as down
-THRESHOLD_MINUTES = 2
+THRESHOLD_MINUTES = 5
 
 # Create an instance of the UnifiedLogger
 unified_logger = UnifiedLogger()
@@ -50,6 +51,17 @@ def check_heartbeat():
         alert_msg = (f"\033[91mWatchdog alert: Could not read heartbeat file: {e}. "
                      f"Notifications: email to {email_recipient}, SMS to {sms_recipient}\033[0m")
         unified_logger.log_alert("Heartbeat Failure", alert_msg, source="system", file="watchdog")
+        # Trigger Twilio notification:
+        try:
+            twilio_config = sonic_config.get("twilio_config", {})
+            execution_sid = trigger_twilio_flow(alert_msg, twilio_config)
+            unified_logger.log_operation("Twilio Notification",
+                                         f"Twilio alert sent (SID: {execution_sid})",
+                                         source="system", file="den_mother")
+        except Exception as twilio_e:
+            unified_logger.log_operation("Notification Failed",
+                                         f"Twilio notification failed: {twilio_e}",
+                                         source="system", file="den_mother")
         return
 
     # Use timezone-aware current UTC time.
@@ -57,17 +69,26 @@ def check_heartbeat():
     elapsed_minutes = (now - last_update).seconds // 60
 
     if now - last_update > timedelta(minutes=THRESHOLD_MINUTES):
-        # Log red alert message with notification details.
         alert_msg = (f"\033[91mWatchdog alert: No heartbeat update for {elapsed_minutes} minutes! "
                      f"Notifications: email to {email_recipient}, SMS to {sms_recipient}\033[0m")
         if alert_monitor_enabled:
             unified_logger.log_alert("Heartbeat Failure", alert_msg, source="system", file="watchdog")
         else:
             unified_logger.log_operation("Heartbeat Failure", alert_msg, source="system", file="watchdog")
+        # Also send a Twilio alert here if needed:
+        try:
+            twilio_config = sonic_config.get("twilio_config", {})
+            execution_sid = trigger_twilio_flow(alert_msg, twilio_config)
+            unified_logger.log_operation("Twilio Notification",
+                                         f"Twilio alert sent (SID: {execution_sid})",
+                                         source="system", file="den_mother")
+        except Exception as twilio_e:
+            unified_logger.log_operation("Notification Failed",
+                                         f"Twilio notification failed: {twilio_e}",
+                                         source="system", file="den_mother")
     else:
-        # Log green success message.
         success_msg = f"\033[92mHeartbeat is fresh. Last update was {elapsed_minutes} minutes ago.\033[0m"
-        unified_logger.log_operation("Heartbeat Success", success_msg, source="system", file="watchdog")
+        unified_logger.log_operation("Heartbeat Success", success_msg, source="system", file="den_mother")
 
 
 if __name__ == '__main__':
