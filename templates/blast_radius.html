@@ -1,10 +1,8 @@
-{# blast_radius.html #}
 {% extends "base.html" %}
 {% block title %}Blast Radius{% endblock %}
 
 {% block content %}
 <style>
-  /* Make the entire page background the space image */
   html, body {
     margin: 0;
     padding: 0;
@@ -15,29 +13,19 @@
                 center center no-repeat fixed;
     background-size: cover;
   }
+  /* Optional: style the chart container with a semi-transparent background */
+  #blastCanvasContainer {
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 8px;
+    padding: 10px;
+  }
 </style>
 
 <div class="container" style="max-width: 800px; margin: 0 auto;">
-  <h2>Blast Radius Overview</h2>
-  <p>Below is the visualization of blast radius data for your assets.</p>
-
-  {#
-    We removed the background from this container so you can see space behind it.
-    If you want a slight color behind your content, add a background-color here.
-  #}
-  <div id="combined-bullseye-container"
-       style="
-         position: relative;
-         width: 800px;
-         height: 800px;
-         margin: 0 auto;
-       ">
-    <canvas id="blastCanvasBTC" class="bullseye"
-            style="position: absolute; left: 0; top: 0;"></canvas>
-    <canvas id="blastCanvasETH" class="bullseye"
-            style="position: absolute; left: 400px; top: 0;"></canvas>
-    <canvas id="blastCanvasSOL" class="bullseye"
-            style="position: absolute; left: 200px; top: 400px;"></canvas>
+  <h2 style="color: var(--text-color);">Blast Radius Overview</h2>
+  <p style="color: var(--text-color);">This chart shows the asset’s liquid distance relative to risk thresholds.</p>
+  <div id="blastCanvasContainer" style="position: relative; width: 800px; height: 800px; margin: 0 auto;">
+    <canvas id="blastCanvas"></canvas>
   </div>
 </div>
 {% endblock %}
@@ -45,119 +33,123 @@
 {% block extra_scripts %}
 <script>
   /**
-   * Draws a bullseye chart with three outlined circles, multiple position dots,
-   * and a centered asset logo.
+   * Draws a common blast radius (bullseye) chart using a single set of concentric circles.
    *
-   * @param {HTMLCanvasElement} canvas - The canvas element.
-   * @param {string} asset - The asset identifier ("BTC", "ETH", or "SOL").
-   * @param {number} innerPercent - Daily average percentage (inner circle radius).
-   * @param {number} outerPercent - Blast radius percentage (middle circle radius).
-   * @param {number} extendedPercent - Extended range percentage (outer circle radius).
-   * @param {Array} positions - Array of objects representing positions.
-   * @param {number} scaleFactor - Pixels per 1% (e.g. 8).
+   * @param {HTMLCanvasElement} canvas - The canvas element to draw on.
+   * @param {number} liquidDistance - The asset's liquid distance (in arbitrary units).
+   * @param {number} scaleFactor - Scale factor to convert distance units to pixels.
+   * @param {Object} thresholds - Object with thresholds (safe, caution, liquidation) in distance units.
    */
-  function drawBullseye(canvas, asset, innerPercent, outerPercent, extendedPercent, positions, scaleFactor) {
-    // Set canvas resolution
-    canvas.width = 400;
-    canvas.height = 400;
-
+  function drawCommonBlast(canvas, liquidDistance, scaleFactor, thresholds) {
+    canvas.width = 800;
+    canvas.height = 800;
     const ctx = canvas.getContext('2d');
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
-
-    // Convert "percent" to actual pixel radius
-    const innerRadius = innerPercent * scaleFactor;
-    const middleRadius = outerPercent * scaleFactor;
-    const outerRadius = extendedPercent * scaleFactor;
-
-    // Clear the canvas
+    
+    // Calculate radii in pixels from provided thresholds
+    const safeRadius = thresholds.safe * scaleFactor;
+    const cautionRadius = thresholds.caution * scaleFactor;
+    const liquidationRadius = thresholds.liquidation * scaleFactor;
+    
+    // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Draw outer ring (Extended range)
+    
+    // Draw outer circle (Liquidation Zone)
     ctx.beginPath();
-    ctx.arc(centerX, centerY, outerRadius, 0, 2 * Math.PI);
-    ctx.lineWidth = 6;
-    ctx.strokeStyle = 'rgba(75, 192, 192, 1)';  // teal-ish
+    ctx.arc(centerX, centerY, liquidationRadius, 0, 2 * Math.PI);
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = "rgba(220,53,69,1)";  // red (liquidation)
     ctx.stroke();
-
-    // Draw middle ring (Blast Radius)
+    
+    // Draw middle circle (Caution Zone)
     ctx.beginPath();
-    ctx.arc(centerX, centerY, middleRadius, 0, 2 * Math.PI);
-    ctx.lineWidth = 6;
-    ctx.strokeStyle = 'rgba(54, 162, 235, 1)';  // bluish
+    ctx.arc(centerX, centerY, cautionRadius, 0, 2 * Math.PI);
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = "rgba(255,193,7,1)";  // yellow (caution)
     ctx.stroke();
-
-    // Draw inner ring (Daily Average)
+    
+    // Draw inner circle (Safe Zone)
     ctx.beginPath();
-    ctx.arc(centerX, centerY, innerRadius, 0, 2 * Math.PI);
-    ctx.lineWidth = 6;
-    ctx.strokeStyle = 'rgba(255, 99, 132, 1)';  // reddish
+    ctx.arc(centerX, centerY, safeRadius, 0, 2 * Math.PI);
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = "rgba(40,167,69,1)";  // green (safe)
     ctx.stroke();
-
-    // Load and draw asset logo in the center
-    let logoSrc = "";
-    if (asset === "BTC") {
-      logoSrc = "{{ url_for('static', filename='images/btc_logo.png') }}";
-    } else if (asset === "ETH") {
-      logoSrc = "{{ url_for('static', filename='images/eth_logo.png') }}";
-    } else if (asset === "SOL") {
-      logoSrc = "{{ url_for('static', filename='images/sol_logo.png') }}";
-    }
-    const logoImg = new Image();
-    logoImg.src = logoSrc;
-    logoImg.onload = function() {
-      ctx.drawImage(logoImg, centerX - 40, centerY - 40, 80, 80);
-    };
-
-    // Plot position dots
-    positions.forEach((pos, i) => {
-      // Spread them around in a circle
-      const angle = (2 * Math.PI / positions.length) * i - Math.PI / 2;
-      const posRadius = pos.liquidDistance * scaleFactor;
-
-      const dotX = centerX + posRadius * Math.cos(angle);
-      const dotY = centerY + posRadius * Math.sin(angle);
-
-      // Draw the dot
-      ctx.beginPath();
-      ctx.arc(dotX, dotY, 10, 0, 2 * Math.PI);
-      ctx.fillStyle = pos.color || '#FF0000';
-      ctx.fill();
-
-      // Build label from positionType and travelPercent, e.g. "L (-76%)"
-      let labelText = "";
-      if (pos.positionType && typeof pos.travelPercent === "number") {
-        labelText = `${pos.positionType} (${pos.travelPercent}%)`;
-      }
-
-      if (labelText) {
-        ctx.fillStyle = '#000';
-        ctx.font = '16px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText(labelText, dotX, dotY - 15);
-      }
-    });
+    
+    // Draw hash marks for entry and liquidation values.
+    // Here, we assume that the liquidDistance value itself is the asset’s current distance.
+    // We could also draw fixed markers; for now, let's plot a marker at the asset’s liquid distance.
+    const markerRadius = liquidDistance * scaleFactor;
+    const angle = -Math.PI / 2;  // Place the marker at the top (you can adjust as needed)
+    const markerX = centerX + markerRadius * Math.cos(angle);
+    const markerY = centerY + markerRadius * Math.sin(angle);
+    
+    // Draw marker dot
+    ctx.beginPath();
+    ctx.arc(markerX, markerY, 10, 0, 2 * Math.PI);
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#000";
+    ctx.stroke();
+    
+    // Draw label for the marker
+    ctx.font = "20px Arial";
+    ctx.fillStyle = "#FFFFFF";
+    ctx.textAlign = "center";
+    ctx.fillText("Liquid Distance: " + liquidDistance, markerX, markerY - 15);
+    
+    // Draw tick marks for the exact liquidation threshold.
+    // Left tick: safe threshold (could be long liquidation)
+    // Right tick: liquidation threshold (could be short liquidation)
+    // For demonstration, we'll draw tick marks at safe and liquidation thresholds.
+    drawTick(ctx, centerX, centerY, safeRadius, "Safe: " + thresholds.safe);
+    drawTick(ctx, centerX, centerY, liquidationRadius, "Liquidation: " + thresholds.liquidation);
   }
-
-  // Example data for each asset
-  const btcPositions = [
-    { liquidDistance: 10, positionType: "L", travelPercent: -76, color: '#FF4500' },
-    { liquidDistance: 14, positionType: "L", travelPercent: -62, color: '#FF8C00' },
-    { liquidDistance: 20, positionType: "L", travelPercent: -45, color: '#FFA500' }
-  ];
-  const ethPositions = [
-    { liquidDistance: 11, positionType: "L", travelPercent: -68, color: '#1E90FF' },
-    { liquidDistance: 16, positionType: "L", travelPercent: -55, color: '#00BFFF' }
-  ];
-  const solPositions = [
-    { liquidDistance: 15, positionType: "L", travelPercent: -80, color: '#32CD32' },
-    { liquidDistance: 18, positionType: "L", travelPercent: -70, color: '#3CB371' },
-    { liquidDistance: 25, positionType: "L", travelPercent: -50, color: '#2E8B57' }
-  ];
-
-  // Draw each bullseye with scaleFactor=6 for smaller circles
-  drawBullseye(document.getElementById("blastCanvasBTC"), "BTC", 6, 17, 27, btcPositions, 6);
-  drawBullseye(document.getElementById("blastCanvasETH"), "ETH", 8, 18, 28, ethPositions, 6);
-  drawBullseye(document.getElementById("blastCanvasSOL"), "SOL", 13, 23, 33, solPositions, 6);
+  
+  /**
+   * Draws a tick mark on the bullseye circle.
+   * @param {CanvasRenderingContext2D} ctx - The canvas context.
+   * @param {number} centerX - X coordinate of the center.
+   * @param {number} centerY - Y coordinate of the center.
+   * @param {number} radius - Radius at which to draw the tick.
+   * @param {string} label - Text label for the tick.
+   */
+  function drawTick(ctx, centerX, centerY, radius, label) {
+    // Draw a small line outward at 90° (right side)
+    const angle = 0;  // 0 radians, to the right
+    const x1 = centerX + radius * Math.cos(angle);
+    const y1 = centerY + radius * Math.sin(angle);
+    const tickLength = 10;
+    const x2 = centerX + (radius + tickLength) * Math.cos(angle);
+    const y2 = centerY + (radius + tickLength) * Math.sin(angle);
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "var(--text-color)";
+    ctx.stroke();
+    
+    // Draw the label just beyond the tick
+    ctx.font = "16px Arial";
+    ctx.fillStyle = "var(--text-color)";
+    ctx.textAlign = "center";
+    ctx.fillText(label, x2, y2 - 5);
+  }
+  
+  // Example usage:
+  // Define thresholds (in same units as liquidDistance)
+  // Here, safe is 100, caution is 150, and liquidation is 200.
+  const thresholds = {
+    safe: 100,
+    caution: 150,
+    liquidation: 200
+  };
+  // For example, if an asset has a liquidDistance of 130 (units),
+  // then it falls in the caution zone.
+  const assetLiquidDistance = 130;  
+  const scaleFactor = 2; // 2 pixels per unit
+  const canvas = document.getElementById("blastCanvas");
+  drawCommonBlast(canvas, assetLiquidDistance, scaleFactor, thresholds);
 </script>
 {% endblock %}
