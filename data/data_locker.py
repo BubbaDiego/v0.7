@@ -14,7 +14,7 @@ class DataLocker:
       - Prices in the 'prices' table.
       - Positions in the 'positions' table.
       - Alerts in the 'alerts' table.
-      - System variables (timestamps and balance vars) in the 'system_vars' table.
+      - System variables (timestamps, balance vars, and strategy performance data) in the 'system_vars' table.
       - Brokers in the 'brokers' table.
       - Wallets in the 'wallets' table.
       - Aggregated positions snapshots in the 'positions_totals_history' table.
@@ -92,6 +92,16 @@ class DataLocker:
                 if col not in existing_cols:
                     self.cursor.execute(sql)
                     self.logger.info(f"Added '{col}' column to 'system_vars' table.")
+
+            # NEW: Add columns for strategy performance persistence
+            self.cursor.execute("PRAGMA table_info(system_vars)")
+            existing_cols = [row["name"] for row in self.cursor.fetchall()]
+            if "strategy_start_value" not in existing_cols:
+                self.cursor.execute("ALTER TABLE system_vars ADD COLUMN strategy_start_value REAL DEFAULT 0.0")
+                self.logger.info("Added 'strategy_start_value' column to 'system_vars' table.")
+            if "strategy_description" not in existing_cols:
+                self.cursor.execute("ALTER TABLE system_vars ADD COLUMN strategy_description TEXT DEFAULT ''")
+                self.logger.info("Added 'strategy_description' column to 'system_vars' table.")
 
             # Create prices table if it doesn't exist
             self.cursor.execute("""
@@ -175,12 +185,12 @@ class DataLocker:
 
             # Create portfolio_entries table if it doesn't exist
             self.cursor.execute("""
-                            CREATE TABLE IF NOT EXISTS portfolio_entries (
-                                id TEXT PRIMARY KEY,
-                                snapshot_time DATETIME,
-                                total_value REAL NOT NULL
-                            )
-                        """)
+                CREATE TABLE IF NOT EXISTS portfolio_entries (
+                    id TEXT PRIMARY KEY,
+                    snapshot_time DATETIME,
+                    total_value REAL NOT NULL
+                )
+            """)
 
             # Create positions_totals_history table if it doesn't exist
             self.cursor.execute("""
@@ -224,6 +234,44 @@ class DataLocker:
     def get_db_connection(self) -> sqlite3.Connection:
         self._init_sqlite_if_needed()
         return self.conn
+
+    # ----------------------------------------------------------------
+    # Strategy Performance Data Persistence
+    # ----------------------------------------------------------------
+
+    def set_strategy_performance_data(self, start_value: float, description: str):
+        """
+        Persists the strategy performance data (start value and description) in the DB.
+        """
+        self._init_sqlite_if_needed()
+        self.cursor.execute("""
+            UPDATE system_vars
+               SET strategy_start_value = ?,
+                   strategy_description = ?
+            WHERE id = 1
+        """, (start_value, description))
+        self.conn.commit()
+        self.logger.debug(f"Updated strategy performance data: start_value={start_value}, description={description}")
+
+    def get_strategy_performance_data(self) -> dict:
+        """
+        Retrieves the persisted strategy performance data (start value and description).
+        """
+        self._init_sqlite_if_needed()
+        self.cursor.execute("""
+            SELECT strategy_start_value, strategy_description
+            FROM system_vars
+            WHERE id = 1
+            LIMIT 1
+        """)
+        row = self.cursor.fetchone()
+        if row:
+            return {
+                "strategy_start_value": row["strategy_start_value"] or 0.0,
+                "strategy_description": row["strategy_description"] or ""
+            }
+        else:
+            return {"strategy_start_value": 0.0, "strategy_description": ""}
 
     # ----------------------------------------------------------------
     # PRICES
@@ -369,7 +417,7 @@ class DataLocker:
                      ORDER BY last_update_time DESC
                 """)
             rows = self.cursor.fetchall()
-            price_list = [dict(row) for row in rows]
+            price_list = [dict(r) for r in rows]
             self.logger.debug(f"Retrieved {len(price_list)} price rows.")
             return price_list
         except sqlite3.Error as e:
@@ -377,28 +425,6 @@ class DataLocker:
             return []
         except Exception as e:
             self.logger.exception(f"Unexpected error in get_prices: {e}")
-            return []
-
-    def read_positions(self) -> List[dict]:
-        try:
-            self._init_sqlite_if_needed()
-            self.logger.debug("Using database at path: %s", self.db_path)
-            self.logger.debug("Executing SELECT * FROM positions")
-            cursor = self.conn.cursor()
-            cursor.execute("SELECT * FROM positions")
-            rows = cursor.fetchall()
-            num_rows = len(rows)
-            self.logger.debug("Number of positions fetched: %d", num_rows)
-            if num_rows > 0:
-                #sample = [dict(rows[i]) for i in range(min(5, num_rows))]
-                sample = [dict(row) for row in rows[:min(5, num_rows)]]
-
-                self.logger.debug("Sample positions: %s", sample)
-            else:
-                self.logger.debug("No positions found in the table.")
-            return [dict(row) for row in rows]
-        except Exception as ex:
-            self.logger.exception("Error reading positions: %s", ex)
             return []
 
     def read_prices(self) -> List[dict]:
@@ -484,7 +510,6 @@ class DataLocker:
           - avg_travel_percent
           - avg_heat_index
         """
-        # You can simply call your existing method here.
         self.record_positions_totals_snapshot(totals)
         self.logger.debug("Recorded portfolio snapshot via record_portfolio_snapshot.")
 
@@ -662,6 +687,10 @@ class DataLocker:
             self.logger.exception(f"Error get_positions: {ex}")
             return []
 
+    # NEW: Alias method for backward compatibility with old calls.
+    def read_positions(self) -> List[dict]:
+        return self.get_positions()
+
     def delete_position(self, position_id: str):
         try:
             self._init_sqlite_if_needed()
@@ -776,8 +805,7 @@ class DataLocker:
     def delete_positions_for_wallet(self, wallet_name: str):
         self._init_sqlite_if_needed()
         self.logger.info(f"Deleting positions for wallet: {wallet_name}")
-
-        self.cursor = dl.conn.cursor()
+        self.cursor = self.conn.cursor()
         self.cursor.execute("DELETE FROM positions WHERE wallet_name IS NOT NULL")
         self.conn.commit()
         self.cursor.close()
@@ -907,9 +935,9 @@ class DataLocker:
             self.logger.exception(f"Error update_position_size: {ex}")
             raise
 
-        # ----------------------------------------------------------------
-        # PORTFOLIO ENTRIES CRUD
-        # ----------------------------------------------------------------
+    # ----------------------------------------------------------------
+    # PORTFOLIO ENTRIES CRUD
+    # ----------------------------------------------------------------
 
     def add_portfolio_entry(self, entry: dict):
         """

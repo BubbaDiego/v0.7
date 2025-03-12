@@ -127,10 +127,10 @@
       }
     },
     "travel_percent_liquid_ranges": {
-      "enabled": true,
+      "enabled": false,
       "low": -5.0,
       "low_notifications": {
-        "call": true,
+        "call": false,
         "sms": false,
         "email": false
       },
@@ -148,12 +148,12 @@
       }
     },
     "travel_percent_profit_ranges": {
-      "enabled": true,
+      "enabled": false,
       "low": -5.0,
       "medium": -50.0,
       "high": -100.0,
       "low_notifications": {
-        "call": true,
+        "call": false,
         "sms": false,
         "email": false
       },
@@ -169,10 +169,10 @@
       }
     },
     "profit_ranges": {
-      "enabled": true,
+      "enabled": false,
       "low": 1.0,
       "low_notifications": {
-        "call": true,
+        "call": false,
         "sms": false,
         "email": false
       },

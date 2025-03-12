@@ -8,6 +8,7 @@ Description:
       - The main dashboard view.
       - Theme options.
       - API endpoints for chart data (size_composition, value_composition, collateral_composition, size_balance).
+      - Backend support for persisting strategy performance card data.
 Usage:
     Import and register this blueprint in your main application.
 """
@@ -20,7 +21,7 @@ from datetime import datetime, timedelta
 import os
 
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, current_app
-from config.config_constants import DB_PATH, CONFIG_PATH, BASE_DIR
+from config.config_constants import DB_PATH, CONFIG_PATH, BASE_DIR, THEME_CONFIG_PATH
 from data.data_locker import DataLocker
 from positions.position_service import PositionService
 from utils.calc_services import CalcServices
@@ -34,12 +35,10 @@ logger.setLevel(logging.CRITICAL)
 dashboard_bp = Blueprint("dashboard", __name__, template_folder="templates")
 
 
-
 def get_strategy_performance():
     dl = DataLocker.get_instance()
     portfolio_history = dl.get_portfolio_history() or []
     if portfolio_history:
-        # For this example we assume the performance is measured from the very first snapshot.
         start_entry = portfolio_history[0]
         current_entry = portfolio_history[-1]
         try:
@@ -229,7 +228,6 @@ def dashboard():
         alert_entries = alert_viewer.get_all_display_strings()
 
         # Load the theme configuration freshly from file
-        from config.config_constants import THEME_CONFIG_PATH
         with open(THEME_CONFIG_PATH, "r", encoding="utf-8") as f:
             theme_config = json.load(f)
         logger.debug(f"Loaded theme config: {theme_config}")
@@ -254,7 +252,7 @@ def dashboard():
             last_update_positions_source=last_update_positions_source,
             system_feed_entries=system_feed_entries,
             alert_entries=alert_entries,
-            strategy_performance = strategy_performance
+            strategy_performance=strategy_performance
         )
     except Exception as e:
         logger.exception("Error rendering dashboard:")
@@ -285,6 +283,29 @@ def dashboard():
 def dash_performance():
     portfolio_data = DataLocker.get_instance().get_portfolio_history() or []
     return render_template("dash_performance.html", portfolio_data=portfolio_data)
+
+
+# -------------------------------
+# NEW: Route for Updating Strategy Performance Data Persistence
+# -------------------------------
+@dashboard_bp.route("/update_performance_data", methods=["POST"])
+def update_performance_data():
+    """
+    Expects JSON payload with:
+      - strategy_start_value (float)
+      - strategy_description (string)
+    Persists these values in the system_vars table.
+    """
+    try:
+        data = request.get_json() or {}
+        start_value = float(data.get("strategy_start_value", 0))
+        description = data.get("strategy_description", "")
+        dl = DataLocker.get_instance()
+        dl.set_strategy_performance_data(start_value, description)
+        return jsonify({"success": True, "message": "Performance data updated."})
+    except Exception as e:
+        logger.exception("Error updating performance data:")
+        return jsonify({"success": False, "error": str(e)}), 500
 
 
 # -------------------------------
@@ -371,18 +392,12 @@ def save_theme_route():
         if not profile:
             return jsonify({"success": False, "error": "No profile provided"}), 400
 
-        # Import THEME_CONFIG_PATH from config constants.
-        from config.config_constants import THEME_CONFIG_PATH
-
-        # Read the existing theme configuration.
         with open(THEME_CONFIG_PATH, "r", encoding="utf-8") as f:
             theme_config = json.load(f)
 
-        # Update the selected_profile.
         theme_config["selected_profile"] = profile
         logger.debug(f"Updated theme config: {theme_config}")
 
-        # Write back the updated theme configuration.
         with open(THEME_CONFIG_PATH, "w", encoding="utf-8") as f:
             json.dump(theme_config, f, indent=2)
 
@@ -394,12 +409,7 @@ def save_theme_route():
 
 @dashboard_bp.route("/theme_config", methods=["GET"])
 def theme_config_page():
-    """
-    Renders the theme configuration page.
-    Loads the current theme configuration from the JSON file and passes it into the template.
-    """
     try:
-        from config.config_constants import THEME_CONFIG_PATH
         with open(THEME_CONFIG_PATH, "r", encoding="utf-8") as f:
             theme_config = json.load(f)
         return render_template("theme_config.html", theme=theme_config)
@@ -410,14 +420,8 @@ def theme_config_page():
 
 @dashboard_bp.route("/save_theme_config", methods=["POST"], endpoint="save_theme_config_route")
 def save_theme_config_route():
-    """
-    Receives updated theme configuration data from the theme_config.html form.
-    Writes the updated configuration back to the JSON file.
-    Returns a JSON response indicating success or failure.
-    """
     try:
         data = request.get_json()
-        # Optionally add validation for data structure here
         from config.config_constants import THEME_CONFIG_PATH
         with open(THEME_CONFIG_PATH, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)

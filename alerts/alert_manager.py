@@ -42,7 +42,7 @@ def trigger_twilio_flow(custom_message: str, twilio_config: dict) -> str:
     u_logger.log_operation(
         operation_type="Twilio Notification",
         primary_text="Twilio alert sent",
-        source="AlertManager",
+        source="system",
         file="alert_manager"
     )
     return execution.sid
@@ -438,12 +438,6 @@ class AlertManager:
         try:
             trigger_twilio_flow(body, self.twilio_config)
             self.last_call_triggered[key] = now
-            u_logger.log_operation(
-                operation_type="Notification Sent",
-                primary_text=f"Notification Sent: {key}",
-                source="AlertManager",
-                file="alert_manager"
-            )
         except Exception as e:
             u_logger.log_operation(
                 operation_type="Notification Failed",
