@@ -52,6 +52,7 @@ from portfolio.portfolio_bp import portfolio_bp
 
 # *** NEW: Import the Simulator Dashboard blueprint ***
 from simulator.simulator_bp import simulator_bp as simulator_bp
+from jupiter.jupiter_bp import jupiter_bp
 
 # *** NEW: Import the UnifiedLogger and remove the old OperationsLogger ***
 from utils.unified_logger import UnifiedLogger
@@ -81,6 +82,8 @@ app.register_blueprint(positions_bp, url_prefix="/positions")
 app.register_blueprint(alerts_bp, url_prefix="/alerts")
 app.register_blueprint(prices_bp, url_prefix="/prices")
 app.register_blueprint(dashboard_bp)  # Dashboard-specific routes and API endpoints
+
+app.register_blueprint(jupiter_bp, url_prefix="/jupiter")
 
 # *** NEW: Register the portfolio blueprint ***
 app.register_blueprint(portfolio_bp, url_prefix="/portfolio")
