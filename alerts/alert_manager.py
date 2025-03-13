@@ -138,9 +138,9 @@ class AlertManager:
             if "alert_ranges" in alert_limits:
                 self.config["alert_ranges"] = alert_limits["alert_ranges"]
                 u_logger.log_operation(
-                    operation_type="Alert Config Merge",
-                    primary_text="Alert limits loaded directly from file and merged successfully.",
-                    source="AlertManager",
+                    operation_type="Alerts Configuration Successful",
+                    primary_text="Alerts Config Successful",
+                    source="System",
                     file="alert_manager"
                 )
             else:
@@ -179,12 +179,6 @@ class AlertManager:
             self.config = load_config(self.config_path, db_conn)
             self.cooldown = self.config.get("alert_cooldown_seconds", 900)
             self.call_refractory_period = self.config.get("call_refractory_period", 3600)
-            u_logger.log_operation(
-                operation_type="Alerts Configuration Successful",
-                primary_text="Alerts Config Successful",
-                source="AlertManager",
-                file="alert_manager"
-            )
         except Exception as e:
             u_logger.log_operation(
                 operation_type="Alert Configuration Failed",

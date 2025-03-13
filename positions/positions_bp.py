@@ -66,6 +66,49 @@ def _convert_iso_to_pst(iso_str):
         return "N/A"
 
 
+
+
+def get_strategy_performance():
+    """
+    Retrieve strategy performance data using persisted values in system_vars.
+    If a persisted strategy start value exists (nonzero), use it; otherwise default to the first snapshot's total value.
+    """
+    dl = DataLocker.get_instance()
+    persisted = dl.get_strategy_performance_data()  # Returns dict with keys: strategy_start_value, strategy_description
+    portfolio_history = dl.get_portfolio_history() or []
+    if portfolio_history:
+        if float(persisted.get("strategy_start_value", 0)) > 0:
+            start_value = float(persisted["strategy_start_value"])
+            description = persisted.get("strategy_description", "Strategy performance since reset")
+        else:
+            start_entry = portfolio_history[0]
+            start_value = float(start_entry.get("total_value", 0))
+            description = "Strategy performance since reset"
+        current_entry = portfolio_history[-1]
+        current_value = float(current_entry.get("total_value", 0))
+        diff = current_value - start_value
+        percent_change = (diff / start_value * 100) if start_value != 0 else 0
+        start_date = portfolio_history[0].get("snapshot_time", "N/A")
+        return {
+            "description": description,
+            "start_date": start_date,
+            "strategy_start_value": start_value,
+            "current_value": current_value,
+            "diff": diff,
+            "percent_change": percent_change
+        }
+    else:
+        return {
+            "description": "No performance data available",
+            "start_date": "N/A",
+            "strategy_start_value": 0,
+            "current_value": 0,
+            "diff": 0,
+            "percent_change": 0
+        }
+
+
+
 @positions_bp.route("/", methods=["GET"])
 def list_positions():
     try:

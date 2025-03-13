@@ -286,29 +286,6 @@ def dash_performance():
 
 
 # -------------------------------
-# NEW: Route for Updating Strategy Performance Data Persistence
-# -------------------------------
-@dashboard_bp.route("/update_performance_data", methods=["POST"])
-def update_performance_data():
-    """
-    Expects JSON payload with:
-      - strategy_start_value (float)
-      - strategy_description (string)
-    Persists these values in the system_vars table.
-    """
-    try:
-        data = request.get_json() or {}
-        start_value = float(data.get("strategy_start_value", 0))
-        description = data.get("strategy_description", "")
-        dl = DataLocker.get_instance()
-        dl.set_strategy_performance_data(start_value, description)
-        return jsonify({"success": True, "message": "Performance data updated."})
-    except Exception as e:
-        logger.exception("Error updating performance data:")
-        return jsonify({"success": False, "error": str(e)}), 500
-
-
-# -------------------------------
 # API Endpoints for Chart Data
 # -------------------------------
 @dashboard_bp.route("/api/size_composition")
@@ -428,6 +405,28 @@ def save_theme_config_route():
         return jsonify({"success": True})
     except Exception as e:
         logger.error("Error saving theme configuration", exc_info=True)
+        return jsonify({"success": False, "error": str(e)}), 500
+
+# -------------------------------
+# NEW: Route for Updating Strategy Performance Data Persistence
+# -------------------------------
+@dashboard_bp.route("/update_performance_data", methods=["POST"])
+def update_performance_data():
+    """
+    Expects JSON payload with:
+      - strategy_start_value (float)
+      - strategy_description (string)
+    Persists these values in the system_vars table.
+    """
+    try:
+        data = request.get_json() or {}
+        start_value = float(data.get("strategy_start_value", 0))
+        description = data.get("strategy_description", "")
+        dl = DataLocker.get_instance()
+        dl.set_strategy_performance_data(start_value, description)
+        return jsonify({"success": True, "message": "Performance data updated."})
+    except Exception as e:
+        logger.exception("Error updating performance data:")
         return jsonify({"success": False, "error": str(e)}), 500
 
 
