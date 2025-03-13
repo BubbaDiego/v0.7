@@ -5,19 +5,15 @@ from datetime import datetime
 import pytz
 import sys
 from fuzzywuzzy import fuzz
-from config.config_constants import BASE_DIR
-
-
-DATE_FORMAT = "%m-%d-%y : %I:%M:%S %p"
-
+from config.config_constants import BASE_DIR, LOG_DATE_FORMAT
 
 # Unified configuration for display: mapping messages to icons/colors.
 UNIFIED_LOG_CONFIG = {
     "Launch pad started": {"icon": "🚀", "color": "blue"},
     "Jupiter Updated": {"icon": "🪐", "color": "blue"},
-    "Alerts Config Successful": {"icon": "✅", "color": "green"},
+    "Alerts Configuration Successful": {"icon": "✅", "color": "green"},
     "Alert Manager Initialized": {"icon": "✅", "color": "blue"},
-    "Alert Config Failed": {"icon": "💀", "color": "red"},
+    "Alert Configuration Failed": {"icon": "💀", "color": "red"},
     "Alert Triggered": {"icon": "🚨", "color": "red"},
     "Alert Silenced": {"icon": "🔕", "color": "yellow"},
     "Monitor Loop": {"icon": "🔁", "color": "blue"},
@@ -42,7 +38,6 @@ ALERT_VIEW_CONFIG = {
     "Alert Triggered": {"icon": "🚨", "color": "orange"},
     "Alert Silenced": {"icon": "🔕", "color": "orange"},
     "No Alerts Found": {"icon": "❗", "color": "orange"},
-    # Additional mappings can be added here.
 }
 
 # Source icons for unified view.
@@ -55,8 +50,13 @@ DEFAULT_SOURCE_ICON = "❓"
 
 
 def fuzzy_find_log_type(message_text: str, config_keys) -> str:
+    """
+    Uses fuzzy matching to determine the best matching log type from the provided keys.
+    """
+
     def normalize(s):
         return re.sub(r'[^a-z0-9]+', '', s.lower())
+
     msg_norm = normalize(message_text)
     best_key = None
     best_score = 0
@@ -74,7 +74,8 @@ def fuzzy_find_log_type(message_text: str, config_keys) -> str:
 class UnifiedLogViewer:
     def __init__(self, log_files):
         """
-        log_files: list of file paths to unified log files.
+        Initialize the log viewer with a list of log file paths.
+        We will simply flip the order of the log entries as read from the file.
         """
         self.log_files = log_files
         self.entries = []
@@ -82,6 +83,14 @@ class UnifiedLogViewer:
         self._read_logs()
 
     def _read_logs(self):
+        """
+        Read each log file and load each line (expected to be JSON) into self.entries.
+        Instead of attempting to parse timestamps and sort them (which has been problematic),
+        we simply reverse the order of entries at the end.
+
+        Note: This assumes that the log file writes entries in chronological order (oldest first).
+        Flipping the list will then show the newest entries at the top.
+        """
         for file_path in self.log_files:
             if os.path.exists(file_path):
                 with open(file_path, "r", encoding="utf-8") as f:
@@ -93,29 +102,31 @@ class UnifiedLogViewer:
                             record = json.loads(line)
                         except json.JSONDecodeError:
                             record = {"raw": line}
-                        ts = record.get("timestamp", "")
-                        try:
-                            record["parsed_time"] = datetime.strptime(ts, DATE_FORMAT)
-                        except Exception:
-                            record["parsed_time"] = datetime.min
+                        # Optionally, you can still attempt to parse timestamps if needed,
+                        # but for now it is not used for ordering.
                         self.entries.append(record)
-        # Sort entries so that the newest logs are first.
-        self.entries.sort(key=lambda r: r.get("parsed_time", datetime.min), reverse=True)
+
+        # FLIP THE ORDER: Reverse the entries list.
+        # This simple fix ensures that if your file is written oldest-first,
+        # reversing the list will show the newest entries at the top.
+        self.entries.reverse()
 
     def get_line_color_class(self, color_name: str) -> str:
+        """
+        Map a color name to its corresponding CSS class.
+        """
         color_map = {
             "red": "alert-danger",
             "blue": "alert-primary",
             "green": "alert-success",
             "yellow": "alert-warning",
-            "orange": "alert-warning"  # Change this if you want a custom true orange class.
+            "orange": "alert-warning"
         }
         return color_map.get(color_name.lower(), "alert-secondary")
 
     def get_alert_status_line(self, record: dict) -> str:
         """
-        If the log record includes 'alert_details', create a custom status line.
-        Expected keys in alert_details: 'status', 'type', 'limit', 'current'
+        Generate an HTML status line if the log record contains 'alert_details'.
         """
         details = record.get("alert_details")
         if not details:
@@ -125,13 +136,13 @@ class UnifiedLogViewer:
         limit_value = details.get("limit", "")
         current_value = details.get("current", "")
         if status.lower() == "low":
-            bg_color = "#ffff99"  # Yellow
+            bg_color = "#ffff99"
         elif status.lower() == "medium":
-            bg_color = "#ffcc80"  # Orange
+            bg_color = "#ffcc80"
         elif status.lower() == "high":
-            bg_color = "#ff9999"  # Red
+            bg_color = "#ff9999"
         elif status.lower() == "liquidated":
-            bg_color = "#000000"  # Black
+            bg_color = "#000000"
         else:
             bg_color = "#eeeeee"
         if status.lower() == "liquidated":
@@ -151,7 +162,9 @@ class UnifiedLogViewer:
         return html
 
     def get_display_string(self, record: dict) -> str:
-        # Determine which configuration mapping to use based on log_type.
+        """
+        Generate the HTML display string for a single log record.
+        """
         if record.get("log_type", "").lower() == "alert":
             config_source = ALERT_VIEW_CONFIG
         else:
@@ -178,6 +191,7 @@ class UnifiedLogViewer:
         source_text = record.get("source", "")
         source_icon = SOURCE_ICONS.get(source_text.lower(), DEFAULT_SOURCE_ICON) if source_text else DEFAULT_SOURCE_ICON
 
+        # Use the original timestamp string (if available)
         ts = record.get("timestamp", "")
         if " : " in ts:
             date_part, time_part = ts.split(" : ", 1)
@@ -204,6 +218,10 @@ class UnifiedLogViewer:
         return line_html
 
     def get_all_display_strings(self) -> str:
+        """
+        Generate and return the complete HTML for all log entries.
+        The entries are now in reversed order (newest first) by simply flipping the list.
+        """
         display_list = [self.get_display_string(e) for e in self.entries]
         final_html = f"""
 <div style="background-color: white; padding: 8px;">

@@ -1,5 +1,14 @@
 import os
+import sys
 from pathlib import Path
+
+
+import sys
+if sys.platform.startswith('win'):
+    LOG_DATE_FORMAT = "%#m-%#d-%y : %#I:%M:%S %p %Z"
+else:
+    LOG_DATE_FORMAT = "%-m-%-d-%y : %-I:%M:%S %p %Z"
+
 
 # Determine BASE_DIR from an environment variable, or default to one level up from this file
 BASE_DIR = Path(os.getenv("BASE_DIR", Path(__file__).resolve().parent.parent))
@@ -22,8 +31,9 @@ ALERT_LIMITS_PATH = BASE_DIR / "config" / ALERT_LIMITS_FILENAME
 THEME_CONFIG_FILENAME = os.getenv("THEME_CONFIG_FILENAME", "theme_config.json")
 THEME_CONFIG_PATH = BASE_DIR / "config" / THEME_CONFIG_FILENAME
 
-#HEARTBEAT_FILE = os.getenv("HEARTBEAT_FILE", "/monitor/heartbeat.txt")
-HEARTBEAT_FILE = os.getenv("HEARTBEAT_FILE", "/home/BubbaDiego/v0.7/monitor/heartbeat.txt")
+HEARTBEAT_FILE = os.getenv("HEARTBEAT_FILE", os.path.join(BASE_DIR, "monitor", "heartbeat.txt"))
+
+#HEARTBEAT_FILE = os.getenv("HEARTBEAT_FILE", "/home/BubbaDiego/v0.7/monitor/heartbeat.txt")
 
 
 

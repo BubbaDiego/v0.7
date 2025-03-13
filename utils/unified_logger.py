@@ -4,17 +4,11 @@ import json
 import logging
 import pytz
 from datetime import datetime
-from config.config_constants import BASE_DIR
+from config.config_constants import BASE_DIR, LOG_DATE_FORMAT
 
-if sys.platform.startswith('win'):
-    DATE_FORMAT = "%#m-%#d-%y : %#I:%M:%S %p %Z"
-else:
-    DATE_FORMAT = "%-m-%-d-%y : %-I:%M:%S %p %Z"
-
-
-# Custom JSON formatter using the unified DATE_FORMAT.
+# Custom JSON formatter using the unified LOG_DATE_FORMAT.
 class JsonFormatter(logging.Formatter):
-    def __init__(self, fmt=None, datefmt=DATE_FORMAT):
+    def __init__(self, fmt=None, datefmt=LOG_DATE_FORMAT):
         super().__init__(fmt, datefmt)
 
     def formatTime(self, record, datefmt=None):
@@ -67,7 +61,7 @@ class UnifiedLogger:
         for handler in self.logger.handlers[:]:
             self.logger.removeHandler(handler)
 
-        json_formatter = JsonFormatter(datefmt=DATE_FORMAT)
+        json_formatter = JsonFormatter(datefmt=LOG_DATE_FORMAT)
 
         # File handler for operations logs.
         op_handler = logging.FileHandler(self.operations_log_filename, encoding="utf-8")

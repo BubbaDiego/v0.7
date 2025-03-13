@@ -90,6 +90,8 @@ class AlertManager:
         self.last_call_triggered: Dict[str, float] = {}
         self.suppressed_count = 0  # Counter for suppressed alerts
 
+        print("Initializing AlertManager...")  # Temporary debugging line
+
         from data.data_locker import DataLocker
         from utils.calc_services import CalcServices
 
@@ -98,6 +100,24 @@ class AlertManager:
 
         db_conn = self.data_locker.get_db_connection()
         config_manager = UnifiedConfigManager(self.config_path, db_conn=db_conn)
+        try:
+            self.config = config_manager.load_config()
+            u_logger.log_operation(
+                operation_type="Alerts Configuration Successful",
+                primary_text="Initial Alert Config Loaded Successfully",
+                source="AlertManager",
+                file="alert_manager"
+            )
+        except Exception as e:
+            u_logger.log_operation(
+                operation_type="Alert Configuration Failed",
+                primary_text="Initial Alert Config Load Failed",
+                source="AlertManager",
+                file="alert_manager"
+            )
+            self.config = {}  # fallback to an empty config if needed
+
+
         self.config = config_manager.load_config()
         self.twilio_config = self.config.get("twilio_config", {})
         self.cooldown = self.config.get("alert_cooldown_seconds", 900)

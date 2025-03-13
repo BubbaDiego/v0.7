@@ -58,7 +58,7 @@ def check_heartbeat():
                      f"Notifications: email to {email_recipient}, SMS to {sms_recipient}\033[0m")
         # Strip ANSI codes before sending to Twilio
         clean_alert_msg = strip_ansi_codes(alert_msg)
-        unified_logger.log_alert("Heartbeat Failure", alert_msg, source="system", file="watchdog")
+        unified_logger.log_operation("Heartbeat Failure", alert_msg, source="system", file="watchdog")
         # Trigger Twilio notification:
         try:
             twilio_config = sonic_config.get("twilio_config", {})
@@ -82,7 +82,7 @@ def check_heartbeat():
                      f"Notifications: email to {email_recipient}, SMS to {sms_recipient}\033[0m")
         clean_alert_msg = strip_ansi_codes(alert_msg)
         if alert_monitor_enabled:
-            unified_logger.log_alert("Heartbeat Failure", alert_msg, source="system", file="watchdog")
+            unified_logger.log_operation("Heartbeat Failure", alert_msg, source="system", file="watchdog")
         else:
             unified_logger.log_operation("Heartbeat Failure", alert_msg, source="system", file="watchdog")
         # Also send a Twilio alert here if needed:
@@ -113,4 +113,3 @@ if __name__ == '__main__':
         while True:
             check_heartbeat()
             time.sleep(300)  # Check every 5 minutes
-w
