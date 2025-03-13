@@ -82,6 +82,7 @@ class AlertManager:
     }
 
     def __init__(self, db_path: Optional[str] = None, poll_interval: int = 60, config_path: Optional[str] = None):
+        # Set default paths if none provided.
         if db_path is None:
             db_path = str(DB_PATH)
         if config_path is None:
@@ -89,13 +90,16 @@ class AlertManager:
         self.db_path = db_path
         self.poll_interval = poll_interval
         self.config_path = config_path
+
+        # Initialize internal state dictionaries.
         self.last_profit: Dict[str, str] = {}
         self.last_triggered: Dict[str, float] = {}
         self.last_call_triggered: Dict[str, float] = {}
         self.suppressed_count = 0  # Counter for suppressed alerts
 
-        print("Initializing AlertManager...")  # Temporary debugging line
+        print("Initializing AlertManager...")  # Debug print
 
+        # Initialize dependencies.
         from data.data_locker import DataLocker
         from utils.calc_services import CalcServices
 
@@ -104,6 +108,8 @@ class AlertManager:
 
         db_conn = self.data_locker.get_db_connection()
         config_manager = UnifiedConfigManager(self.config_path, db_conn=db_conn)
+
+        # Load the main configuration from the JSON file.
         try:
             self.config = config_manager.load_config()
             u_logger.log_operation(
@@ -119,16 +125,46 @@ class AlertManager:
                 source="System",
                 file="alert_manager"
             )
-            self.config = {}  # fallback to an empty config if needed
+            self.config = {}
 
-        # Reload config to ensure latest settings
+        # Reload configuration to get the latest settings.
         self.config = config_manager.load_config()
+
+        # *** Merge alert limits from alert_limits.json into the main configuration ***
+        try:
+            alert_limits = config_manager.load_alert_limits(ALERT_LIMITS_PATH)
+            if alert_limits and "alert_ranges" in alert_limits:
+                from config.unified_config_manager import deep_merge_dicts
+                merged_alerts = deep_merge_dicts(self.config.get("alert_ranges", {}), alert_limits["alert_ranges"])
+                self.config["alert_ranges"] = merged_alerts
+                u_logger.log_operation(
+                    operation_type="Alert Config Merge",
+                    primary_text="Merged alert_limits.json into main config successfully.",
+                    source="AlertManager",
+                    file="alert_manager"
+                )
+            else:
+                u_logger.log_operation(
+                    operation_type="Alert Config Merge",
+                    primary_text="No alert limits found in alert_limits.json to merge.",
+                    source="AlertManager",
+                    file="alert_manager"
+                )
+        except Exception as merge_exc:
+            u_logger.log_operation(
+                operation_type="Alert Config Merge",
+                primary_text=f"Failed to merge alert limits: {merge_exc}",
+                source="AlertManager",
+                file="alert_manager"
+            )
+
+        # Load communication settings and thresholds.
         self.twilio_config = self.config.get("twilio_config", {})
         self.cooldown = self.config.get("alert_cooldown_seconds", 900)
         self.call_refractory_period = self.config.get("call_refractory_period", 3600)
         self.monitor_enabled = self.config.get("system_config", {}).get("alert_monitor_enabled", True)
 
-        # Log initialization using the new pattern:
+        # Final initialization log.
         u_logger.log_operation(
             operation_type="Alert Manager Initialized",
             primary_text="Alert Manager 🏃‍♂️",

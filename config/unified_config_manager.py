@@ -52,6 +52,19 @@ class UnifiedConfigManager:
         self.lock_path = lock_path
         self.db_conn = db_conn
 
+    def load_alert_limits(self, alert_limits_path: str) -> Dict[str, Any]:
+        """
+        Loads the alert limits from a specified JSON file.
+        """
+        try:
+            with open(alert_limits_path, "r", encoding="utf-8") as f:
+                alert_limits = json.load(f)
+            logger.debug("Loaded alert limits from %s: %s", alert_limits_path, alert_limits)
+            return alert_limits
+        except Exception as e:
+            logger.error("Error loading alert limits from %s: %s", alert_limits_path, e)
+            return {}
+
     def load_json_config(self) -> Dict[str, Any]:
         """Loads the base configuration from a JSON file."""
         try:

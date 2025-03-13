@@ -13,3 +13,233 @@
 2025-03-12 18:24:15,604 - DEBUG - Checking travel percent for Bitcoin Long (ID: 9Vc3YqjzsNMenfSFMZL6sNURqPC9dyBkzM28CPyLfpn5): current_travel_percent = 0.89
 2025-03-12 18:24:15,604 - DEBUG - Position Data: {"id": "9Vc3YqjzsNMenfSFMZL6sNURqPC9dyBkzM28CPyLfpn5", "asset_type": "BTC", "position_type": "Long", "entry_price": 83490.56, "liquidation_price": 81662.6, "current_travel_percent": 0.89, "value": 126.17, "collateral": 121.63, "size": 4944.78, "leverage": 40.65, "wallet_name": "R2Vault", "last_updated": "2025-03-12T18:04:24", "alert_reference_id": null, "hedge_buddy_id": null, "current_price": 0.0, "liquidation_distance": null, "heat_index": 0.0, "current_heat_index": 0.0, "pnl_after_fees_usd": 1.08}
 2025-03-12 18:24:15,604 - DEBUG - Bitcoin Long (ID: 9Vc3YqjzsNMenfSFMZL6sNURqPC9dyBkzM28CPyLfpn5): current_val 0.89 is non-negative; skipping liquid alert.
+2025-03-12 19:28:00,556 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos2): current_travel_percent = -80.0
+2025-03-12 19:28:00,556 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos2", "current_travel_percent": -80.0, "wallet_name": "TestWallet"}
+2025-03-12 19:28:00,556 - DEBUG - Travel percent liquid alerts are disabled in config.
+2025-03-12 19:28:00,560 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos1): current_travel_percent = -80.0
+2025-03-12 19:28:00,560 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos1", "current_travel_percent": -80.0, "wallet_name": "TestWallet"}
+2025-03-12 19:28:00,561 - DEBUG - Negative config used: {'enabled': True, 'low': -5.0, 'medium': -50.0, 'high': -75.0, 'low_notifications': {'call': True, 'sms': False, 'email': False}, 'medium_notifications': {'call': True, 'sms': False, 'email': False}, 'high_notifications': {'call': True, 'sms': False, 'email': False}}
+2025-03-12 19:28:00,561 - DEBUG - Using negative thresholds: low=-5.0, medium=-50.0, high=-75.0
+2025-03-12 19:28:00,561 - DEBUG - Determined alert level: High for current_val: -80.0
+2025-03-12 19:28:00,561 - DEBUG - Triggered travel percent alert: Travel Percent Liquid ALERT: Bitcoin Long (Wallet: TestWallet) - Travel% = -80.00%, Level = High
+2025-03-12 19:31:56,214 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos2): current_travel_percent = -80.0
+2025-03-12 19:31:56,214 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos2", "current_travel_percent": -80.0, "wallet_name": "TestWallet"}
+2025-03-12 19:31:56,214 - DEBUG - Travel percent liquid alerts are disabled in config.
+2025-03-12 19:31:56,218 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos1): current_travel_percent = -80.0
+2025-03-12 19:31:56,218 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos1", "current_travel_percent": -80.0, "wallet_name": "TestWallet"}
+2025-03-12 19:31:56,218 - DEBUG - Negative config used: {'enabled': True, 'low': -5.0, 'medium': -50.0, 'high': -75.0, 'low_notifications': {'call': True, 'sms': False, 'email': False}, 'medium_notifications': {'call': True, 'sms': False, 'email': False}, 'high_notifications': {'call': True, 'sms': False, 'email': False}}
+2025-03-12 19:31:56,218 - DEBUG - Using negative thresholds: low=-5.0, medium=-50.0, high=-75.0
+2025-03-12 19:31:56,218 - DEBUG - Determined alert level: High for current_val: -80.0
+2025-03-12 19:31:56,218 - DEBUG - Triggered travel percent alert: Travel Percent Liquid ALERT: Bitcoin Long (Wallet: TestWallet) - Travel% = -80.00%, Level = High
+2025-03-12 19:37:39,369 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos2): current_travel_percent = -80.0
+2025-03-12 19:37:39,369 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos2", "current_travel_percent": -80.0, "wallet_name": "TestWallet"}
+2025-03-12 19:37:39,369 - DEBUG - Travel percent liquid alerts are disabled in config.
+2025-03-12 19:37:39,372 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos1): current_travel_percent = -80.0
+2025-03-12 19:37:39,372 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos1", "current_travel_percent": -80.0, "wallet_name": "TestWallet"}
+2025-03-12 19:37:39,372 - DEBUG - Negative config used: {'enabled': True, 'low': -5.0, 'medium': -50.0, 'high': -75.0, 'low_notifications': {'call': True, 'sms': False, 'email': False}, 'medium_notifications': {'call': True, 'sms': False, 'email': False}, 'high_notifications': {'call': True, 'sms': False, 'email': False}}
+2025-03-12 19:37:39,372 - DEBUG - Using negative thresholds: low=-5.0, medium=-50.0, high=-75.0
+2025-03-12 19:37:39,372 - DEBUG - Determined alert level: High for current_val: -80.0
+2025-03-12 19:37:39,372 - DEBUG - Triggered travel percent alert: Travel Percent Liquid ALERT: Bitcoin Long (Wallet: TestWallet) - Travel% = -80.00%, Level = High
+2025-03-12 19:39:53,405 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos2): current_travel_percent = -80.0
+2025-03-12 19:39:53,405 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos2", "current_travel_percent": -80.0, "wallet_name": "TestWallet"}
+2025-03-12 19:39:53,405 - DEBUG - Travel percent liquid alerts are disabled in config.
+2025-03-12 19:39:53,411 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos1): current_travel_percent = -80.0
+2025-03-12 19:39:53,411 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos1", "current_travel_percent": -80.0, "wallet_name": "TestWallet"}
+2025-03-12 19:39:53,411 - DEBUG - Negative config used: {'enabled': True, 'low': -5.0, 'medium': -50.0, 'high': -75.0, 'low_notifications': {'call': True, 'sms': False, 'email': False}, 'medium_notifications': {'call': True, 'sms': False, 'email': False}, 'high_notifications': {'call': True, 'sms': False, 'email': False}}
+2025-03-12 19:39:53,411 - DEBUG - Using negative thresholds: low=-5.0, medium=-50.0, high=-75.0
+2025-03-12 19:39:53,411 - DEBUG - Determined alert level: High for current_val: -80.0
+2025-03-12 19:39:53,415 - DEBUG - Triggered travel percent alert: Travel Percent Liquid ALERT: Bitcoin Long (Wallet: TestWallet) - Travel% = -80.00%, Level = High
+2025-03-12 19:42:57,999 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos_travel_high_disabled): current_travel_percent = -80.0
+2025-03-12 19:42:57,999 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos_travel_high_disabled", "current_travel_percent": -80.0, "wallet_name": "TestWallet"}
+2025-03-12 19:42:57,999 - DEBUG - Negative config used: {'enabled': True, 'low': -5.0, 'medium': -50.0, 'high': -75.0, 'low_notifications': {'call': True, 'sms': False, 'email': False}, 'medium_notifications': {'call': True, 'sms': False, 'email': False}, 'high_notifications': {'call': False, 'sms': False, 'email': False}}
+2025-03-12 19:42:57,999 - DEBUG - Using negative thresholds: low=-5.0, medium=-50.0, high=-75.0
+2025-03-12 19:42:57,999 - DEBUG - Determined alert level: High for current_val: -80.0
+2025-03-12 19:42:57,999 - DEBUG - High-level travel percent liquid alert call notification disabled in config.
+2025-03-12 19:42:58,002 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos_travel_high_enabled): current_travel_percent = -80.0
+2025-03-12 19:42:58,002 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos_travel_high_enabled", "current_travel_percent": -80.0, "wallet_name": "TestWallet"}
+2025-03-12 19:42:58,002 - DEBUG - Negative config used: {'enabled': True, 'low': -5.0, 'medium': -50.0, 'high': -75.0, 'low_notifications': {'call': True, 'sms': False, 'email': False}, 'medium_notifications': {'call': True, 'sms': False, 'email': False}, 'high_notifications': {'call': True, 'sms': False, 'email': False}}
+2025-03-12 19:42:58,003 - DEBUG - Using negative thresholds: low=-5.0, medium=-50.0, high=-75.0
+2025-03-12 19:42:58,003 - DEBUG - Determined alert level: High for current_val: -80.0
+2025-03-12 19:42:58,003 - DEBUG - Triggered travel percent alert: Travel Percent Liquid ALERT: Bitcoin Long (Wallet: TestWallet) - Travel% = -80.00%, Level = High
+2025-03-12 19:42:58,006 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos_travel_low_disabled): current_travel_percent = -10.0
+2025-03-12 19:42:58,006 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos_travel_low_disabled", "current_travel_percent": -10.0, "wallet_name": "TestWallet"}
+2025-03-12 19:42:58,006 - DEBUG - Negative config used: {'enabled': True, 'low': -5.0, 'medium': -50.0, 'high': -75.0, 'low_notifications': {'call': False, 'sms': False, 'email': False}, 'medium_notifications': {'call': True, 'sms': False, 'email': False}, 'high_notifications': {'call': True, 'sms': False, 'email': False}}
+2025-03-12 19:42:58,006 - DEBUG - Using negative thresholds: low=-5.0, medium=-50.0, high=-75.0
+2025-03-12 19:42:58,006 - DEBUG - Determined alert level: Low for current_val: -10.0
+2025-03-12 19:42:58,006 - DEBUG - Low-level travel percent liquid alert call notification disabled in config.
+2025-03-12 19:42:58,010 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos_travel_low_enabled): current_travel_percent = -10.0
+2025-03-12 19:42:58,010 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos_travel_low_enabled", "current_travel_percent": -10.0, "wallet_name": "TestWallet"}
+2025-03-12 19:42:58,010 - DEBUG - Negative config used: {'enabled': True, 'low': -5.0, 'medium': -50.0, 'high': -75.0, 'low_notifications': {'call': True, 'sms': False, 'email': False}, 'medium_notifications': {'call': True, 'sms': False, 'email': False}, 'high_notifications': {'call': True, 'sms': False, 'email': False}}
+2025-03-12 19:42:58,010 - DEBUG - Using negative thresholds: low=-5.0, medium=-50.0, high=-75.0
+2025-03-12 19:42:58,010 - DEBUG - Determined alert level: Low for current_val: -10.0
+2025-03-12 19:42:58,010 - DEBUG - Triggered travel percent alert: Travel Percent Liquid ALERT: Bitcoin Long (Wallet: TestWallet) - Travel% = -10.00%, Level = Low
+2025-03-12 19:42:58,014 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos_travel_medium_disabled): current_travel_percent = -55.0
+2025-03-12 19:42:58,014 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos_travel_medium_disabled", "current_travel_percent": -55.0, "wallet_name": "TestWallet"}
+2025-03-12 19:42:58,014 - DEBUG - Negative config used: {'enabled': True, 'low': -5.0, 'medium': -50.0, 'high': -75.0, 'low_notifications': {'call': True, 'sms': False, 'email': False}, 'medium_notifications': {'call': False, 'sms': False, 'email': False}, 'high_notifications': {'call': True, 'sms': False, 'email': False}}
+2025-03-12 19:42:58,014 - DEBUG - Using negative thresholds: low=-5.0, medium=-50.0, high=-75.0
+2025-03-12 19:42:58,014 - DEBUG - Determined alert level: Medium for current_val: -55.0
+2025-03-12 19:42:58,014 - DEBUG - Medium-level travel percent liquid alert call notification disabled in config.
+2025-03-12 19:42:58,018 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos_travel_medium_enabled): current_travel_percent = -55.0
+2025-03-12 19:42:58,018 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos_travel_medium_enabled", "current_travel_percent": -55.0, "wallet_name": "TestWallet"}
+2025-03-12 19:42:58,018 - DEBUG - Negative config used: {'enabled': True, 'low': -5.0, 'medium': -50.0, 'high': -75.0, 'low_notifications': {'call': True, 'sms': False, 'email': False}, 'medium_notifications': {'call': True, 'sms': False, 'email': False}, 'high_notifications': {'call': True, 'sms': False, 'email': False}}
+2025-03-12 19:42:58,018 - DEBUG - Using negative thresholds: low=-5.0, medium=-50.0, high=-75.0
+2025-03-12 19:42:58,018 - DEBUG - Determined alert level: Medium for current_val: -55.0
+2025-03-12 19:42:58,018 - DEBUG - Triggered travel percent alert: Travel Percent Liquid ALERT: Bitcoin Long (Wallet: TestWallet) - Travel% = -55.00%, Level = Medium
+2025-03-12 19:42:58,022 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos2): current_travel_percent = -80.0
+2025-03-12 19:42:58,022 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos2", "current_travel_percent": -80.0, "wallet_name": "TestWallet"}
+2025-03-12 19:42:58,022 - DEBUG - Travel percent liquid alerts are disabled in config.
+2025-03-12 19:42:58,028 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos1): current_travel_percent = -80.0
+2025-03-12 19:42:58,028 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos1", "current_travel_percent": -80.0, "wallet_name": "TestWallet"}
+2025-03-12 19:42:58,028 - DEBUG - Negative config used: {'enabled': True, 'low': -5.0, 'medium': -50.0, 'high': -75.0, 'low_notifications': {'call': True, 'sms': False, 'email': False}, 'medium_notifications': {'call': True, 'sms': False, 'email': False}, 'high_notifications': {'call': True, 'sms': False, 'email': False}}
+2025-03-12 19:42:58,028 - DEBUG - Using negative thresholds: low=-5.0, medium=-50.0, high=-75.0
+2025-03-12 19:42:58,028 - DEBUG - Determined alert level: High for current_val: -80.0
+2025-03-12 19:42:58,028 - DEBUG - Triggered travel percent alert: Travel Percent Liquid ALERT: Bitcoin Long (Wallet: TestWallet) - Travel% = -80.00%, Level = High
+2025-03-12 19:43:08,160 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos_travel_high_disabled): current_travel_percent = -80.0
+2025-03-12 19:43:08,160 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos_travel_high_disabled", "current_travel_percent": -80.0, "wallet_name": "TestWallet"}
+2025-03-12 19:43:08,161 - DEBUG - Negative config used: {'enabled': True, 'low': -5.0, 'medium': -50.0, 'high': -75.0, 'low_notifications': {'call': True, 'sms': False, 'email': False}, 'medium_notifications': {'call': True, 'sms': False, 'email': False}, 'high_notifications': {'call': False, 'sms': False, 'email': False}}
+2025-03-12 19:43:08,161 - DEBUG - Using negative thresholds: low=-5.0, medium=-50.0, high=-75.0
+2025-03-12 19:43:08,161 - DEBUG - Determined alert level: High for current_val: -80.0
+2025-03-12 19:43:08,161 - DEBUG - High-level travel percent liquid alert call notification disabled in config.
+2025-03-12 19:43:08,163 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos_travel_high_enabled): current_travel_percent = -80.0
+2025-03-12 19:43:08,163 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos_travel_high_enabled", "current_travel_percent": -80.0, "wallet_name": "TestWallet"}
+2025-03-12 19:43:08,163 - DEBUG - Negative config used: {'enabled': True, 'low': -5.0, 'medium': -50.0, 'high': -75.0, 'low_notifications': {'call': True, 'sms': False, 'email': False}, 'medium_notifications': {'call': True, 'sms': False, 'email': False}, 'high_notifications': {'call': True, 'sms': False, 'email': False}}
+2025-03-12 19:43:08,163 - DEBUG - Using negative thresholds: low=-5.0, medium=-50.0, high=-75.0
+2025-03-12 19:43:08,163 - DEBUG - Determined alert level: High for current_val: -80.0
+2025-03-12 19:43:08,164 - DEBUG - Triggered travel percent alert: Travel Percent Liquid ALERT: Bitcoin Long (Wallet: TestWallet) - Travel% = -80.00%, Level = High
+2025-03-12 19:43:08,166 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos_travel_low_disabled): current_travel_percent = -10.0
+2025-03-12 19:43:08,166 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos_travel_low_disabled", "current_travel_percent": -10.0, "wallet_name": "TestWallet"}
+2025-03-12 19:43:08,166 - DEBUG - Negative config used: {'enabled': True, 'low': -5.0, 'medium': -50.0, 'high': -75.0, 'low_notifications': {'call': False, 'sms': False, 'email': False}, 'medium_notifications': {'call': True, 'sms': False, 'email': False}, 'high_notifications': {'call': True, 'sms': False, 'email': False}}
+2025-03-12 19:43:08,166 - DEBUG - Using negative thresholds: low=-5.0, medium=-50.0, high=-75.0
+2025-03-12 19:43:08,166 - DEBUG - Determined alert level: Low for current_val: -10.0
+2025-03-12 19:43:08,166 - DEBUG - Low-level travel percent liquid alert call notification disabled in config.
+2025-03-12 19:43:08,168 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos_travel_low_enabled): current_travel_percent = -10.0
+2025-03-12 19:43:08,168 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos_travel_low_enabled", "current_travel_percent": -10.0, "wallet_name": "TestWallet"}
+2025-03-12 19:43:08,168 - DEBUG - Negative config used: {'enabled': True, 'low': -5.0, 'medium': -50.0, 'high': -75.0, 'low_notifications': {'call': True, 'sms': False, 'email': False}, 'medium_notifications': {'call': True, 'sms': False, 'email': False}, 'high_notifications': {'call': True, 'sms': False, 'email': False}}
+2025-03-12 19:43:08,169 - DEBUG - Using negative thresholds: low=-5.0, medium=-50.0, high=-75.0
+2025-03-12 19:43:08,169 - DEBUG - Determined alert level: Low for current_val: -10.0
+2025-03-12 19:43:08,169 - DEBUG - Triggered travel percent alert: Travel Percent Liquid ALERT: Bitcoin Long (Wallet: TestWallet) - Travel% = -10.00%, Level = Low
+2025-03-12 19:43:08,171 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos_travel_medium_disabled): current_travel_percent = -55.0
+2025-03-12 19:43:08,171 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos_travel_medium_disabled", "current_travel_percent": -55.0, "wallet_name": "TestWallet"}
+2025-03-12 19:43:08,171 - DEBUG - Negative config used: {'enabled': True, 'low': -5.0, 'medium': -50.0, 'high': -75.0, 'low_notifications': {'call': True, 'sms': False, 'email': False}, 'medium_notifications': {'call': False, 'sms': False, 'email': False}, 'high_notifications': {'call': True, 'sms': False, 'email': False}}
+2025-03-12 19:43:08,171 - DEBUG - Using negative thresholds: low=-5.0, medium=-50.0, high=-75.0
+2025-03-12 19:43:08,171 - DEBUG - Determined alert level: Medium for current_val: -55.0
+2025-03-12 19:43:08,171 - DEBUG - Medium-level travel percent liquid alert call notification disabled in config.
+2025-03-12 19:43:08,174 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos_travel_medium_enabled): current_travel_percent = -55.0
+2025-03-12 19:43:08,174 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos_travel_medium_enabled", "current_travel_percent": -55.0, "wallet_name": "TestWallet"}
+2025-03-12 19:43:08,174 - DEBUG - Negative config used: {'enabled': True, 'low': -5.0, 'medium': -50.0, 'high': -75.0, 'low_notifications': {'call': True, 'sms': False, 'email': False}, 'medium_notifications': {'call': True, 'sms': False, 'email': False}, 'high_notifications': {'call': True, 'sms': False, 'email': False}}
+2025-03-12 19:43:08,174 - DEBUG - Using negative thresholds: low=-5.0, medium=-50.0, high=-75.0
+2025-03-12 19:43:08,174 - DEBUG - Determined alert level: Medium for current_val: -55.0
+2025-03-12 19:43:08,174 - DEBUG - Triggered travel percent alert: Travel Percent Liquid ALERT: Bitcoin Long (Wallet: TestWallet) - Travel% = -55.00%, Level = Medium
+2025-03-12 19:43:08,179 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos2): current_travel_percent = -80.0
+2025-03-12 19:43:08,179 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos2", "current_travel_percent": -80.0, "wallet_name": "TestWallet"}
+2025-03-12 19:43:08,179 - DEBUG - Travel percent liquid alerts are disabled in config.
+2025-03-12 19:43:08,181 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos1): current_travel_percent = -80.0
+2025-03-12 19:43:08,182 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos1", "current_travel_percent": -80.0, "wallet_name": "TestWallet"}
+2025-03-12 19:43:08,182 - DEBUG - Negative config used: {'enabled': True, 'low': -5.0, 'medium': -50.0, 'high': -75.0, 'low_notifications': {'call': True, 'sms': False, 'email': False}, 'medium_notifications': {'call': True, 'sms': False, 'email': False}, 'high_notifications': {'call': True, 'sms': False, 'email': False}}
+2025-03-12 19:43:08,182 - DEBUG - Using negative thresholds: low=-5.0, medium=-50.0, high=-75.0
+2025-03-12 19:43:08,182 - DEBUG - Determined alert level: High for current_val: -80.0
+2025-03-12 19:43:08,182 - DEBUG - Triggered travel percent alert: Travel Percent Liquid ALERT: Bitcoin Long (Wallet: TestWallet) - Travel% = -80.00%, Level = High
+2025-03-12 19:51:06,241 - DEBUG - Checking travel percent for Bitcoin Long (ID: unknown): current_travel_percent = -80.0
+2025-03-12 19:51:06,241 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "current_travel_percent": -80.0}
+2025-03-12 19:51:06,241 - DEBUG - Travel percent liquid alerts are disabled in config.
+2025-03-12 19:51:06,560 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos_travel_high_disabled): current_travel_percent = -80.0
+2025-03-12 19:51:06,560 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos_travel_high_disabled", "current_travel_percent": -80.0, "wallet_name": "TestWallet"}
+2025-03-12 19:51:06,560 - DEBUG - Negative config used: {'enabled': True, 'low': -5.0, 'medium': -50.0, 'high': -75.0, 'low_notifications': {'call': True, 'sms': False, 'email': False}, 'medium_notifications': {'call': True, 'sms': False, 'email': False}, 'high_notifications': {'call': False, 'sms': False, 'email': False}}
+2025-03-12 19:51:06,560 - DEBUG - Using negative thresholds: low=-5.0, medium=-50.0, high=-75.0
+2025-03-12 19:51:06,560 - DEBUG - Determined alert level: High for current_val: -80.0
+2025-03-12 19:51:06,560 - DEBUG - High-level travel percent liquid alert call notification disabled in config.
+2025-03-12 19:51:06,563 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos_travel_high_enabled): current_travel_percent = -80.0
+2025-03-12 19:51:06,563 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos_travel_high_enabled", "current_travel_percent": -80.0, "wallet_name": "TestWallet"}
+2025-03-12 19:51:06,564 - DEBUG - Negative config used: {'enabled': True, 'low': -5.0, 'medium': -50.0, 'high': -75.0, 'low_notifications': {'call': True, 'sms': False, 'email': False}, 'medium_notifications': {'call': True, 'sms': False, 'email': False}, 'high_notifications': {'call': True, 'sms': False, 'email': False}}
+2025-03-12 19:51:06,564 - DEBUG - Using negative thresholds: low=-5.0, medium=-50.0, high=-75.0
+2025-03-12 19:51:06,564 - DEBUG - Determined alert level: High for current_val: -80.0
+2025-03-12 19:51:06,564 - DEBUG - Triggered travel percent alert: Travel Percent Liquid ALERT: Bitcoin Long (Wallet: TestWallet) - Travel% = -80.00%, Level = High
+2025-03-12 19:51:06,567 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos_travel_low_disabled): current_travel_percent = -10.0
+2025-03-12 19:51:06,567 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos_travel_low_disabled", "current_travel_percent": -10.0, "wallet_name": "TestWallet"}
+2025-03-12 19:51:06,567 - DEBUG - Negative config used: {'enabled': True, 'low': -5.0, 'medium': -50.0, 'high': -75.0, 'low_notifications': {'call': False, 'sms': False, 'email': False}, 'medium_notifications': {'call': True, 'sms': False, 'email': False}, 'high_notifications': {'call': True, 'sms': False, 'email': False}}
+2025-03-12 19:51:06,567 - DEBUG - Using negative thresholds: low=-5.0, medium=-50.0, high=-75.0
+2025-03-12 19:51:06,568 - DEBUG - Determined alert level: Low for current_val: -10.0
+2025-03-12 19:51:06,568 - DEBUG - Low-level travel percent liquid alert call notification disabled in config.
+2025-03-12 19:51:06,571 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos_travel_low_enabled): current_travel_percent = -10.0
+2025-03-12 19:51:06,571 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos_travel_low_enabled", "current_travel_percent": -10.0, "wallet_name": "TestWallet"}
+2025-03-12 19:51:06,571 - DEBUG - Negative config used: {'enabled': True, 'low': -5.0, 'medium': -50.0, 'high': -75.0, 'low_notifications': {'call': True, 'sms': False, 'email': False}, 'medium_notifications': {'call': True, 'sms': False, 'email': False}, 'high_notifications': {'call': True, 'sms': False, 'email': False}}
+2025-03-12 19:51:06,571 - DEBUG - Using negative thresholds: low=-5.0, medium=-50.0, high=-75.0
+2025-03-12 19:51:06,571 - DEBUG - Determined alert level: Low for current_val: -10.0
+2025-03-12 19:51:06,572 - DEBUG - Triggered travel percent alert: Travel Percent Liquid ALERT: Bitcoin Long (Wallet: TestWallet) - Travel% = -10.00%, Level = Low
+2025-03-12 19:51:06,575 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos_travel_medium_disabled): current_travel_percent = -55.0
+2025-03-12 19:51:06,575 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos_travel_medium_disabled", "current_travel_percent": -55.0, "wallet_name": "TestWallet"}
+2025-03-12 19:51:06,575 - DEBUG - Negative config used: {'enabled': True, 'low': -5.0, 'medium': -50.0, 'high': -75.0, 'low_notifications': {'call': True, 'sms': False, 'email': False}, 'medium_notifications': {'call': False, 'sms': False, 'email': False}, 'high_notifications': {'call': True, 'sms': False, 'email': False}}
+2025-03-12 19:51:06,575 - DEBUG - Using negative thresholds: low=-5.0, medium=-50.0, high=-75.0
+2025-03-12 19:51:06,575 - DEBUG - Determined alert level: Medium for current_val: -55.0
+2025-03-12 19:51:06,575 - DEBUG - Medium-level travel percent liquid alert call notification disabled in config.
+2025-03-12 19:51:06,579 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos_travel_medium_enabled): current_travel_percent = -55.0
+2025-03-12 19:51:06,579 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos_travel_medium_enabled", "current_travel_percent": -55.0, "wallet_name": "TestWallet"}
+2025-03-12 19:51:06,579 - DEBUG - Negative config used: {'enabled': True, 'low': -5.0, 'medium': -50.0, 'high': -75.0, 'low_notifications': {'call': True, 'sms': False, 'email': False}, 'medium_notifications': {'call': True, 'sms': False, 'email': False}, 'high_notifications': {'call': True, 'sms': False, 'email': False}}
+2025-03-12 19:51:06,579 - DEBUG - Using negative thresholds: low=-5.0, medium=-50.0, high=-75.0
+2025-03-12 19:51:06,579 - DEBUG - Determined alert level: Medium for current_val: -55.0
+2025-03-12 19:51:06,579 - DEBUG - Triggered travel percent alert: Travel Percent Liquid ALERT: Bitcoin Long (Wallet: TestWallet) - Travel% = -55.00%, Level = Medium
+2025-03-12 19:51:06,583 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos2): current_travel_percent = -80.0
+2025-03-12 19:51:06,583 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos2", "current_travel_percent": -80.0, "wallet_name": "TestWallet"}
+2025-03-12 19:51:06,583 - DEBUG - Travel percent liquid alerts are disabled in config.
+2025-03-12 19:51:06,586 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos1): current_travel_percent = -80.0
+2025-03-12 19:51:06,586 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos1", "current_travel_percent": -80.0, "wallet_name": "TestWallet"}
+2025-03-12 19:51:06,586 - DEBUG - Negative config used: {'enabled': True, 'low': -5.0, 'medium': -50.0, 'high': -75.0, 'low_notifications': {'call': True, 'sms': False, 'email': False}, 'medium_notifications': {'call': True, 'sms': False, 'email': False}, 'high_notifications': {'call': True, 'sms': False, 'email': False}}
+2025-03-12 19:51:06,586 - DEBUG - Using negative thresholds: low=-5.0, medium=-50.0, high=-75.0
+2025-03-12 19:51:06,586 - DEBUG - Determined alert level: High for current_val: -80.0
+2025-03-12 19:51:06,586 - DEBUG - Triggered travel percent alert: Travel Percent Liquid ALERT: Bitcoin Long (Wallet: TestWallet) - Travel% = -80.00%, Level = High
+2025-03-12 19:51:06,590 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos_missing_travel): current_travel_percent = 0.0
+2025-03-12 19:51:06,590 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos_missing_travel"}
+2025-03-12 19:51:06,590 - DEBUG - Bitcoin Long (ID: pos_missing_travel): current_val 0.0 is non-negative; skipping liquid alert.
+2025-03-12 19:51:06,590 - ERROR - Bitcoin Long (ID: pos_non_numeric_travel): Error converting travel percent: could not convert string to float: 'bad_value'
+2025-03-12 19:51:17,957 - DEBUG - Checking travel percent for Bitcoin Long (ID: unknown): current_travel_percent = -80.0
+2025-03-12 19:51:17,957 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "current_travel_percent": -80.0}
+2025-03-12 19:51:17,957 - DEBUG - Travel percent liquid alerts are disabled in config.
+2025-03-12 19:51:18,228 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos_travel_high_disabled): current_travel_percent = -80.0
+2025-03-12 19:51:18,228 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos_travel_high_disabled", "current_travel_percent": -80.0, "wallet_name": "TestWallet"}
+2025-03-12 19:51:18,228 - DEBUG - Negative config used: {'enabled': True, 'low': -5.0, 'medium': -50.0, 'high': -75.0, 'low_notifications': {'call': True, 'sms': False, 'email': False}, 'medium_notifications': {'call': True, 'sms': False, 'email': False}, 'high_notifications': {'call': False, 'sms': False, 'email': False}}
+2025-03-12 19:51:18,228 - DEBUG - Using negative thresholds: low=-5.0, medium=-50.0, high=-75.0
+2025-03-12 19:51:18,228 - DEBUG - Determined alert level: High for current_val: -80.0
+2025-03-12 19:51:18,228 - DEBUG - High-level travel percent liquid alert call notification disabled in config.
+2025-03-12 19:51:18,231 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos_travel_high_enabled): current_travel_percent = -80.0
+2025-03-12 19:51:18,231 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos_travel_high_enabled", "current_travel_percent": -80.0, "wallet_name": "TestWallet"}
+2025-03-12 19:51:18,231 - DEBUG - Negative config used: {'enabled': True, 'low': -5.0, 'medium': -50.0, 'high': -75.0, 'low_notifications': {'call': True, 'sms': False, 'email': False}, 'medium_notifications': {'call': True, 'sms': False, 'email': False}, 'high_notifications': {'call': True, 'sms': False, 'email': False}}
+2025-03-12 19:51:18,231 - DEBUG - Using negative thresholds: low=-5.0, medium=-50.0, high=-75.0
+2025-03-12 19:51:18,231 - DEBUG - Determined alert level: High for current_val: -80.0
+2025-03-12 19:51:18,232 - DEBUG - Triggered travel percent alert: Travel Percent Liquid ALERT: Bitcoin Long (Wallet: TestWallet) - Travel% = -80.00%, Level = High
+2025-03-12 19:51:18,234 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos_travel_low_disabled): current_travel_percent = -10.0
+2025-03-12 19:51:18,234 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos_travel_low_disabled", "current_travel_percent": -10.0, "wallet_name": "TestWallet"}
+2025-03-12 19:51:18,234 - DEBUG - Negative config used: {'enabled': True, 'low': -5.0, 'medium': -50.0, 'high': -75.0, 'low_notifications': {'call': False, 'sms': False, 'email': False}, 'medium_notifications': {'call': True, 'sms': False, 'email': False}, 'high_notifications': {'call': True, 'sms': False, 'email': False}}
+2025-03-12 19:51:18,234 - DEBUG - Using negative thresholds: low=-5.0, medium=-50.0, high=-75.0
+2025-03-12 19:51:18,234 - DEBUG - Determined alert level: Low for current_val: -10.0
+2025-03-12 19:51:18,234 - DEBUG - Low-level travel percent liquid alert call notification disabled in config.
+2025-03-12 19:51:18,238 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos_travel_low_enabled): current_travel_percent = -10.0
+2025-03-12 19:51:18,238 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos_travel_low_enabled", "current_travel_percent": -10.0, "wallet_name": "TestWallet"}
+2025-03-12 19:51:18,238 - DEBUG - Negative config used: {'enabled': True, 'low': -5.0, 'medium': -50.0, 'high': -75.0, 'low_notifications': {'call': True, 'sms': False, 'email': False}, 'medium_notifications': {'call': True, 'sms': False, 'email': False}, 'high_notifications': {'call': True, 'sms': False, 'email': False}}
+2025-03-12 19:51:18,238 - DEBUG - Using negative thresholds: low=-5.0, medium=-50.0, high=-75.0
+2025-03-12 19:51:18,238 - DEBUG - Determined alert level: Low for current_val: -10.0
+2025-03-12 19:51:18,240 - DEBUG - Triggered travel percent alert: Travel Percent Liquid ALERT: Bitcoin Long (Wallet: TestWallet) - Travel% = -10.00%, Level = Low
+2025-03-12 19:51:18,243 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos_travel_medium_disabled): current_travel_percent = -55.0
+2025-03-12 19:51:18,243 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos_travel_medium_disabled", "current_travel_percent": -55.0, "wallet_name": "TestWallet"}
+2025-03-12 19:51:18,243 - DEBUG - Negative config used: {'enabled': True, 'low': -5.0, 'medium': -50.0, 'high': -75.0, 'low_notifications': {'call': True, 'sms': False, 'email': False}, 'medium_notifications': {'call': False, 'sms': False, 'email': False}, 'high_notifications': {'call': True, 'sms': False, 'email': False}}
+2025-03-12 19:51:18,243 - DEBUG - Using negative thresholds: low=-5.0, medium=-50.0, high=-75.0
+2025-03-12 19:51:18,243 - DEBUG - Determined alert level: Medium for current_val: -55.0
+2025-03-12 19:51:18,243 - DEBUG - Medium-level travel percent liquid alert call notification disabled in config.
+2025-03-12 19:51:18,247 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos_travel_medium_enabled): current_travel_percent = -55.0
+2025-03-12 19:51:18,247 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos_travel_medium_enabled", "current_travel_percent": -55.0, "wallet_name": "TestWallet"}
+2025-03-12 19:51:18,247 - DEBUG - Negative config used: {'enabled': True, 'low': -5.0, 'medium': -50.0, 'high': -75.0, 'low_notifications': {'call': True, 'sms': False, 'email': False}, 'medium_notifications': {'call': True, 'sms': False, 'email': False}, 'high_notifications': {'call': True, 'sms': False, 'email': False}}
+2025-03-12 19:51:18,247 - DEBUG - Using negative thresholds: low=-5.0, medium=-50.0, high=-75.0
+2025-03-12 19:51:18,247 - DEBUG - Determined alert level: Medium for current_val: -55.0
+2025-03-12 19:51:18,247 - DEBUG - Triggered travel percent alert: Travel Percent Liquid ALERT: Bitcoin Long (Wallet: TestWallet) - Travel% = -55.00%, Level = Medium
+2025-03-12 19:51:18,251 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos2): current_travel_percent = -80.0
+2025-03-12 19:51:18,251 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos2", "current_travel_percent": -80.0, "wallet_name": "TestWallet"}
+2025-03-12 19:51:18,251 - DEBUG - Travel percent liquid alerts are disabled in config.
+2025-03-12 19:51:18,254 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos1): current_travel_percent = -80.0
+2025-03-12 19:51:18,254 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos1", "current_travel_percent": -80.0, "wallet_name": "TestWallet"}
+2025-03-12 19:51:18,254 - DEBUG - Negative config used: {'enabled': True, 'low': -5.0, 'medium': -50.0, 'high': -75.0, 'low_notifications': {'call': True, 'sms': False, 'email': False}, 'medium_notifications': {'call': True, 'sms': False, 'email': False}, 'high_notifications': {'call': True, 'sms': False, 'email': False}}
+2025-03-12 19:51:18,254 - DEBUG - Using negative thresholds: low=-5.0, medium=-50.0, high=-75.0
+2025-03-12 19:51:18,254 - DEBUG - Determined alert level: High for current_val: -80.0
+2025-03-12 19:51:18,254 - DEBUG - Triggered travel percent alert: Travel Percent Liquid ALERT: Bitcoin Long (Wallet: TestWallet) - Travel% = -80.00%, Level = High
+2025-03-12 19:51:18,257 - DEBUG - Checking travel percent for Bitcoin Long (ID: pos_missing_travel): current_travel_percent = 0.0
+2025-03-12 19:51:18,257 - DEBUG - Position Data: {"asset_type": "BTC", "position_type": "long", "position_id": "pos_missing_travel"}
+2025-03-12 19:51:18,257 - DEBUG - Bitcoin Long (ID: pos_missing_travel): current_val 0.0 is non-negative; skipping liquid alert.
+2025-03-12 19:51:18,257 - ERROR - Bitcoin Long (ID: pos_non_numeric_travel): Error converting travel percent: could not convert string to float: 'bad_value'

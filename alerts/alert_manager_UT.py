@@ -35,7 +35,6 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 # Import the AlertManager and trigger_twilio_flow from your module.
 from alerts.alert_manager import AlertManager, trigger_twilio_flow
 
-
 # --- Dummy Implementations for Testing ---
 
 class DummyDataLocker:
@@ -43,7 +42,6 @@ class DummyDataLocker:
     A dummy DataLocker for unit testing.
     Simulates reading positions, alerts, and latest prices.
     """
-
     def __init__(self):
         self.positions = []
         self.alerts = []
@@ -61,22 +59,17 @@ class DummyDataLocker:
     def get_db_connection(self):
         return None
 
-
 class DummyCalcServices:
     """Dummy CalcServices that does nothing."""
     pass
-
 
 # Override the trigger_twilio_flow for testing so that it doesn't call the real Twilio API.
 def dummy_trigger_twilio_flow(custom_message: str, twilio_config: dict) -> str:
     return "DUMMY_TWILIO_SID"
 
-
 # Monkey-patch the trigger_twilio_flow function in the AlertManager module for tests.
 import alert_manager
-
 alert_manager.trigger_twilio_flow = dummy_trigger_twilio_flow
-
 
 # --- Unit Test Cases ---
 
@@ -91,10 +84,10 @@ class TestAlertManager(unittest.TestCase):
       - Blast alerts (enabled/disabled)
       - Price alerts
       - Notification (call) triggering
-
+      - **Configuration Merge:** Verifies that alert_limits.json is merged correctly.
+      
     A dummy DataLocker is injected to simulate controlled scenarios.
     """
-
     def setUp(self):
         # Create a temporary configuration dict simulating alert_limits.json settings.
         self.dummy_config = {
@@ -292,7 +285,7 @@ class TestAlertManager(unittest.TestCase):
         self.assertIn("Profit ALERT", result, "Low-level profit alert should trigger if call is enabled.")
 
     def test_profit_alert_low_disabled(self):
-        """Test profit alert at Low level when call notifications are disabled, even if SMS/email are True."""
+        """Test profit alert at Low level when call notifications are disabled."""
         position = {
             "asset_type": "ETH",
             "position_type": "short",
@@ -403,8 +396,7 @@ class TestAlertManager(unittest.TestCase):
             "current_travel_percent": -55.0,
             "wallet_name": "TestWallet"
         }
-        self.alert_manager.config["alert_ranges"]["travel_percent_liquid_ranges"]["medium_notifications"][
-            "call"] = False
+        self.alert_manager.config["alert_ranges"]["travel_percent_liquid_ranges"]["medium_notifications"]["call"] = False
         result = self.alert_manager.check_travel_percent_liquid(position)
         self.assertEqual(result, "", "Medium-level travel alert should NOT trigger if call is disabled.")
 
@@ -441,19 +433,12 @@ class TestAlertManager(unittest.TestCase):
         self.alert_manager.data_locker.positions = [
             {"asset_type": "BTC", "position_type": "long", "profit": 10.0, "current_travel_percent": -80.0}
         ]
-        # We'll run check_alerts and see if any alerts appear in the logs or returned messages.
-        # Because monitor_enabled=False, we expect no triggers.
-        # We'll verify by hooking into the aggregator logic.
         self.alert_manager.suppressed_count = 0
         self.alert_manager.check_alerts()
-        # If the monitor is disabled, we expect "No Alerts Found" or "Monitor disabled" logs, but no triggered alerts.
-        # There's no direct aggregator result to check, so we rely on the code returning no triggers.
-        # We can confirm by the suppressed_count not incrementing from zero or similar logic if needed.
         self.assertEqual(self.alert_manager.suppressed_count, 0, "Should remain 0 because no alerts are triggered.")
 
     def test_cooldown_suppression(self):
         """Test that an alert triggered once is suppressed if triggered again within the cooldown period."""
-        # Set a non-zero cooldown to test the suppression.
         self.alert_manager.cooldown = 999999
         position = {
             "asset_type": "ETH",
@@ -461,16 +446,13 @@ class TestAlertManager(unittest.TestCase):
             "position_id": "pos_cooldown",
             "profit": 5.0
         }
-        # First check should trigger the alert.
         result1 = self.alert_manager.check_profit(position)
         self.assertIn("Profit ALERT", result1, "First profit check should trigger alert.")
-        # Second check should be suppressed because of the high cooldown.
         result2 = self.alert_manager.check_profit(position)
         self.assertEqual(result2, "", "Second profit check should be suppressed by cooldown.")
 
     def test_negative_profit_no_alert(self):
         """Test that negative or zero profit does not trigger a profit alert."""
-        # Negative profit
         position_neg = {
             "asset_type": "ETH",
             "position_type": "short",
@@ -479,8 +461,6 @@ class TestAlertManager(unittest.TestCase):
         }
         result_neg = self.alert_manager.check_profit(position_neg)
         self.assertEqual(result_neg, "", "Negative profit should not trigger a profit alert.")
-
-        # Zero profit
         position_zero = {
             "asset_type": "ETH",
             "position_type": "short",
@@ -492,17 +472,13 @@ class TestAlertManager(unittest.TestCase):
 
     def test_travel_percent_missing(self):
         """Test that no travel alert is triggered if current_travel_percent is missing or non-numeric."""
-        # Missing field
         pos_missing = {
             "asset_type": "BTC",
             "position_type": "long",
             "position_id": "pos_missing_travel"
-            # no 'current_travel_percent' key
         }
         result_missing = self.alert_manager.check_travel_percent_liquid(pos_missing)
         self.assertEqual(result_missing, "", "Missing travel percent should not trigger an alert.")
-
-        # Non-numeric
         pos_non_numeric = {
             "asset_type": "BTC",
             "position_type": "long",
@@ -517,13 +493,10 @@ class TestAlertManager(unittest.TestCase):
         Test partial/invalid config for profit_ranges or travel_percent_liquid_ranges.
         This ensures that if keys are missing, we fail gracefully or trigger no alerts.
         """
-        # Remove the 'profit_ranges' entirely
         del self.alert_manager.config["alert_ranges"]["profit_ranges"]
         pos = {"asset_type": "ETH", "position_type": "short", "profit": 5.0}
         result = self.alert_manager.check_profit(pos)
         self.assertEqual(result, "", "Missing profit_ranges config => no alert triggered (fails gracefully).")
-
-        # Remove the 'travel_percent_liquid_ranges' entirely
         del self.alert_manager.config["alert_ranges"]["travel_percent_liquid_ranges"]
         pos2 = {"asset_type": "BTC", "position_type": "long", "current_travel_percent": -80.0}
         result2 = self.alert_manager.check_travel_percent_liquid(pos2)
@@ -532,7 +505,7 @@ class TestAlertManager(unittest.TestCase):
     def test_price_alert_not_triggered(self):
         """
         Test that a price alert is not triggered if the condition isn't met.
-        e.g. we want 'ABOVE' 120 but the price is 100 => no alert
+        e.g. 'ABOVE' 120 but the price is 100 => no alert
         """
         dummy_alert = {
             "alert_type": "PRICE_THRESHOLD",
@@ -548,17 +521,48 @@ class TestAlertManager(unittest.TestCase):
         results = self.alert_manager.check_price_alerts()
         self.assertFalse(results, "No price alert should be triggered if price < trigger_value.")
 
+    def test_alert_config_merge(self):
+        """
+        Test that the alert configuration is merged with alert_limits.json correctly.
+        This ensures that the 'alert_ranges' section is not empty and includes travel_percent_liquid_ranges.
+        """
+        self.assertIn("alert_ranges", self.alert_manager.config,
+                      "Alert ranges should be present after merging.")
+        tpl_config = self.alert_manager.config["alert_ranges"].get("travel_percent_liquid_ranges", {})
+        self.assertNotEqual(tpl_config, {}, "Travel percent liquid ranges config should not be empty after merge.")
+        self.assertEqual(tpl_config.get("enabled"), True, "Travel percent liquid ranges should be enabled per alert_limits.json.")
+        self.assertEqual(tpl_config.get("low"), -5.0, "Low threshold should be -5.0 as per alert_limits.json.")
+        # Also check a profit_ranges value from alert_limits.json override if present.
+        profit_config = self.alert_manager.config.get("alert_ranges", {}).get("profit_ranges", {})
+        # From alert_limits.json, profit_ranges enabled is false.
+        self.assertEqual(profit_config.get("enabled"), False,
+                         "Profit ranges should be disabled as per alert_limits.json.")
+
+    # -------------------------------------------------------------------------
+    # Additional Tests for Extra Coverage
+    # -------------------------------------------------------------------------
+    def test_missing_alert_ranges_in_main_config(self):
+        """
+        Test that if the main config does not have an 'alert_ranges' key,
+        the alert_limits.json values are still merged in.
+        """
+        # Simulate a main config with no alert_ranges.
+        self.alert_manager.config = {}
+        config_manager = self.alert_manager.__class__.__init__.__globals__['UnifiedConfigManager'](self.temp_config_file.name)
+        alert_limits = config_manager.load_alert_limits(ALERT_LIMITS_PATH)
+        if alert_limits and "alert_ranges" in alert_limits:
+            merged_alerts = alert_limits["alert_ranges"]
+            self.alert_manager.config["alert_ranges"] = merged_alerts
+        self.assertIn("alert_ranges", self.alert_manager.config,
+                      "Alert ranges should be merged even if missing in main config.")
+        tpl_config = self.alert_manager.config["alert_ranges"].get("travel_percent_liquid_ranges", {})
+        self.assertNotEqual(tpl_config, {}, "Merged alert_ranges should include travel_percent_liquid_ranges.")
 
 # --- Main Test Runner with HTML Report and Pie Chart Generation ---
 
 if __name__ == '__main__':
-    # Create test suite from all test cases.
     suite = unittest.TestLoader().loadTestsFromTestCase(TestAlertManager)
-
-    # Set report directory to the same directory as this test file.
     report_dir = os.path.dirname(os.path.abspath(__file__))
-
-    # Run tests with HtmlTestRunner, using higher verbosity for more detail.
     runner = HtmlTestRunner.HTMLTestRunner(
         output=report_dir,
         report_title="AlertManager Unit Test Report",
@@ -567,8 +571,6 @@ if __name__ == '__main__':
         verbosity=2
     )
     result = runner.run(suite)
-
-    # Generate a pie chart for success/failure rate.
     successes = result.testsRun - len(result.failures) - len(result.errors)
     failures = len(result.failures) + len(result.errors)
     labels = ['Successes', 'Failures']
@@ -581,6 +583,5 @@ if __name__ == '__main__':
     pie_chart_file = os.path.join(report_dir, "test_results_pie.png")
     plt.savefig(pie_chart_file)
     plt.close()
-
     print(f"HTML test report generated at: {os.path.join(report_dir, 'AlertManager_Test_Report.html')}")
     print(f"Pie chart image generated at: {pie_chart_file}")
