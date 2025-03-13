@@ -78,7 +78,7 @@ def check_heartbeat():
     elapsed_minutes = (now - last_update).seconds // 60
 
     if now - last_update > timedelta(minutes=THRESHOLD_MINUTES):
-        alert_msg = (f"\033[91mWatchdog alert: No heartbeat update for {elapsed_minutes} minutes! "
+        alert_msg = (f"\033[91m Oh Shit Alert: No heartbeat update for {elapsed_minutes} minutes! "
                      f"Notifications: email to {email_recipient}, SMS to {sms_recipient}\033[0m")
         clean_alert_msg = strip_ansi_codes(alert_msg)
         if alert_monitor_enabled:
