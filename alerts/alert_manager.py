@@ -82,7 +82,7 @@ class AlertManager:
     }
 
     def __init__(self, db_path: Optional[str] = None, poll_interval: int = 60, config_path: Optional[str] = None):
-        # Set default paths if none provided.
+        # Set default paths if not provided.
         if db_path is None:
             db_path = str(DB_PATH)
         if config_path is None:
@@ -91,11 +91,11 @@ class AlertManager:
         self.poll_interval = poll_interval
         self.config_path = config_path
 
-        # Initialize internal state dictionaries.
+        # Initialize internal state.
         self.last_profit: Dict[str, str] = {}
         self.last_triggered: Dict[str, float] = {}
         self.last_call_triggered: Dict[str, float] = {}
-        self.suppressed_count = 0  # Counter for suppressed alerts
+        self.suppressed_count = 0
 
         print("Initializing AlertManager...")  # Debug print
 
@@ -107,9 +107,10 @@ class AlertManager:
         self.calc_services = CalcServices()
 
         db_conn = self.data_locker.get_db_connection()
+        from config.unified_config_manager import UnifiedConfigManager
         config_manager = UnifiedConfigManager(self.config_path, db_conn=db_conn)
 
-        # Load the main configuration from the JSON file.
+        # Load the main configuration.
         try:
             self.config = config_manager.load_config()
             u_logger.log_operation(
@@ -127,33 +128,32 @@ class AlertManager:
             )
             self.config = {}
 
-        # Reload configuration to get the latest settings.
+        # Reload configuration to ensure the latest settings.
         self.config = config_manager.load_config()
 
-        # *** Merge alert limits from alert_limits.json into the main configuration ***
+        # Directly load alert limits from file and merge into configuration.
         try:
-            alert_limits = config_manager.load_alert_limits(ALERT_LIMITS_PATH)
-            if alert_limits and "alert_ranges" in alert_limits:
-                from config.unified_config_manager import deep_merge_dicts
-                merged_alerts = deep_merge_dicts(self.config.get("alert_ranges", {}), alert_limits["alert_ranges"])
-                self.config["alert_ranges"] = merged_alerts
+            with open(str(ALERT_LIMITS_PATH), "r", encoding="utf-8") as f:
+                alert_limits = json.load(f)
+            if "alert_ranges" in alert_limits:
+                self.config["alert_ranges"] = alert_limits["alert_ranges"]
                 u_logger.log_operation(
                     operation_type="Alert Config Merge",
-                    primary_text="Merged alert_limits.json into main config successfully.",
+                    primary_text="Alert limits loaded directly from file and merged successfully.",
                     source="AlertManager",
                     file="alert_manager"
                 )
             else:
                 u_logger.log_operation(
                     operation_type="Alert Config Merge",
-                    primary_text="No alert limits found in alert_limits.json to merge.",
+                    primary_text="No alert_ranges found in alert_limits.json.",
                     source="AlertManager",
                     file="alert_manager"
                 )
         except Exception as merge_exc:
             u_logger.log_operation(
                 operation_type="Alert Config Merge",
-                primary_text=f"Failed to merge alert limits: {merge_exc}",
+                primary_text=f"Failed to load alert limits from file: {merge_exc}",
                 source="AlertManager",
                 file="alert_manager"
             )

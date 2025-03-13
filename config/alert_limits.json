@@ -130,13 +130,13 @@
       "enabled": true,
       "low": -5.0,
       "low_notifications": {
-        "call": false,
+        "call": true,
         "sms": true,
         "email": false
       },
       "medium": -50.0,
       "medium_notifications": {
-        "call": false,
+        "call": true,
         "sms": false,
         "email": false
       },
@@ -148,17 +148,17 @@
       }
     },
     "travel_percent_profit_ranges": {
-      "enabled": false,
-      "low": -5.0,
+      "enabled": true,
+      "low": -5.456,
       "medium": -50.0,
       "high": -100.0,
       "low_notifications": {
-        "call": false,
-        "sms": false,
+        "call": true,
+        "sms": true,
         "email": false
       },
       "medium_notifications": {
-        "call": false,
+        "call": true,
         "sms": false,
         "email": false
       },

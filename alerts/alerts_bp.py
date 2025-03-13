@@ -159,8 +159,8 @@ def update_alert_config_route():
         logger.debug("Parsed Nested Form Data (converted):\n%s", json.dumps(nested_update, indent=2))
         config_mgr.update_alert_config(nested_update)
         logger.debug("update_alert_config() called successfully with merged data.")
-        op_logger.log("Alerts configuration updated successfully", source="System",
-                      operation_type="Alerts Config Successful", file_name=str(ALERT_LIMITS_PATH))
+      #  op_logger.log("Alerts configuration updated successfully", source="System",
+              #        operation_type="Alerts Config Successful", file_name=str(ALERT_LIMITS_PATH))
         updated_config = UnifiedConfigManager(str(ALERT_LIMITS_PATH)).load_config()
         logger.debug("New Config Loaded After Update:\n%s", json.dumps(updated_config, indent=2))
         formatted_table = format_alert_config_table(updated_config.get("alert_ranges", {}))
