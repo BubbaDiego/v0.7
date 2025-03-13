@@ -136,7 +136,7 @@
       },
       "medium": -50.0,
       "medium_notifications": {
-        "call": true,
+        "call": false,
         "sms": false,
         "email": false
       },
@@ -158,7 +158,7 @@
         "email": false
       },
       "medium_notifications": {
-        "call": true,
+        "call": false,
         "sms": false,
         "email": false
       },
@@ -178,7 +178,7 @@
       },
       "medium": 2.0,
       "medium_notifications": {
-        "call": true,
+        "call": false,
         "sms": false,
         "email": false
       },

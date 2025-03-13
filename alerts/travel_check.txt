@@ -1,0 +1,15 @@
+2025-03-12 17:06:18,640 - DEBUG - Checking travel percent for Bitcoin Short (ID: FfrwvedUR8wfQcpy5HpaNttvQDC9pEiDPvNHHaQeZiPB): current_travel_percent = -47.29
+2025-03-12 17:06:18,640 - DEBUG - Position Data: {"id": "FfrwvedUR8wfQcpy5HpaNttvQDC9pEiDPvNHHaQeZiPB", "asset_type": "BTC", "position_type": "Short", "entry_price": 82344.22, "liquidation_price": 85107.05, "current_travel_percent": -47.29, "value": 185.05, "collateral": 338.66, "size": 9339.12, "leverage": 27.57, "wallet_name": "R2Vault", "last_updated": "2025-03-12T15:48:39", "alert_reference_id": null, "hedge_buddy_id": null, "current_price": 0.0, "liquidation_distance": null, "heat_index": 0.0, "current_heat_index": 0.0, "pnl_after_fees_usd": -160.15}
+2025-03-12 17:06:18,643 - DEBUG - Negative config used: {}
+2025-03-12 17:06:18,643 - DEBUG - Using negative thresholds: low=-10.0, medium=-60.0, high=-75.0
+2025-03-12 17:06:18,643 - DEBUG - Determined alert level: Low for current_val: -47.29
+2025-03-12 17:06:18,643 - DEBUG - Triggered travel percent alert: Travel Percent Liquid ALERT: Bitcoin Short (Wallet: R2Vault) - Travel% = -47.29%, Level = Low
+2025-03-12 18:24:15,604 - DEBUG - Checking travel percent for Bitcoin Short (ID: FfrwvedUR8wfQcpy5HpaNttvQDC9pEiDPvNHHaQeZiPB): current_travel_percent = -59.08
+2025-03-12 18:24:15,604 - DEBUG - Position Data: {"id": "FfrwvedUR8wfQcpy5HpaNttvQDC9pEiDPvNHHaQeZiPB", "asset_type": "BTC", "position_type": "Short", "entry_price": 82525.97, "liquidation_price": 84360.91, "current_travel_percent": -59.08, "value": 115.72, "collateral": 264.62, "size": 10611.41, "leverage": 40.09, "wallet_name": "R2Vault", "last_updated": "2025-03-12T18:03:47", "alert_reference_id": null, "hedge_buddy_id": null, "current_price": 0.0, "liquidation_distance": null, "heat_index": 0.0, "current_heat_index": 0.0, "pnl_after_fees_usd": -156.33}
+2025-03-12 18:24:15,604 - DEBUG - Negative config used: {}
+2025-03-12 18:24:15,604 - DEBUG - Using negative thresholds: low=-10.0, medium=-60.0, high=-75.0
+2025-03-12 18:24:15,604 - DEBUG - Determined alert level: Low for current_val: -59.08
+2025-03-12 18:24:15,604 - DEBUG - Triggered travel percent alert: Travel Percent Liquid ALERT: Bitcoin Short (Wallet: R2Vault) - Travel% = -59.08%, Level = Low
+2025-03-12 18:24:15,604 - DEBUG - Checking travel percent for Bitcoin Long (ID: 9Vc3YqjzsNMenfSFMZL6sNURqPC9dyBkzM28CPyLfpn5): current_travel_percent = 0.89
+2025-03-12 18:24:15,604 - DEBUG - Position Data: {"id": "9Vc3YqjzsNMenfSFMZL6sNURqPC9dyBkzM28CPyLfpn5", "asset_type": "BTC", "position_type": "Long", "entry_price": 83490.56, "liquidation_price": 81662.6, "current_travel_percent": 0.89, "value": 126.17, "collateral": 121.63, "size": 4944.78, "leverage": 40.65, "wallet_name": "R2Vault", "last_updated": "2025-03-12T18:04:24", "alert_reference_id": null, "hedge_buddy_id": null, "current_price": 0.0, "liquidation_distance": null, "heat_index": 0.0, "current_heat_index": 0.0, "pnl_after_fees_usd": 1.08}
+2025-03-12 18:24:15,604 - DEBUG - Bitcoin Long (ID: 9Vc3YqjzsNMenfSFMZL6sNURqPC9dyBkzM28CPyLfpn5): current_val 0.89 is non-negative; skipping liquid alert.

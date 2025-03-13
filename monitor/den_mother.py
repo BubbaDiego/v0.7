@@ -98,7 +98,7 @@ def check_heartbeat():
                                          source="system", file="den_mother")
     else:
         success_msg = f"\033[92mHeartbeat is fresh. Last update was {elapsed_minutes} minutes ago.\033[0m"
-        unified_logger.log_operation("Heartbeat Success", success_msg, source="system", file="den_mother")
+        unified_logger.log_operation("Heartbeat Detected", success_msg, source="system", file="den_mother")
 
 
 if __name__ == '__main__':

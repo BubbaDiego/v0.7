@@ -1,0 +1,4 @@
+{"message": "Price Update Failed", "source": "User", "operation_type": "Price Update Failed", "timestamp": "3-4-25 : 7:08:25 AM", "file_name": "price_monitor.py"}
+{"message": "Price Update Failed", "source": "User", "operation_type": "Price Update Failed", "timestamp": "3-4-25 : 1:18:17 PM", "file_name": "price_monitor.py"}
+{"message": "Price Update Failed", "source": "User", "operation_type": "Price Update Failed", "timestamp": "3-4-25 : 1:19:23 PM", "file_name": "price_monitor.py"}
+{"message": "Price Update Failed", "source": "User", "operation_type": "Price Update Failed", "timestamp": "3-4-25 : 1:19:28 PM", "file_name": "price_monitor.py"}

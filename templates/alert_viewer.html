@@ -1,0 +1,110 @@
+import json
+import logging
+
+class AlertViewer:
+    """
+    Reads each JSON line from alert_manager_log.txt and renders each alert entry as HTML.
+    The styling is tailored for the dashboard:
+      - Uses Bootstrap alert classes:
+          • "alert-danger" for Price Alerts,
+          • "alert-warning" for Profit Alerts,
+          • "alert-success" for Travel Percent Alerts,
+          • "alert-info" for Liquid Distance Alerts,
+          • "alert-secondary" for defaults.
+      - Icons:
+          • Uses a bullhorn (📢) for general alerts.
+          • Uses a liquid drop (💧) for liquid distance alerts.
+      - Splits the timestamp into date and time.
+    """
+    def __init__(self, log_filename: str):
+        self.log_filename = log_filename
+        self.entries = []
+        try:
+            with open(log_filename, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        record = json.loads(line)
+                        self.entries.append(record)
+                    except json.JSONDecodeError:
+                        # Skip non-JSON lines.
+                        pass
+        except Exception as e:
+            logging.error("Error reading alert log file: %s", e)
+
+    def get_bootstrap_class(self, alert_type: str) -> str:
+        alert_type_lower = alert_type.lower()
+        if "price" in alert_type_lower:
+            return "alert-danger"
+        elif "profit" in alert_type_lower:
+            return "alert-warning"
+        elif "travel" in alert_type_lower:
+            return "alert-success"
+        elif "liquid" in alert_type_lower or "distance" in alert_type_lower:
+            return "alert-info"
+        else:
+            return "alert-secondary"
+
+    def get_icon(self, alert_type: str) -> str:
+        alert_type_lower = alert_type.lower()
+        if "liquid" in alert_type_lower or "distance" in alert_type_lower:
+            return "💧"
+        else:
+            return "📢"
+
+    def format_alert_entry(self, record: dict) -> str:
+        # Retrieve details from the record with sensible defaults.
+        alert_type = record.get("alert_type", "General Alert")
+        message = record.get("message", "")
+        timestamp = record.get("timestamp", "")
+        source = record.get("source", "")
+
+        # Split timestamp into date and time if possible.
+        if " : " in timestamp:
+            date_part, time_part = timestamp.split(" : ", 1)
+        else:
+            date_part, time_part = timestamp, ""
+
+        bs_class = self.get_bootstrap_class(alert_type)
+        icon = self.get_icon(alert_type)
+
+        # Build HTML for one alert entry.
+        html = f'''
+<div class="alert {bs_class} d-flex align-items-center justify-content-between mb-1"
+     style="margin: 2px 0; padding: 3px; white-space: nowrap;">
+  <!-- Left: Icon and Bold Message -->
+  <div style="flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis;">
+    <span style="font-size: 1rem;">{icon}</span> <strong>{message}</strong>
+  </div>
+  <!-- Center: Source -->
+  <div style="flex: 0 0 auto; margin: 0 16px; text-align: center; min-width: 30px;">
+    <span style="font-size: 1rem;">{source}</span>
+  </div>
+  <!-- Right: Date and Time -->
+  <div style="flex: 0 0 auto; text-align: right; min-width: 120px;">
+    <span style="font-weight: normal;">{date_part}</span>&nbsp;
+    <span style="font-weight: bold;">{time_part}</span>
+  </div>
+</div>
+'''
+        return html.strip()
+
+    def get_html(self) -> str:
+        # Reverse entries so that the newest entries come first.
+        entries_html = [self.format_alert_entry(record) for record in self.entries[::-1]]
+        container_html = f'''
+<div style="background-color: #8f9ddd; padding: 8px;">
+  {''.join(entries_html)}
+</div>
+'''
+        return container_html.strip()
+
+# Example usage:
+if __name__ == "__main__":
+    viewer = AlertViewer("alert_manager_log.txt")
+    html_output = viewer.get_html()
+    print("----- Alert Viewer HTML Output -----")
+    print(html_output)
+    print("--------------------------------------")

@@ -105,14 +105,14 @@ class AlertManager:
             u_logger.log_operation(
                 operation_type="Alerts Configuration Successful",
                 primary_text="Initial Alert Config Loaded Successfully",
-                source="AlertManager",
+                source="System",
                 file="alert_manager"
             )
         except Exception as e:
             u_logger.log_operation(
                 operation_type="Alert Configuration Failed",
                 primary_text="Initial Alert Config Load Failed",
-                source="AlertManager",
+                source="System",
                 file="alert_manager"
             )
             self.config = {}  # fallback to an empty config if needed
