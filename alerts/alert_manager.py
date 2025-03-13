@@ -26,6 +26,10 @@ if not travel_logger.handlers:
     travel_logger.addHandler(travel_handler)
 
 def trigger_twilio_flow(custom_message: str, twilio_config: dict) -> str:
+    """
+    Trigger a Twilio Studio Flow to send a call notification.
+    This function assumes that the twilio_config contains all required fields.
+    """
     account_sid = twilio_config.get("account_sid")
     auth_token = twilio_config.get("auth_token")
     flow_sid = twilio_config.get("flow_sid")
@@ -117,7 +121,7 @@ class AlertManager:
             )
             self.config = {}  # fallback to an empty config if needed
 
-
+        # Reload config to ensure latest settings
         self.config = config_manager.load_config()
         self.twilio_config = self.config.get("twilio_config", {})
         self.cooldown = self.config.get("alert_cooldown_seconds", 900)
@@ -208,7 +212,7 @@ class AlertManager:
                 source=source or "",
                 file="alert_manager"
             )
-            # Combine alerts and trigger the call
+            # Combine alerts and trigger the call notification if enabled.
             combined_message = "\n".join(aggregated_alerts)
             self.send_call(combined_message, "all_alerts")
         elif self.suppressed_count > 0:
@@ -242,29 +246,45 @@ class AlertManager:
         travel_logger.debug(f"Checking travel percent for {asset_full} {position_type} (ID: {position_id}): current_travel_percent = {current_val}")
         travel_logger.debug(f"Position Data: {json.dumps(pos)}")
 
-        # For travel percent liquid, we expect negative values (0 to -100)
+        # Only process negative travel percentages (liquid alerts)
         if current_val >= 0:
             travel_logger.debug(f"{asset_full} {position_type} (ID: {position_id}): current_val {current_val} is non-negative; skipping liquid alert.")
             return ""
-        else:
-            neg_config = self.config.get("alert_ranges", {}).get("travel_percent_liquid_ranges", {})
-            travel_logger.debug(f"Negative config used: {neg_config}")
-            low = float(neg_config.get("low", -10.0))
-            medium = float(neg_config.get("medium", -60.0))
-            high = float(neg_config.get("high", -75.0))
-            travel_logger.debug(f"Using negative thresholds: low={low}, medium={medium}, high={high}")
 
-            if current_val <= high:
-                alert_level = "High"
-            elif current_val <= medium:
-                alert_level = "Medium"
-            elif current_val <= low:
-                alert_level = "Low"
-            else:
-                travel_logger.debug(f"{asset_full} {position_type} (ID: {position_id}): Travel percent ({current_val}) does not trigger a negative alert.")
-                return ""
+        # Check if travel percent liquid alerts are enabled in config.
+        neg_config = self.config.get("alert_ranges", {}).get("travel_percent_liquid_ranges", {})
+        if not neg_config.get("enabled", False):
+            travel_logger.debug("Travel percent liquid alerts are disabled in config.")
+            return ""
+
+        travel_logger.debug(f"Negative config used: {neg_config}")
+        low = float(neg_config.get("low", -10.0))
+        medium = float(neg_config.get("medium", -60.0))
+        high = float(neg_config.get("high", -75.0))
+        travel_logger.debug(f"Using negative thresholds: low={low}, medium={medium}, high={high}")
+
+        if current_val <= high:
+            alert_level = "High"
+        elif current_val <= medium:
+            alert_level = "Medium"
+        elif current_val <= low:
+            alert_level = "Low"
+        else:
+            travel_logger.debug(f"{asset_full} {position_type} (ID: {position_id}): Travel percent ({current_val}) does not trigger a negative alert.")
+            return ""
 
         travel_logger.debug(f"Determined alert level: {alert_level} for current_val: {current_val}")
+
+        # Check if the call notification for this alert level is enabled.
+        if alert_level == "High" and not neg_config.get("high_notifications", {}).get("call", False):
+            travel_logger.debug("High-level travel percent liquid alert call notification disabled in config.")
+            return ""
+        elif alert_level == "Medium" and not neg_config.get("medium_notifications", {}).get("call", False):
+            travel_logger.debug("Medium-level travel percent liquid alert call notification disabled in config.")
+            return ""
+        elif alert_level == "Low" and not neg_config.get("low_notifications", {}).get("call", False):
+            travel_logger.debug("Low-level travel percent liquid alert call notification disabled in config.")
+            return ""
 
         key = f"{asset_full}-{position_type}-{position_id}-travel-{alert_level}"
         now = time.time()
@@ -321,6 +341,18 @@ class AlertManager:
             current_level = "Medium"
         else:
             current_level = "High"
+
+        # Check if profit alerts for this level are enabled.
+        if current_level == "High" and not profit_config.get("high_notifications", {}).get("call", False):
+            logging.debug("High-level profit alert call notification disabled in config.")
+            return ""
+        elif current_level == "Medium" and not profit_config.get("medium_notifications", {}).get("call", False):
+            logging.debug("Medium-level profit alert call notification disabled in config.")
+            return ""
+        elif current_level == "Low" and not profit_config.get("low_notifications", {}).get("call", False):
+            logging.debug("Low-level profit alert call notification disabled in config.")
+            return ""
+
         profit_key = f"profit-{asset_full}-{position_type}-{position_id}"
         last_level = self.last_profit.get(profit_key, "none")
         level_order = {"none": 0, "Low": 1, "Medium": 2, "High": 3}
@@ -347,6 +379,10 @@ class AlertManager:
         return msg
 
     def check_swing_alert(self, pos: Dict[str, Any]) -> str:
+        # Optional: Check configuration for swing alerts; default to enabled if not configured.
+        swing_config = self.config.get("alert_ranges", {}).get("swing_alerts", {"enabled": True, "notifications": {"call": True}})
+        if not swing_config.get("enabled", True):
+            return ""
         asset = pos.get("asset_type", "???").upper()
         asset_full = self.ASSET_FULL_NAMES.get(asset, asset)
         position_type = pos.get("position_type", "").capitalize()
@@ -360,6 +396,10 @@ class AlertManager:
         swing_threshold = hardcoded_swing_thresholds.get(asset, 0)
         logging.debug(f"[Swing Alert Debug] {asset_full} {position_type} (ID: {position_id}): Actual Value = {current_value:.2f} vs Hardcoded Swing Threshold = {swing_threshold:.2f}")
         if current_value >= swing_threshold:
+            # Check if call notification for swing alerts is enabled, if specified.
+            if not swing_config.get("notifications", {}).get("call", True):
+                logging.debug("Swing alert call notification disabled in config.")
+                return ""
             key = f"swing-{asset_full}-{position_type}-{position_id}"
             now = time.time()
             last_time = self.last_triggered.get(key, 0)
@@ -370,6 +410,10 @@ class AlertManager:
         return ""
 
     def check_blast_alert(self, pos: Dict[str, Any]) -> str:
+        # Optional: Check configuration for blast alerts; default to enabled if not configured.
+        blast_config = self.config.get("alert_ranges", {}).get("blast_alerts", {"enabled": True, "notifications": {"call": True}})
+        if not blast_config.get("enabled", True):
+            return ""
         asset = pos.get("asset_type", "???").upper()
         asset_full = self.ASSET_FULL_NAMES.get(asset, asset)
         position_type = pos.get("position_type", "").capitalize()
@@ -386,6 +430,10 @@ class AlertManager:
             return ""
         logging.debug(f"[Blast Alert Debug] {asset_full} {position_type} (ID: {position_id}): Actual Value = {current_value:.2f} vs Blast Threshold = {blast_threshold:.2f}")
         if current_value >= blast_threshold:
+            # Check if call notification for blast alerts is enabled, if specified.
+            if not blast_config.get("notifications", {}).get("call", True):
+                logging.debug("Blast alert call notification disabled in config.")
+                return ""
             key = f"blast-{asset_full}-{position_type}-{position_id}"
             now = time.time()
             last_time = self.last_triggered.get(key, 0)
@@ -444,6 +492,10 @@ class AlertManager:
         return msg
 
     def send_call(self, body: str, key: str):
+        """
+        Sends a call notification via Twilio if call notifications are enabled.
+        This method checks the refractory period before triggering the call.
+        """
         now = time.time()
         last_call_time = self.last_call_triggered.get(key, 0)
         if now - last_call_time < self.call_refractory_period:
