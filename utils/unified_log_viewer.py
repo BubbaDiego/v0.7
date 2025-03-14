@@ -51,10 +51,6 @@ DEFAULT_SOURCE_ICON = "❓"
 
 
 def fuzzy_find_log_type(message_text: str, config_keys) -> str:
-    """
-    Uses fuzzy matching to determine the best matching log type from the provided keys.
-    """
-
     def normalize(s):
         return re.sub(r'[^a-z0-9]+', '', s.lower())
 
@@ -75,8 +71,7 @@ def fuzzy_find_log_type(message_text: str, config_keys) -> str:
 class UnifiedLogViewer:
     def __init__(self, log_files):
         """
-        Initialize the log viewer with a list of log file paths.
-        We will simply flip the order of the log entries as read from the file.
+        log_files: list of file paths to unified log files.
         """
         self.log_files = log_files
         self.entries = []
@@ -84,14 +79,6 @@ class UnifiedLogViewer:
         self._read_logs()
 
     def _read_logs(self):
-        """
-        Read each log file and load each line (expected to be JSON) into self.entries.
-        Instead of attempting to parse timestamps and sort them (which has been problematic),
-        we simply reverse the order of entries at the end.
-
-        Note: This assumes that the log file writes entries in chronological order (oldest first).
-        Flipping the list will then show the newest entries at the top.
-        """
         for file_path in self.log_files:
             if os.path.exists(file_path):
                 with open(file_path, "r", encoding="utf-8") as f:
@@ -103,19 +90,11 @@ class UnifiedLogViewer:
                             record = json.loads(line)
                         except json.JSONDecodeError:
                             record = {"raw": line}
-                        # Optionally, you can still attempt to parse timestamps if needed,
-                        # but for now it is not used for ordering.
                         self.entries.append(record)
-
-        # FLIP THE ORDER: Reverse the entries list.
-        # This simple fix ensures that if your file is written oldest-first,
-        # reversing the list will show the newest entries at the top.
+        # Reverse the order so that the newest entries appear first.
         self.entries.reverse()
 
     def get_line_color_class(self, color_name: str) -> str:
-        """
-        Map a color name to its corresponding CSS class.
-        """
         color_map = {
             "red": "alert-danger",
             "blue": "alert-primary",
@@ -126,9 +105,6 @@ class UnifiedLogViewer:
         return color_map.get(color_name.lower(), "alert-secondary")
 
     def get_alert_status_line(self, record: dict) -> str:
-        """
-        Generate an HTML status line if the log record contains 'alert_details'.
-        """
         details = record.get("alert_details")
         if not details:
             return ""
@@ -163,9 +139,7 @@ class UnifiedLogViewer:
         return html
 
     def get_display_string(self, record: dict) -> str:
-        """
-        Generate the HTML display string for a single log record.
-        """
+        # Determine configuration mapping based on log type.
         if record.get("log_type", "").lower() == "alert":
             config_source = ALERT_VIEW_CONFIG
         else:
@@ -192,37 +166,54 @@ class UnifiedLogViewer:
         source_text = record.get("source", "")
         source_icon = SOURCE_ICONS.get(source_text.lower(), DEFAULT_SOURCE_ICON) if source_text else DEFAULT_SOURCE_ICON
 
-        # Use the original timestamp string (if available)
+        # Use record.filename if available; otherwise fallback to 'unknown_file.py'
+        file_name = record.get("file", record.get("filename", "unknown_file.py"))
+        if not file_name:
+            file_name = "unknown_file.py"
+        # Include line number if available.
+        lineno = record.get("lineno", "")
+        file_line_info = file_name
+        if lineno:
+            file_line_info += f":{lineno}"
+
         ts = record.get("timestamp", "")
         if " : " in ts:
             date_part, time_part = ts.split(" : ", 1)
         else:
             date_part, time_part = ts, ""
 
-        line_html = f"""
-    <div class="alert {line_color_class} d-flex align-items-center justify-content-between mb-1" 
-         style="margin: 2px 0; padding: 3px; white-space: nowrap;">
-      <div style="flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis;">
-        <span style="font-size: 1rem;">{icon}</span>
-        <strong>{display_text}</strong>
-      </div>
-      <div style="flex: 0 0 auto; margin: 0 16px; text-align: center; min-width: 30px;">
-        <span style="font-size: 1rem;">{source_icon}</span>
-      </div>
-      <div style="flex: 0 0 auto; text-align: right; min-width: 120px;">
-        <span style="font-weight: normal;">{date_part}</span>
-        &nbsp;
-        <span style="font-weight: bold;">{time_part}</span>
-      </div>
-    </div>
-    """.strip()
-        return line_html
+        # Build the main HTML with an onclick to toggle extra details; include file and line info in the title.
+        let_main_html = (
+            f'<div class="alert {line_color_class} d-flex align-items-center justify-content-between mb-1" '
+            f'style="margin: 2px 0; padding: 3px; white-space: nowrap; cursor: pointer;" '
+            f'title="File: {file_line_info}">'
+            f'<div style="flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis;">'
+            f'<span style="font-size: 1rem;">{icon}</span> '
+            f'<strong>{display_text}</strong>'
+            f'</div>'
+            f'<div style="flex: 0 0 auto; margin: 0 16px; text-align: center; min-width: 30px;">'
+            f'<span style="font-size: 1rem;">{source_icon}</span>'
+            f'</div>'
+            f'<div style="flex: 0 0 auto; text-align: right; min-width: 120px;">'
+            f'<span style="font-weight: normal;">{date_part}</span>&nbsp;'
+            f'<span style="font-weight: bold;">{time_part}</span>'
+            f'</div>'
+            f'</div>'
+        )
+
+        # If alert_details exist, create a hidden div with the details.
+        details = record.get("alert_details")
+        if details:
+            details_html = '<div class="alert-extra-details" style="display: none; margin: 5px 0; padding: 5px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 4px;">'
+            details_html += '<ul style="margin:0; padding: 0 15px;">'
+            for k, value in details.items():
+                details_html += f'<li><strong>{k.capitalize()}:</strong> {value}</li>'
+            details_html += '</ul></div>'
+            return let_main_html + details_html
+        else:
+            return let_main_html
 
     def get_all_display_strings(self) -> str:
-        """
-        Generate and return the complete HTML for all log entries.
-        The entries are now in reversed order (newest first) by simply flipping the list.
-        """
         display_list = [self.get_display_string(e) for e in self.entries]
         final_html = f"""
 <div style="background-color: white; padding: 8px;">

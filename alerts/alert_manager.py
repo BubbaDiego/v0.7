@@ -47,7 +47,7 @@ def trigger_twilio_flow(custom_message: str, twilio_config: dict) -> str:
         operation_type="Twilio Notification",
         primary_text="Twilio alert sent",
         source="system",
-        file="alert_manager"
+        file="alert_manager.py"
     )
     return execution.sid
 
@@ -113,18 +113,12 @@ class AlertManager:
         # Load the main configuration.
         try:
             self.config = config_manager.load_config()
-            u_logger.log_operation(
-                operation_type="Alerts Configuration Successful",
-                primary_text="Initial Alert Config Loaded Successfully",
-                source="System",
-                file="alert_manager"
-            )
         except Exception as e:
             u_logger.log_operation(
                 operation_type="Alert Configuration Failed",
                 primary_text="Initial Alert Config Load Failed",
                 source="System",
-                file="alert_manager"
+                file="alert_manager.py"
             )
             self.config = {}
 
@@ -141,21 +135,21 @@ class AlertManager:
                     operation_type="Alerts Configuration Successful",
                     primary_text="Alerts Config Successful",
                     source="System",
-                    file="alert_manager"
+                    file="alert_manager.py"
                 )
             else:
                 u_logger.log_operation(
                     operation_type="Alert Config Merge",
                     primary_text="No alert_ranges found in alert_limits.json.",
                     source="AlertManager",
-                    file="alert_manager"
+                    file="alert_manager.py"
                 )
         except Exception as merge_exc:
             u_logger.log_operation(
                 operation_type="Alert Config Merge",
                 primary_text=f"Failed to load alert limits from file: {merge_exc}",
                 source="AlertManager",
-                file="alert_manager"
+                file="alert_manager.py"
             )
 
         # Load communication settings and thresholds.
@@ -169,7 +163,7 @@ class AlertManager:
             operation_type="Alert Manager Initialized",
             primary_text="Alert Manager 🏃‍♂️",
             source="system",
-            file="alert_manager"
+            file="alert_manager.py"
         )
 
     def reload_config(self):
@@ -179,12 +173,18 @@ class AlertManager:
             self.config = load_config(self.config_path, db_conn)
             self.cooldown = self.config.get("alert_cooldown_seconds", 900)
             self.call_refractory_period = self.config.get("call_refractory_period", 3600)
+            u_logger.log_operation(
+                operation_type="Alerts Configuration Successful",
+                primary_text="Alerts Config Successful",
+                source="AlertManager",
+                file="alert_manager.py"
+            )
         except Exception as e:
             u_logger.log_operation(
                 operation_type="Alert Configuration Failed",
                 primary_text="Alert Config Failed",
                 source="system",
-                file="alert_manager"
+                file="alert_manager.py"
             )
 
     def run(self):
@@ -192,7 +192,7 @@ class AlertManager:
             operation_type="Monitor Loop",
             primary_text="Starting alert monitoring loop",
             source="AlertManager",
-            file="alert_manager"
+            file="alert_manager.py"
         )
         while True:
             self.check_alerts()
@@ -204,7 +204,7 @@ class AlertManager:
                 operation_type="Monitor Loop",
                 primary_text="Alert monitoring disabled",
                 source="System",
-                file="alert_manager"
+                file="alert_manager.py"
             )
             return
 
@@ -216,7 +216,7 @@ class AlertManager:
             operation_type="Alert Check",
             primary_text=f"Checking {len(positions)} positions for alerts",
             source="System",
-            file="alert_manager"
+            file="alert_manager.py"
         )
 
         for pos in positions:
@@ -240,9 +240,8 @@ class AlertManager:
                 operation_type="Alert Triggered",
                 primary_text=f"{len(aggregated_alerts)} alerts triggered",
                 source=source or "",
-                file="alert_manager"
+                file="alert_manager.py"
             )
-            # Combine alerts and trigger the call notification if enabled.
             combined_message = "\n".join(aggregated_alerts)
             self.send_call(combined_message, "all_alerts")
         elif self.suppressed_count > 0:
@@ -250,14 +249,14 @@ class AlertManager:
                 operation_type="Alert Silenced",
                 primary_text=f"{self.suppressed_count} alerts suppressed",
                 source=source or "",
-                file="alert_manager"
+                file="alert_manager.py"
             )
         else:
             u_logger.log_alert(
                 operation_type="No Alerts Found",
                 primary_text="No Alerts Found",
                 source=source or "",
-                file="alert_manager"
+                file="alert_manager.py"
             )
 
     def check_travel_percent_liquid(self, pos: Dict[str, Any]) -> str:
@@ -276,12 +275,10 @@ class AlertManager:
         travel_logger.debug(f"Checking travel percent for {asset_full} {position_type} (ID: {position_id}): current_travel_percent = {current_val}")
         travel_logger.debug(f"Position Data: {json.dumps(pos)}")
 
-        # Only process negative travel percentages (liquid alerts)
         if current_val >= 0:
             travel_logger.debug(f"{asset_full} {position_type} (ID: {position_id}): current_val {current_val} is non-negative; skipping liquid alert.")
             return ""
 
-        # Check if travel percent liquid alerts are enabled in config.
         neg_config = self.config.get("alert_ranges", {}).get("travel_percent_liquid_ranges", {})
         if not neg_config.get("enabled", False):
             travel_logger.debug("Travel percent liquid alerts are disabled in config.")
@@ -305,7 +302,6 @@ class AlertManager:
 
         travel_logger.debug(f"Determined alert level: {alert_level} for current_val: {current_val}")
 
-        # Check if the call notification for this alert level is enabled.
         if alert_level == "High" and not neg_config.get("high_notifications", {}).get("call", False):
             travel_logger.debug("High-level travel percent liquid alert call notification disabled in config.")
             return ""
@@ -328,14 +324,13 @@ class AlertManager:
         wallet_name = pos.get("wallet_name", "Unknown")
         msg = (f"Travel Percent Liquid ALERT: {asset_full} {position_type} (Wallet: {wallet_name}) - "
                f"Travel% = {current_val:.2f}%, Level = {alert_level}")
-        # Log this alert with our custom alert_details field.
         alert_details = {
             "status": alert_level,
             "type": "Travel Percent Liquid ALERT",
             "limit": f"{low}%",
             "current": f"{current_val:.2f}%"
         }
-        u_logger.logger.info(msg, extra={"source": "System", "operation_type": "Travel Percent Liquid ALERT", "log_type": "alert", "file": "alert_manager", "alert_details": alert_details})
+        u_logger.logger.info(msg, extra={"source": "System", "operation_type": "Travel Percent Liquid ALERT", "log_type": "alert", "file": "alert_manager.py", "alert_details": alert_details})
         travel_logger.debug(f"Triggered travel percent alert: {msg}")
         return msg
 
@@ -372,7 +367,6 @@ class AlertManager:
         else:
             current_level = "High"
 
-        # Check if profit alerts for this level are enabled.
         if current_level == "High" and not profit_config.get("high_notifications", {}).get("call", False):
             logging.debug("High-level profit alert call notification disabled in config.")
             return ""
@@ -398,18 +392,16 @@ class AlertManager:
         self.last_triggered[profit_key] = now
         msg = f"Profit ALERT: {asset_full} {position_type} profit of {profit_val:.2f} (Level: {current_level.upper()})"
         self.last_profit[profit_key] = current_level
-        # Log this profit alert with alert_details.
         alert_details = {
             "status": current_level,
             "type": "Profit ALERT",
             "limit": f"{low_thresh} / {med_thresh} / {high_thresh}",
             "current": f"{profit_val:.2f}"
         }
-        u_logger.logger.info(msg, extra={"source": "System", "operation_type": "Profit ALERT", "log_type": "alert", "file": "alert_manager", "alert_details": alert_details})
+        u_logger.logger.info(msg, extra={"source": "System", "operation_type": "Profit ALERT", "log_type": "alert", "file": "alert_manager.py", "alert_details": alert_details})
         return msg
 
     def check_swing_alert(self, pos: Dict[str, Any]) -> str:
-        # Optional: Check configuration for swing alerts; default to enabled if not configured.
         swing_config = self.config.get("alert_ranges", {}).get("swing_alerts", {"enabled": True, "notifications": {"call": True}})
         if not swing_config.get("enabled", True):
             return ""
@@ -426,7 +418,6 @@ class AlertManager:
         swing_threshold = hardcoded_swing_thresholds.get(asset, 0)
         logging.debug(f"[Swing Alert Debug] {asset_full} {position_type} (ID: {position_id}): Actual Value = {current_value:.2f} vs Hardcoded Swing Threshold = {swing_threshold:.2f}")
         if current_value >= swing_threshold:
-            # Check if call notification for swing alerts is enabled, if specified.
             if not swing_config.get("notifications", {}).get("call", True):
                 logging.debug("Swing alert call notification disabled in config.")
                 return ""
@@ -440,7 +431,6 @@ class AlertManager:
         return ""
 
     def check_blast_alert(self, pos: Dict[str, Any]) -> str:
-        # Optional: Check configuration for blast alerts; default to enabled if not configured.
         blast_config = self.config.get("alert_ranges", {}).get("blast_alerts", {"enabled": True, "notifications": {"call": True}})
         if not blast_config.get("enabled", True):
             return ""
@@ -460,7 +450,6 @@ class AlertManager:
             return ""
         logging.debug(f"[Blast Alert Debug] {asset_full} {position_type} (ID: {position_id}): Actual Value = {current_value:.2f} vs Blast Threshold = {blast_threshold:.2f}")
         if current_value >= blast_threshold:
-            # Check if call notification for blast alerts is enabled, if specified.
             if not blast_config.get("notifications", {}).get("call", True):
                 logging.debug("Blast alert call notification disabled in config.")
                 return ""
@@ -534,7 +523,7 @@ class AlertManager:
                 operation_type="Alert Silenced",
                 primary_text=f"Alert Silenced: {key}",
                 source="AlertManager",
-                file="alert_manager"
+                file="alert_manager.py"
             )
             return
         try:
@@ -545,7 +534,7 @@ class AlertManager:
                 operation_type="Notification Failed",
                 primary_text=f"Notification Failed: {key}",
                 source="AlertManager",
-                file="alert_manager"
+                file="alert_manager.py"
             )
             logging.error("Error sending call for '%s'.", key, exc_info=True)
 
@@ -572,4 +561,6 @@ manager = AlertManager(
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
+    # Updated startup call to include the filename automatically via __file__
+
     manager.run()

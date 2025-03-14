@@ -22,6 +22,7 @@ class JsonFormatter(logging.Formatter):
         return s
 
     def format(self, record):
+        # Add the line number and alert_details (if any) to the log record output.
         record_dict = {
             "timestamp": self.formatTime(record, self.datefmt),
             "name": record.name,
@@ -30,7 +31,9 @@ class JsonFormatter(logging.Formatter):
             "source": getattr(record, "source", ""),
             "operation_type": getattr(record, "operation_type", ""),
             "file": getattr(record, "file", ""),
-            "log_type": getattr(record, "log_type", "")
+            "log_type": getattr(record, "log_type", ""),
+            "alert_details": getattr(record, "alert_details", {}),
+            "line": record.lineno
         }
         return json.dumps(record_dict, ensure_ascii=False)
 
@@ -105,11 +108,11 @@ if __name__ == "__main__":
         operation_type="Launch pad started",
         primary_text="Launch Pad - Started",
         source="System Start-up",
-        file="launch_pad"
+        file="launch_pad.py"
     )
     u_logger.log_alert(
         operation_type="Alert Check",
         primary_text="Checking 5 positions for alerts",
         source="System",
-        file="alert_manager"
+        file="alert_manager.py"
     )
