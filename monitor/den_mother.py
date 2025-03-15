@@ -48,6 +48,7 @@ unified_logger = UnifiedLogger()
 def log_operation_with_line(operation_type: str, primary_text: str, source: str, file: str):
     """
     Helper function that logs an operation along with the caller's line number.
+    Uses 'caller_lineno' to avoid overwriting the reserved 'lineno' attribute.
     """
     # Get the line number of the caller from the previous stack frame.
     lineno = inspect.currentframe().f_back.f_lineno
@@ -56,7 +57,7 @@ def log_operation_with_line(operation_type: str, primary_text: str, source: str,
         "operation_type": operation_type,
         "log_type": "operation",
         "file": file,
-        "lineno": lineno
+        "caller_lineno": lineno  # Renamed to avoid conflict with LogRecord's 'lineno'
     }
     unified_logger.logger.info(primary_text, extra=extra)
     unified_logger.logger.debug("Logged operation entry with operation_type=%s at line %s", operation_type, lineno)
@@ -70,12 +71,11 @@ def check_heartbeat():
             # Parse the heartbeat timestamp as an offset-aware datetime.
             last_update = datetime.fromisoformat(timestamp_str)
     except Exception as e:
-        alert_msg = (f"\033[91mWatchdog alert: Could not read heartbeat file: {e}. "
-                     f"Notifications: email to {email_recipient}, SMS to {sms_recipient}\033[0m")
-        # Strip ANSI codes before sending to Twilio
-        clean_alert_msg = strip_ansi_codes(alert_msg)
+        alert_msg = (
+            f"\033[91mWatchdog alert: Could not read heartbeat file: {e}. "
+            f"Notifications: email to {email_recipient}, SMS to {sms_recipient}\033[0m"
+        )
         log_operation_with_line("Heartbeat Failure", alert_msg, source="system", file="den_mother.py")
-        # Trigger Twilio notification:
         try:
             twilio_config = sonic_config.get("twilio_config", {})
             alert_msg_for_twilio = "Watchdog alert: Could not read heartbeat file: " + str(e)
@@ -89,15 +89,15 @@ def check_heartbeat():
                                     source="system", file="den_mother.py")
         return
 
-    # Use timezone-aware current UTC time.
     now = datetime.now(timezone.utc)
     elapsed_minutes = (now - last_update).seconds // 60
 
     if now - last_update > timedelta(minutes=THRESHOLD_MINUTES):
-        alert_msg = (f"\033[91mOh Shit Alert: No heartbeat update for {elapsed_minutes} minutes! "
-                     f"Notifications: email to {email_recipient}, SMS to {sms_recipient}\033[0m")
+        alert_msg = (
+            f"\033[91mOh Shit Alert: No heartbeat update for {elapsed_minutes} minutes! "
+            f"Notifications: email to {email_recipient}, SMS to {sms_recipient}\033[0m"
+        )
         log_operation_with_line("Heartbeat Failure", alert_msg, source="system", file="den_mother.py")
-        # Also send a Twilio alert here if needed:
         try:
             twilio_config = sonic_config.get("twilio_config", {})
             clean_alert_msg = strip_ansi_codes(alert_msg)
@@ -110,18 +110,24 @@ def check_heartbeat():
                                     f"Twilio notification failed: {twilio_e}",
                                     source="system", file="den_mother.py")
     else:
-        success_msg = f"\033[92mHeartbeat is fresh. Last update was {elapsed_minutes} minutes ago.\033[0m"
+        success_msg = (
+            f"\033[92mHeartbeat is fresh. Last update was {elapsed_minutes} minutes ago.\033[0m"
+        )
         log_operation_with_line("Heartbeat Detected", success_msg, source="monitor", file="den_mother.py")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Watchdog Script for Jupiter Monitor.")
-    parser.add_argument('--mode', choices=['oneshot', 'monitor'], default='oneshot',
-                        help="Mode of operation: 'oneshot' to run once, 'monitor' to continuously check.")
+    parser.add_argument(
+        '--mode',
+        choices=['oneshot', 'monitor'],
+        default='oneshot',
+        help="Mode of operation: 'oneshot' to run once, 'monitor' to continuously check."
+    )
     args = parser.parse_args()
 
     if args.mode == 'oneshot':
         check_heartbeat()
-    else:  # Monitor mode: continuously check
+    else:
         while True:
             check_heartbeat()
             time.sleep(300)  # Check every 5 minutes

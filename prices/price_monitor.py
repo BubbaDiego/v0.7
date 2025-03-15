@@ -15,7 +15,7 @@ from prices.coinmarketcap_fetcher import fetch_current_cmc, fetch_historical_cmc
 from prices.coinpaprika_fetcher import fetch_current_coinpaprika
 from prices.binance_fetcher import fetch_current_binance
 from config.config_constants import DB_PATH, CONFIG_PATH
-from utils.operations_manager import OperationsLogger
+
 
 logger = logging.getLogger("PriceMonitorLogger")
 

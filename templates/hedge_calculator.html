@@ -4,126 +4,187 @@
 
 {% block content %}
 <div class="container-fluid">
+  <!-- Main Card for Hedge Calculator -->
   <div class="card shadow mb-4">
-    <!-- Updated card header: background uses card title color, text uses text color -->
+    <!-- Overall Card Header -->
     <div class="card-header" style="background-color: var(--card-title-color);">
-      <h4 class="mb-0" style="color: var(--text-color);">🦔 Hedge Calculator</h4>
+      <h4 class="mb-0 text-center" style="color: var(--text-color);">🦔 Hedge Calculator</h4>
     </div>
     <div class="card-body">
-      <!-- Position Selection -->
+
+      <!-- Row 1: Input Boxes for Long & Short Positions -->
       <div class="row mb-4">
-        <!-- Long Position Selection -->
-        <div class="col-md-6">
-          <h5>📈 Long Position</h5>
-          <div class="mb-2">
-            <label for="longSelect" class="form-label"><strong>Select Long Position</strong></label>
-            <select id="longSelect" class="form-select" onchange="loadLongPosition()">
-              <option value="" disabled selected>-- Choose a Position --</option>
-              {% for pos in long_positions %}
-              <option value="{{ pos.id }}">{{ pos.asset_type }} - Entry: ${{ pos.entry_price }}</option>
-              {% endfor %}
-            </select>
+        <!-- Long Position Input Box -->
+        <div class="col-md-6 mb-3">
+          <div class="border rounded p-3" style="background-color: #f7f7f7;">
+            <h5 class="text-center">📈 Long Position</h5>
+            <div class="mb-2">
+              <label for="longSelect" class="form-label"><strong>Select Long Position</strong></label>
+              <select id="longSelect" class="form-select" onchange="loadLongPosition()">
+                <option value="" disabled selected>-- Choose a Position --</option>
+                {% for pos in long_positions %}
+                <option value="{{ pos.id }}">{{ pos.asset_type }} - Entry: ${{ pos.entry_price }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-2">
+              <label for="longEntry" class="form-label"><strong>Entry Price ($):</strong></label>
+              <input type="number" id="longEntry" class="form-control" step="any" readonly />
+            </div>
+            <div class="mb-2">
+              <label for="longSize" class="form-label"><strong>Position Size (USD):</strong></label>
+              <input type="number" id="longSize" class="form-control" step="any" />
+            </div>
+            <!-- Hidden fields -->
+            <input type="hidden" id="longCollateral" />
+            <input type="hidden" id="longLiqPrice" />
           </div>
-          <div class="mb-2">
-            <label for="longEntry" class="form-label"><strong>Entry Price ($):</strong></label>
-            <input type="number" id="longEntry" class="form-control" step="any" readonly />
-          </div>
-          <div class="mb-2">
-            <label for="longSize" class="form-label"><strong>Position Size (USD):</strong></label>
-            <input type="number" id="longSize" class="form-control" step="any" />
-          </div>
-          <!-- Hidden fields for collateral and liquidation price -->
-          <input type="hidden" id="longCollateral" />
-          <input type="hidden" id="longLiqPrice" />
         </div>
-        <!-- Short Position Selection -->
-        <div class="col-md-6">
-          <h5>📉 Short Position</h5>
-          <div class="mb-2">
-            <label for="shortSelect" class="form-label"><strong>Select Short Position</strong></label>
-            <select id="shortSelect" class="form-select" onchange="loadShortPosition()">
-              <option value="" disabled selected>-- Choose a Position --</option>
-              {% for pos in short_positions %}
-              <option value="{{ pos.id }}">{{ pos.asset_type }} - Entry: ${{ pos.entry_price }}</option>
-              {% endfor %}
-            </select>
+        <!-- Short Position Input Box -->
+        <div class="col-md-6 mb-3">
+          <div class="border rounded p-3" style="background-color: #f7f7f7;">
+            <h5 class="text-center">📉 Short Position</h5>
+            <div class="mb-2">
+              <label for="shortSelect" class="form-label"><strong>Select Short Position</strong></label>
+              <select id="shortSelect" class="form-select" onchange="loadShortPosition()">
+                <option value="" disabled selected>-- Choose a Position --</option>
+                {% for pos in short_positions %}
+                <option value="{{ pos.id }}">{{ pos.asset_type }} - Entry: ${{ pos.entry_price }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-2">
+              <label for="shortEntry" class="form-label"><strong>Entry Price ($):</strong></label>
+              <input type="number" id="shortEntry" class="form-control" step="any" readonly />
+            </div>
+            <div class="mb-2">
+              <label for="shortSize" class="form-label"><strong>Position Size (USD):</strong></label>
+              <input type="number" id="shortSize" class="form-control" step="any" />
+            </div>
+            <!-- Hidden fields -->
+            <input type="hidden" id="shortCollateral" />
+            <input type="hidden" id="shortLiqPrice" />
           </div>
-          <div class="mb-2">
-            <label for="shortEntry" class="form-label"><strong>Entry Price ($):</strong></label>
-            <input type="number" id="shortEntry" class="form-control" step="any" readonly />
-          </div>
-          <div class="mb-2">
-            <label for="shortSize" class="form-label"><strong>Position Size (USD):</strong></label>
-            <input type="number" id="shortSize" class="form-control" step="any" />
-          </div>
-          <input type="hidden" id="shortCollateral" />
-          <input type="hidden" id="shortLiqPrice" />
         </div>
       </div>
+
       <hr />
 
-      <!-- Fee Variable Input -->
-      <div class="mb-4">
-        <label for="feePercentage" class="form-label"><strong>Fee (% of total size):</strong></label>
-        <input type="number" id="feePercentage" class="form-control" step="any" value="0.2" />
-      </div>
-
-      <!-- Slider Section -->
-      <div class="mb-4">
-        <h5>Simulated Price</h5>
-        <div class="position-relative">
-          <!-- Slider input; range extends 5% beyond liquidation prices -->
-          <input type="range" id="priceSlider" step="0.1" class="form-range" oninput="sliderChanged()" />
-          <!-- Marker for current simulated price -->
-          <div id="currentMarker" class="position-absolute" style="top: -35px; left: 0; font-size: 0.9rem; background-color: rgba(0,0,0,0.5); color: #fff; padding: 2px 4px; border-radius: 4px;">
-            Price: $0.00
+      <!-- Row 2: Full-width Modifiers Box -->
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="border rounded p-3" style="background-color: #f7f7f7;">
+            <h5 class="text-center"><strong>⚙️ Modifiers 🔧</strong></h5>
+            <div class="mb-3">
+              <label for="feePercentage" class="form-label"><strong>💲 Fee (% of total size):</strong></label>
+              <input type="number" id="feePercentage" class="form-control" step="any" value="0.2" />
+            </div>
+            <div class="mb-3">
+              <label for="targetMarginInput" class="form-label"><strong>📏 Target Safety Margin (%)</strong></label>
+              <input type="number" id="targetMarginInput" class="form-control" step="0.1" value="15">
+              <small class="form-text text-muted">
+                Desired safety margin. 15 means a 15% buffer above liquidation.
+              </small>
+            </div>
+            <div class="mb-3">
+              <label for="adjustmentFactorInput" class="form-label"><strong>🔧 Adjustment Factor</strong></label>
+              <input type="number" id="adjustmentFactorInput" class="form-control" step="0.1" value="1">
+              <small class="form-text text-muted">
+                Scales the recommended additional position size.
+              </small>
+            </div>
           </div>
-          <!-- Markers for entry prices -->
-          <div id="entryMarkerLong" class="position-absolute" style="top: -20px; left: 0; font-size: 0.8rem; color: var(--text-color);">
-            Long Entry: $0.00
-          </div>
-          <div id="entryMarkerShort" class="position-absolute" style="top: -20px; left: 0; font-size: 0.8rem; color: var(--text-color);">
-            Short Entry: $0.00
-          </div>
-        </div>
-        <div class="slider-output mt-2" id="sliderValueDisplay">$0.00</div>
-        <!-- Price tick references with liquid drop icons -->
-        <div class="d-flex justify-content-between mt-2">
-          <span id="tickLeft"><small class="fs-6">💧 Long Liquidation: $0.00</small></span>
-          <span id="tickRight"><small class="fs-6">💧 Short Liquidation: $0.00</small></span>
         </div>
       </div>
 
-      <!-- Output Section -->
+      <!-- Row 3: Full-width Simulated Price Box -->
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="border rounded p-3" style="background-color: #f7f7f7;">
+            <div class="d-flex justify-content-center mb-2">
+              <h5 class="text-center"><strong>💵 Simulated Price</strong></h5>
+            </div>
+            <div class="position-relative" style="min-height: 100px;">
+              <!-- Price Slider -->
+              <input type="range" id="priceSlider" step="0.1" class="form-range" oninput="sliderChanged()" />
+
+              <!-- Current Price Marker (floating on the slider) -->
+              <div id="currentMarker"
+                   class="position-absolute"
+                   style="top: -35px; left: 0; font-size: 1rem; font-weight: bold; background-color: rgba(0,0,0,0.5);
+                          color: #fff; padding: 4px 6px; border-radius: 4px; pointer-events: none;">
+                Price: $0.00
+              </div>
+
+              <!-- Long Entry Marker (above the slider) -->
+              <div id="entryMarkerLong"
+                   class="position-absolute"
+                   style="top: -65px; left: 0; font-size: 0.85rem; font-weight: bold; background-color: rgba(0,0,0,0.5);
+                          color: #fff; padding: 3px 5px; border-radius: 4px; pointer-events: none;">
+                Long Entry: $0.00
+              </div>
+
+              <!-- Short Entry Marker (below the slider) -->
+              <div id="entryMarkerShort"
+                   class="position-absolute"
+                   style="top: 30px; left: 0; font-size: 0.85rem; font-weight: bold; background-color: rgba(0,0,0,0.5);
+                          color: #fff; padding: 3px 5px; border-radius: 4px; pointer-events: none;">
+                Short Entry: $0.00
+              </div>
+
+              <!-- Liquidation Labels (bold, larger text) -->
+              <div class="d-flex justify-content-between" style="margin-top: -5px;">
+                <span id="tickLeft" style="font-size: 1.1rem; font-weight: bold;">
+                  <small>💧 Long Liquidation: $0.00</small>
+                </span>
+                <span id="tickRight" style="font-size: 1.1rem; font-weight: bold;">
+                  <small>💧 Short Liquidation: $0.00</small>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 4: Output Section for Long & Short Positions -->
       <div class="row">
         <div class="col-md-6">
           <div id="longOutputCard" class="card shadow-sm">
             <div class="card-body fs-5">
-              <h6 class="fw-bold">📈 Long Position</h6>
+              <h6 class="text-center fw-bold" style="font-size: 1.5rem;">📈 Long Position</h6>
               <p id="longSimPrice"><strong>Simulated Price: $-</strong></p>
-              <!-- New collateral display -->
               <p id="longCollateralDisplay"><strong>Collateral: $-</strong></p>
               <p id="longValue"><strong>Position Value: $-</strong></p>
               <p id="longPnL"><strong>P&L: $-</strong></p>
               <p id="longSLTP"><strong>Recommended: -</strong></p>
+              <p id="longSafetyMargin"><strong>Safety Margin: --</strong></p>
             </div>
           </div>
         </div>
         <div class="col-md-6">
           <div id="shortOutputCard" class="card shadow-sm">
             <div class="card-body fs-5">
-              <h6 class="fw-bold">📉 Short Position</h6>
+              <h6 class="text-center fw-bold" style="font-size: 1.5rem;">📉 Short Position</h6>
               <p id="shortSimPrice"><strong>Simulated Price: $-</strong></p>
-              <!-- New collateral display -->
               <p id="shortCollateralDisplay"><strong>Collateral: $-</strong></p>
               <p id="shortValue"><strong>Position Value: $-</strong></p>
               <p id="shortPnL"><strong>P&L: $-</strong></p>
               <p id="shortSLTP"><strong>Recommended: -</strong></p>
+              <p id="shortSafetyMargin"><strong>Safety Margin: --</strong></p>
             </div>
           </div>
         </div>
       </div>
-      <!-- End Output Section -->
+
+      <!-- Row 5: Hedge Recommendation Output -->
+      <div class="row mt-4">
+        <div class="col">
+          <div id="hedgeRecommendation" class="alert alert-info text-center">
+            <strong>Recommended Adjustment:</strong> N/A
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -132,7 +193,7 @@
   let referencePrice = 100;
   let longLiquidation = null;
   let shortLiquidation = null;
-  // Provided positions from backend
+
   const longPositions = {{ long_positions|tojson }};
   const shortPositions = {{ short_positions|tojson }};
 
@@ -189,19 +250,21 @@
   function sliderChanged() {
     const slider = document.getElementById("priceSlider");
     const simPrice = parseFloat(slider.value);
-    document.getElementById("sliderValueDisplay").textContent = "$" + simPrice.toFixed(2);
     updatePriceTicks();
     updateMarker();
     updateLong(simPrice);
     updateShort(simPrice);
+    updateHedgeRecommendations(simPrice);
   }
 
   function updatePriceTicks() {
     if (longLiquidation) {
-      document.getElementById("tickLeft").innerHTML = "<small class='fs-6'>💧 Long Liquidation: $" + parseFloat(longLiquidation).toFixed(2) + "</small>";
+      document.getElementById("tickLeft").innerHTML =
+        "<small>💧 Long Liquidation: $" + parseFloat(longLiquidation).toFixed(2) + "</small>";
     }
     if (shortLiquidation) {
-      document.getElementById("tickRight").innerHTML = "<small class='fs-6'>💧 Short Liquidation: $" + parseFloat(shortLiquidation).toFixed(2) + "</small>";
+      document.getElementById("tickRight").innerHTML =
+        "<small>💧 Short Liquidation: $" + parseFloat(shortLiquidation).toFixed(2) + "</small>";
     }
   }
 
@@ -210,7 +273,8 @@
     const simPrice = parseFloat(slider.value);
     const sliderRect = slider.getBoundingClientRect();
     const sliderWidth = sliderRect.width;
-    const markerLeft = ((simPrice - parseFloat(slider.min)) / (parseFloat(slider.max) - parseFloat(slider.min))) * sliderWidth;
+    const markerLeft = ((simPrice - parseFloat(slider.min)) /
+                       (parseFloat(slider.max) - parseFloat(slider.min))) * sliderWidth;
     const marker = document.getElementById("currentMarker");
     marker.style.left = markerLeft + "px";
     marker.innerHTML = "Price: $" + simPrice.toFixed(2);
@@ -223,42 +287,50 @@
     const longEntry = parseFloat(document.getElementById("longEntry").value) || 0;
     const shortEntry = parseFloat(document.getElementById("shortEntry").value) || 0;
     if (longEntry) {
-      const longMarkerLeft = ((longEntry - parseFloat(slider.min)) / (parseFloat(slider.max) - parseFloat(slider.min))) * sliderWidth;
+      const longMarkerLeft = ((longEntry - parseFloat(slider.min)) /
+                             (parseFloat(slider.max) - parseFloat(slider.min))) * sliderWidth;
       const longMarker = document.getElementById("entryMarkerLong");
       longMarker.style.left = longMarkerLeft + "px";
       longMarker.innerHTML = "Long Entry: $" + longEntry.toFixed(2);
     }
     if (shortEntry) {
-      const shortMarkerLeft = ((shortEntry - parseFloat(slider.min)) / (parseFloat(slider.max) - parseFloat(slider.min))) * sliderWidth;
+      const shortMarkerLeft = ((shortEntry - parseFloat(slider.min)) /
+                              (parseFloat(slider.max) - parseFloat(slider.min))) * sliderWidth;
       const shortMarker = document.getElementById("entryMarkerShort");
       shortMarker.style.left = shortMarkerLeft + "px";
       shortMarker.innerHTML = "Short Entry: $" + shortEntry.toFixed(2);
     }
   }
 
-  // For LONG: netValue = collateral + (simPrice - entryPrice) * tokenCount - feeCost
+  // Update Long Output
   function updateLong(simPrice) {
     const longEntry = parseFloat(document.getElementById("longEntry").value) || 0;
     const longSize = parseFloat(document.getElementById("longSize").value) || 0;
     const collateral = parseFloat(document.getElementById("longCollateral").value) || 0;
     const fee = parseFloat(document.getElementById("feePercentage").value) || 0;
-    let tokenCount = 0, pnl = 0, feeCost = 0, netValue = collateral;
-    if (longEntry > 0) {
-      tokenCount = longSize / longEntry;
-      pnl = (simPrice - longEntry) * tokenCount;
-      feeCost = (fee / 100) * longSize;
-      netValue += pnl - feeCost;
-    }
-    // If liquidated
+    let tokenCount = longEntry > 0 ? longSize / longEntry : 0;
+    let pnl = (simPrice - longEntry) * tokenCount;
+    let feeCost = (fee / 100) * longSize;
+    let netValue = collateral + pnl - feeCost;
+
     if (longLiquidation && simPrice <= longLiquidation) {
-      document.getElementById("longSimPrice").innerHTML = "<strong>Simulated Price: $" + simPrice.toFixed(2) + " (Liquidated)</strong>";
-      document.getElementById("longCollateralDisplay").innerHTML = "<strong>Collateral: $" + collateral.toFixed(2) + "</strong>";
-      document.getElementById("longValue").innerHTML = "<strong>Position Value: $0.00</strong>";
-      document.getElementById("longPnL").innerHTML = "<strong>P&L: <span class='text-secondary'>Liquidated</span></strong>";
-      document.getElementById("longSLTP").innerHTML = "<strong>Recommended: Liquidated</strong>";
-      document.getElementById("longOutputCard").className = "card shadow-sm bg-secondary bg-opacity-25 border border-2 border-secondary";
+      document.getElementById("longSimPrice").innerHTML =
+        "<strong>Simulated Price: $" + simPrice.toFixed(2) + " (Liquidated)</strong>";
+      document.getElementById("longCollateralDisplay").innerHTML =
+        "<strong>Collateral: $" + collateral.toFixed(2) + "</strong>";
+      document.getElementById("longValue").innerHTML =
+        "<strong>Position Value: $0.00</strong>";
+      document.getElementById("longPnL").innerHTML =
+        "<strong>P&L: <span class='text-secondary'>Liquidated</span></strong>";
+      document.getElementById("longSLTP").innerHTML =
+        "<strong>Recommended: Liquidated</strong>";
+      document.getElementById("longSafetyMargin").innerHTML =
+        "<strong>Safety Margin: 0%</strong>";
+      document.getElementById("longOutputCard").className =
+        "card shadow-sm bg-secondary bg-opacity-25 border border-2 border-secondary";
       return;
     }
+
     let recommendation = "";
     let recIcon = "";
     if (simPrice < longEntry) {
@@ -271,47 +343,64 @@
       recommendation = "At Entry Price";
       recIcon = "— ";
     }
-    document.getElementById("longSimPrice").innerHTML = "<strong>Simulated Price: $" + simPrice.toFixed(2) + "</strong>";
-    // Update collateral display
-    document.getElementById("longCollateralDisplay").innerHTML = "<strong>Collateral: $" + collateral.toFixed(2) + "</strong>";
-    document.getElementById("longValue").innerHTML = "<strong>Position Value: $" + netValue.toFixed(2) + "</strong>";
-    let pnlColor = "";
-    let bgClass = "";
-    if (pnl - feeCost > 0) {
-      pnlColor = "text-success";
-      bgClass = "bg-success bg-opacity-10 border border-2 border-success";
-    } else if (pnl - feeCost < 0) {
-      pnlColor = "text-danger";
-      bgClass = "bg-danger bg-opacity-10 border border-2 border-danger";
-    }
-    document.getElementById("longPnL").innerHTML = "<strong>P&L: <span class='" + pnlColor + "'>" + ((pnl - feeCost) >= 0 ? "▲ " : "▼ ") + "$" + (pnl - feeCost).toFixed(2) + "</span></strong>";
-    document.getElementById("longSLTP").innerHTML = "<strong>Recommended: " + recIcon + recommendation + "</strong>";
-    document.getElementById("longOutputCard").className = "card shadow-sm " + bgClass;
+    document.getElementById("longSimPrice").innerHTML =
+      "<strong>Simulated Price: $" + simPrice.toFixed(2) + "</strong>";
+    document.getElementById("longCollateralDisplay").innerHTML =
+      "<strong>Collateral: $" + collateral.toFixed(2) + "</strong>";
+    document.getElementById("longValue").innerHTML =
+      "<strong>Position Value: $" + netValue.toFixed(2) + "</strong>";
+
+    let pnlColor = (pnl - feeCost) > 0 ? "text-success" : "text-danger";
+    let bgClass = (pnl - feeCost) > 0
+      ? "bg-success bg-opacity-10 border border-2 border-success"
+      : "bg-danger bg-opacity-10 border border-2 border-danger";
+    document.getElementById("longPnL").innerHTML =
+      "<strong>P&L: <span class='" + pnlColor + "'>" +
+      ((pnl - feeCost) >= 0 ? "▲ " : "▼ ") +
+      "$" + (pnl - feeCost).toFixed(2) + "</span></strong>";
+    document.getElementById("longSLTP").innerHTML =
+      "<strong>Recommended: " + recIcon + recommendation + "</strong>";
+    document.getElementById("longOutputCard").className =
+      "card shadow-sm " + bgClass;
+
+    // Safety Margin Calculation
+    const longLiq = longLiquidation || (longEntry * 0.8);
+    const longRange = longEntry - longLiq;
+    const longSafety = simPrice - longLiq;
+    const longMargin = longRange > 0 ? longSafety / longRange : 0;
+    document.getElementById("longSafetyMargin").innerHTML =
+      "<strong>Safety Margin: " + (longMargin * 100).toFixed(1) + "%</strong>";
   }
 
-  // For SHORT: netValue = collateral + (entryPrice - simPrice) * tokenCount - feeCost
+  // Update Short Output
   function updateShort(simPrice) {
     const shortEntry = parseFloat(document.getElementById("shortEntry").value) || 0;
     const shortSize = parseFloat(document.getElementById("shortSize").value) || 0;
     const collateral = parseFloat(document.getElementById("shortCollateral").value) || 0;
     const fee = parseFloat(document.getElementById("feePercentage").value) || 0;
-    let tokenCount = 0, pnl = 0, feeCost = 0, netValue = collateral;
-    if (shortEntry > 0) {
-      tokenCount = shortSize / shortEntry;
-      pnl = (shortEntry - simPrice) * tokenCount;
-      feeCost = (fee / 100) * shortSize;
-      netValue += pnl - feeCost;
-    }
-    // If liquidated
+    let tokenCount = shortEntry > 0 ? shortSize / shortEntry : 0;
+    let pnl = (shortEntry - simPrice) * tokenCount;
+    let feeCost = (fee / 100) * shortSize;
+    let netValue = collateral + pnl - feeCost;
+
     if (shortLiquidation && simPrice >= shortLiquidation) {
-      document.getElementById("shortSimPrice").innerHTML = "<strong>Simulated Price: $" + simPrice.toFixed(2) + " (Liquidated)</strong>";
-      document.getElementById("shortCollateralDisplay").innerHTML = "<strong>Collateral: $" + collateral.toFixed(2) + "</strong>";
-      document.getElementById("shortValue").innerHTML = "<strong>Position Value: $0.00</strong>";
-      document.getElementById("shortPnL").innerHTML = "<strong>P&L: <span class='text-secondary'>Liquidated</span></strong>";
-      document.getElementById("shortSLTP").innerHTML = "<strong>Recommended: Liquidated</strong>";
-      document.getElementById("shortOutputCard").className = "card shadow-sm bg-secondary bg-opacity-25 border border-2 border-secondary";
+      document.getElementById("shortSimPrice").innerHTML =
+        "<strong>Simulated Price: $" + simPrice.toFixed(2) + " (Liquidated)</strong>";
+      document.getElementById("shortCollateralDisplay").innerHTML =
+        "<strong>Collateral: $" + collateral.toFixed(2) + "</strong>";
+      document.getElementById("shortValue").innerHTML =
+        "<strong>Position Value: $0.00</strong>";
+      document.getElementById("shortPnL").innerHTML =
+        "<strong>P&L: <span class='text-secondary'>Liquidated</span></strong>";
+      document.getElementById("shortSLTP").innerHTML =
+        "<strong>Recommended: Liquidated</strong>";
+      document.getElementById("shortSafetyMargin").innerHTML =
+        "<strong>Safety Margin: 0%</strong>";
+      document.getElementById("shortOutputCard").className =
+        "card shadow-sm bg-secondary bg-opacity-25 border border-2 border-secondary";
       return;
     }
+
     let recommendation = "";
     let recIcon = "";
     if (simPrice > shortEntry) {
@@ -324,21 +413,73 @@
       recommendation = "At Entry Price";
       recIcon = "— ";
     }
-    document.getElementById("shortSimPrice").innerHTML = "<strong>Simulated Price: $" + simPrice.toFixed(2) + "</strong>";
-    document.getElementById("shortCollateralDisplay").innerHTML = "<strong>Collateral: $" + collateral.toFixed(2) + "</strong>";
-    document.getElementById("shortValue").innerHTML = "<strong>Position Value: $" + netValue.toFixed(2) + "</strong>";
-    let pnlColor = "";
-    let bgClass = "";
-    if (pnl - feeCost > 0) {
-      pnlColor = "text-success";
-      bgClass = "bg-success bg-opacity-10 border border-2 border-success";
-    } else if (pnl - feeCost < 0) {
-      pnlColor = "text-danger";
-      bgClass = "bg-danger bg-opacity-10 border border-2 border-danger";
+    document.getElementById("shortSimPrice").innerHTML =
+      "<strong>Simulated Price: $" + simPrice.toFixed(2) + "</strong>";
+    document.getElementById("shortCollateralDisplay").innerHTML =
+      "<strong>Collateral: $" + collateral.toFixed(2) + "</strong>";
+    document.getElementById("shortValue").innerHTML =
+      "<strong>Position Value: $" + netValue.toFixed(2) + "</strong>";
+
+    let pnlColor = (pnl - feeCost) > 0 ? "text-success" : "text-danger";
+    let bgClass = (pnl - feeCost) > 0
+      ? "bg-success bg-opacity-10 border border-2 border-success"
+      : "bg-danger bg-opacity-10 border border-2 border-danger";
+    document.getElementById("shortPnL").innerHTML =
+      "<strong>P&L: <span class='" + pnlColor + "'>" +
+      ((pnl - feeCost) >= 0 ? "▲ " : "▼ ") +
+      "$" + (pnl - feeCost).toFixed(2) + "</span></strong>";
+    document.getElementById("shortSLTP").innerHTML =
+      "<strong>Recommended: " + recIcon + recommendation + "</strong>";
+    document.getElementById("shortOutputCard").className =
+      "card shadow-sm " + bgClass;
+
+    // Safety Margin Calculation
+    const shortLiq = shortLiquidation || (shortEntry * 1.2);
+    const shortRange = shortLiq - shortEntry;
+    const shortSafety = shortLiq - simPrice;
+    const shortMargin = shortRange > 0 ? shortSafety / shortRange : 0;
+    document.getElementById("shortSafetyMargin").innerHTML =
+      "<strong>Safety Margin: " + (shortMargin * 100).toFixed(1) + "%</strong>";
+  }
+
+  // Hedge Recommendations
+  function updateHedgeRecommendations(simPrice) {
+    const targetMargin = parseFloat(document.getElementById("targetMarginInput").value) / 100;
+    const adjustmentFactor = parseFloat(document.getElementById("adjustmentFactorInput").value);
+
+    const longEntry = parseFloat(document.getElementById("longEntry").value) || 0;
+    const shortEntry = parseFloat(document.getElementById("shortEntry").value) || 0;
+    const longSize = parseFloat(document.getElementById("longSize").value) || 0;
+    const shortSize = parseFloat(document.getElementById("shortSize").value) || 0;
+    const longLiq = longLiquidation || (longEntry * 0.8);
+    const shortLiq = shortLiquidation || (shortEntry * 1.2);
+
+    // Safety margins
+    const longRange = longEntry - longLiq;
+    const shortRange = shortLiq - shortEntry;
+    const longSafety = simPrice - longLiq;
+    const shortSafety = shortLiq - simPrice;
+    const longMargin = longRange > 0 ? longSafety / longRange : 0;
+    const shortMargin = shortRange > 0 ? shortSafety / shortRange : 0;
+
+    let recommendation = "";
+    recommendation += "Long Safety Margin: " + (longMargin * 100).toFixed(1) + "%; ";
+    recommendation += "Short Safety Margin: " + (shortMargin * 100).toFixed(1) + "%.<br>";
+
+    if (shortMargin < targetMargin) {
+      const marginDeficit = targetMargin - shortMargin;
+      const recommendedNotional = shortSize * marginDeficit * adjustmentFactor;
+      recommendation += "Short side is at risk. Consider opening an additional short position of ~$" + recommendedNotional.toFixed(2);
+    } else if (longMargin < targetMargin) {
+      const marginDeficit = targetMargin - longMargin;
+      const recommendedNotional = longSize * marginDeficit * adjustmentFactor;
+      recommendation += "Long side is at risk. Consider opening an additional long position of ~$" + recommendedNotional.toFixed(2);
+    } else {
+      recommendation += "Both positions are within target safety margins. No new position recommended.";
     }
-    document.getElementById("shortPnL").innerHTML = "<strong>P&L: <span class='" + pnlColor + "'>" + ((pnl - feeCost) >= 0 ? "▲ " : "▼ ") + "$" + (pnl - feeCost).toFixed(2) + "</span></strong>";
-    document.getElementById("shortSLTP").innerHTML = "<strong>Recommended: " + recIcon + recommendation + "</strong>";
-    document.getElementById("shortOutputCard").className = "card shadow-sm " + bgClass;
+
+    document.getElementById("hedgeRecommendation").innerHTML =
+      "<strong>Recommended Adjustment:</strong> " + recommendation;
   }
 </script>
 {% endblock %}

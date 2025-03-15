@@ -127,7 +127,7 @@
       }
     },
     "travel_percent_liquid_ranges": {
-      "enabled": false,
+      "enabled": true,
       "low": -24.0,
       "low_notifications": {
         "call": true,
