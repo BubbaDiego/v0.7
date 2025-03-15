@@ -47,11 +47,16 @@ class PositionService:
             dl = DataLocker.get_instance(db_path)
             raw_positions = dl.read_positions()
             positions = []
-            for pos in raw_positions:
+          #  for pos in raw_positions:
                 # Explicitly convert sqlite3.Row to a dict using its keys.
-                pos_dict = { key: pos[key] for key in pos.keys() }
-                #enriched = PositionService.enrich_position(pos_dict)
-                positions.append(pos_dict)# enriched)
+           #     pos_dict = { key: pos[key] for key in pos.keys() }
+                # Optionally, you can enrich each position here.
+             #   positions.append(pos_dict)
+
+            for pos in raw_positions:
+                pos_dict = {key: pos[key] for key in pos.keys()}
+                enriched = PositionService.enrich_position(pos_dict)
+                positions.append(enriched)
             return positions
         except Exception as e:
             logger.error(f"Error retrieving positions: {e}", exc_info=True)
@@ -113,8 +118,7 @@ class PositionService:
                 logger.debug(f"Calculated travel_percent: {travel_percent}")
             else:
                 position['travel_percent'] = None
-                logger.debug(
-                    "Missing one of entry_price, current_price, or liquidation_price; travel_percent set to None.")
+                logger.debug("Missing one of entry_price, current_price, or liquidation_price; travel_percent set to None.")
 
             # Compute liquidation distance (absolute difference)
             liq_distance = calc.calculate_liquid_distance(
@@ -124,10 +128,10 @@ class PositionService:
             position['liquidation_distance'] = liq_distance
             logger.debug(f"Calculated liquidation_distance: {liq_distance}")
 
-            # Compute heat index
-            heat_index = calc.calculate_heat_index(position)
-            position['heat_index'] = heat_index
-            logger.debug(f"Calculated heat_index: {heat_index}")
+            # Compute composite risk index using the multiplicative model (our new composite risk index)
+            composite_risk = calc.calculate_composite_risk_index(position)
+            position["heat_index"] = composite_risk
+            logger.debug(f"Computed composite risk index (heat_index): {composite_risk}")
 
             logger.debug(f"Enriched position: {position}")
             return position
@@ -306,7 +310,7 @@ class PositionService:
                     "liquidation_distance": None,
                     "heat_index": 0.0,
                     "current_heat_index": 0.0,
-                    "pnl_after_fees_usd": float(pos.get("unrealizedPnl", 0.0)) if pos.get("unrealizedPnl") else 0.0,
+                    "pnl_after_fees_usd": float(pos.get("pnlAfterFeesUsd", 0.0)) if pos.get("pnlAfterFeesUsd") else 0.0,
                 }
                 cursor = dl.conn.cursor()
                 cursor.execute("SELECT COUNT(*) FROM positions WHERE id = ?", (pos_dict["id"],))

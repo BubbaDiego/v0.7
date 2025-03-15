@@ -72,6 +72,66 @@ class CalcServices:
             ]
         }
 
+    def calculate_composite_risk_index(self, position: dict) -> Optional[float]:
+        """
+        Calculates the composite risk index (heat index) for a given position using the multiplicative model.
+        The formula is:
+            R = (1 - NDL)^(0.45) * (Normalized Leverage)^(0.35) * (1 - Collateral Ratio)^(0.20) * 100
+        where:
+          - For a long position:
+                NDL = (current_price - liquidation_price) / (entry_price - liquidation_price)
+          - For a short position:
+                NDL = (liquidation_price - current_price) / (liquidation_price - entry_price)
+          - Normalized Leverage = leverage / 100
+          - Collateral Ratio = collateral / size (capped at 1)
+
+        Returns a score between 0 and 100, where a higher score indicates greater risk.
+        """
+        try:
+            entry_price = float(position.get("entry_price", 0.0))
+            current_price = float(position.get("current_price", 0.0))
+            liquidation_price = float(position.get("liquidation_price", 0.0))
+            collateral = float(position.get("collateral", 0.0))
+            size = float(position.get("size", 0.0))
+            leverage = float(position.get("leverage", 0.0))
+            position_type = (position.get("position_type") or "LONG").upper()
+
+            # Validate necessary values
+            if entry_price <= 0 or liquidation_price <= 0 or collateral <= 0 or size <= 0:
+                return None
+            if abs(entry_price - liquidation_price) < 1e-6:
+                return None  # Avoid division by zero
+
+            # Compute normalized distance to liquidation (NDL)
+            if position_type == "LONG":
+                ndl = (current_price - liquidation_price) / (entry_price - liquidation_price)
+            else:  # SHORT
+                ndl = (liquidation_price - current_price) / (liquidation_price - entry_price)
+            # Clamp NDL between 0 and 1
+            ndl = max(0.0, min(ndl, 1.0))
+
+            # Risk contribution from price distance
+            distance_factor = 1.0 - ndl
+
+            # Normalize leverage (cap at 100x)
+            normalized_leverage = leverage / 100.0
+
+            # Compute collateral ratio (capped at 1)
+            collateral_ratio = collateral / size
+            if collateral_ratio > 1.0:
+                collateral_ratio = 1.0
+            risk_collateral_factor = 1.0 - collateral_ratio
+
+            # Composite risk index using the multiplicative model with weights:
+            # 0.45 for distance, 0.35 for leverage, 0.20 for collateral ratio.
+            risk_index = (distance_factor ** 0.45) * (normalized_leverage ** 0.35) * (
+                        risk_collateral_factor ** 0.20) * 100.0
+
+            return round(risk_index, 2)
+        except Exception as e:
+            self.logger.error(f"Error calculating composite risk index: {e}", exc_info=True)
+            return None
+
     def calculate_value(self, position):
         # Since size is already in USD, just return it.
         size = float(position.get("size") or 0.0)

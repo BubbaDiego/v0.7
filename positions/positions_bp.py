@@ -9,10 +9,12 @@ Description:
 
 import logging
 import json
+import os
 from datetime import datetime
 import pytz
 from datetime import datetime, timedelta
 import asyncio
+
 
 from flask import (
     Blueprint, request, jsonify, render_template, redirect, url_for, flash, current_app
@@ -43,6 +45,10 @@ from utils.operations_manager import OperationsLogger
 logger = logging.getLogger("PositionsBlueprint")
 logger.setLevel(logging.DEBUG)
 op_logger = OperationsLogger()
+
+
+from config.config_constants import CONFIG_PATH
+SONIC_SAUCE_PATH = os.path.join(os.path.dirname(CONFIG_PATH), "sonic_sauce.json")
 
 positions_bp = Blueprint("positions", __name__, template_folder="templates")
 
@@ -952,3 +958,71 @@ def parse_nested_form(form_data: dict) -> dict:
                     updated[metric][subfield] = {}
                 updated[metric][subfield][field] = True
     return updated
+
+
+
+def load_sonic_sauce():
+    """
+    Loads the sonic_sauce.json file and returns its contents as a dictionary.
+    If the file doesn't exist or contains invalid JSON, it will be created with default values.
+    """
+    default = {
+        "hedge_modifiers": {
+            "feePercentage": 0.2,
+            "targetMargin": 15,
+            "adjustmentFactor": 1
+        },
+        "heat_modifiers": {
+            "distanceWeight": 0.45,
+            "leverageWeight": 0.35,
+            "collateralWeight": 0.20
+        }
+    }
+    if not os.path.exists(SONIC_SAUCE_PATH):
+        with open(SONIC_SAUCE_PATH, "w") as f:
+            json.dump(default, f, indent=2)
+        return default.copy()
+    try:
+        with open(SONIC_SAUCE_PATH, "r") as f:
+            return json.load(f)
+    except json.JSONDecodeError:
+        with open(SONIC_SAUCE_PATH, "w") as f:
+            json.dump(default, f, indent=2)
+        return default.copy()
+
+
+def save_sonic_sauce(data):
+    """
+    Saves the provided dictionary data to the sonic_sauce.json file.
+    """
+    with open(SONIC_SAUCE_PATH, "w") as f:
+        json.dump(data, f, indent=2)
+
+
+@positions_bp.route("/sonic_sauce", methods=["GET"])
+def get_sonic_sauce():
+    """
+    GET endpoint to load the modifier settings from sonic_sauce.json.
+    Returns a JSON response with the settings.
+    """
+    try:
+        data = load_sonic_sauce()
+        return jsonify(data), 200
+    except Exception as e:
+        logger.error(f"Error loading sonic sauce: {e}", exc_info=True)
+        return jsonify({"error": str(e)}), 500
+
+
+@positions_bp.route("/sonic_sauce", methods=["POST"])
+def update_sonic_sauce():
+    """
+    POST endpoint to update and save the modifier settings to sonic_sauce.json.
+    Expects a JSON payload with the new settings.
+    """
+    try:
+        data = request.get_json()
+        save_sonic_sauce(data)
+        return jsonify({"success": True}), 200
+    except Exception as e:
+        logger.error(f"Error saving sonic sauce: {e}", exc_info=True)
+        return jsonify({"error": str(e)}), 500
