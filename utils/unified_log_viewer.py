@@ -166,11 +166,9 @@ class UnifiedLogViewer:
         source_text = record.get("source", "")
         source_icon = SOURCE_ICONS.get(source_text.lower(), DEFAULT_SOURCE_ICON) if source_text else DEFAULT_SOURCE_ICON
 
-        # Use record.filename if available; otherwise fallback to 'unknown_file.py'
         file_name = record.get("file", record.get("filename", "unknown_file.py"))
         if not file_name:
             file_name = "unknown_file.py"
-        # Include line number if available.
         lineno = record.get("lineno", "")
         file_line_info = file_name
         if lineno:
@@ -182,7 +180,7 @@ class UnifiedLogViewer:
         else:
             date_part, time_part = ts, ""
 
-        # Build the main HTML with an onclick to toggle extra details; include file and line info in the title.
+        # Build the main HTML for the title bar.
         let_main_html = (
             f'<div class="alert {line_color_class} d-flex align-items-center justify-content-between mb-1" '
             f'style="margin: 2px 0; padding: 3px; white-space: nowrap; cursor: pointer;" '
@@ -190,6 +188,28 @@ class UnifiedLogViewer:
             f'<div style="flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis;">'
             f'<span style="font-size: 1rem;">{icon}</span> '
             f'<strong>{display_text}</strong>'
+        )
+
+        # If alert_details exist and operation_type is "Price ALERT", append countdown timers.
+        details = record.get("alert_details")
+        if details and record.get("operation_type", "").strip() == "Price ALERT":
+            alert_trigger_time = details.get("alert_trigger_time", 0)
+            cooldown_duration = details.get("cooldown_duration", 0)
+            refractory_duration = details.get("refractory_duration", 0)
+            # Add two countdown timer spans with data attributes.
+            countdown_html = (
+                f'<span class="countdown-timer" style="margin-left:10px; font-size:0.8rem; color:blue; cursor:pointer;" '
+                f'data-trigger-time="{alert_trigger_time}" data-duration="{cooldown_duration}" '
+                f'data-timer-type="cooldown">'
+                f'Cooldown: {cooldown_duration}s</span> '
+                f'<span class="countdown-timer refractory" style="margin-left:10px; font-size:0.8rem; color:green; cursor:pointer;" '
+                f'data-trigger-time="{alert_trigger_time}" data-duration="{refractory_duration}" '
+                f'data-timer-type="refractory">'
+                f'Refractory: {refractory_duration}s</span>'
+            )
+            let_main_html += countdown_html
+
+        let_main_html += (
             f'</div>'
             f'<div style="flex: 0 0 auto; margin: 0 16px; text-align: center; min-width: 30px;">'
             f'<span style="font-size: 1rem;">{source_icon}</span>'
@@ -201,8 +221,6 @@ class UnifiedLogViewer:
             f'</div>'
         )
 
-        # If alert_details exist, create a hidden div with the details.
-        details = record.get("alert_details")
         if details:
             details_html = '<div class="alert-extra-details" style="display: none; margin: 5px 0; padding: 5px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 4px;">'
             details_html += '<ul style="margin:0; padding: 0 15px;">'

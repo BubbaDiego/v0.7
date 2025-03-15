@@ -462,52 +462,156 @@ class AlertManager:
                         f"Actual Value = {current_value:.2f} exceeds Blast Threshold of {blast_threshold:.2f}")
         return ""
 
+    import inspect
+
+    def debug_price_alert_details(self, asset: str, asset_config: dict, current_price: float, trigger_val: float,
+                                  condition: str, price_info: dict, result_message: str):
+        """
+        Logs detailed information about the price check in pretty HTML format to a debug file.
+        """
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        html_snippet = f"""
+        <div style="border:1px solid #ccc; padding:10px; margin:10px; font-family: Arial, sans-serif;">
+          <h3 style="margin:0; padding:0 0 10px 0;">{asset} Price Alert Debug</h3>
+          <p><strong>Timestamp:</strong> {timestamp}</p>
+          <p><strong>Asset Configuration:</strong><br>
+             <pre style="background: #f4f4f4; padding:10px;">{json.dumps(asset_config, indent=2)}</pre>
+          </p>
+          <p><strong>Condition:</strong> {condition}</p>
+          <p><strong>Trigger Value:</strong> {trigger_val}</p>
+          <p><strong>Current Price:</strong> {current_price}</p>
+          <p><strong>Price Info:</strong><br>
+             <pre style="background: #f4f4f4; padding:10px;">{json.dumps(price_info, indent=2)}</pre>
+          </p>
+          <p><strong>Result:</strong> {result_message}</p>
+        </div>
+        """
+        # Append to the debug HTML file
+        with open("price_alert_debug_details.html", "a", encoding="utf-8") as f:
+            f.write(html_snippet)
+
     def check_price_alerts(self) -> List[str]:
-        alerts = self.data_locker.get_alerts()
+        # Set up a dedicated logger for price alerts debug
+        price_alert_logger = logging.getLogger("PriceAlertLogger")
+        if not price_alert_logger.handlers:
+            handler = logging.FileHandler("price_alert_debug.txt")
+            handler.setLevel(logging.DEBUG)
+            formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+            handler.setFormatter(formatter)
+            price_alert_logger.addHandler(handler)
+
+        price_alert_logger.debug("Entering check_price_alerts method")
+
         messages: List[str] = []
-        price_alerts = [a for a in alerts if a.get("alert_type") == "PRICE_THRESHOLD" and a.get("status", "").lower() == "active"]
-        logging.info("Found %d active price alerts.", len(price_alerts))
-        for alert in price_alerts:
-            asset_code = alert.get("asset_type", "BTC").upper()
-            asset_full = self.ASSET_FULL_NAMES.get(asset_code, asset_code)
-            position_id = alert.get("position_id") or alert.get("id") or "unknown"
-            try:
-                trigger_val = float(alert.get("trigger_value", 0.0))
-            except Exception:
-                trigger_val = 0.0
-            condition = alert.get("condition", "ABOVE").upper()
-            price_info = self.data_locker.get_latest_price(asset_code)
-            if not price_info:
+        # Get price alert config from alert_limits.json within alert_ranges
+        price_alert_config = self.config.get("alert_ranges", {}).get("price_alerts", {})
+        price_alert_logger.debug(f"Price alert config: {price_alert_config}")
+
+        for asset in ["BTC", "ETH", "SOL"]:
+            asset_config = price_alert_config.get(asset, {})
+            result_message = ""
+            price_alert_logger.debug(f"Processing asset {asset}: {asset_config}")
+
+            if not asset_config.get("enabled", False):
+                result_message = "Price alert disabled"
+                price_alert_logger.debug(f"Price alert disabled for {asset}")
+                self.debug_price_alert_details(asset, asset_config, 0.0, 0.0, "", {}, result_message)
                 continue
-            current_price = float(price_info.get("current_price", 0.0))
-            logging.debug(f"[Price Alert Debug] {asset_full}: Condition = {condition}, Trigger Value = {trigger_val:.2f}, Current Price = {current_price:.2f}")
-            if (condition == "ABOVE" and current_price >= trigger_val) or (condition != "ABOVE" and current_price <= trigger_val):
-                msg = self.handle_price_alert_trigger(alert, current_price, asset_full)
+
+            condition = asset_config.get("condition", "ABOVE").upper()
+            try:
+                trigger_val = float(asset_config.get("trigger_value", 0.0))
+            except Exception as e:
+                price_alert_logger.error(f"Error parsing trigger value for {asset}: {e}")
+                result_message = f"Error parsing trigger value: {e}"
+                trigger_val = 0.0
+                self.debug_price_alert_details(asset, asset_config, 0.0, trigger_val, condition, {}, result_message)
+                continue
+
+            price_info = self.data_locker.get_latest_price(asset)
+            if not price_info:
+                result_message = "No price info available"
+                price_alert_logger.debug(f"No price info available for asset {asset}")
+                self.debug_price_alert_details(asset, asset_config, 0.0, trigger_val, condition, {}, result_message)
+                continue
+
+            try:
+                current_price = float(price_info.get("current_price", 0.0))
+            except Exception as e:
+                price_alert_logger.error(f"Error parsing current price for {asset}: {e}")
+                result_message = f"Error parsing current price: {e}"
+                self.debug_price_alert_details(asset, asset_config, 0.0, trigger_val, condition, price_info,
+                                               result_message)
+                continue
+
+            price_alert_logger.debug(
+                f"{asset}: Condition = {condition}, Trigger Value = {trigger_val:.2f}, Current Price = {current_price:.2f}")
+
+            if (condition == "ABOVE" and current_price >= trigger_val) or (
+                    condition == "BELOW" and current_price <= trigger_val):
+                price_alert_logger.debug(f"Alert condition met for {asset}, processing trigger")
+                msg = self.handle_price_alert_trigger_config(asset, current_price, trigger_val, condition)
                 if msg:
                     messages.append(msg)
+                    result_message = f"Alert triggered: {msg}"
+                    price_alert_logger.debug(result_message)
+                else:
+                    result_message = f"Alert suppressed due to cooldown or other conditions"
+                    price_alert_logger.debug(result_message)
+            else:
+                result_message = f"Alert condition not met: current_price {current_price:.2f} vs trigger {trigger_val:.2f}"
+                price_alert_logger.debug(result_message)
+
+            # Log detailed HTML debug info for this asset check
+            self.debug_price_alert_details(asset, asset_config, current_price, trigger_val, condition, price_info,
+                                           result_message)
+
+        price_alert_logger.debug(f"Exiting check_price_alerts with {len(messages)} triggered alerts")
         return messages
 
-    def handle_price_alert_trigger(self, alert: dict, current_price: float, asset_full: str) -> str:
-        position_id = alert.get("position_id") or alert.get("id") or "unknown"
-        key = f"price-alert-{asset_full}-{position_id}"
+    def handle_price_alert_trigger_config(self, asset: str, current_price: float, trigger_val: float,
+                                          condition: str) -> str:
+        import inspect
+        asset_full = self.ASSET_FULL_NAMES.get(asset, asset)
+        key = f"price-alert-config-{asset}"
         now = time.time()
         last_time = self.last_triggered.get(key, 0)
         if now - last_time < self.cooldown:
-            logging.info("%s: Price alert suppressed.", asset_full)
+            logging.info(f"{asset_full}: Price alert suppressed due to cooldown")
+            u_logger.log_alert(
+                operation_type="Price ALERT Suppressed",
+                primary_text=f"{asset_full}: Price alert suppressed due to cooldown",
+                source="system",
+                file="alert_manager.py"
+            )
             self.suppressed_count += 1
             return ""
         self.last_triggered[key] = now
-        cond = alert.get("condition", "ABOVE").upper()
-        try:
-            trig_val = float(alert.get("trigger_value", 0.0))
-        except Exception:
-            trig_val = 0.0
-        position_type = alert.get("position_type", "").capitalize()
-        wallet_name = alert.get("wallet_name", "Unknown")
-        msg = f"Price ALERT: {asset_full} {position_type}"
-        if wallet_name != "Unknown":
-            msg += f", Wallet: {wallet_name}"
-        msg += f" - Condition: {cond}, Trigger: {trig_val}, Current: {current_price}"
+        msg = f"Price ALERT: {asset_full} - Condition: {condition}, Trigger: {trigger_val}, Current: {current_price}"
+
+        lineno = inspect.currentframe().f_back.f_lineno
+
+        # Build detailed alert details including line number
+        alert_details = {
+            "status": "Triggered",
+            "type": "Price ALERT",
+            "condition": condition,
+            "trigger_value": trigger_val,
+            "current_price": current_price,
+            "lineno": lineno
+        }
+
+        extra = {
+            "source": "system",
+            "operation_type": "Price ALERT",
+            "log_type": "alert",
+            "file": "alert_manager.py",
+            "lineno": lineno,
+            "alert_details": alert_details
+        }
+
+        u_logger.logger.info(msg, extra=extra)
+
         return msg
 
     def send_call(self, body: str, key: str):

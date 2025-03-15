@@ -3,7 +3,77 @@
 {% block content %}
 <div class="container-fluid" style="background: url('{{ url_for('static', filename='images/alert_wall.jpg') }}') no-repeat center center; background-size: cover; min-height: 100vh; padding-top: 20px;">
   <form id="alert-config-form" method="POST" action="{{ url_for('alerts_bp.update_alert_config') }}">
-    <!-- Existing Alert Manager Configuration Section -->
+    <!-- Price Alerts Configuration Card -->
+    <div class="card" style="margin: 20px auto; max-width: 1200px; background: rgba(255,255,255,0.9);">
+      <div class="card-header" style="background-color: #004085; color: white; display: flex; justify-content: space-between; align-items: center;">
+        <h3 class="card-title mb-0">Price Alerts Configuration</h3>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-bordered text-center" style="border: 2px solid #004085;">
+            <thead style="background-color: #004085; color: white; border-bottom: 2px solid #004085;">
+              <tr>
+                <th>Asset</th>
+                <th>Enabled</th>
+                <th>Condition</th>
+                <th>Trigger Value</th>
+                <th>Notifications<br>(Call/SMS/Email)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for asset in ['BTC', 'ETH', 'SOL'] %}
+                {% set config = price_alerts.get(asset, {}) %}
+                <tr>
+                  <td>
+                    {% if asset == 'BTC' %}
+                      <img src="{{ url_for('static', filename='images/btc.png') }}" alt="BTC" width="24"> BTC
+                    {% elif asset == 'ETH' %}
+                      <img src="{{ url_for('static', filename='images/eth.png') }}" alt="ETH" width="24"> ETH
+                    {% elif asset == 'SOL' %}
+                      <img src="{{ url_for('static', filename='images/sol.png') }}" alt="SOL" width="24"> SOL
+                    {% else %}
+                      {{ asset }}
+                    {% endif %}
+                  </td>
+                  <td>
+                    <input type="hidden" name="price_alerts[{{ asset }}][enabled]" value="false">
+                    <input type="checkbox" id="price_alerts_{{ asset }}_enabled" name="price_alerts[{{ asset }}][enabled]" value="true" class="form-check-input" {% if config.enabled %}checked{% endif %}>
+                  </td>
+                  <td>
+                    <select name="price_alerts[{{ asset }}][condition]" id="price_alerts_{{ asset }}_condition" class="form-control">
+                      <option value="ABOVE" {% if config.condition == "ABOVE" %}selected{% endif %}>Above</option>
+                      <option value="BELOW" {% if config.condition == "BELOW" %}selected{% endif %}>Below</option>
+                    </select>
+                  </td>
+                  <td>
+                    <input type="number" step="any" id="price_alerts_{{ asset }}_trigger_value" name="price_alerts[{{ asset }}][trigger_value]" class="form-control" value="{{ config.trigger_value if config.trigger_value is defined }}">
+                  </td>
+                  <td>
+                    <div class="form-check form-check-inline">
+                      <input type="hidden" name="price_alerts[{{ asset }}][notifications][call]" value="false">
+                      <input type="checkbox" id="price_alerts_{{ asset }}_notif_call" name="price_alerts[{{ asset }}][notifications][call]" value="true" class="form-check-input" {% if config.notifications and config.notifications.call %}checked{% endif %}>
+                      <label class="form-check-label">Call</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input type="hidden" name="price_alerts[{{ asset }}][notifications][sms]" value="false">
+                      <input type="checkbox" id="price_alerts_{{ asset }}_notif_sms" name="price_alerts[{{ asset }}][notifications][sms]" value="true" class="form-check-input" {% if config.notifications and config.notifications.sms %}checked{% endif %}>
+                      <label class="form-check-label">SMS</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input type="hidden" name="price_alerts[{{ asset }}][notifications][email]" value="false">
+                      <input type="checkbox" id="price_alerts_{{ asset }}_notif_email" name="price_alerts[{{ asset }}][notifications][email]" value="true" class="form-check-input" {% if config.notifications and config.notifications.email %}checked{% endif %}>
+                      <label class="form-check-label">Email</label>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Existing Alert Manager Configuration Card -->
     <div class="card" style="margin: 20px auto; max-width: 1200px; background: rgba(255,255,255,0.9);">
       <div class="card-header" style="background-color: #004085; color: white; display: flex; justify-content: space-between; align-items: center;">
         <h3 class="card-title mb-0">Alert Manager Configuration</h3>

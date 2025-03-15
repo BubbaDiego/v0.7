@@ -1,3 +1,14 @@
+#!/usr/bin/env python
+"""
+unified_logger.py
+
+This module implements a unified logger for the application.
+It writes logs in JSON format to separate files for operations and alerts,
+and also outputs logs to the console.
+The log records include custom fields such as source, operation type, and file name.
+Timestamps are formatted in US/Pacific time using a configurable date format.
+"""
+
 import os
 import sys
 import json
@@ -6,23 +17,20 @@ import pytz
 from datetime import datetime
 from config.config_constants import BASE_DIR, LOG_DATE_FORMAT
 
-# Custom JSON formatter using the unified LOG_DATE_FORMAT.
+# Custom JSON Formatter for log entries.
 class JsonFormatter(logging.Formatter):
     def __init__(self, fmt=None, datefmt=LOG_DATE_FORMAT):
         super().__init__(fmt, datefmt)
 
     def formatTime(self, record, datefmt=None):
-        # Always convert the record's creation time to US/Pacific time.
+        # Convert the record's creation time to US/Pacific time.
         pst = pytz.timezone("US/Pacific")
         dt = datetime.fromtimestamp(record.created, pytz.utc).astimezone(pst)
         if datefmt:
-            s = dt.strftime(datefmt)
-        else:
-            s = dt.isoformat()
-        return s
+            return dt.strftime(datefmt)
+        return dt.isoformat()
 
     def format(self, record):
-        # Add the line number and alert_details (if any) to the log record output.
         record_dict = {
             "timestamp": self.formatTime(record, self.datefmt),
             "name": record.name,
@@ -31,13 +39,11 @@ class JsonFormatter(logging.Formatter):
             "source": getattr(record, "source", ""),
             "operation_type": getattr(record, "operation_type", ""),
             "file": getattr(record, "file", ""),
-            "log_type": getattr(record, "log_type", ""),
-            "alert_details": getattr(record, "alert_details", {}),
-            "line": record.lineno
+            "log_type": getattr(record, "log_type", "")
         }
         return json.dumps(record_dict, ensure_ascii=False)
 
-# Filter to allow only records of a given log_type.
+# Filter that allows only log records matching a given log type.
 class LogTypeFilter(logging.Filter):
     def __init__(self, log_type):
         super().__init__()
@@ -46,10 +52,9 @@ class LogTypeFilter(logging.Filter):
     def filter(self, record):
         return getattr(record, "log_type", "") == self.log_type
 
+# The UnifiedLogger class configures multiple handlers for logging.
 class UnifiedLogger:
-    def __init__(self,
-                 operations_log_filename: str = None,
-                 alert_log_filename: str = None):
+    def __init__(self, operations_log_filename: str = None, alert_log_filename: str = None):
         if operations_log_filename is None:
             operations_log_filename = os.path.join(str(BASE_DIR), "operations_log.txt")
         if alert_log_filename is None:
@@ -58,12 +63,15 @@ class UnifiedLogger:
         self.operations_log_filename = operations_log_filename
         self.alert_log_filename = alert_log_filename
 
+        # Create a logger named "UnifiedLogger" and set its level to DEBUG.
         self.logger = logging.getLogger("UnifiedLogger")
         self.logger.setLevel(logging.DEBUG)
-        # Remove any existing handlers.
+
+        # Remove any pre-existing handlers.
         for handler in self.logger.handlers[:]:
             self.logger.removeHandler(handler)
 
+        # Create a JSON formatter with the defined LOG_DATE_FORMAT.
         json_formatter = JsonFormatter(datefmt=LOG_DATE_FORMAT)
 
         # File handler for operations logs.
@@ -78,11 +86,12 @@ class UnifiedLogger:
         alert_handler.setFormatter(json_formatter)
         alert_handler.addFilter(LogTypeFilter("alert"))
 
-        # Optional: Console handler.
+        # Optional console handler.
         console_handler = logging.StreamHandler(sys.stdout)
         console_handler.setLevel(logging.INFO)
         console_handler.setFormatter(json_formatter)
 
+        # Add handlers to the logger.
         self.logger.addHandler(op_handler)
         self.logger.addHandler(alert_handler)
         self.logger.addHandler(console_handler)
@@ -90,14 +99,24 @@ class UnifiedLogger:
     def log_operation(self, operation_type: str, primary_text: str, source: str = "", file: str = ""):
         self.logger.debug("About to log operation: operation_type=%s, primary_text=%s, source=%s, file=%s",
                           operation_type, primary_text, source, file)
-        extra = {"source": source, "operation_type": operation_type, "log_type": "operation", "file": file}
+        extra = {
+            "source": source,
+            "operation_type": operation_type,
+            "log_type": "operation",
+            "file": file
+        }
         self.logger.info(primary_text, extra=extra)
         self.logger.debug("Logged operation entry with operation_type=%s", operation_type)
 
     def log_alert(self, operation_type: str, primary_text: str, source: str = "", file: str = ""):
         self.logger.debug("About to log alert: operation_type=%s, primary_text=%s, source=%s, file=%s",
                           operation_type, primary_text, source, file)
-        extra = {"source": source, "operation_type": operation_type, "log_type": "alert", "file": file}
+        extra = {
+            "source": source,
+            "operation_type": operation_type,
+            "log_type": "alert",
+            "file": file
+        }
         self.logger.info(primary_text, extra=extra)
         self.logger.debug("Logged alert entry with operation_type=%s", operation_type)
 
@@ -108,11 +127,11 @@ if __name__ == "__main__":
         operation_type="Launch pad started",
         primary_text="Launch Pad - Started",
         source="System Start-up",
-        file="launch_pad.py"
+        file="launch_pad"
     )
     u_logger.log_alert(
         operation_type="Alert Check",
         primary_text="Checking 5 positions for alerts",
         source="System",
-        file="alert_manager.py"
+        file="alert_manager"
     )

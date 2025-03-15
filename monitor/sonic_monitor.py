@@ -50,7 +50,13 @@ def main():
             with open(HEARTBEAT_FILE, "w") as f:
                 f.write(timestamp)
             logging.info("Heartbeat updated.")
-            logger.log_operation(operation_type="Heartbeat", primary_text=f"Heartbeat updated at {timestamp}", source="system")
+            # Updated logger call with improved arguments (added file argument)
+            logger.log_operation(
+                operation_type="Heartbeat",
+                primary_text=f"Heartbeat updated at {timestamp}",
+                source="system",
+                file="sonic_monitor.py"
+            )
         except Exception as e:
             logging.error("Failed to update heartbeat: %s", e)
 
@@ -58,7 +64,13 @@ def main():
         loop_counter += 1
         logging.info("Loop count: %d. Calling URL: %s", loop_counter, URL)
         call_update_jupiter()
-        logger.log_operation(operation_type="Monitor Loop", primary_text=f"Monitor Loop # {loop_counter}", source="system")
+        # Updated logger call with improved arguments (added file argument)
+        logger.log_operation(
+            operation_type="Monitor Loop",
+            primary_text=f"Monitor Loop # {loop_counter}",
+            source="monitor",
+            file="sonic_monitor.py"
+        )
         write_heartbeat()
         time.sleep(SLEEP_INTERVAL)
 

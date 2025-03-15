@@ -127,14 +127,14 @@
       }
     },
     "travel_percent_liquid_ranges": {
-      "enabled": true,
-      "low": -5.0,
+      "enabled": false,
+      "low": -24.0,
       "low_notifications": {
         "call": true,
-        "sms": true,
+        "sms": false,
         "email": false
       },
-      "medium": -50.0,
+      "medium": -60.0,
       "medium_notifications": {
         "call": true,
         "sms": false,
@@ -148,13 +148,13 @@
       }
     },
     "travel_percent_profit_ranges": {
-      "enabled": true,
+      "enabled": false,
       "low": -5.456,
-      "medium": -50.0,
+      "medium": -35.0,
       "high": -100.0,
       "low_notifications": {
-        "call": true,
-        "sms": true,
+        "call": false,
+        "sms": false,
         "email": false
       },
       "medium_notifications": {
@@ -193,6 +193,38 @@
       "BTC": 17.6,
       "ETH": 18.0,
       "SOL": 23.0
+    },
+    "price_alerts": {
+      "BTC": {
+        "enabled": false,
+        "condition": "ABOVE",
+        "trigger_value": "",
+        "notifications": {
+          "call": false,
+          "sms": false,
+          "email": false
+        }
+      },
+      "ETH": {
+        "enabled": true,
+        "condition": "ABOVE",
+        "trigger_value": 1926.84,
+        "notifications": {
+          "call": false,
+          "sms": false,
+          "email": false
+        }
+      },
+      "SOL": {
+        "enabled": true,
+        "condition": "BELOW",
+        "trigger_value": 133.9,
+        "notifications": {
+          "call": true,
+          "sms": false,
+          "email": false
+        }
+      }
     }
   },
   "alert_cooldown_seconds": 6000,
