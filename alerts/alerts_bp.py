@@ -117,6 +117,30 @@ def format_alert_config_table(alert_ranges: dict) -> str:
     html += "</table>"
     return html
 
+
+@alerts_bp.route('/viewer', methods=['GET'], endpoint="alarm_viewer")
+def alarm_viewer():
+    theme_config = current_app.config.get('theme', {})
+    # Retrieve positions using DataLocker
+    from data.data_locker import DataLocker
+    data_locker = DataLocker.get_instance()
+    positions = data_locker.read_positions()
+
+    # For demonstration purposes, assign alert_status based on asset_type
+    for pos in positions:
+        asset = pos.get("asset_type", "").upper()
+        if asset == "BTC":
+            pos["alert_status"] = "green"
+        elif asset == "ETH":
+            pos["alert_status"] = "yellow"
+        elif asset == "SOL":
+            pos["alert_status"] = "red"
+        else:
+            pos["alert_status"] = "secondary"
+
+    return render_template("alert_viewer.html", theme=theme_config, positions=positions)
+
+
 @alerts_bp.route('/config', methods=['GET'], endpoint="alert_config_page")
 def config_page():
     try:

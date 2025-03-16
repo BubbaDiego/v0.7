@@ -1,110 +1,76 @@
-import json
-import logging
+{% extends "base.html" %}
+{% block title %}Alarm Viewer{% endblock %}
 
-class AlertViewer:
-    """
-    Reads each JSON line from alert_manager_log.txt and renders each alert entry as HTML.
-    The styling is tailored for the dashboard:
-      - Uses Bootstrap alert classes:
-          • "alert-danger" for Price Alerts,
-          • "alert-warning" for Profit Alerts,
-          • "alert-success" for Travel Percent Alerts,
-          • "alert-info" for Liquid Distance Alerts,
-          • "alert-secondary" for defaults.
-      - Icons:
-          • Uses a bullhorn (📢) for general alerts.
-          • Uses a liquid drop (💧) for liquid distance alerts.
-      - Splits the timestamp into date and time.
-    """
-    def __init__(self, log_filename: str):
-        self.log_filename = log_filename
-        self.entries = []
-        try:
-            with open(log_filename, "r", encoding="utf-8") as f:
-                for line in f:
-                    line = line.strip()
-                    if not line:
-                        continue
-                    try:
-                        record = json.loads(line)
-                        self.entries.append(record)
-                    except json.JSONDecodeError:
-                        # Skip non-JSON lines.
-                        pass
-        except Exception as e:
-            logging.error("Error reading alert log file: %s", e)
-
-    def get_bootstrap_class(self, alert_type: str) -> str:
-        alert_type_lower = alert_type.lower()
-        if "price" in alert_type_lower:
-            return "alert-danger"
-        elif "profit" in alert_type_lower:
-            return "alert-warning"
-        elif "travel" in alert_type_lower:
-            return "alert-success"
-        elif "liquid" in alert_type_lower or "distance" in alert_type_lower:
-            return "alert-info"
-        else:
-            return "alert-secondary"
-
-    def get_icon(self, alert_type: str) -> str:
-        alert_type_lower = alert_type.lower()
-        if "liquid" in alert_type_lower or "distance" in alert_type_lower:
-            return "💧"
-        else:
-            return "📢"
-
-    def format_alert_entry(self, record: dict) -> str:
-        # Retrieve details from the record with sensible defaults.
-        alert_type = record.get("alert_type", "General Alert")
-        message = record.get("message", "")
-        timestamp = record.get("timestamp", "")
-        source = record.get("source", "")
-
-        # Split timestamp into date and time if possible.
-        if " : " in timestamp:
-            date_part, time_part = timestamp.split(" : ", 1)
-        else:
-            date_part, time_part = timestamp, ""
-
-        bs_class = self.get_bootstrap_class(alert_type)
-        icon = self.get_icon(alert_type)
-
-        # Build HTML for one alert entry.
-        html = f'''
-<div class="alert {bs_class} d-flex align-items-center justify-content-between mb-1"
-     style="margin: 2px 0; padding: 3px; white-space: nowrap;">
-  <!-- Left: Icon and Bold Message -->
-  <div style="flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis;">
-    <span style="font-size: 1rem;">{icon}</span> <strong>{message}</strong>
+{% block content %}
+<div class="container my-4">
+  <!-- Toggle Switch: Viewer vs. Alert Limits -->
+  <div class="d-flex mb-4">
+    <div class="btn-group" role="group" aria-label="Alert Mode Toggle">
+      <!-- Default mode: viewer -->
+      <a href="{{ url_for('alerts_bp.alarm_viewer') }}" class="btn btn-primary active">Viewer</a>
+      <a href="{{ url_for('alerts_bp.alert_config_page') }}" class="btn btn-outline-primary">Alert Limits</a>
+    </div>
   </div>
-  <!-- Center: Source -->
-  <div style="flex: 0 0 auto; margin: 0 16px; text-align: center; min-width: 30px;">
-    <span style="font-size: 1rem;">{source}</span>
-  </div>
-  <!-- Right: Date and Time -->
-  <div style="flex: 0 0 auto; text-align: right; min-width: 120px;">
-    <span style="font-weight: normal;">{date_part}</span>&nbsp;
-    <span style="font-weight: bold;">{time_part}</span>
-  </div>
+
+  <h2 class="mb-4">Position Alerts</h2>
+
+  {% if positions %}
+    {% for pos in positions %}
+      <div class="card mb-3
+           {% if pos.alert_status == 'green' %}text-bg-success
+           {% elif pos.alert_status == 'yellow' %}text-bg-warning
+           {% elif pos.alert_status == 'red' %}text-bg-danger
+           {% else %}text-bg-secondary{% endif %}">
+        <div class="card-header" data-bs-toggle="collapse" data-bs-target="#position{{ loop.index }}Details">
+          <div class="d-flex align-items-center">
+            {% if pos.alert_status == 'green' %}
+              <i class="bi bi-check-circle header-icon me-2 text-white"></i>
+            {% elif pos.alert_status == 'yellow' %}
+              <i class="bi bi-bell-slash header-icon me-2 text-white"></i>
+            {% elif pos.alert_status == 'red' %}
+              <i class="bi bi-exclamation-triangle header-icon me-2 text-white"></i>
+            {% else %}
+              <i class="bi bi-question-circle header-icon me-2 text-white"></i>
+            {% endif %}
+            <h5 class="card-title mb-0">{{ pos.asset_type }} - {{ pos.wallet_name }}</h5>
+          </div>
+          <span class="badge
+             {% if pos.alert_status == 'green' %}bg-success
+             {% elif pos.alert_status == 'yellow' %}bg-warning
+             {% elif pos.alert_status == 'red' %}bg-danger
+             {% else %}bg-secondary{% endif %}">
+             {% if pos.alert_status == 'green' %}No Alerts{% elif pos.alert_status == 'yellow' %}Silenced Alerts{% elif pos.alert_status == 'red' %}Active Alerts{% else %}Unknown{% endif %}
+          </span>
+        </div>
+        <div id="position{{ loop.index }}Details" class="collapse">
+          <div class="card-body">
+            <h6>Alert Check Details</h6>
+            <ul>
+              <li>
+                <strong>Travel Percent:</strong> {{ pos.current_travel_percent }}%
+                {% if pos.current_travel_percent is not none %}
+                  (Thresholds: -10%, -60%, -75%)
+                {% endif %}
+              </li>
+              <li>
+                <strong>Profit:</strong> {{ pos.profit }}%
+                {% if pos.profit is not none %}
+                  (Threshold: +3% etc.)
+                {% endif %}
+              </li>
+              <li>
+                <strong>Price:</strong> ${{ pos.current_price }}
+                {% if pos.current_price is not none %}
+                  (Trigger depends on asset)
+                {% endif %}
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p>No positions found.</p>
+  {% endif %}
 </div>
-'''
-        return html.strip()
-
-    def get_html(self) -> str:
-        # Reverse entries so that the newest entries come first.
-        entries_html = [self.format_alert_entry(record) for record in self.entries[::-1]]
-        container_html = f'''
-<div style="background-color: #8f9ddd; padding: 8px;">
-  {''.join(entries_html)}
-</div>
-'''
-        return container_html.strip()
-
-# Example usage:
-if __name__ == "__main__":
-    viewer = AlertViewer("alert_manager_log.txt")
-    html_output = viewer.get_html()
-    print("----- Alert Viewer HTML Output -----")
-    print(html_output)
-    print("--------------------------------------")
+{% endblock %}

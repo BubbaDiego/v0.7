@@ -418,7 +418,7 @@
                      src="{{ url_for('static', filename='images/' ~ (pos.asset_type|default('btc')|lower) ~ '_logo.png') }}"
                      alt="{{ pos.asset_type|default('btc')|lower }} logo"
                      style="left: calc(25% - ({{ travel }} / 25 * 25%) - 15px); {% if (pos.asset_type|default('btc')|lower)=='eth' %}background-color: white;{% endif %}">
-                {% if travel > 12.5 %}
+                {% if travel > 10 %}
                   <span class="progress-text" style="left: calc(25% - ({{ travel }} / 25 * 12.5%)); top: 50%; transform: translate(-50%, -50%);">
                     {{ travel }}%
                   </span>
@@ -433,7 +433,7 @@
                      src="{{ url_for('static', filename='images/' ~ (pos.asset_type|default('btc')|lower) ~ '_logo.png') }}"
                      alt="{{ pos.asset_type|default('btc')|lower }} logo"
                      style="left: calc(25% + ({{ travel | abs }} / 100 * 75%) - 15px); {% if (pos.asset_type|default('btc')|lower)=='eth' %}background-color: white;{% endif %}">
-                {% if travel < -25 %}
+                {% if travel < -10 %}
                   <span class="progress-text" style="left: calc(25% + ({{ travel | abs }} / 100 * 37.5%)); top: 50%; transform: translate(-50%, -50%);">
                     {{ travel }}%
                   </span>
