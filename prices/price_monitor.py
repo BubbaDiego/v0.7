@@ -6,6 +6,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 
 import asyncio
 import logging
+import inspect
 from typing import Dict, List
 
 from config.unified_config_manager import UnifiedConfigManager  # Updated to use the unified config manager.
@@ -96,8 +97,7 @@ class PriceMonitor:
                 "source": source,
                 "operation_type": "Prices Updated",
                 "log_type": "operation",
-                "file": "price_monitor.py",
-                "lineno": line_no
+                "file": "price_monitor.py"
             })
         except Exception as e:
             logger.error("Error updating prices: %s", e, exc_info=True)
@@ -108,7 +108,7 @@ class PriceMonitor:
                 "operation_type": "Price Update Failed",
                 "log_type": "operation",
                 "file": "price_monitor.py",
-                "lineno": line_no
+                "linenum": line_no
             })
             raise e
 

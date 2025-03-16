@@ -1,188 +1,202 @@
 {% extends "base.html" %}
+{% block title %}Alert Limits{% endblock %}
+{% block page_title %}Alert Limits{% endblock %}
 
 {% block content %}
-<div class="container-fluid" style="background: url('{{ url_for('static', filename='images/alert_wall.jpg') }}') no-repeat center center; background-size: cover; min-height: 100vh; padding-top: 20px;">
+<div class="container-fluid" style="background: url('{{ url_for('static', filename=theme.background_image|default('images/wallpaper_theme_page')) }}') no-repeat center center; background-size: cover; min-height: 100vh; padding-top: 20px;">
   <form id="alert-config-form" method="POST" action="{{ url_for('alerts_bp.update_alert_config') }}">
-    <!-- Price Alerts Configuration Card -->
-    <div class="card" style="margin: 20px auto; max-width: 1200px; background: rgba(255,255,255,0.9);">
-      <div class="card-header" style="background-color: #004085; color: white; display: flex; justify-content: space-between; align-items: center;">
-        <h3 class="card-title mb-0">Price Alerts Configuration</h3>
+    <div class="row">
+      <!-- Left Card: Price Alerts Configuration -->
+      <div class="col-md-6">
+        <div class="card mx-3" style="background-color: var(--card-background-color); color: var(--text-color);">
+          <div class="card-header" style="background-color: var(--card-title-color); color: var(--text-color); display: flex; justify-content: space-between; align-items: center;">
+            <h3 class="card-title mb-0">Price Alerts Configuration</h3>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-bordered text-center" style="border: 2px solid var(--card-title-color);">
+                <thead style="background-color: var(--card-title-color); color: var(--text-color); border-bottom: 2px solid var(--card-title-color);">
+                  <tr>
+                    <th>Asset</th>
+                    <th>Enabled</th>
+                    <th>Condition</th>
+                    <th>Trigger Value</th>
+                    <th>Notifications<br>(Call/SMS/Email)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for asset in ['BTC', 'ETH', 'SOL'] %}
+                    {% set config = price_alerts.get(asset, {}) %}
+                    <tr>
+                      <!-- Asset image removed; only asset name shown -->
+                      <td>{{ asset }}</td>
+                      <td>
+                        <input type="hidden" name="price_alerts[{{ asset }}][enabled]" value="false">
+                        <input type="checkbox" id="price_alerts_{{ asset }}_enabled" name="price_alerts[{{ asset }}][enabled]" value="true" class="form-check-input" {% if config.enabled %}checked{% endif %}>
+                      </td>
+                      <td>
+                        <select name="price_alerts[{{ asset }}][condition]" id="price_alerts_{{ asset }}_condition" class="form-control">
+                          <option value="ABOVE" {% if config.condition == "ABOVE" %}selected{% endif %}>Above</option>
+                          <option value="BELOW" {% if config.condition == "BELOW" %}selected{% endif %}>Below</option>
+                        </select>
+                      </td>
+                      <td>
+                        <input type="number" step="any" id="price_alerts_{{ asset }}_trigger_value" name="price_alerts[{{ asset }}][trigger_value]" class="form-control" value="{{ config.trigger_value if config.trigger_value is defined }}">
+                      </td>
+                      <td>
+                        <div class="form-check form-check-inline">
+                          <input type="hidden" name="price_alerts[{{ asset }}][notifications][call]" value="false">
+                          <input type="checkbox" id="price_alerts_{{ asset }}_notif_call" name="price_alerts[{{ asset }}][notifications][call]" value="true" class="form-check-input" {% if config.notifications and config.notifications.call %}checked{% endif %}>
+                          <label class="form-check-label">Call</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                          <input type="hidden" name="price_alerts[{{ asset }}][notifications][sms]" value="false">
+                          <input type="checkbox" id="price_alerts_{{ asset }}_notif_sms" name="price_alerts[{{ asset }}][notifications][sms]" value="true" class="form-check-input" {% if config.notifications and config.notifications.sms %}checked{% endif %}>
+                          <label class="form-check-label">SMS</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                          <input type="hidden" name="price_alerts[{{ asset }}][notifications][email]" value="false">
+                          <input type="checkbox" id="price_alerts_{{ asset }}_notif_email" name="price_alerts[{{ asset }}][notifications][email]" value="true" class="form-check-input" {% if config.notifications and config.notifications.email %}checked{% endif %}>
+                          <label class="form-check-label">Email</label>
+                        </div>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="card-body">
-        <div class="table-responsive">
-          <table class="table table-bordered text-center" style="border: 2px solid #004085;">
-            <thead style="background-color: #004085; color: white; border-bottom: 2px solid #004085;">
-              <tr>
-                <th>Asset</th>
-                <th>Enabled</th>
-                <th>Condition</th>
-                <th>Trigger Value</th>
-                <th>Notifications<br>(Call/SMS/Email)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for asset in ['BTC', 'ETH', 'SOL'] %}
-                {% set config = price_alerts.get(asset, {}) %}
-                <tr>
-                  <td>
-                    {% if asset == 'BTC' %}
-                      <img src="{{ url_for('static', filename='images/btc.png') }}" alt="BTC" width="24"> BTC
-                    {% elif asset == 'ETH' %}
-                      <img src="{{ url_for('static', filename='images/eth.png') }}" alt="ETH" width="24"> ETH
-                    {% elif asset == 'SOL' %}
-                      <img src="{{ url_for('static', filename='images/sol.png') }}" alt="SOL" width="24"> SOL
-                    {% else %}
-                      {{ asset }}
-                    {% endif %}
-                  </td>
-                  <td>
-                    <input type="hidden" name="price_alerts[{{ asset }}][enabled]" value="false">
-                    <input type="checkbox" id="price_alerts_{{ asset }}_enabled" name="price_alerts[{{ asset }}][enabled]" value="true" class="form-check-input" {% if config.enabled %}checked{% endif %}>
-                  </td>
-                  <td>
-                    <select name="price_alerts[{{ asset }}][condition]" id="price_alerts_{{ asset }}_condition" class="form-control">
-                      <option value="ABOVE" {% if config.condition == "ABOVE" %}selected{% endif %}>Above</option>
-                      <option value="BELOW" {% if config.condition == "BELOW" %}selected{% endif %}>Below</option>
-                    </select>
-                  </td>
-                  <td>
-                    <input type="number" step="any" id="price_alerts_{{ asset }}_trigger_value" name="price_alerts[{{ asset }}][trigger_value]" class="form-control" value="{{ config.trigger_value if config.trigger_value is defined }}">
-                  </td>
-                  <td>
-                    <div class="form-check form-check-inline">
-                      <input type="hidden" name="price_alerts[{{ asset }}][notifications][call]" value="false">
-                      <input type="checkbox" id="price_alerts_{{ asset }}_notif_call" name="price_alerts[{{ asset }}][notifications][call]" value="true" class="form-check-input" {% if config.notifications and config.notifications.call %}checked{% endif %}>
-                      <label class="form-check-label">Call</label>
-                    </div>
-                    <div class="form-check form-check-inline">
-                      <input type="hidden" name="price_alerts[{{ asset }}][notifications][sms]" value="false">
-                      <input type="checkbox" id="price_alerts_{{ asset }}_notif_sms" name="price_alerts[{{ asset }}][notifications][sms]" value="true" class="form-check-input" {% if config.notifications and config.notifications.sms %}checked{% endif %}>
-                      <label class="form-check-label">SMS</label>
-                    </div>
-                    <div class="form-check form-check-inline">
-                      <input type="hidden" name="price_alerts[{{ asset }}][notifications][email]" value="false">
-                      <input type="checkbox" id="price_alerts_{{ asset }}_notif_email" name="price_alerts[{{ asset }}][notifications][email]" value="true" class="form-check-input" {% if config.notifications and config.notifications.email %}checked{% endif %}>
-                      <label class="form-check-label">Email</label>
-                    </div>
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+      <!-- Right Card: Alert Timing Configuration -->
+      <div class="col-md-6">
+        <div class="card mx-3" style="background-color: var(--card-background-color); color: var(--text-color);">
+          <div class="card-header" style="background-color: var(--card-title-color); color: var(--text-color);">
+            <h3 class="card-title mb-0">Alert Timing Configuration</h3>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label for="alert_cooldown_seconds" class="form-label">Alert Cooldown (seconds)</label>
+              <input type="number" class="form-control" name="alert_cooldown_seconds" id="alert_cooldown_seconds" value="{{ alert_cooldown_seconds }}">
+            </div>
+            <div class="mb-3">
+              <label for="call_refractory_period" class="form-label">Call Refractory Period (seconds)</label>
+              <input type="number" class="form-control" name="call_refractory_period" id="call_refractory_period" value="{{ call_refractory_period }}">
+            </div>
+          </div>
         </div>
       </div>
     </div>
-
-    <!-- Existing Alert Manager Configuration Card -->
-    <div class="card" style="margin: 20px auto; max-width: 1200px; background: rgba(255,255,255,0.9);">
-      <div class="card-header" style="background-color: #004085; color: white; display: flex; justify-content: space-between; align-items: center;">
-        <h3 class="card-title mb-0">Alert Manager Configuration</h3>
-        <button type="submit" class="btn btn-light">Save Alert Ranges</button>
-      </div>
-      <div class="card-body">
-        <div class="table-responsive">
-          <table class="table table-bordered text-center" style="border: 2px solid #004085;">
-            <thead style="background-color: #004085; color: white; border-bottom: 2px solid #004085;">
-              <tr>
-                <th>Metric</th>
-                <th>Enabled</th>
-                <th>Low Threshold</th>
-                <th>Low Notifications<br>(Call/SMS/Email)</th>
-                <th>Medium Threshold</th>
-                <th>Medium Notifications<br>(Call/SMS/Email)</th>
-                <th>High Threshold</th>
-                <th>High Notifications<br>(Call/SMS/Email)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% set metrics = [
-                {'name': 'Heat Index', 'field': 'heat_index_ranges'},
-                {'name': 'Collateral', 'field': 'collateral_ranges'},
-                {'name': 'Value', 'field': 'value_ranges'},
-                {'name': 'Size', 'field': 'size_ranges'},
-                {'name': 'Leverage', 'field': 'leverage_ranges'},
-                {'name': 'Liquidation Distance', 'field': 'liquidation_distance_ranges'},
-                {'name': 'Travel Percent Liquid', 'field': 'travel_percent_liquid_ranges'},
-                {'name': 'Travel Percent Profit', 'field': 'travel_percent_profit_ranges'},
-                {'name': 'Profit', 'field': 'profit_ranges'}
-              ] %}
-              {% for metric in metrics|reverse %}
-                {% set m = alert_ranges[metric.field] if alert_ranges is defined and alert_ranges[metric.field] is defined else {} %}
-              <tr>
-                <td><strong>{{ metric.name }}</strong></td>
-                <td>
-                  <input type="hidden" name="alert_ranges[{{ metric.field }}][enabled]" value="false">
-                  <input type="checkbox" id="{{ metric.field }}_enabled" name="alert_ranges[{{ metric.field }}][enabled]" value="true" class="form-check-input" {% if m.enabled %}checked{% endif %}>
-                </td>
-                <td>
-                  <input type="number" step="any" id="{{ metric.field }}_low" name="alert_ranges[{{ metric.field }}][low]" class="form-control" value="{{ m.low if m.low is defined }}">
-                </td>
-                <td>
-                  <div class="form-check form-check-inline">
-                    <input type="hidden" name="alert_ranges[{{ metric.field }}][low_notifications][call]" value="false">
-                    <input type="checkbox" id="{{ metric.field }}_low_call" name="alert_ranges[{{ metric.field }}][low_notifications][call]" value="true" class="form-check-input" {% if m.low_notifications and m.low_notifications.call %}checked{% endif %}>
-                    <label class="form-check-label">Call</label>
-                  </div>
-                  <div class="form-check form-check-inline">
-                    <input type="hidden" name="alert_ranges[{{ metric.field }}][low_notifications][sms]" value="false">
-                    <input type="checkbox" id="{{ metric.field }}_low_sms" name="alert_ranges[{{ metric.field }}][low_notifications][sms]" value="true" class="form-check-input" {% if m.low_notifications and m.low_notifications.sms %}checked{% endif %}>
-                    <label class="form-check-label">SMS</label>
-                  </div>
-                  <div class="form-check form-check-inline">
-                    <input type="hidden" name="alert_ranges[{{ metric.field }}][low_notifications][email]" value="false">
-                    <input type="checkbox" id="{{ metric.field }}_low_email" name="alert_ranges[{{ metric.field }}][low_notifications][email]" value="true" class="form-check-input" {% if m.low_notifications and m.low_notifications.email %}checked{% endif %}>
-                    <label class="form-check-label">Email</label>
-                  </div>
-                </td>
-                <td>
-                  <input type="number" step="any" id="{{ metric.field }}_medium" name="alert_ranges[{{ metric.field }}][medium]" class="form-control" value="{{ m.medium if m.medium is defined }}">
-                </td>
-                <td>
-                  <div class="form-check form-check-inline">
-                    <input type="hidden" name="alert_ranges[{{ metric.field }}][medium_notifications][call]" value="false">
-                    <input type="checkbox" id="{{ metric.field }}_medium_call" name="alert_ranges[{{ metric.field }}][medium_notifications][call]" value="true" class="form-check-input" {% if m.medium_notifications and m.medium_notifications.call %}checked{% endif %}>
-                    <label class="form-check-label">Call</label>
-                  </div>
-                  <div class="form-check form-check-inline">
-                    <input type="hidden" name="alert_ranges[{{ metric.field }}][medium_notifications][sms]" value="false">
-                    <input type="checkbox" id="{{ metric.field }}_medium_sms" name="alert_ranges[{{ metric.field }}][medium_notifications][sms]" value="true" class="form-check-input" {% if m.medium_notifications and m.medium_notifications.sms %}checked{% endif %}>
-                    <label class="form-check-label">SMS</label>
-                  </div>
-                  <div class="form-check form-check-inline">
-                    <input type="hidden" name="alert_ranges[{{ metric.field }}][medium_notifications][email]" value="false">
-                    <input type="checkbox" id="{{ metric.field }}_medium_email" name="alert_ranges[{{ metric.field }}][medium_notifications][email]" value="true" class="form-check-input" {% if m.medium_notifications and m.medium_notifications.email %}checked{% endif %}>
-                    <label class="form-check-label">Email</label>
-                  </div>
-                </td>
-                <td>
-                  <input type="number" step="any" id="{{ metric.field }}_high" name="alert_ranges[{{ metric.field }}][high]" class="form-control" value="{{ m.high if m.high is defined }}">
-                </td>
-                <td>
-                  <div class="form-check form-check-inline">
-                    <input type="hidden" name="alert_ranges[{{ metric.field }}][high_notifications][call]" value="false">
-                    <input type="checkbox" id="{{ metric.field }}_high_call" name="alert_ranges[{{ metric.field }}][high_notifications][call]" value="true" class="form-check-input" {% if m.high_notifications and m.high_notifications.call %}checked{% endif %}>
-                    <label class="form-check-label">Call</label>
-                  </div>
-                  <div class="form-check form-check-inline">
-                    <input type="hidden" name="alert_ranges[{{ metric.field }}][high_notifications][sms]" value="false">
-                    <input type="checkbox" id="{{ metric.field }}_high_sms" name="alert_ranges[{{ metric.field }}][high_notifications][sms]" value="true" class="form-check-input" {% if m.high_notifications and m.high_notifications.sms %}checked{% endif %}>
-                    <label class="form-check-label">SMS</label>
-                  </div>
-                  <div class="form-check form-check-inline">
-                    <input type="hidden" name="alert_ranges[{{ metric.field }}][high_notifications][email]" value="false">
-                    <input type="checkbox" id="{{ metric.field }}_high_email" name="alert_ranges[{{ metric.field }}][high_notifications][email]" value="true" class="form-check-input" {% if m.high_notifications and m.high_notifications.email %}checked{% endif %}>
-                    <label class="form-check-label">Email</label>
-                  </div>
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-        <!-- Confirmation readback area -->
-        <div id="save-confirmation" style="margin-top: 15px; background: #f8f9fa; padding: 10px; border: 1px solid #ddd;">
-          <strong>Save Confirmation:</strong>
-          <pre id="confirmation-output" style="margin: 0;"></pre>
+    <!-- Full Width: Alert Manager Configuration Card -->
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card mx-3 my-3" style="background-color: var(--card-background-color); color: var(--text-color);">
+          <div class="card-header" style="background-color: var(--card-title-color); color: var(--text-color); display: flex; justify-content: space-between; align-items: center;">
+            <h3 class="card-title mb-0">Alert Manager Configuration</h3>
+            <button type="submit" class="btn btn-light">Save Alert Ranges</button>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-bordered text-center" style="border: 2px solid var(--card-title-color);">
+                <thead style="background-color: var(--card-title-color); color: var(--text-color); border-bottom: 2px solid var(--card-title-color);">
+                  <tr>
+                    <th>Metric</th>
+                    <th>Enabled</th>
+                    <th>Low Threshold</th>
+                    <th>Low Notifications<br>(Call/SMS/Email)</th>
+                    <th>Medium Threshold</th>
+                    <th>Medium Notifications<br>(Call/SMS/Email)</th>
+                    <th>High Threshold</th>
+                    <th>High Notifications<br>(Call/SMS/Email)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% set metrics = [
+                    {'name': 'Heat Index', 'field': 'heat_index_ranges'},
+                    {'name': 'Collateral', 'field': 'collateral_ranges'},
+                    {'name': 'Value', 'field': 'value_ranges'},
+                    {'name': 'Size', 'field': 'size_ranges'},
+                    {'name': 'Leverage', 'field': 'leverage_ranges'},
+                    {'name': 'Liquidation Distance', 'field': 'liquidation_distance_ranges'},
+                    {'name': 'Travel Percent Liquid', 'field': 'travel_percent_liquid_ranges'},
+                    {'name': 'Travel Percent Profit', 'field': 'travel_percent_profit_ranges'},
+                    {'name': 'Profit', 'field': 'profit_ranges'}
+                  ] %}
+                  {% for metric in metrics|reverse %}
+                    {% set m = alert_ranges[metric.field] if alert_ranges is defined and alert_ranges[metric.field] is defined else {} %}
+                    <tr>
+                      <td><strong>{{ metric.name }}</strong></td>
+                      <td>
+                        <input type="hidden" name="alert_ranges[{{ metric.field }}][enabled]" value="false">
+                        <input type="checkbox" id="{{ metric.field }}_enabled" name="alert_ranges[{{ metric.field }}][enabled]" value="true" class="form-check-input" {% if m.enabled %}checked{% endif %}>
+                      </td>
+                      <td>
+                        <input type="number" step="any" id="{{ metric.field }}_low" name="alert_ranges[{{ metric.field }}][low]" class="form-control" value="{{ m.low if m.low is defined }}">
+                      </td>
+                      <td>
+                        <div class="form-check form-check-inline">
+                          <input type="hidden" name="alert_ranges[{{ metric.field }}][low_notifications][call]" value="false">
+                          <input type="checkbox" id="{{ metric.field }}_low_call" name="alert_ranges[{{ metric.field }}][low_notifications][call]" value="true" class="form-check-input" {% if m.low_notifications and m.low_notifications.call %}checked{% endif %}>
+                          <label class="form-check-label">Call</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                          <input type="hidden" name="alert_ranges[{{ metric.field }}][low_notifications][sms]" value="false">
+                          <input type="checkbox" id="{{ metric.field }}_low_sms" name="alert_ranges[{{ metric.field }}][low_notifications][sms]" value="true" class="form-check-input" {% if m.low_notifications and m.low_notifications.sms %}checked{% endif %}>
+                          <label class="form-check-label">SMS</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                          <input type="hidden" name="alert_ranges[{{ metric.field }}][low_notifications][email]" value="false">
+                          <input type="checkbox" id="{{ metric.field }}_low_email" name="alert_ranges[{{ metric.field }}][low_notifications][email]" value="true" class="form-check-input" {% if m.low_notifications and m.low_notifications.email %}checked{% endif %}>
+                          <label class="form-check-label">Email</label>
+                        </div>
+                      </td>
+                      <td>
+                        <input type="number" step="any" id="{{ metric.field }}_medium" name="alert_ranges[{{ metric.field }}][medium]" class="form-control" value="{{ m.medium if m.medium is defined }}">
+                      </td>
+                      <td>
+                        <div class="form-check form-check-inline">
+                          <input type="hidden" name="alert_ranges[{{ metric.field }}][medium_notifications][call]" value="false">
+                          <input type="checkbox" id="{{ metric.field }}_medium_call" name="alert_ranges[{{ metric.field }}][medium_notifications][call]" value="true" class="form-check-input" {% if m.medium_notifications and m.medium_notifications.call %}checked{% endif %}>
+                          <label class="form-check-label">Call</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                          <input type="hidden" name="alert_ranges[{{ metric.field }}][medium_notifications][sms]" value="false">
+                          <input type="checkbox" id="{{ metric.field }}_medium_sms" name="alert_ranges[{{ metric.field }}][medium_notifications][sms]" value="true" class="form-check-input" {% if m.medium_notifications and m.medium_notifications.sms %}checked{% endif %}>
+                          <label class="form-check-label">SMS</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                          <input type="hidden" name="alert_ranges[{{ metric.field }}][medium_notifications][email]" value="false">
+                          <input type="checkbox" id="{{ metric.field }}_medium_email" name="alert_ranges[{{ metric.field }}][medium_notifications][email]" value="true" class="form-check-input" {% if m.medium_notifications and m.medium_notifications.email %}checked{% endif %}>
+                          <label class="form-check-label">Email</label>
+                        </div>
+                      </td>
+                      <td>
+                        <input type="number" step="any" id="{{ metric.field }}_high" name="alert_ranges[{{ metric.field }}][high]" class="form-control" value="{{ m.high if m.high is defined }}">
+                      </td>
+                      <td>
+                        <div class="form-check form-check-inline">
+                          <input type="hidden" name="alert_ranges[{{ metric.field }}][high_notifications][call]" value="false">
+                          <input type="checkbox" id="{{ metric.field }}_high_call" name="alert_ranges[{{ metric.field }}][high_notifications][call]" value="true" class="form-check-input" {% if m.high_notifications and m.high_notifications.call %}checked{% endif %}>
+                          <label class="form-check-label">Call</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                          <input type="hidden" name="alert_ranges[{{ metric.field }}][high_notifications][sms]" value="false">
+                          <input type="checkbox" id="{{ metric.field }}_high_sms" name="alert_ranges[{{ metric.field }}][high_notifications][sms]" value="true" class="form-check-input" {% if m.high_notifications and m.high_notifications.sms %}checked{% endif %}>
+                          <label class="form-check-label">SMS</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                          <input type="hidden" name="alert_ranges[{{ metric.field }}][high_notifications][email]" value="false">
+                          <input type="checkbox" id="{{ metric.field }}_high_email" name="alert_ranges[{{ metric.field }}][high_notifications][email]" value="true" class="form-check-input" {% if m.high_notifications and m.high_notifications.email %}checked{% endif %}>
+                          <label class="form-check-label">Email</label>
+                        </div>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            <!-- Confirmation readback area removed -->
+          </div>
         </div>
       </div>
     </div>

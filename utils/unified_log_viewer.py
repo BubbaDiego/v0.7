@@ -21,19 +21,14 @@ UNIFIED_LOG_CONFIG = {
     "Heartbeat": {"icon": "❤️⚡", "color": "green"},
     "Heartbeat Detected": {"icon": "❤️🩺", "color": "green"},
     "Heartbeat Failure": {"icon": " ♥", "color": "red"},
-    "JSON Verified": {"icon": "✅📄", "color": "green"},
+    "JSON Verified": {"icon": "✅->📄", "color": "green"},
     "JSON Verification Failed": {"icon": "💀📄", "color": "red"},
-    "JSON Saved": {"icon": "✅💾", "color": "green"},
-    "Save JSON Failed": {"icon": "💀💾", "color": "red"},
+    "JSON Saved": {"icon": "✅->💾", "color": "green"},
+    "Save JSON Failed": {"icon": "💀->💾", "color": "red"},
     "Notification Sent": {"icon": "📱", "color": "blue"},
-    "Notification Failed": {"icon": "💀", "color": "red"},
+    "Notification Failed": {"icon": "💀->📱", "color": "red"},
     "Prices Updated": {"icon": "📈", "color": "blue"},
     "Price Update Failed": {"icon": "📉", "color": "red"},
-    "Travel Percent Liquid ALERT": {"icon": "🛟", "color": "red"},
-    "Profit ALERT": {"icon": "💰", "color": "green"},
-    "Price ALERT": {"icon": "🔔", "color": "blue"},
-    "One Day Blast Radius ALERT": {"icon": "💥", "color": "red"},
-    "Average Daily Swing ALERT": {"icon": "🌊", "color": "orange"},
     "Alert Check": {"icon": "🔍", "color": "orange"},
 }
 
@@ -43,6 +38,11 @@ ALERT_VIEW_CONFIG = {
     "Alert Triggered": {"icon": "🚨", "color": "orange"},
     "Alert Silenced": {"icon": "🔕", "color": "orange"},
     "No Alerts Found": {"icon": "❗", "color": "orange"},
+    "Travel Percent Liquid ALERT": {"icon": "🛟", "color": "red"},
+    "Profit ALERT": {"icon": "💰", "color": "green"},
+    "Price ALERT": {"icon": "🔔", "color": "blue"},
+    "One Day Blast Radius ALERT": {"icon": "💥", "color": "red"},
+    "Average Daily Swing ALERT": {"icon": "🌊", "color": "orange"},
 }
 
 # Source icons for unified view.
@@ -181,6 +181,8 @@ class UnifiedLogViewer:
         ts = record.get("timestamp", "")
         if " : " in ts:
             date_part, time_part = ts.split(" : ", 1)
+            # Remove any trailing timezone abbreviation (e.g., "PDT")
+            time_part = re.sub(r'\s*[A-Z]{3,4}$', '', time_part)
         else:
             date_part, time_part = ts, ""
 
