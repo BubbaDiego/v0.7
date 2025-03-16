@@ -170,19 +170,19 @@
     },
     "profit_ranges": {
       "enabled": false,
-      "low": 1.0,
+      "low": 25.0,
       "low_notifications": {
         "call": false,
         "sms": false,
         "email": false
       },
-      "medium": 2.0,
+      "medium": 50.0,
       "medium_notifications": {
         "call": false,
         "sms": false,
         "email": false
       },
-      "high": 3.0,
+      "high": 100.0,
       "high_notifications": {
         "call": true,
         "sms": false,
@@ -227,8 +227,8 @@
       }
     }
   },
-  "alert_cooldown_seconds": "1",
-  "call_refractory_period": "1",
+  "alert_cooldown_seconds": 12.0,
+  "call_refractory_period": 2222.0,
   "price_alerts": {
     "BTC": {
       "enabled": false,

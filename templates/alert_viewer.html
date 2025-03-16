@@ -4,9 +4,8 @@
 {% block content %}
 <div class="container my-4">
   <!-- Toggle Switch: Viewer vs. Alert Limits -->
-  <div class="d-flex mb-4">
+  <div class="d-flex justify-content-start mb-4">
     <div class="btn-group" role="group" aria-label="Alert Mode Toggle">
-      <!-- Default mode: viewer -->
       <a href="{{ url_for('alerts_bp.alarm_viewer') }}" class="btn btn-primary active">Viewer</a>
       <a href="{{ url_for('alerts_bp.alert_config_page') }}" class="btn btn-outline-primary">Alert Limits</a>
     </div>
@@ -21,7 +20,7 @@
            {% elif pos.alert_status == 'yellow' %}text-bg-warning
            {% elif pos.alert_status == 'red' %}text-bg-danger
            {% else %}text-bg-secondary{% endif %}">
-        <div class="card-header" data-bs-toggle="collapse" data-bs-target="#position{{ loop.index }}Details">
+        <div class="card-header" data-bs-toggle="collapse" data-bs-target="#position{{ loop.index }}Details" style="cursor: pointer;">
           <div class="d-flex align-items-center">
             {% if pos.alert_status == 'green' %}
               <i class="bi bi-check-circle header-icon me-2 text-white"></i>
@@ -39,7 +38,15 @@
              {% elif pos.alert_status == 'yellow' %}bg-warning
              {% elif pos.alert_status == 'red' %}bg-danger
              {% else %}bg-secondary{% endif %}">
-             {% if pos.alert_status == 'green' %}No Alerts{% elif pos.alert_status == 'yellow' %}Silenced Alerts{% elif pos.alert_status == 'red' %}Active Alerts{% else %}Unknown{% endif %}
+             {% if pos.alert_status == 'green' %}
+               No Alerts
+             {% elif pos.alert_status == 'yellow' %}
+               Silenced Alerts
+             {% elif pos.alert_status == 'red' %}
+               Active Alerts
+             {% else %}
+               Unknown
+             {% endif %}
           </span>
         </div>
         <div id="position{{ loop.index }}Details" class="collapse">
@@ -47,22 +54,20 @@
             <h6>Alert Check Details</h6>
             <ul>
               <li>
-                <strong>Travel Percent:</strong> {{ pos.current_travel_percent }}%
-                {% if pos.current_travel_percent is not none %}
-                  (Thresholds: -10%, -60%, -75%)
-                {% endif %}
+                <strong>Travel Percent:</strong> {{ pos.current_travel_percent|default(0) }}%
+                <small>(Low: {{ pos.travel_low }}%, Medium: {{ pos.travel_medium }}%, High: {{ pos.travel_high }}%)</small>
               </li>
               <li>
-                <strong>Profit:</strong> {{ pos.profit }}%
-                {% if pos.profit is not none %}
-                  (Threshold: +3% etc.)
-                {% endif %}
+                <strong>Profit:</strong> {{ pos.profit|default(0) }}%
+                <small>(Low: {{ pos.profit_low }}%, Medium: {{ pos.profit_medium }}%, High: {{ pos.profit_high }}%)</small>
               </li>
               <li>
-                <strong>Price:</strong> ${{ pos.current_price }}
-                {% if pos.current_price is not none %}
-                  (Trigger depends on asset)
-                {% endif %}
+                <strong>Price:</strong> ${{ pos.current_price|default(0)|round(2) }}
+                <small>
+                  (CoinGecko: ${{ pos.cg_price|default(0)|round(2) }},
+                   CMC: ${{ pos.cmc_price|default(0)|round(2) }},
+                   Binance: ${{ pos.binance_price|default(0)|round(2) }})
+                </small>
               </li>
             </ul>
           </div>

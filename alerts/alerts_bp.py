@@ -117,18 +117,28 @@ def format_alert_config_table(alert_ranges: dict) -> str:
     html += "</table>"
     return html
 
-
+# New route for the Alarm Viewer (default mode)
 @alerts_bp.route('/viewer', methods=['GET'], endpoint="alarm_viewer")
 def alarm_viewer():
-    theme_config = current_app.config.get('theme', {})
-    # Retrieve positions using DataLocker
     from data.data_locker import DataLocker
     data_locker = DataLocker.get_instance()
+    json_manager = current_app.json_manager
+
+    # Load the alert config from alert_limits.json
+    config_data = json_manager.load("alert_limits.json", json_type=JsonType.ALERT_LIMITS)
+    travel_cfg = config_data["alert_ranges"]["travel_percent_liquid_ranges"]  # e.g. {enabled, low, medium, high, ...}
+    profit_cfg = config_data["alert_ranges"]["profit_ranges"]                # e.g. {enabled, low, medium, high, ...}
+
+    # For price alerts, if you want to show real triggers:
+    price_alerts = config_data["alert_ranges"].get("price_alerts", {})
+
+    # Fetch positions from DB
     positions = data_locker.read_positions()
 
-    # For demonstration purposes, assign alert_status based on asset_type
     for pos in positions:
         asset = pos.get("asset_type", "").upper()
+
+        # Example logic for deciding card color
         if asset == "BTC":
             pos["alert_status"] = "green"
         elif asset == "ETH":
@@ -136,8 +146,32 @@ def alarm_viewer():
         elif asset == "SOL":
             pos["alert_status"] = "red"
         else:
-            pos["alert_status"] = "secondary"
+            pos["alert_status"] = "unknown"
 
+        # Attach the real threshold values from your config
+        # so the template can display them:
+        pos["travel_low"] = travel_cfg.get("low")
+        pos["travel_medium"] = travel_cfg.get("medium")
+        pos["travel_high"] = travel_cfg.get("high")
+
+        pos["profit_low"] = profit_cfg.get("low")
+        pos["profit_medium"] = profit_cfg.get("medium")
+        pos["profit_high"] = profit_cfg.get("high")
+
+        # If you store current_travel_percent, profit, etc. in the DB, you can do:
+        #   pos["current_travel_percent"] = ...
+        #   pos["profit"] = ...
+        # If you want price triggers, you could do something like:
+        #   asset_alert_cfg = price_alerts.get(asset, {})
+        #   pos["price_condition"] = asset_alert_cfg.get("condition", "???")
+        #   pos["price_trigger"] = asset_alert_cfg.get("trigger_value", "???")
+
+        # For demonstration, let's also assume we have a 'current_price' from DB
+        # If get_latest_price(...) returns a dict with e.g. "current_price"
+        latest_price = data_locker.get_latest_price(asset)
+        pos["current_price"] = latest_price["current_price"] if latest_price else 0.0
+
+    theme_config = current_app.config.get('theme', {})
     return render_template("alert_viewer.html", theme=theme_config, positions=positions)
 
 
