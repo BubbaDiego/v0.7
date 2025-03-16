@@ -128,7 +128,7 @@
     },
     "travel_percent_liquid_ranges": {
       "enabled": true,
-      "low": -3.0,
+      "low": -50.0,
       "low_notifications": {
         "call": true,
         "sms": false,
@@ -227,8 +227,8 @@
       }
     }
   },
-  "alert_cooldown_seconds": 12.0,
-  "call_refractory_period": 2222.0,
+  "alert_cooldown_seconds": "",
+  "call_refractory_period": "",
   "price_alerts": {
     "BTC": {
       "enabled": false,

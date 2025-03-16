@@ -1,8 +1,8 @@
 {
   "hedge_modifiers": {
     "feePercentage": 0.234,
-    "targetMargin": 17.5,
-    "adjustmentFactor": 1
+    "targetMargin": 33,
+    "adjustmentFactor": 1.5
   },
   "heat_modifiers": {
     "distanceWeight": 0.53,

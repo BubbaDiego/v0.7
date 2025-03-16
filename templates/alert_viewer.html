@@ -13,7 +13,8 @@
       </div>
     </div>
 
-    <h2 class="mb-4">Position Alerts</h2>
+    <!-- "Position Alerts" title using the theme profile color -->
+    <h2 class="mb-4" style="color: {{ theme.profile_color|default('#004085') }};">Position Alerts</h2>
 
     {% if positions %}
       {% for pos in positions %}
@@ -60,8 +61,8 @@
                   <small>(Low: {{ pos.travel_low }}%, Medium: {{ pos.travel_medium }}%, High: {{ pos.travel_high }}%)</small>
                 </li>
                 <li>
-                  <strong>Profit:</strong> {{ pos.profit|default(0) }}%
-                  <small>(Low: {{ pos.profit_low }}%, Medium: {{ pos.profit_medium }}%, High: {{ pos.profit_high }}%)</small>
+                  <strong>Profit:</strong> ${{ pos.profit|default(0) }}
+                  <small>(Low: ${{ pos.profit_low }}, Medium: ${{ pos.profit_medium }}, High: ${{ pos.profit_high }})</small>
                 </li>
                 <li>
                   <strong>Price:</strong> ${{ pos.current_price|default(0)|round(2) }}
