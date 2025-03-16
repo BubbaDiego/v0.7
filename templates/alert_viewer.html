@@ -3,79 +3,82 @@
 
 {% block content %}
 <div class="container my-4">
-  <!-- Toggle Switch: Viewer vs. Alert Limits -->
-  <div class="d-flex justify-content-start mb-4">
-    <div class="btn-group" role="group" aria-label="Alert Mode Toggle">
-      <a href="{{ url_for('alerts_bp.alarm_viewer') }}" class="btn btn-primary active">Viewer</a>
-      <a href="{{ url_for('alerts_bp.alert_config_page') }}" class="btn btn-outline-primary">Alert Limits</a>
-    </div>
-  </div>
-
-  <h2 class="mb-4">Position Alerts</h2>
-
-  {% if positions %}
-    {% for pos in positions %}
-      <div class="card mb-3
-           {% if pos.alert_status == 'green' %}text-bg-success
-           {% elif pos.alert_status == 'yellow' %}text-bg-warning
-           {% elif pos.alert_status == 'red' %}text-bg-danger
-           {% else %}text-bg-secondary{% endif %}">
-        <div class="card-header" data-bs-toggle="collapse" data-bs-target="#position{{ loop.index }}Details" style="cursor: pointer;">
-          <div class="d-flex align-items-center">
-            {% if pos.alert_status == 'green' %}
-              <i class="bi bi-check-circle header-icon me-2 text-white"></i>
-            {% elif pos.alert_status == 'yellow' %}
-              <i class="bi bi-bell-slash header-icon me-2 text-white"></i>
-            {% elif pos.alert_status == 'red' %}
-              <i class="bi bi-exclamation-triangle header-icon me-2 text-white"></i>
-            {% else %}
-              <i class="bi bi-question-circle header-icon me-2 text-white"></i>
-            {% endif %}
-            <h5 class="card-title mb-0">{{ pos.asset_type }} - {{ pos.wallet_name }}</h5>
-          </div>
-          <span class="badge
-             {% if pos.alert_status == 'green' %}bg-success
-             {% elif pos.alert_status == 'yellow' %}bg-warning
-             {% elif pos.alert_status == 'red' %}bg-danger
-             {% else %}bg-secondary{% endif %}">
-             {% if pos.alert_status == 'green' %}
-               No Alerts
-             {% elif pos.alert_status == 'yellow' %}
-               Silenced Alerts
-             {% elif pos.alert_status == 'red' %}
-               Active Alerts
-             {% else %}
-               Unknown
-             {% endif %}
-          </span>
-        </div>
-        <div id="position{{ loop.index }}Details" class="collapse">
-          <div class="card-body">
-            <h6>Alert Check Details</h6>
-            <ul>
-              <li>
-                <strong>Travel Percent:</strong> {{ pos.current_travel_percent|default(0) }}%
-                <small>(Low: {{ pos.travel_low }}%, Medium: {{ pos.travel_medium }}%, High: {{ pos.travel_high }}%)</small>
-              </li>
-              <li>
-                <strong>Profit:</strong> {{ pos.profit|default(0) }}%
-                <small>(Low: {{ pos.profit_low }}%, Medium: {{ pos.profit_medium }}%, High: {{ pos.profit_high }}%)</small>
-              </li>
-              <li>
-                <strong>Price:</strong> ${{ pos.current_price|default(0)|round(2) }}
-                <small>
-                  (CoinGecko: ${{ pos.cg_price|default(0)|round(2) }},
-                   CMC: ${{ pos.cmc_price|default(0)|round(2) }},
-                   Binance: ${{ pos.binance_price|default(0)|round(2) }})
-                </small>
-              </li>
-            </ul>
-          </div>
-        </div>
+  <!-- Rounded Box wrapping all content -->
+  <div class="p-4 rounded" style="background-color: #e9ecef;">
+    <!-- Toggle Switch: Viewer vs. Alert Limits -->
+    <div class="d-flex justify-content-start mb-4">
+      <div class="btn-group" role="group" aria-label="Alert Mode Toggle">
+        <a href="{{ url_for('alerts_bp.alarm_viewer') }}" class="btn btn-primary active">Viewer</a>
+        <a href="{{ url_for('alerts_bp.alert_config_page') }}" class="btn btn-outline-primary">Alert Limits</a>
       </div>
-    {% endfor %}
-  {% else %}
-    <p>No positions found.</p>
-  {% endif %}
+    </div>
+
+    <h2 class="mb-4">Position Alerts</h2>
+
+    {% if positions %}
+      {% for pos in positions %}
+        <div class="card mb-3
+             {% if pos.alert_status == 'green' %}text-bg-success
+             {% elif pos.alert_status == 'yellow' %}text-bg-warning
+             {% elif pos.alert_status == 'red' %}text-bg-danger
+             {% else %}text-bg-secondary{% endif %}">
+          <div class="card-header" data-bs-toggle="collapse" data-bs-target="#position{{ loop.index }}Details" style="cursor: pointer;">
+            <div class="d-flex align-items-center">
+              {% if pos.alert_status == 'green' %}
+                <i class="bi bi-check-circle header-icon me-2 text-white"></i>
+              {% elif pos.alert_status == 'yellow' %}
+                <i class="bi bi-bell-slash header-icon me-2 text-white"></i>
+              {% elif pos.alert_status == 'red' %}
+                <i class="bi bi-exclamation-triangle header-icon me-2 text-white"></i>
+              {% else %}
+                <i class="bi bi-question-circle header-icon me-2 text-white"></i>
+              {% endif %}
+              <h5 class="card-title mb-0">{{ pos.asset_type }} - {{ pos.wallet_name }}</h5>
+            </div>
+            <span class="badge
+               {% if pos.alert_status == 'green' %}bg-success
+               {% elif pos.alert_status == 'yellow' %}bg-warning
+               {% elif pos.alert_status == 'red' %}bg-danger
+               {% else %}bg-secondary{% endif %}">
+               {% if pos.alert_status == 'green' %}
+                 No Alerts
+               {% elif pos.alert_status == 'yellow' %}
+                 Silenced Alerts
+               {% elif pos.alert_status == 'red' %}
+                 Active Alerts
+               {% else %}
+                 Unknown
+               {% endif %}
+            </span>
+          </div>
+          <div id="position{{ loop.index }}Details" class="collapse">
+            <div class="card-body">
+              <h6>Alert Check Details</h6>
+              <ul>
+                <li>
+                  <strong>Travel Percent:</strong> {{ pos.current_travel_percent|default(0) }}%
+                  <small>(Low: {{ pos.travel_low }}%, Medium: {{ pos.travel_medium }}%, High: {{ pos.travel_high }}%)</small>
+                </li>
+                <li>
+                  <strong>Profit:</strong> {{ pos.profit|default(0) }}%
+                  <small>(Low: {{ pos.profit_low }}%, Medium: {{ pos.profit_medium }}%, High: {{ pos.profit_high }}%)</small>
+                </li>
+                <li>
+                  <strong>Price:</strong> ${{ pos.current_price|default(0)|round(2) }}
+                  <small>
+                    (CoinGecko: ${{ pos.cg_price|default(0)|round(2) }},
+                     CMC: ${{ pos.cmc_price|default(0)|round(2) }},
+                     Binance: ${{ pos.binance_price|default(0)|round(2) }})
+                  </small>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p>No positions found.</p>
+    {% endif %}
+  </div>
 </div>
 {% endblock %}
