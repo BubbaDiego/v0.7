@@ -1,18 +1,15 @@
 import os
 import json
 import logging
-from flask import Blueprint, request, jsonify, render_template
+from flask import Blueprint, request, jsonify, render_template, current_app
 from config.config_constants import BASE_DIR, ALERT_LIMITS_PATH
 from pathlib import Path
 from utils.operations_manager import OperationsLogger
-from config.unified_config_manager import UnifiedConfigManager  # Use the unified config manager
-from config.unified_config_manager import UnifiedConfigManager
+from utils.json_manager import JsonManager, JsonType
 
-
-# Create the blueprint
+# Create the blueprint with URL prefix '/alerts'
 alerts_bp = Blueprint('alerts_bp', __name__, url_prefix='/alerts')
 
-# Logger Setup
 logger = logging.getLogger("AlertManagerLogger")
 logger.setLevel(logging.DEBUG)
 if not logger.handlers:
@@ -32,10 +29,6 @@ def deep_merge(source: dict, updates: dict) -> dict:
             logger.debug("Updating key: %s with value: %s", key, value)
             source[key] = value
     return source
-
-# Create an instance for alert limits using the ALERT_LIMITS_PATH
-# (We use UnifiedConfigManager here instead of SonicConfigManager)
-config_mgr = UnifiedConfigManager(str(ALERT_LIMITS_PATH))
 
 def convert_types_in_dict(d):
     if isinstance(d, dict):
@@ -80,8 +73,6 @@ def parse_nested_form(form: dict) -> dict:
                 part += char
         if part:
             keys.append(part)
-        if keys and keys[0] == "alert_ranges":
-            keys = keys[1:]
         current = updated
         for i, key in enumerate(keys):
             if i == len(keys) - 1:
@@ -113,10 +104,11 @@ def format_alert_config_table(alert_ranges: dict) -> str:
     ]
     html = "<table border='1' style='border-collapse: collapse; width:100%;'>"
     html += "<tr><th>Metric</th><th>Enabled</th><th>Low</th><th>Medium</th><th>High</th></tr>"
-    # Reload alert limits from the file using the current config_mgr instance
-    alert_data = config_mgr.load_json_config()
+    # Reload alert limits from the file using the current JsonManager instance
+    json_manager = current_app.json_manager
+    alert_data = json_manager.load("alert_limits.json", json_type=JsonType.ALERT_LIMITS)
     for m in metrics:
-        data = alert_data.get(m, {})
+        data = alert_data.get("alert_ranges", {}).get(m, {})
         enabled = data.get("enabled", False)
         low = data.get("low", "")
         medium = data.get("medium", "")
@@ -128,27 +120,22 @@ def format_alert_config_table(alert_ranges: dict) -> str:
 @alerts_bp.route('/config', methods=['GET'], endpoint="alert_config_page")
 def config_page():
     try:
-        config_data = config_mgr.load_json_config()
+        json_manager = current_app.json_manager
+        # Load alert limits using the JsonType enum from our module
+        config_data = json_manager.load("alert_limits.json", json_type=JsonType.ALERT_LIMITS)
     except Exception as e:
         op_logger = OperationsLogger(log_filename=os.path.join(os.getcwd(), "operations_log.txt"))
         op_logger.log("Alert Configuration Failed", source="System",
                       operation_type="Alert Configuration Failed",
                       file_name=str(ALERT_LIMITS_PATH))
         logger.error("Error loading alert limits: %s", str(e))
-        return render_template("alert_manager_config.html", error_message="Error loading alert configuration."), 500
+        return render_template("alert_limits.html", error_message="Error loading alert configuration."), 500
 
-    # Extract the alert ranges from the config data.
     alert_config = config_data.get("alert_ranges", {})
-    # Extract price alerts from within alert_config (since price_alerts is nested there)
     price_alerts = alert_config.get("price_alerts", {})
+    theme_config = config_data.get("theme_config", {})  # If theme config is stored here
 
-    # Load theme configuration
-    main_config = UnifiedConfigManager(str(ALERT_LIMITS_PATH)).load_config()
-    theme_config = main_config.get("theme_config", {})
-
-    return render_template("alert_manager_config.html", alert_ranges=alert_config, price_alerts=price_alerts, theme=theme_config)
-
-
+    return render_template("alert_limits.html", alert_ranges=alert_config, price_alerts=price_alerts, theme=theme_config)
 
 @alerts_bp.route('/update_config', methods=['POST'], endpoint="update_alert_config")
 def update_alert_config_route():
@@ -160,14 +147,13 @@ def update_alert_config_route():
         logger.debug("Parsed Nested Form Data (raw):\n%s", json.dumps(nested_update, indent=2))
         nested_update = convert_types_in_dict(nested_update)
         logger.debug("Parsed Nested Form Data (converted):\n%s", json.dumps(nested_update, indent=2))
-        config_mgr.update_alert_config(nested_update)
-        logger.debug("update_alert_config() called successfully with merged data.")
-      #  op_logger.log("Alerts configuration updated successfully", source="System",
-              #        operation_type="Alerts Config Successful", file_name=str(ALERT_LIMITS_PATH))
-        updated_config = UnifiedConfigManager(str(ALERT_LIMITS_PATH)).load_config()
-        logger.debug("New Config Loaded After Update:\n%s", json.dumps(updated_config, indent=2))
+        json_manager = current_app.json_manager
+        current_config = json_manager.load("alert_limits.json", json_type=JsonType.ALERT_LIMITS)
+        merged_config = deep_merge(current_config, nested_update)
+        json_manager.save("alert_limits.json", merged_config, json_type=JsonType.ALERT_LIMITS)
+        updated_config = json_manager.load("alert_limits.json", json_type=JsonType.ALERT_LIMITS)
         formatted_table = format_alert_config_table(updated_config.get("alert_ranges", {}))
-        logger.debug("Formatted HTML Table for Alert Config:\n%s", formatted_table)
+        logger.debug("New Config Loaded After Update:\n%s", json.dumps(updated_config, indent=2))
         return jsonify({"success": True, "formatted_table": formatted_table})
     except Exception as e:
         logger.error("Error updating alert config: %s", str(e))
@@ -175,9 +161,11 @@ def update_alert_config_route():
                       operation_type="Alert Config Failed", file_name=str(ALERT_LIMITS_PATH))
         return jsonify({"success": False, "error": str(e)}), 500
 
-# For running this file directly (for testing)
+# For testing this blueprint independently
 if __name__ == "__main__":
     from flask import Flask
     app = Flask(__name__)
     app.register_blueprint(alerts_bp)
+    # Attach a JsonManager instance to the app
+    app.json_manager = JsonManager()
     app.run(debug=True, port=5001)

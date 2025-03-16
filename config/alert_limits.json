@@ -149,7 +149,7 @@
     },
     "travel_percent_profit_ranges": {
       "enabled": false,
-      "low": -5.456,
+      "low": -5.222,
       "medium": -35.0,
       "high": -100.0,
       "low_notifications": {
@@ -228,5 +228,37 @@
     }
   },
   "alert_cooldown_seconds": 6000,
-  "call_refractory_period": 1
+  "call_refractory_period": 1,
+  "price_alerts": {
+    "BTC": {
+      "enabled": false,
+      "condition": "ABOVE",
+      "trigger_value": "",
+      "notifications": {
+        "call": false,
+        "sms": false,
+        "email": false
+      }
+    },
+    "ETH": {
+      "enabled": true,
+      "condition": "ABOVE",
+      "trigger_value": 1926.76,
+      "notifications": {
+        "call": false,
+        "sms": false,
+        "email": false
+      }
+    },
+    "SOL": {
+      "enabled": true,
+      "condition": "BELOW",
+      "trigger_value": 133.9,
+      "notifications": {
+        "call": true,
+        "sms": false,
+        "email": false
+      }
+    }
+  }
 }

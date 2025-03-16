@@ -112,7 +112,7 @@ class JsonManager:
                 json_str = json_str[:200] + "..."
             type_info = f" [JSON Type: {json_type.name}]" if json_type else ""
             self.logger.log_operation(
-                operation_type="Save JSON",
+                operation_type="JSON Saved",
                 primary_text=(f"Successfully saved {file_path}{type_info} by system at "
                               f"{caller.filename}:{caller.lineno}. Data: {json_str}"),
                 source="system",
