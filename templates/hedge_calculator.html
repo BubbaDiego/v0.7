@@ -590,7 +590,8 @@
         collateralWeight: parseFloat(document.getElementById("collateralWeightInput").value)
       }
     };
-    fetch("/positions/sonic_sauce", {
+    // Updated endpoint to match blueprint URL prefix
+    fetch("/sonic_labs/sonic_sauce", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"

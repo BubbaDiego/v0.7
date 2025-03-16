@@ -28,7 +28,7 @@ ALERT_LIMITS_FILENAME = os.getenv("ALERT_LIMITS_FILENAME", "alert_limits.json")
 ALERT_LIMITS_PATH = BASE_DIR / "config" / ALERT_LIMITS_FILENAME
 
 SONIC_SAUCE_FILENAME = os.getenv("SONIC_SAUCE_FILENAME", "sonic_sauce.json")
-SONIC_SAUCE_PATH = BASE_DIR / SONIC_SAUCE_FILENAME
+SONIC_SAUCE_PATH = BASE_DIR / "config" / SONIC_SAUCE_FILENAME
 
 # Added new theme config constants
 THEME_CONFIG_FILENAME = os.getenv("THEME_CONFIG_FILENAME", "theme_config.json")

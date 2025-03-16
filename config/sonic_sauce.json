@@ -1,12 +1,12 @@
 {
   "hedge_modifiers": {
-    "feePercentage": 0.2,
+    "feePercentage": 0.234,
     "targetMargin": 15,
     "adjustmentFactor": 1
   },
   "heat_modifiers": {
-    "distanceWeight": 0.49,
+    "distanceWeight": 0.5,
     "leverageWeight": 0.35,
-    "collateralWeight": 0.20
+    "collateralWeight": 0.2
   }
 }

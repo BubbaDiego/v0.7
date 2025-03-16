@@ -39,14 +39,6 @@ class JsonManager:
             if len(json_str) > 200:
                 json_str = json_str[:200] + "..."
             type_info = f" [JSON Type: {json_type.name}]" if json_type else ""
-            self.logger.log_operation(
-                operation_type="Load JSON",
-                primary_text=(f"Successfully loaded {file_path}{type_info} by system at "
-                              f"{caller.filename}:{caller.lineno}. Data: {json_str}"),
-                source="system",
-                file=f"{file_path} ({caller.filename}:{caller.lineno})",
-                extra_data={"json_type": json_type.name if json_type else ""}
-            )
 
             # --- Verification Block ---
             verification_passed = True
