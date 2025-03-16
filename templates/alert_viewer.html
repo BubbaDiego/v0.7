@@ -72,6 +72,12 @@
                      Binance: ${{ pos.binance_price|default(0)|round(2) }})
                   </small>
                 </li>
+                <li>
+                  <strong>Cooldown Remaining:</strong> {{ pos.cooldown_remaining|default('N/A') }} seconds
+                </li>
+                <li>
+                  <strong>Call Refractory Remaining:</strong> {{ pos.refractory_remaining|default('N/A') }} seconds
+                </li>
               </ul>
             </div>
           </div>

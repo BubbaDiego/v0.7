@@ -433,6 +433,62 @@ class CalcServices:
                 return color
         return "red"
 
+    def calculate_travel_percent_for_slider(self, position_type: str, entry_price: float, current_price: float,
+                                            liquidation_price: float) -> float:
+        """
+        Calculates a normalized travel percent for slider usage.
+        For LONG positions:
+          - At entry_price, the slider value is 0.
+          - At liquidation_price, the slider value is -100.
+          - At a defined profit target (entry_price + (entry_price - liquidation_price)), the slider value is +100.
+        For SHORT positions, the logic is inverted.
+        """
+        if entry_price <= 0 or liquidation_price <= 0 or entry_price == liquidation_price:
+            return 0.0
+        ptype = position_type.upper()
+        if ptype == "LONG":
+            if current_price <= entry_price:
+                # Scale linearly between entry (0) and liquidation (-100)
+                return ((current_price - entry_price) / (entry_price - liquidation_price)) * 100
+            else:
+                profit_target = entry_price + (entry_price - liquidation_price)
+                return ((current_price - entry_price) / (profit_target - entry_price)) * 100
+        else:  # SHORT
+            if current_price >= entry_price:
+                # Scale between entry (0) and liquidation (-100)
+                return ((entry_price - current_price) / (liquidation_price - entry_price)) * 100
+            else:
+                profit_target = entry_price - (liquidation_price - entry_price)
+                return ((entry_price - current_price) / (entry_price - profit_target)) * 100
+
+    def calculate_travel_percent_for_slider(self, position_type: str, entry_price: float, current_price: float,
+                                            liquidation_price: float) -> float:
+        """
+        Calculates a normalized travel percent for slider usage.
+        For LONG positions:
+          - At entry_price, the slider value is 0.
+          - At liquidation_price, the slider value is -100.
+          - At a defined profit target (entry_price + (entry_price - liquidation_price)), the slider value is +100.
+        For SHORT positions, the logic is inverted.
+        """
+        if entry_price <= 0 or liquidation_price <= 0 or entry_price == liquidation_price:
+            return 0.0
+        ptype = position_type.upper()
+        if ptype == "LONG":
+            if current_price <= entry_price:
+                # Scale linearly between entry (0) and liquidation (-100)
+                return ((current_price - entry_price) / (entry_price - liquidation_price)) * 100
+            else:
+                profit_target = entry_price + (entry_price - liquidation_price)
+                return ((current_price - entry_price) / (profit_target - entry_price)) * 100
+        else:  # SHORT
+            if current_price >= entry_price:
+                # Scale between entry (0) and liquidation (-100)
+                return ((entry_price - current_price) / (liquidation_price - entry_price)) * 100
+            else:
+                profit_target = entry_price - (liquidation_price - entry_price)
+                return ((entry_price - current_price) / (entry_price - profit_target)) * 100
+
     def get_alert_class(self, value: float, low_thresh: Optional[float], med_thresh: Optional[float],
                         high_thresh: Optional[float], direction: str = "increasing_bad") -> str:
         """
