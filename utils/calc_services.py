@@ -4,17 +4,6 @@ from typing import Optional, List, Dict
 import sqlite3
 import logging
 
-# Set up a module-level logger.
-logger = logging.getLogger("CalcServices")
-logger.setLevel(logging.DEBUG)
-if not logger.handlers:
-    # For demonstration, output logs to console.
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
-    formatter = logging.Formatter('[%(levelname)s] %(asctime)s - %(name)s - %(message)s')
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
-
 
 @staticmethod
 def get_profit_alert_class(profit, low_thresh, med_thresh, high_thresh):
@@ -54,12 +43,22 @@ class CalcServices:
      - Calculating value (long/short),
      - Leverage,
      - Travel %,
-     - Heat index (composite risk index),
+     - Heat index,
      - Summaries/Totals,
      - Optional color coding for display.
     """
 
     def __init__(self):
+        # Set up a logger for this class that writes DEBUG-level logs to a file.
+        self.logger = logging.getLogger("CalcServices")
+        self.logger.setLevel(logging.DEBUG)
+        # Create a file handler that logs debug messages
+        fh = logging.FileHandler("calc_services.log")
+        fh.setLevel(logging.DEBUG)
+        formatter = logging.Formatter('[%(levelname)s] %(asctime)s - %(name)s - %(message)s')
+        fh.setFormatter(formatter)
+        self.logger.addHandler(fh)
+
         # Ranges for color coding (used by get_color) for some metrics.
         self.color_ranges = {
             "travel_percent": [
@@ -82,7 +81,6 @@ class CalcServices:
                 (2000, 10000, "red")
             ]
         }
-        self.logger = logger  # use the module-level logger
 
     def calculate_composite_risk_index(self, position: dict) -> Optional[float]:
         """
@@ -108,17 +106,17 @@ class CalcServices:
             leverage = float(position.get("leverage", 0.0))
             position_type = (position.get("position_type") or "LONG").upper()
 
-            self.logger.debug(f"Calculating composite risk index for position ID {position.get('id')}:")
-            self.logger.debug(f"  Entry Price: {entry_price}, Current Price: {current_price}, Liquidation Price: {liquidation_price}")
-            self.logger.debug(f"  Collateral: {collateral}, Size: {size}, Leverage: {leverage}, Position Type: {position_type}")
+            self.logger.debug(
+                "Calculating composite risk index: entry=%f, current=%f, liq=%f, collateral=%f, size=%f, leverage=%f, type=%s",
+                entry_price, current_price, liquidation_price, collateral, size, leverage, position_type)
 
             # Validate necessary values
             if entry_price <= 0 or liquidation_price <= 0 or collateral <= 0 or size <= 0:
-                self.logger.warning("Invalid inputs: one or more values are <= 0")
+                self.logger.debug("Invalid input values; returning None")
                 return None
             if abs(entry_price - liquidation_price) < 1e-6:
-                self.logger.warning("Entry price and liquidation price are too close; avoiding division by zero")
-                return None
+                self.logger.debug("Entry price and liquidation price too close; avoiding division by zero")
+                return None  # Avoid division by zero
 
             # Compute normalized distance to liquidation (NDL)
             if position_type == "LONG":
@@ -126,27 +124,27 @@ class CalcServices:
             else:  # SHORT
                 ndl = (liquidation_price - current_price) / (liquidation_price - entry_price)
             ndl = max(0.0, min(ndl, 1.0))
-            self.logger.debug(f"  Normalized Distance to Liquidation (NDL): {ndl}")
+            self.logger.debug("Computed NDL: %f", ndl)
 
             # Risk contribution from price distance
             distance_factor = 1.0 - ndl
-            self.logger.debug(f"  Distance Factor (1 - NDL): {distance_factor}")
+            self.logger.debug("Distance factor: %f", distance_factor)
 
             # Normalize leverage (cap at 100x)
             normalized_leverage = leverage / 100.0
-            self.logger.debug(f"  Normalized Leverage (leverage/100): {normalized_leverage}")
+            self.logger.debug("Normalized leverage: %f", normalized_leverage)
 
             # Compute collateral ratio (capped at 1)
             collateral_ratio = collateral / size
             if collateral_ratio > 1.0:
                 collateral_ratio = 1.0
             risk_collateral_factor = 1.0 - collateral_ratio
-            self.logger.debug(f"  Collateral Ratio: {collateral_ratio}, Risk Collateral Factor (1 - Collateral Ratio): {risk_collateral_factor}")
+            self.logger.debug("Collateral ratio: %f, Risk collateral factor: %f", collateral_ratio,
+                              risk_collateral_factor)
 
-            # Composite risk index using the multiplicative model with weights:
-            # 0.45 for distance, 0.35 for leverage, 0.20 for collateral ratio.
-            risk_index = (distance_factor ** 0.45) * (normalized_leverage ** 0.35) * (risk_collateral_factor ** 0.20) * 100.0
-            self.logger.debug(f"  Composite Risk Index (before rounding): {risk_index}")
+            risk_index = (distance_factor ** 0.45) * (normalized_leverage ** 0.35) * (
+                        risk_collateral_factor ** 0.20) * 100.0
+            self.logger.debug("Composite risk index before rounding: %f", risk_index)
 
             return round(risk_index, 2)
         except Exception as e:
@@ -173,7 +171,6 @@ class CalcServices:
         Adjust as needed to fit your exact logic.
         """
         ptype = (position_type or "").upper()
-
         if entry_price <= 0 or liquidation_price <= 0:
             return 0.0
 
@@ -237,31 +234,29 @@ class CalcServices:
             )
 
             try:
-                cursor.execute("""
-                    UPDATE positions
-                       SET current_travel_percent = ?
-                     WHERE id = ?
-                """, (travel_percent, pos["id"]))
+                cursor.execute(
+                    "UPDATE positions SET current_travel_percent = ? WHERE id = ?",
+                    (travel_percent, pos["id"])
+                )
             except Exception as e:
                 print(f"Error updating travel_percent for position {pos['id']}: {e}")
 
             try:
-                cursor.execute("""
-                    UPDATE positions
-                       SET liquidation_distance = ?
-                     WHERE id = ?
-                """, (pos["liquidation_distance"], pos["id"]))
+                cursor.execute(
+                    "UPDATE positions SET liquidation_distance = ? WHERE id = ?",
+                    (pos["liquidation_distance"], pos["id"])
+                )
             except Exception as e:
                 print(f"Error updating liquidation_distance for position {pos['id']}: {e}")
 
-            if entry_price <= 0:
-                pnl = 0.0
-            else:
+            if entry_price > 0:
                 token_count = size / entry_price
                 if position_type == "LONG":
                     pnl = (current_price - entry_price) * token_count
                 else:
                     pnl = (entry_price - current_price) * token_count
+            else:
+                pnl = 0.0
             pos["value"] = round(collateral + pnl, 2)
 
             if collateral > 0:
@@ -287,31 +282,20 @@ class CalcServices:
 
     def calculate_heat_index(self, position: dict) -> Optional[float]:
         """
-        Calculates the heat index using the formula: (size * leverage) / collateral.
-        This value is intended to be a composite risk index on a 0-100 scale.
-        Detailed logging is provided to trace intermediate values.
+        Example "heat index" = (size * leverage) / collateral.
         Returns None if collateral <= 0.
+        Logs detailed calculation info.
         """
-        try:
-            size = float(position.get("size", 0.0) or 0.0)
-            leverage = float(position.get("leverage", 0.0) or 0.0)
-            collateral = float(position.get("collateral", 0.0) or 0.0)
-
-            self.logger.debug(f"Calculating heat index for position ID {position.get('id')}")
-            self.logger.debug(f"  Size: {size}, Leverage: {leverage}, Collateral: {collateral}")
-
-            if collateral <= 0:
-                self.logger.warning("Collateral is <= 0; returning None for heat index.")
-                return None
-
-            hi = (size * leverage) / collateral
-            self.logger.debug(f"  Raw heat index: {hi}")
-            rounded_hi = round(hi, 2)
-            self.logger.debug(f"  Rounded heat index: {rounded_hi}")
-            return rounded_hi
-        except Exception as e:
-            self.logger.error(f"Error calculating heat index: {e}", exc_info=True)
+        size = float(position.get("size", 0.0) or 0.0)
+        leverage = float(position.get("leverage", 0.0) or 0.0)
+        collateral = float(position.get("collateral", 0.0) or 0.0)
+        if collateral <= 0:
+            self.logger.debug("Collateral is zero or negative; heat index calculation skipped.")
             return None
+        hi = (size * leverage) / collateral
+        self.logger.debug("Heat index calculation: size=%f, leverage=%f, collateral=%f, raw hi=%f", size, leverage,
+                          collateral, hi)
+        return round(hi, 2)
 
     def calculate_travel_percent_no_profit(self,
                                            position_type: str,
@@ -453,12 +437,10 @@ class CalcServices:
                         high_thresh: Optional[float], direction: str = "increasing_bad") -> str:
         """
         Returns a CSS class string based on thresholds and metric direction.
-
         For metrics with direction "increasing_bad" (e.g. size, where higher is worse):
           - If value < low_thresh: returns "alert-low" (green, OK)
           - If low_thresh <= value < med_thresh: returns "alert-medium" (yellow, caution)
           - If value >= med_thresh: returns "alert-high" (red, alert)
-
         For metrics with direction "decreasing_bad", the logic is reversed.
         """
         if low_thresh is None:
