@@ -7,11 +7,11 @@
   <!-- Main Card for Hedge Calculator -->
   <div class="card shadow mb-4">
     <!-- Overall Card Header with Save Button -->
-    <div class="card-header" style="background-color: var(--card-title-color); position: relative;">
+    <div class="card-header position-relative" style="background-color: var(--card-title-color);">
       <h4 class="mb-0 text-center" style="color: var(--text-color);">🦔 Hedge Calculator</h4>
-      <!-- Save icon in the far right of the header -->
-      <button id="saveModifiers" class="btn btn-sm btn-secondary" style="position: absolute; right: 10px; top: 10px;" title="Save Modifiers">
-        💾
+      <!-- Save Button placed in the top right corner -->
+      <button id="saveModifiers" class="btn btn-sm btn-outline-secondary position-absolute" style="top: 10px; right: 10px;" title="Save Modifiers">
+        <i class="fas fa-save"></i>
       </button>
     </div>
     <div class="card-body">
@@ -178,7 +178,7 @@
                 Short Entry: $0.00
               </div>
 
-              <!-- Liquidation Labels (bold, larger text) -->
+              <!-- Liquidation Labels -->
               <div class="d-flex justify-content-between" style="margin-top: -5px;">
                 <span id="tickLeft" style="font-size: 1.1rem; font-weight: bold;">
                   <small>💧 Long Liquidation: $0.00</small>
@@ -192,12 +192,12 @@
         </div>
       </div>
 
-      <!-- Row 4: Output Section for Long & Short Positions -->
+      <!-- Row 4: Output Section for Long & Short Positions with Heat Index display -->
       <div class="row">
         <div class="col-md-6">
-          <div id="longOutputCard" class="card shadow-sm" style="position: relative;">
-            <!-- Heat Index display in upper right of long box -->
-            <div id="longHeatIndex" style="position: absolute; top: 10px; right: 10px; font-size: 1rem; font-weight: bold; color: #555;"></div>
+          <div id="longOutputCard" class="card shadow-sm position-relative">
+            <!-- Heat Index Display in upper right of Long Card -->
+            <span id="longHeatIndex" style="position:absolute; top:10px; right:10px; font-size:0.85rem; font-weight:bold; color:#333;">Heat: 0</span>
             <div class="card-body fs-5">
               <h6 class="text-center fw-bold" style="font-size: 1.5rem;">📈 Long Position</h6>
               <p id="longSimPrice"><strong>Simulated Price: $-</strong></p>
@@ -210,9 +210,9 @@
           </div>
         </div>
         <div class="col-md-6">
-          <div id="shortOutputCard" class="card shadow-sm" style="position: relative;">
-            <!-- Heat Index display in upper right of short box -->
-            <div id="shortHeatIndex" style="position: absolute; top: 10px; right: 10px; font-size: 1rem; font-weight: bold; color: #555;"></div>
+          <div id="shortOutputCard" class="card shadow-sm position-relative">
+            <!-- Heat Index Display in upper right of Short Card -->
+            <span id="shortHeatIndex" style="position:absolute; top:10px; right:10px; font-size:0.85rem; font-weight:bold; color:#333;">Heat: 0</span>
             <div class="card-body fs-5">
               <h6 class="text-center fw-bold" style="font-size: 1.5rem;">📉 Short Position</h6>
               <p id="shortSimPrice"><strong>Simulated Price: $-</strong></p>
@@ -305,6 +305,8 @@
     updateLong(simPrice);
     updateShort(simPrice);
     updateHedgeRecommendations(simPrice);
+    updateLongHeatIndex(simPrice);
+    updateShortHeatIndex(simPrice);
   }
 
   function updatePriceTicks() {
@@ -323,8 +325,7 @@
     const simPrice = parseFloat(slider.value);
     const sliderRect = slider.getBoundingClientRect();
     const sliderWidth = sliderRect.width;
-    const markerLeft = ((simPrice - parseFloat(slider.min)) /
-                       (parseFloat(slider.max) - parseFloat(slider.min))) * sliderWidth;
+    const markerLeft = ((simPrice - parseFloat(slider.min)) / (parseFloat(slider.max) - parseFloat(slider.min))) * sliderWidth;
     const marker = document.getElementById("currentMarker");
     marker.style.left = markerLeft + "px";
     marker.innerHTML = "Price: $" + simPrice.toFixed(2);
@@ -337,44 +338,17 @@
     const longEntry = parseFloat(document.getElementById("longEntry").value) || 0;
     const shortEntry = parseFloat(document.getElementById("shortEntry").value) || 0;
     if (longEntry) {
-      const longMarkerLeft = ((longEntry - parseFloat(slider.min)) /
-                             (parseFloat(slider.max) - parseFloat(slider.min))) * sliderWidth;
+      const longMarkerLeft = ((longEntry - parseFloat(slider.min)) / (parseFloat(slider.max) - parseFloat(slider.min))) * sliderWidth;
       const longMarker = document.getElementById("entryMarkerLong");
       longMarker.style.left = longMarkerLeft + "px";
       longMarker.innerHTML = "Long Entry: $" + longEntry.toFixed(2);
     }
     if (shortEntry) {
-      const shortMarkerLeft = ((shortEntry - parseFloat(slider.min)) /
-                              (parseFloat(slider.max) - parseFloat(slider.min))) * sliderWidth;
+      const shortMarkerLeft = ((shortEntry - parseFloat(slider.min)) / (parseFloat(slider.max) - parseFloat(slider.min))) * sliderWidth;
       const shortMarker = document.getElementById("entryMarkerShort");
       shortMarker.style.left = shortMarkerLeft + "px";
       shortMarker.innerHTML = "Short Entry: $" + shortEntry.toFixed(2);
     }
-  }
-
-  // Compute the composite risk index (heat index) using our multiplicative model.
-  function computeHeatIndex(positionType, entryPrice, currentPrice, liqPrice, collateral, size, leverage) {
-    // Validate inputs
-    if (entryPrice <= 0 || liqPrice <= 0 || collateral <= 0 || size <= 0 || Math.abs(entryPrice - liqPrice) < 1e-6) {
-      return 0;
-    }
-    let ndl = 0;
-    if (positionType.toUpperCase() === "LONG") {
-      ndl = (currentPrice - liqPrice) / (entryPrice - liqPrice);
-    } else { // SHORT
-      ndl = (liqPrice - currentPrice) / (liqPrice - entryPrice);
-    }
-    ndl = Math.max(0, Math.min(ndl, 1)); // Clamp between 0 and 1
-
-    let distanceFactor = 1 - ndl;
-    let normalizedLeverage = leverage / 100.0;
-    let collateralRatio = collateral / size;
-    if (collateralRatio > 1) collateralRatio = 1;
-    let riskCollateralFactor = 1 - collateralRatio;
-
-    // Using weights: 0.45 for distance, 0.35 for leverage, 0.20 for collateral ratio.
-    let heatIndex = Math.pow(distanceFactor, 0.45) * Math.pow(normalizedLeverage, 0.35) * Math.pow(riskCollateralFactor, 0.20) * 100;
-    return Math.round(heatIndex * 100) / 100;
   }
 
   // Update Long Output
@@ -383,7 +357,6 @@
     const longSize = parseFloat(document.getElementById("longSize").value) || 0;
     const collateral = parseFloat(document.getElementById("longCollateral").value) || 0;
     const fee = parseFloat(document.getElementById("feePercentage").value) || 0;
-    const leverage = parseFloat(document.getElementById("leverageWeightInput").value) * 100; // Assuming leverage input in multiplier form for this demo
     let tokenCount = longEntry > 0 ? longSize / longEntry : 0;
     let pnl = (simPrice - longEntry) * tokenCount;
     let feeCost = (fee / 100) * longSize;
@@ -404,7 +377,6 @@
         "<strong>Safety Margin: 0%</strong>";
       document.getElementById("longOutputCard").className =
         "card shadow-sm bg-secondary bg-opacity-25 border border-2 border-secondary";
-      document.getElementById("longHeatIndex").innerHTML = "";
       return;
     }
 
@@ -440,10 +412,6 @@
     document.getElementById("longOutputCard").className =
       "card shadow-sm " + bgClass;
 
-    // Calculate and update heat index for long position
-    let longHeat = computeHeatIndex("LONG", longEntry, simPrice, longLiquidation || (longEntry * 0.8), collateral, longSize, leverage);
-    document.getElementById("longHeatIndex").innerHTML = "Heat: " + longHeat;
-
     // Safety Margin Calculation
     const longLiq = longLiquidation || (longEntry * 0.8);
     const longRange = longEntry - longLiq;
@@ -459,7 +427,6 @@
     const shortSize = parseFloat(document.getElementById("shortSize").value) || 0;
     const collateral = parseFloat(document.getElementById("shortCollateral").value) || 0;
     const fee = parseFloat(document.getElementById("feePercentage").value) || 0;
-    const leverage = parseFloat(document.getElementById("leverageWeightInput").value) * 100; // For demo
     let tokenCount = shortEntry > 0 ? shortSize / shortEntry : 0;
     let pnl = (shortEntry - simPrice) * tokenCount;
     let feeCost = (fee / 100) * shortSize;
@@ -480,7 +447,6 @@
         "<strong>Safety Margin: 0%</strong>";
       document.getElementById("shortOutputCard").className =
         "card shadow-sm bg-secondary bg-opacity-25 border border-2 border-secondary";
-      document.getElementById("shortHeatIndex").innerHTML = "";
       return;
     }
 
@@ -516,10 +482,6 @@
     document.getElementById("shortOutputCard").className =
       "card shadow-sm " + bgClass;
 
-    // Calculate and update heat index for short position
-    let shortHeat = computeHeatIndex("SHORT", shortEntry, simPrice, shortLiquidation || (shortEntry * 1.2), collateral, shortSize, leverage);
-    document.getElementById("shortHeatIndex").innerHTML = "Heat: " + shortHeat;
-
     // Safety Margin Calculation
     const shortLiq = shortLiquidation || (shortEntry * 1.2);
     const shortRange = shortLiq - shortEntry;
@@ -527,6 +489,56 @@
     const shortMargin = shortRange > 0 ? shortSafety / shortRange : 0;
     document.getElementById("shortSafetyMargin").innerHTML =
       "<strong>Safety Margin: " + (shortMargin * 100).toFixed(1) + "%</strong>";
+  }
+
+  // Update Heat Index for Long Position using composite risk formula
+  function updateLongHeatIndex(simPrice) {
+    const longEntry = parseFloat(document.getElementById("longEntry").value) || 0;
+    const longLiq = parseFloat(document.getElementById("longLiqPrice").value) || (longEntry * 0.8);
+    const longCollateral = parseFloat(document.getElementById("longCollateral").value) || 0;
+    const longSize = parseFloat(document.getElementById("longSize").value) || 0;
+    // For simplicity, assume leverage = size/collateral if collateral > 0
+    let leverage = longCollateral > 0 ? longSize / longCollateral : 0;
+    if (longEntry <= 0 || longLiq <= 0 || longCollateral <= 0 || longSize <= 0) {
+      document.getElementById("longHeatIndex").innerText = "Heat: N/A";
+      return;
+    }
+    // Compute normalized distance to liquidation (NDL)
+    let ndl = (simPrice - longLiq) / (longEntry - longLiq);
+    ndl = Math.max(0, Math.min(ndl, 1));
+    let distanceFactor = 1 - ndl;
+    let normalizedLeverage = leverage / 100;
+    let collateralRatio = longCollateral / longSize;
+    collateralRatio = Math.min(collateralRatio, 1);
+    let riskCollateralFactor = 1 - collateralRatio;
+    // Composite risk index using weights 0.45, 0.35, 0.20
+    let composite = Math.pow(distanceFactor, 0.45) * Math.pow(normalizedLeverage, 0.35) * Math.pow(riskCollateralFactor, 0.20) * 100;
+    composite = composite.toFixed(2);
+    document.getElementById("longHeatIndex").innerText = "Heat: " + composite;
+  }
+
+  // Update Heat Index for Short Position using composite risk formula
+  function updateShortHeatIndex(simPrice) {
+    const shortEntry = parseFloat(document.getElementById("shortEntry").value) || 0;
+    const shortLiq = parseFloat(document.getElementById("shortLiqPrice").value) || (shortEntry * 1.2);
+    const shortCollateral = parseFloat(document.getElementById("shortCollateral").value) || 0;
+    const shortSize = parseFloat(document.getElementById("shortSize").value) || 0;
+    let leverage = shortCollateral > 0 ? shortSize / shortCollateral : 0;
+    if (shortEntry <= 0 || shortLiq <= 0 || shortCollateral <= 0 || shortSize <= 0) {
+      document.getElementById("shortHeatIndex").innerText = "Heat: N/A";
+      return;
+    }
+    // For SHORT, compute NDL as (liquidation - current)/(liquidation - entry)
+    let ndl = (shortLiq - simPrice) / (shortLiq - shortEntry);
+    ndl = Math.max(0, Math.min(ndl, 1));
+    let distanceFactor = 1 - ndl;
+    let normalizedLeverage = leverage / 100;
+    let collateralRatio = shortCollateral / shortSize;
+    collateralRatio = Math.min(collateralRatio, 1);
+    let riskCollateralFactor = 1 - collateralRatio;
+    let composite = Math.pow(distanceFactor, 0.45) * Math.pow(normalizedLeverage, 0.35) * Math.pow(riskCollateralFactor, 0.20) * 100;
+    composite = composite.toFixed(2);
+    document.getElementById("shortHeatIndex").innerText = "Heat: " + composite;
   }
 
   // Hedge Recommendations
@@ -569,31 +581,40 @@
       "<strong>Recommended Adjustment:</strong> " + recommendation;
   }
 
-  // Save modifiers to sonic_sauce.json via an AJAX call
+  // Save Modifiers Button click handler
   document.getElementById("saveModifiers").addEventListener("click", function() {
-    const data = {
-      feePercentage: document.getElementById("feePercentage").value,
-      targetMargin: document.getElementById("targetMarginInput").value,
-      adjustmentFactor: document.getElementById("adjustmentFactorInput").value,
-      distanceWeight: document.getElementById("distanceWeightInput").value,
-      leverageWeight: document.getElementById("leverageWeightInput").value,
-      collateralWeight: document.getElementById("collateralWeightInput").value
+    // Gather modifier data from inputs
+    const modifiers = {
+      hedge_modifiers: {
+        feePercentage: parseFloat(document.getElementById("feePercentage").value),
+        targetMargin: parseFloat(document.getElementById("targetMarginInput").value),
+        adjustmentFactor: parseFloat(document.getElementById("adjustmentFactorInput").value)
+      },
+      heat_modifiers: {
+        distanceWeight: parseFloat(document.getElementById("distanceWeightInput").value),
+        leverageWeight: parseFloat(document.getElementById("leverageWeightInput").value),
+        collateralWeight: parseFloat(document.getElementById("collateralWeightInput").value)
+      }
     };
-    // For demonstration, we use fetch to send a POST request
-    fetch("/save_sonic_sauce", {
+    // Send the JSON payload to our sonic_sauce endpoint
+    fetch("/sonic_sauce", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify(data)
+      body: JSON.stringify(modifiers)
     })
     .then(response => response.json())
-    .then(result => {
-      alert("Modifiers saved successfully!");
+    .then(data => {
+      if (data.success) {
+        alert("Modifiers saved successfully!");
+      } else {
+        alert("Error saving modifiers: " + data.error);
+      }
     })
-    .catch(error => {
-      console.error("Error saving modifiers:", error);
-      alert("Error saving modifiers.");
+    .catch(err => {
+      console.error("Error saving modifiers:", err);
+      alert("Error saving modifiers. Check console for details.");
     });
   });
 </script>

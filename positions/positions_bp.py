@@ -991,12 +991,18 @@ def load_sonic_sauce():
         return default.copy()
 
 
-def save_sonic_sauce(data):
-    """
-    Saves the provided dictionary data to the sonic_sauce.json file.
-    """
-    with open(SONIC_SAUCE_PATH, "w") as f:
-        json.dump(data, f, indent=2)
+@positions_bp.route("/save_sonic_sauce", methods=["POST"])
+def save_sonic_sauce():
+    try:
+        data = request.get_json()  # read the JSON payload
+        # For example, save to "sonic_sauce.json" in your project directory
+        with open("sonic_sauce.json", "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+        return jsonify({"success": True})
+    except Exception as e:
+        current_app.logger.error(f"Error saving modifiers: {e}", exc_info=True)
+        return jsonify({"success": False, "error": str(e)}), 500
+
 
 
 @positions_bp.route("/sonic_sauce", methods=["GET"])

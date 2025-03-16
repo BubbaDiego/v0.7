@@ -15,6 +15,7 @@ from prices.coinmarketcap_fetcher import fetch_current_cmc, fetch_historical_cmc
 from prices.coinpaprika_fetcher import fetch_current_coinpaprika
 from prices.binance_fetcher import fetch_current_binance
 from config.config_constants import DB_PATH, CONFIG_PATH
+from utils.unified_logger import UnifiedLogger
 
 
 logger = logging.getLogger("PriceMonitorLogger")
@@ -53,12 +54,11 @@ class PriceMonitor:
     async def update_prices(self, source: str = "API"):
         """
         Fetches prices from enabled APIs in parallel, averages them for each symbol,
-        and stores one row per symbol. Logs start/completion events via OperationsLogger,
-        including the provided source.
+        and stores one row per symbol. Logs start/completion events via UnifiedLogger,
+        including the provided source, filename, and line number.
         """
-        op_logger = OperationsLogger()
+        u_logger = UnifiedLogger()  # Instantiate unified logger once
         try:
-
             tasks = []
             if self.coingecko_enabled:
                 tasks.append(self._fetch_coingecko_prices())
@@ -78,7 +78,7 @@ class PriceMonitor:
             results_list = await asyncio.gather(*tasks)
 
             # Combine the results: e.g., { "BTC": [p1, p2, ...], ... }
-            aggregated: Dict[str, List[float]] = {}
+            aggregated = {}
             for result_dict in results_list:
                 for sym, price_val in result_dict.items():
                     aggregated.setdefault(sym.upper(), []).append(price_val)
@@ -90,16 +90,26 @@ class PriceMonitor:
                 self.data_locker.insert_or_update_price(sym, avg_price, "Averaged")
 
             logger.info("All price updates completed.")
-            op_logger.log("Prices Updated",
-                          source=source,
-                          operation_type="Prices Updated",
-                          file_name="price_monitor.py")
+            # Log success with filename and line number.
+            line_no = inspect.currentframe().f_lineno  # Capture current line number
+            u_logger.logger.info("Prices Updated", extra={
+                "source": source,
+                "operation_type": "Prices Updated",
+                "log_type": "operation",
+                "file": "price_monitor.py",
+                "lineno": line_no
+            })
         except Exception as e:
             logger.error("Error updating prices: %s", e, exc_info=True)
-            op_logger.log("Price Update Failed",
-                          source=source,
-                          operation_type="Price Update Failed",
-                          file_name="price_monitor.py")
+            # Log error with filename and line number.
+            line_no = inspect.currentframe().f_lineno
+            u_logger.logger.info("Price Update Failed", extra={
+                "source": source,
+                "operation_type": "Price Update Failed",
+                "log_type": "operation",
+                "file": "price_monitor.py",
+                "lineno": line_no
+            })
             raise e
 
     async def _fetch_coingecko_prices(self) -> Dict[str, float]:
