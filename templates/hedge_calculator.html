@@ -83,7 +83,7 @@
               <label for="feePercentage" class="form-label">
                 <strong>💲 Fee (% of total size):</strong>
               </label>
-              <input type="number" id="feePercentage" class="form-control" step="any" value="0.2" />
+              <input type="number" id="feePercentage" class="form-control" step="any" value="{{ modifiers.hedge_modifiers.feePercentage }}" />
               <small class="form-text text-muted">
                 The fee percentage applied to the total position size.
               </small>
@@ -92,7 +92,7 @@
               <label for="targetMarginInput" class="form-label">
                 <strong>📏 Target Safety Margin (%)</strong>
               </label>
-              <input type="number" id="targetMarginInput" class="form-control" step="0.1" value="15">
+              <input type="number" id="targetMarginInput" class="form-control" step="0.1" value="{{ modifiers.hedge_modifiers.targetMargin }}">
               <small class="form-text text-muted">
                 Desired safety margin. For example, 15 means a 15% buffer above liquidation.
               </small>
@@ -101,7 +101,7 @@
               <label for="adjustmentFactorInput" class="form-label">
                 <strong>🔧 Adjustment Factor</strong>
               </label>
-              <input type="number" id="adjustmentFactorInput" class="form-control" step="0.1" value="1">
+              <input type="number" id="adjustmentFactorInput" class="form-control" step="0.1" value="{{ modifiers.hedge_modifiers.adjustmentFactor }}">
               <small class="form-text text-muted">
                 Scales the recommended additional position size.
               </small>
@@ -116,27 +116,27 @@
               <label for="distanceWeightInput" class="form-label">
                 <strong>📏 Distance Weight</strong>
               </label>
-              <input type="number" id="distanceWeightInput" class="form-control" step="0.01" value="0.45" />
+              <input type="number" id="distanceWeightInput" class="form-control" step="0.01" value="{{ modifiers.heat_modifiers.distanceWeight }}" />
               <small class="form-text text-muted">
-                Weight for the distance to liquidation factor (45% by default).
+                Weight for the distance to liquidation factor.
               </small>
             </div>
             <div class="mb-3">
               <label for="leverageWeightInput" class="form-label">
                 <strong>📊 Leverage Weight</strong>
               </label>
-              <input type="number" id="leverageWeightInput" class="form-control" step="0.01" value="0.35" />
+              <input type="number" id="leverageWeightInput" class="form-control" step="0.01" value="{{ modifiers.heat_modifiers.leverageWeight }}" />
               <small class="form-text text-muted">
-                Weight for the leverage factor (35% by default).
+                Weight for the leverage factor.
               </small>
             </div>
             <div class="mb-3">
               <label for="collateralWeightInput" class="form-label">
                 <strong>💰 Collateral Weight</strong>
               </label>
-              <input type="number" id="collateralWeightInput" class="form-control" step="0.01" value="0.20" />
+              <input type="number" id="collateralWeightInput" class="form-control" step="0.01" value="{{ modifiers.heat_modifiers.collateralWeight }}" />
               <small class="form-text text-muted">
-                Weight for the collateral ratio factor (20% by default).
+                Weight for the collateral ratio factor.
               </small>
             </div>
           </div>
@@ -497,13 +497,11 @@
     const longLiq = parseFloat(document.getElementById("longLiqPrice").value) || (longEntry * 0.8);
     const longCollateral = parseFloat(document.getElementById("longCollateral").value) || 0;
     const longSize = parseFloat(document.getElementById("longSize").value) || 0;
-    // For simplicity, assume leverage = size/collateral if collateral > 0
     let leverage = longCollateral > 0 ? longSize / longCollateral : 0;
     if (longEntry <= 0 || longLiq <= 0 || longCollateral <= 0 || longSize <= 0) {
       document.getElementById("longHeatIndex").innerText = "Heat: N/A";
       return;
     }
-    // Compute normalized distance to liquidation (NDL)
     let ndl = (simPrice - longLiq) / (longEntry - longLiq);
     ndl = Math.max(0, Math.min(ndl, 1));
     let distanceFactor = 1 - ndl;
@@ -511,7 +509,6 @@
     let collateralRatio = longCollateral / longSize;
     collateralRatio = Math.min(collateralRatio, 1);
     let riskCollateralFactor = 1 - collateralRatio;
-    // Composite risk index using weights 0.45, 0.35, 0.20
     let composite = Math.pow(distanceFactor, 0.45) * Math.pow(normalizedLeverage, 0.35) * Math.pow(riskCollateralFactor, 0.20) * 100;
     composite = composite.toFixed(2);
     document.getElementById("longHeatIndex").innerText = "Heat: " + composite;
@@ -528,7 +525,6 @@
       document.getElementById("shortHeatIndex").innerText = "Heat: N/A";
       return;
     }
-    // For SHORT, compute NDL as (liquidation - current)/(liquidation - entry)
     let ndl = (shortLiq - simPrice) / (shortLiq - shortEntry);
     ndl = Math.max(0, Math.min(ndl, 1));
     let distanceFactor = 1 - ndl;
@@ -553,7 +549,6 @@
     const longLiq = longLiquidation || (longEntry * 0.8);
     const shortLiq = shortLiquidation || (shortEntry * 1.2);
 
-    // Safety margins
     const longRange = longEntry - longLiq;
     const shortRange = shortLiq - shortEntry;
     const longSafety = simPrice - longLiq;
@@ -583,7 +578,6 @@
 
   // Save Modifiers Button click handler
   document.getElementById("saveModifiers").addEventListener("click", function() {
-    // Gather modifier data from inputs
     const modifiers = {
       hedge_modifiers: {
         feePercentage: parseFloat(document.getElementById("feePercentage").value),
@@ -596,8 +590,7 @@
         collateralWeight: parseFloat(document.getElementById("collateralWeightInput").value)
       }
     };
-    // Send the JSON payload to our sonic_sauce endpoint
-    fetch("/sonic_sauce", {
+    fetch("/positions/sonic_sauce", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"

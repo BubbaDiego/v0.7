@@ -5,7 +5,8 @@ unified_logger.py
 This module implements a unified logger for the application.
 It writes logs in JSON format to separate files for operations and alerts,
 and also outputs logs to the console.
-The log records include custom fields such as source, operation type, and file name.
+The log records include custom fields such as source, operation type, file name,
+and now a 'json_type' field if provided.
 Timestamps are formatted in US/Pacific time using a configurable date format.
 """
 
@@ -39,6 +40,7 @@ class JsonFormatter(logging.Formatter):
             "source": getattr(record, "source", ""),
             "operation_type": getattr(record, "operation_type", ""),
             "file": getattr(record, "file", ""),
+            "json_type": getattr(record, "json_type", ""),
             "log_type": getattr(record, "log_type", "")
         }
         return json.dumps(record_dict, ensure_ascii=False)
@@ -96,7 +98,7 @@ class UnifiedLogger:
         self.logger.addHandler(alert_handler)
         self.logger.addHandler(console_handler)
 
-    def log_operation(self, operation_type: str, primary_text: str, source: str = "", file: str = ""):
+    def log_operation(self, operation_type: str, primary_text: str, source: str = "", file: str = "", extra_data: dict = None):
         self.logger.debug("About to log operation: operation_type=%s, primary_text=%s, source=%s, file=%s",
                           operation_type, primary_text, source, file)
         extra = {
@@ -105,10 +107,12 @@ class UnifiedLogger:
             "log_type": "operation",
             "file": file
         }
+        if extra_data:
+            extra.update(extra_data)
         self.logger.info(primary_text, extra=extra)
         self.logger.debug("Logged operation entry with operation_type=%s", operation_type)
 
-    def log_alert(self, operation_type: str, primary_text: str, source: str = "", file: str = ""):
+    def log_alert(self, operation_type: str, primary_text: str, source: str = "", file: str = "", extra_data: dict = None):
         self.logger.debug("About to log alert: operation_type=%s, primary_text=%s, source=%s, file=%s",
                           operation_type, primary_text, source, file)
         extra = {
@@ -117,6 +121,8 @@ class UnifiedLogger:
             "log_type": "alert",
             "file": file
         }
+        if extra_data:
+            extra.update(extra_data)
         self.logger.info(primary_text, extra=extra)
         self.logger.debug("Logged alert entry with operation_type=%s", operation_type)
 
@@ -127,11 +133,13 @@ if __name__ == "__main__":
         operation_type="Launch pad started",
         primary_text="Launch Pad - Started",
         source="System Start-up",
-        file="launch_pad"
+        file="launch_pad",
+        extra_data={"json_type": ""}
     )
     u_logger.log_alert(
         operation_type="Alert Check",
         primary_text="Checking 5 positions for alerts",
         source="System",
-        file="alert_manager"
+        file="alert_manager",
+        extra_data={"json_type": ""}
     )

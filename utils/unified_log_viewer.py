@@ -21,6 +21,8 @@ UNIFIED_LOG_CONFIG = {
     "Heartbeat": {"icon": "❤️⚡", "color": "green"},
     "Heartbeat Detected": {"icon": "❤️🩺", "color": "green"},
     "Heartbeat Failure": {"icon": " ♥", "color": "red"},
+    "JSON Verified": {"icon": "✅", "color": "green"},
+    "JSON Verification Failed": {"icon": "💀", "color": "red"},
     "Notification Sent": {"icon": "📱", "color": "blue"},
     "Notification Failed": {"icon": "💀", "color": "red"},
     "Prices Updated": {"icon": "📈", "color": "blue"},

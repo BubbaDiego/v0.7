@@ -35,6 +35,7 @@ from flask_socketio import SocketIO, emit
 from config.config_constants import DB_PATH, CONFIG_PATH, BASE_DIR
 from config.unified_config_manager import UnifiedConfigManager
 from data.data_locker import DataLocker
+from utils.json_manager import JsonManager
 from positions.position_service import PositionService
 from prices.price_monitor import PriceMonitor
 
@@ -56,6 +57,9 @@ from jupiter.jupiter_bp import jupiter_bp
 
 # *** NEW: Import the UnifiedLogger and remove the old OperationsLogger ***
 from utils.unified_logger import UnifiedLogger
+#from sonic_labs_bp import sonic_labs_bp
+from sonic_labs.sonic_labs_bp import sonic_labs_bp
+
 
 # Setup logging
 logger = logging.getLogger("WebAppLogger")
@@ -83,6 +87,10 @@ app.register_blueprint(alerts_bp, url_prefix="/alerts")
 app.register_blueprint(prices_bp, url_prefix="/prices")
 app.register_blueprint(dashboard_bp)  # Dashboard-specific routes and API endpoints
 
+
+app.register_blueprint(sonic_labs_bp, url_prefix="/sonic_labs")
+
+
 app.register_blueprint(jupiter_bp, url_prefix="/jupiter")
 
 # *** NEW: Register the portfolio blueprint ***
@@ -97,6 +105,9 @@ app.register_blueprint(simulator_bp, url_prefix="/simulator")
 # Call the UnifiedLogger on startup with the source "System Start-up"
 unified_logger = UnifiedLogger()
 unified_logger.log_operation("Start Launch Pad", "Launch Pad - Started", source="System")
+
+
+app.json_manager = JsonManager(logger=unified_logger)
 
 # --- Alias endpoints if needed ---
 if "dashboard.index" in app.view_functions:

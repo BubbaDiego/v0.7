@@ -637,7 +637,7 @@ class AlertManager:
             u_logger.log_operation(
                 operation_type="Notification Failed",
                 primary_text=f"Notification Failed: {key}",
-                source="AlertManager",
+                source="System",
                 file="alert_manager.py"
             )
             logging.error("Error sending call for '%s'.", key, exc_info=True)

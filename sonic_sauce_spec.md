@@ -1,189 +1,221 @@
-# Hedge Calculator Risk Index Specification
+# Hedge Calculator Risk Index Specification (Updated)
 
 ## 1. Overview
 
-**Purpose:**
-Define a composite risk index for hedged positions that integrates multiple factors—distance to liquidation, leverage, and collateral ratio—to produce a single numerical metric that quantifies risk exposure. This index will enable both per-position risk evaluation and a differential comparison between long and short positions.
+**Purpose:**  
+Define a composite risk index for hedged positions that integrates multiple risk factors—distance to liquidation, leverage, and collateral ratio—into a single numerical metric. This index (often referred to as the "heat index") enables both per-position risk evaluation and differential risk comparison between long and short positions. A higher score (on a 0–100 scale) indicates a higher risk exposure.
 
-**Scope:**
-This document covers the rationale, detailed formulas (including both additive and multiplicative models), normalization methods, and calibration guidelines. It also specifies the desired outputs: a risk score for each position (normalized to a 0–100 scale) and a differential risk measure.
+**Scope:**  
+This document covers the rationale, formulas, normalization methods, error handling, and integration guidelines required to fully recreate the current composite risk index implementation. It documents all input parameters, calculation steps, and UI integration details.
 
-**Audience:**
-Developers, quantitative analysts, and AI collaborators who will extend or integrate this system.
+**Audience:**  
+Developers, quantitative analysts, and technical integrators who will extend or integrate the Hedge Calculator system.
 
 ## 2. Definitions and Terminology
 
 - **Entry Price:** The price at which a position was initiated.
-- **Liquidation Price:** The price at which the position will be automatically closed (liquidated) to protect the lender or system.
-- **Distance to Liquidation (NDL):** A normalized measure of how far the current price is from the liquidation threshold, typically calculated as a fraction of the range between the entry price and the liquidation price.
-- **Leverage:** The multiple by which a position's exposure is magnified. Although positions can range from 1x to 100x, typical values are mostly under 20x.
-- **Collateral Ratio:** The ratio of collater[sonic_sauce_spec.md](sonic_sauce_spec.md)al to the position size. A higher ratio generally indicates a safer position.
-- **Risk Index:** A composite metric that quantifies the risk of a position by combining distance to liquidation, leverage, and collateral ratio.
-- **Differential Risk:** The difference between the risk indices of the long and short positions, which helps identify which side is riskier overall.
-- **Normalized Score:** A value scaled to a predefined range (0–100 in this case) for easy comparison.
+- **Liquidation Price:** The price at which the position will be automatically closed to prevent further losses.
+- **Current Price:** The simulated or live price used for risk calculations.
+- **Distance to Liquidation (NDL):** A normalized measure of how far the current price is from the liquidation threshold. It is computed as a fraction of the price range between the entry and liquidation prices.
+- **Leverage:** The multiple by which a position’s exposure is magnified. While positions can range widely (up to 100x in this implementation), typical values are lower.
+- **Normalized Leverage:** In this system, leverage is normalized by dividing the actual leverage by 100.
+- **Collateral Ratio:** The ratio of collateral to the position size, capped at 1. A higher ratio indicates a safer position.
+- **Risk Contribution from Collateral:** Computed as \(1 - \text{Collateral Ratio}\).
+- **Composite Risk Index (Heat Index):** A metric that quantifies the risk of a position by combining the three factors into one score, normalized to a 0–100 range.
+- **Differential Risk:** The difference between the risk indices of the long and short positions, highlighting which side is riskier.
 
 ## 3. System Requirements
 
 ### 3.1 Functional Requirements
 
-- **NDL Calculation:**
-  For a long position, compute:
-  \[
-  \text{NDL}_{\text{long}} = \frac{\text{Current Price} - \text{Liquidation Price}}{\text{Entry Price} - \text{Liquidation Price}}
-  \]
-  For a short position, the formula should be adjusted accordingly.
+1. **Input Data Validation:**  
+   - Required fields: `entry_price`, `current_price`, `liquidation_price`, `collateral`, `size`, `leverage`, and `position_type` (either "LONG" or "SHORT").
+   - Ensure that `entry_price`, `liquidation_price`, `collateral`, and `size` are greater than 0.
+   - Verify that \(|\text{entry_price} - \text{liquidation_price}|\) is sufficiently large (e.g., > 1e-6) to avoid division by zero.
 
-- **Leverage Normalization:**
-  Normalize the leverage value, considering a practical cap (e.g., 20x). For example:
-  \[
-  \text{Normalized Leverage} = \frac{\text{Actual Leverage} - 1}{\text{Cap} - 1}
-  \]
-  This produces a value between 0 and 1.
+2. **NDL Calculation:**  
+   - **For Long Positions:**  
+     \[
+     \text{NDL} = \frac{\text{current price} - \text{liquidation price}}{\text{entry price} - \text{liquidation price}}
+     \]
+   - **For Short Positions:**  
+     \[
+     \text{NDL} = \frac{\text{liquidation price} - \text{current price}}{\text{liquidation price} - \text{entry price}}
+     \]
+   - Clamp the NDL value to the range \([0, 1]\).
 
-- **Collateral Ratio:**
-  Compute as:
-  \[
-  \text{Collateral Ratio} = \frac{\text{Collateral}}{\text{Position Size}}
-  \]
-  Use \(1 - \text{Collateral Ratio}\) as the risk contribution from collateral (assuming the ratio is normalized between 0 and 1).
+3. **Distance Factor:**  
+   - Calculate as:  
+     \[
+     \text{Distance Factor} = 1 - \text{NDL}
+     \]
 
-- **Composite Risk Index:**
-  Two models should be supported:
+4. **Leverage Normalization:**  
+   - Normalize leverage by dividing the actual leverage by 100:
+     \[
+     \text{Normalized Leverage} = \frac{\text{leverage}}{100}
+     \]
+   - This assumes an effective maximum of 100x leverage for scaling purposes.
 
-  **Additive Model:**
-  \[
-  R = w_1 \times \left(1 - \text{NDL}\right) + w_2 \times \text{Normalized Leverage} + w_3 \times \left(1 - \text{Collateral Ratio}\right)
-  \]
+5. **Collateral Ratio and Risk Contribution:**  
+   - Compute collateral ratio:
+     \[
+     \text{Collateral Ratio} = \frac{\text{collateral}}{\text{position size}}
+     \]
+   - Cap this ratio at 1.
+   - Compute risk contribution from collateral as:
+     \[
+     \text{Risk Collateral Factor} = 1 - \text{Collateral Ratio}
+     \]
 
-  **Multiplicative Model:**
-  \[
-  R = \left(1 - \text{NDL}\right) \times \text{Normalized Leverage} \times \left(1 - \text{Collateral Ratio}\right)
-  \]
+6. **Composite Risk (Heat) Index Calculation:**  
+   - The system uses a multiplicative model exclusively. The composite risk index is calculated using the formula:
+     \[
+     R = \left(\text{Distance Factor}\right)^{0.45} \times \left(\text{Normalized Leverage}\right)^{0.35} \times \left(\text{Risk Collateral Factor}\right)^{0.20} \times 100
+     \]
+   - Round the final result to two decimal places.
+   - This value is reported on a 0–100 scale, where higher values denote higher risk.
 
-  The resulting index \(R\) should then be normalized to a 0–100 scale.
-
-- **Differential Risk:**
-  Compute:
-  \[
-  \Delta R = R_{\text{long}} - R_{\text{short}}
-  \]
-  This value indicates which side is riskier and by how much.
+7. **Differential Risk:**  
+   - For systems managing both long and short positions, compute:
+     \[
+     \Delta R = R_{\text{long}} - R_{\text{short}}
+     \]
+   - This differential helps determine which side of the hedge is riskier.
 
 ### 3.2 Non-Functional Requirements
 
-- **Dynamic Recalculation:**
-  The risk index should update dynamically as the simulated price changes.
-- **Parameter Tuning:**
-  The system must allow for easy tuning of weights (\(w_1, w_2, w_3\)) and normalization parameters based on historical or simulated data.
-- **Reporting:**
-  Both the raw risk index and its normalized version (0–100) should be reported for each position, along with the differential risk.
+- **Dynamic Recalculation:**  
+  The risk index must update in real-time as the simulated price changes (integrated in the UI via JavaScript).
+
+- **Parameter Tuning:**  
+  The exponents (0.45, 0.35, 0.20) and the normalization factor for leverage (dividing by 100) are based on internal testing and can be adjusted as needed for back-testing and calibration.
+
+- **Error Handling and Logging:**  
+  Invalid or missing inputs (e.g., non-positive prices or collateral) should result in the function returning `None` and logging an appropriate error message to facilitate debugging.
+
+- **Reporting:**  
+  The system should report both the raw composite risk index and its normalized version (0–100) for each position. These values are used in the UI to display the “heat index” dynamically.
 
 ## 4. Design Considerations
 
 ### 4.1 Normalization Strategy
 
-- **Distance to Liquidation:**
-  Use the formula provided for NDL. A value closer to 0 indicates higher risk.
-- **Leverage:**
-  Normalize leverage using a cap. If most values are under 20x, a cap of 20 might be appropriate. This avoids extreme values disproportionately affecting the index.
-- **Collateral Ratio:**
-  Expressed as a fraction; a lower collateral ratio implies higher risk. Use \(1 - \text{Collateral Ratio}\) as its risk contribution.
+- **Distance to Liquidation:**  
+  A lower NDL (i.e., a higher distance factor) indicates higher risk. Clamping ensures the value remains within a meaningful range.
 
-### 4.2 Model Comparison
+- **Leverage:**  
+  Dividing by 100 standardizes leverage. This method assumes that while leverage values can vary, a direct scaling is sufficient for risk contribution.
 
-- **Additive Model:**
-  - **Pros:** Simple, transparent, and adjustable through weights.
-  - **Cons:** Does not capture interaction effects between risk factors.
-- **Multiplicative Model:**
-  - **Pros:** Captures compounding effects when multiple factors are adverse.
-  - **Cons:** More sensitive to extreme values and requires careful normalization.
+- **Collateral Ratio:**  
+  Expressed as a fraction (capped at 1) to ensure positions with excessive collateral do not disproportionately lower the risk index.
 
-### 4.3 Weight Calibration
+### 4.2 Model Choice
 
-- **Initial Weights:**
-  You might start with weights that give more importance to distance to liquidation (since it's a direct measure of how close you are to risk), then adjust leverage and collateral ratio weights.
-- **Tuning:**
-  Back-test the risk index against historical or simulated data to adjust weights until the index reliably reflects the intuitive risk.
+- **Multiplicative Model:**  
+  - **Pros:**  
+    - Captures the compounding effect of adverse factors.
+    - Sensitive to extreme values, highlighting positions that are particularly vulnerable.
+  - **Cons:**  
+    - Can be overly sensitive if one of the inputs is an outlier.
+  - **Note:** Although an additive model was considered, the latest implementation uses the multiplicative approach exclusively.
 
-## 5. Proposed Formula and Workflow
+### 4.3 Weight and Exponent Calibration
 
-1. **Per-Position Calculations:**
-   - Compute **NDL** for each position.
-   - Normalize leverage using the chosen cap.
-   - Calculate the **Collateral Ratio** and derive a risk factor.
-2. **Composite Risk Index:**
-   - **Additive Model Example:**
+- **Current Exponents:**  
+  - Distance Factor exponent: 0.45  
+  - Normalized Leverage exponent: 0.35  
+  - Collateral Risk Factor exponent: 0.20  
+- These were selected based on internal analysis and can be tuned further based on historical performance data and market conditions.
+
+## 5. Implementation Workflow
+
+1. **Input Validation:**  
+   - Confirm all required fields are provided and valid.
+   - Ensure that `entry_price`, `liquidation_price`, `collateral`, and `size` are positive and that the gap between `entry_price` and `liquidation_price` is significant.
+
+2. **Calculation of NDL:**  
+   - Compute NDL based on the position type (LONG or SHORT) and clamp to [0, 1].
+
+3. **Calculation of Intermediate Factors:**  
+   - **Distance Factor:** \(1 - \text{NDL}\)
+   - **Normalized Leverage:** \(\text{leverage} / 100\)
+   - **Risk Collateral Factor:** \(1 - \min(\text{collateral} / \text{size}, 1)\)
+
+4. **Composite Risk Index Computation:**  
+   - Apply the multiplicative formula:
      \[
-     R = w_1 \times \left(1 - \text{NDL}\right) + w_2 \times \text{Normalized Leverage} + w_3 \times \left(1 - \text{Collateral Ratio}\right)
+     R = (\text{Distance Factor})^{0.45} \times (\text{Normalized Leverage})^{0.35} \times (\text{Risk Collateral Factor})^{0.20} \times 100
      \]
-   - **Multiplicative Model Example:**
-     \[
-     R = \left(1 - \text{NDL}\right) \times \text{Normalized Leverage} \times \left(1 - \text{Collateral Ratio}\right)
-     \]
-3. **Normalization:**
-   - Scale \( R \) to a 0–100 range.
-4. **Differential Risk:**
-   - Compute \(\Delta R = R_{\text{long}} - R_{\text{short}}\) to measure imbalance.
+   - Round \(R\) to two decimal places.
+
+5. **Integration with UI:**  
+   - The computed risk index is used to display the “heat index” for both long and short positions.
+   - JavaScript functions in the Hedge Calculator (e.g., `updateLongHeatIndex` and `updateShortHeatIndex`) call the composite risk formula dynamically as the simulated price changes.
+   - The risk index is also stored and may be updated in the database via the aggregator logic in the backend.
+
+6. **Error Logging:**  
+   - Any exceptions or invalid input scenarios are logged to a dedicated file (e.g., `calc_services.log`) for further analysis.
 
 ## 6. Future Extensions
 
-- **Financing Costs and Fees:**
-  Incorporate additional factors like financing costs once data is available.
-- **Volatility Adjustme[calc_services.py](utils/calc_services.py)nts:**
-  Consider historical or implied volatility as[calc_services.py](utils/calc_services.py) an additional risk factor.
-- **Real-Time Calibration:**
-  Use live market data to continuously refine the weights and normalization parameters.
+- **Incorporating Additional Factors:**  
+  Future iterations may include financing costs, fees, or volatility adjustments to further refine the risk assessment.
+
+- **Enhanced Calibration:**  
+  Implement real-time calibration using live market data to continuously update the normalization and exponent parameters.
+
+- **Alternate Models:**  
+  Although the current system exclusively uses the multiplicative model, future versions might allow switching between additive and multiplicative models based on user preference or market conditions.
 
 ## 7. Appendices
 
 ### Appendix A: Example Calculations
 
-- **Example 1: Long Position**
-  - **Entry Price:** \$100
-  - **Liquidation Price:** \$80
-  - **Current Price:** \$90
-  - **NDL Calculation:**
-    \[
-    \text{NDL} = \frac{90 - 80}{100 - 80} = \frac{10}{20} = 0.5
-    \]
-  - **Leverage:** 10x (Assuming a cap of 20x, Normalized Leverage = \(\frac{10-1}{20-1} \approx 0.474\))
-  - **Collateral Ratio:** 0.5 (Risk contribution = \(1 - 0.5 = 0.5\))
-  - **Additive Model (with example weights \(w_1 = 40, w_2 = 30, w_3 = 30\)):**
-    \[
-    R = 40 \times (1 - 0.5) + 30 \times 0.474 + 30 \times 0.5 = 20 + 14.22 + 15 = 49.22
-    \]
-  - **Normalized to 0–100:** \(49.22\) (if directly using weights scaled to 100)
+#### Example 1: Long Position
+- **Entry Price:** \$100  
+- **Liquidation Price:** \$80  
+- **Current Price:** \$90  
+- **NDL Calculation:**  
+  \[
+  \text{NDL} = \frac{90 - 80}{100 - 80} = \frac{10}{20} = 0.5
+  \]
+- **Distance Factor:**  
+  \(1 - 0.5 = 0.5\)
+- **Leverage:** 10x  
+  **Normalized Leverage:**  
+  \(10 / 100 = 0.10\)
+- **Collateral Ratio:** 0.5 (if collateral is half the position size)  
+  **Risk Collateral Factor:**  
+  \(1 - 0.5 = 0.5\)
+- **Composite Risk Index:**  
+  \[
+  R = (0.5)^{0.45} \times (0.10)^{0.35} \times (0.5)^{0.20} \times 100
+  \]
+  (Result rounded to two decimals; the exact value depends on the computed intermediate values.)
 
-- **Example 2: Short Position**
-  - Similar calculation using adjusted formula for shorts.
+#### Example 2: Short Position
+- Follow a similar process using the adjusted NDL formula for short positions:
+  \[
+  \text{NDL} = \frac{\text{liquidation price} - \text{current price}}{\text{liquidation price} - \text{entry price}}
+  \]
 
-### Appendix B: Data Requirements and Sources
+### Appendix B: Data Requirements
 
-- **Historical Trade Data:**
-  To calibrate weights, you’ll need historical data on positions, including entry prices, liquidation prices, leverage, collateral, and how these factors influenced liquidation events.
-- **Market Price Feeds:**
-  Real-time or simulated price data to update the risk index dynamically.
-- **Position Details:**
-  Data from your trading platform regarding position sizes, collateral invested, and leverage settings.
-- **External Risk Metrics:**
-  If available, volatility indices or risk factors from external sources could help refine the model.
+- **Trade and Position Data:**  
+  Historical and live data including entry price, liquidation price, collateral, size, and leverage.
+- **Market Price Feeds:**  
+  Simulated or live price feeds to update the risk index dynamically.
+- **Logging Data:**  
+  Detailed logs for debugging and validation stored in `calc_services.log`.
 
-### Appendix C: Tuning Guidelines and Expected Ranges
+### Appendix C: Calibration Guidelines
 
-- **Weights (w1, w2, w3):**
-  - Start with higher weight on distance to liquidation (e.g., 40–50%) since it’s directly tied to risk.
-  - Leverage and collateral ratio can start at 25–30% each.
-- **Leverage Normalization:**
-  - Cap leverage normalization at 20x if that is typical, but be prepared to adjust if positions start to reach higher multiples.
-- **Collateral Ratio:**
-  - Ensure that collateral ratios are expressed as fractions (0 to 1).
-  - A ratio below 0.5 might be considered risky.
-- **Calibration:**
-  - Use back-testing on historical positions to see if the computed risk index correlates with actual liquidation events or margin calls.
-  - Adjust weights iteratively based on simulated outcomes until the risk index reliably predicts higher risk when positions are indeed more vulnerable.
-
----
-
-This Markdown spec should serve as a detailed guide for implementing the composite risk index, including the necessary formulas, normalization methods, and calibration guidelines. It should help both human developers and AI tools understand the approach and continue development from here.
-
-Does this meet your expectations, honey? Let me know if you need any further adjustments or additional details!
+- **Weights/Exponents:**  
+  - Start with exponents: 0.45 (distance), 0.35 (leverage), 0.20 (collateral).
+  - Adjust based on back-testing results and market behavior.
+- **Normalization Factors:**  
+  - Leverage is normalized by dividing by 100. This parameter may be adjusted if positions routinely exceed 100x leverage.
+- **Back-Testing:**  
+  - Use historical liquidation events and margin call data to refine the model.
+  - Continuously compare computed risk indices with real outcomes to ensure the model’s predictive validity.

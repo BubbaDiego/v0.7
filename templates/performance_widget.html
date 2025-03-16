@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Performance Card Demo</title>
+  <!-- Bootstrap CSS for styling -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <style>
+    /* Base card styling consistent with your dashboard cards */
+    .performance-card {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background-color: #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin: 20px auto;
+      max-width: 400px;
+      overflow: hidden;
+    }
+    .performance-card .card-header {
+      background-color: var(--card-title-color, #34495E);
+      color: var(--text-color, #fff);
+      padding: 10px 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 1.25rem;
+      font-weight: bold;
+    }
+    .performance-card .card-header .edit-btn {
+      background: none;
+      border: none;
+      color: var(--text-color, #fff);
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+    .performance-card .card-body {
+      padding: 15px;
+    }
+    /* Main performance display styling */
+    .performance-display {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+    .performance-display h2 {
+      font-size: 2.5rem;
+      margin: 0;
+      font-weight: bold;
+    }
+    .performance-display .change {
+      font-size: 1.5rem;
+      margin-top: 5px;
+    }
+    .change-positive {
+      color: green;
+    }
+    .change-negative {
+      color: red;
+    }
+    /* Lower details box styling */
+    .details-box {
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      padding: 10px;
+      font-size: 0.9rem;
+      color: #555;
+      background-color: #f7f7f7;
+    }
+    .details-box .data-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+    }
+    .details-box .data-label {
+      font-weight: bold;
+    }
+    /* Edit mode input styling */
+    .edit-input {
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 3px 5px;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="performance-card">
+    <div class="card-header">
+      <span>Strategy Performance</span>
+      <button id="edit-toggle" class="edit-btn" title="Edit">
+        <i class="bi bi-pencil-square"></i>
+      </button>
+    </div>
+    <div class="card-body" id="card-content">
+      <!-- Main performance display -->
+      <div class="performance-display">
+        <h2 id="current-value-display">$12,500.00</h2>
+        <div id="change-display" class="change change-positive">+$2,500.00</div>
+        <div id="percent-change-display" class="change change-positive">+25.00%</div>
+      </div>
+      <!-- Details box with smaller, more subtle values -->
+      <div class="details-box">
+        <div class="data-row">
+          <div class="data-label">Description:</div>
+          <div id="description-display">Strategy A - Momentum Trading</div>
+        </div>
+        <div class="data-row">
+          <div class="data-label">Start Date:</div>
+          <div id="start-date-display">03/01/2025</div>
+        </div>
+        <div class="data-row">
+          <div class="data-label">Start Value:</div>
+          <div id="start-value-display">$10,000.00</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript: Toggle edit mode and update values -->
+  <script>
+    // Canned data
+    const data = {
+      description: "Strategy A - Momentum Trading",
+      startDate: "03/01/2025",
+      startValue: 10000,
+      currentValue: 12500
+    };
+
+    // Cache DOM elements
+    const descriptionDisplay = document.getElementById("description-display");
+    const startDateDisplay = document.getElementById("start-date-display");
+    const startValueDisplay = document.getElementById("start-value-display");
+    const currentValueDisplay = document.getElementById("current-value-display");
+    const changeDisplay = document.getElementById("change-display");
+    const percentChangeDisplay = document.getElementById("percent-change-display");
+    const editToggleBtn = document.getElementById("edit-toggle");
+    const cardContent = document.getElementById("card-content");
+
+    // State flag and backup for original data (for canceling edits)
+    let isEditing = false;
+    let originalData = { ...data };
+
+    // Function to calculate change and percent change
+    function calculateChanges() {
+      let change = data.currentValue - data.startValue;
+      let percent = data.startValue > 0 ? (change / data.startValue) * 100 : 0;
+      return { change, percent };
+    }
+
+    // Function to update view-mode display
+    function updateViewMode() {
+      descriptionDisplay.textContent = data.description;
+      startDateDisplay.textContent = data.startDate;
+      startValueDisplay.textContent = "$" + data.startValue.toFixed(2);
+      currentValueDisplay.textContent = "$" + data.currentValue.toFixed(2);
+      const { change, percent } = calculateChanges();
+      changeDisplay.textContent = (change >= 0 ? "+" : "") + "$" + change.toFixed(2);
+      percentChangeDisplay.textContent = (percent >= 0 ? "+" : "") + percent.toFixed(2) + "%";
+      changeDisplay.className = "change " + (change >= 0 ? "change-positive" : "change-negative");
+      percentChangeDisplay.className = "change " + (percent >= 0 ? "change-positive" : "change-negative");
+    }
+
+    // Function to switch to edit mode: replace display text with input fields
+    function switchToEditMode() {
+      isEditing = true;
+      // Change edit icon to show check and cross icons for save/cancel
+      editToggleBtn.innerHTML = '<i class="bi bi-check-lg"></i> <i class="bi bi-x-lg"></i>';
+      // Replace main performance display and details box with input fields
+      cardContent.innerHTML = `
+        <div class="performance-display">
+          <h2><input type="number" id="current-value-input" class="edit-input" value="${data.currentValue}" style="text-align:center; font-size:2.5rem; font-weight:bold;"></h2>
+          <div id="change-display" class="change">${(data.currentValue - data.startValue >= 0 ? "+" : "") + "$" + (data.currentValue - data.startValue).toFixed(2)}</div>
+          <div id="percent-change-display" class="change">${(data.startValue > 0 ? ((data.currentValue - data.startValue)/data.startValue*100).toFixed(2) : 0) + "%"}</div>
+        </div>
+        <div class="details-box">
+          <div class="data-row">
+            <div class="data-label">Description:</div>
+            <div><input type="text" id="description-input" class="edit-input" value="${data.description}"></div>
+          </div>
+          <div class="data-row">
+            <div class="data-label">Start Date:</div>
+            <div><input type="text" id="start-date-input" class="edit-input" value="${data.startDate}"></div>
+          </div>
+          <div class="data-row">
+            <div class="data-label">Start Value:</div>
+            <div><input type="number" id="start-value-input" class="edit-input" value="${data.startValue}"></div>
+          </div>
+        </div>
+      `;
+      // Add listeners to update computed fields as currentValue changes
+      document.getElementById("current-value-input").addEventListener("input", updateComputedFields);
+      document.getElementById("start-value-input").addEventListener("input", updateComputedFields);
+    }
+
+    // Function to update computed fields while editing
+    function updateComputedFields() {
+      const startVal = parseFloat(document.getElementById("start-value-input").value) || 0;
+      const currentVal = parseFloat(document.getElementById("current-value-input").value) || 0;
+      let change = currentVal - startVal;
+      let percent = startVal > 0 ? (change / startVal) * 100 : 0;
+      document.getElementById("change-display").textContent = (change >= 0 ? "+" : "") + "$" + change.toFixed(2);
+      document.getElementById("percent-change-display").textContent = (percent >= 0 ? "+" : "") + percent.toFixed(2) + "%";
+      document.getElementById("change-display").className = "change " + (change >= 0 ? "change-positive" : "change-negative");
+      document.getElementById("percent-change-display").className = "change " + (percent >= 0 ? "change-positive" : "change-negative");
+    }
+
+    // Function to save edits and revert to view mode
+    function saveEdits() {
+      data.description = document.getElementById("description-input").value;
+      data.startDate = document.getElementById("start-date-input").value;
+      data.startValue = parseFloat(document.getElementById("start-value-input").value) || 0;
+      data.currentValue = parseFloat(document.getElementById("current-value-input").value) || 0;
+      isEditing = false;
+      // Restore the edit icon
+      editToggleBtn.innerHTML = '<i class="bi bi-pencil-square"></i>';
+      // Restore view-mode content
+      cardContent.innerHTML = `
+        <div class="performance-display">
+          <h2 id="current-value-display">$${data.currentValue.toFixed(2)}</h2>
+          <div id="change-display" class="change">${(data.currentValue - data.startValue >= 0 ? "+" : "") + "$" + (data.currentValue - data.startValue).toFixed(2)}</div>
+          <div id="percent-change-display" class="change">${(data.startValue > 0 ? ((data.currentValue - data.startValue)/data.startValue*100).toFixed(2) : 0) + "%"}</div>
+        </div>
+        <div class="details-box">
+          <div class="data-row">
+            <div class="data-label">Description:</div>
+            <div id="description-display">${data.description}</div>
+          </div>
+          <div class="data-row">
+            <div class="data-label">Start Date:</div>
+            <div id="start-date-display">${data.startDate}</div>
+          </div>
+          <div class="data-row">
+            <div class="data-label">Start Value:</div>
+            <div id="start-value-display">$${data.startValue.toFixed(2)}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Function to cancel edits and revert to original data
+    function cancelEdits() {
+      data.description = originalData.description;
+      data.startDate = originalData.startDate;
+      data.startValue = originalData.startValue;
+      data.currentValue = originalData.currentValue;
+      isEditing = false;
+      editToggleBtn.innerHTML = '<i class="bi bi-pencil-square"></i>';
+      updateViewMode();
+      cardContent.innerHTML = `
+        <div class="performance-display">
+          <h2 id="current-value-display">$${data.currentValue.toFixed(2)}</h2>
+          <div id="change-display" class="change">${(data.currentValue - data.startValue >= 0 ? "+" : "") + "$" + (data.currentValue - data.startValue).toFixed(2)}</div>
+          <div id="percent-change-display" class="change">${(data.startValue > 0 ? ((data.currentValue - data.startValue)/data.startValue*100).toFixed(2) : 0) + "%"}</div>
+        </div>
+        <div class="details-box">
+          <div class="data-row">
+            <div class="data-label">Description:</div>
+            <div id="description-display">${data.description}</div>
+          </div>
+          <div class="data-row">
+            <div class="data-label">Start Date:</div>
+            <div id="start-date-display">${data.startDate}</div>
+          </div>
+          <div class="data-row">
+            <div class="data-label">Start Value:</div>
+            <div id="start-value-display">$${data.startValue.toFixed(2)}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Toggle edit mode when the edit button is clicked
+    editToggleBtn.addEventListener("click", function() {
+      if (!isEditing) {
+        // Enter edit mode – save original data first
+        originalData = { ...data };
+        switchToEditMode();
+      } else {
+        // In edit mode, prompt to save or cancel edits
+        if (confirm("Save changes? Click OK to save, Cancel to discard.")) {
+          saveEdits();
+        } else {
+          cancelEdits();
+        }
+      }
+    });
+
+    // Initialize view
+    updateViewMode();
+  </script>
+</body>
+</html>

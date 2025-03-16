@@ -28,7 +28,6 @@ class DataLocker:
         self.db_path = db_path
         self.logger = logging.getLogger("DataLockerLogger")
         self.conn = None
-        self.cursor = None
         self._initialize_database()
 
     class DictRow(sqlite3.Row):
@@ -41,9 +40,10 @@ class DataLocker:
     def _initialize_database(self):
         try:
             self._init_sqlite_if_needed()
+            cursor = self.conn.cursor()
 
             # Create system_vars table (if needed)
-            self.cursor.execute("""
+            cursor.execute("""
                 CREATE TABLE IF NOT EXISTS system_vars (
                     id INTEGER PRIMARY KEY,
                     last_update_time_positions DATETIME,
@@ -53,7 +53,7 @@ class DataLocker:
                     last_update_time_jupiter DATETIME
                 )
             """)
-            self.cursor.execute("""
+            cursor.execute("""
                 INSERT OR IGNORE INTO system_vars (
                     id,
                     last_update_time_positions,
@@ -66,45 +66,45 @@ class DataLocker:
             """)
 
             # Add new columns for Jupiter updates if missing
-            self.cursor.execute("PRAGMA table_info(system_vars)")
-            existing_cols = [row["name"] for row in self.cursor.fetchall()]
+            cursor.execute("PRAGMA table_info(system_vars)")
+            existing_cols = [row["name"] for row in cursor.fetchall()]
             if "last_update_time_jupiter" not in existing_cols:
-                self.cursor.execute("""
+                cursor.execute("""
                     ALTER TABLE system_vars
                     ADD COLUMN last_update_time_jupiter DATETIME
                 """)
                 self.logger.info("Added 'last_update_time_jupiter' column to 'system_vars' table.")
             if "last_update_jupiter_source" not in existing_cols:
-                self.cursor.execute("""
+                cursor.execute("""
                     ALTER TABLE system_vars
                     ADD COLUMN last_update_jupiter_source TEXT
                 """)
                 self.logger.info("Added 'last_update_jupiter_source' column to 'system_vars' table.")
 
             # Add additional balance columns if missing
-            self.cursor.execute("PRAGMA table_info(system_vars)")
-            existing_cols = [row["name"] for row in self.cursor.fetchall()]
+            cursor.execute("PRAGMA table_info(system_vars)")
+            existing_cols = [row["name"] for row in cursor.fetchall()]
             for col, sql in [
                 ("total_brokerage_balance", "ALTER TABLE system_vars ADD COLUMN total_brokerage_balance REAL DEFAULT 0.0"),
                 ("total_wallet_balance", "ALTER TABLE system_vars ADD COLUMN total_wallet_balance REAL DEFAULT 0.0"),
                 ("total_balance", "ALTER TABLE system_vars ADD COLUMN total_balance REAL DEFAULT 0.0")
             ]:
                 if col not in existing_cols:
-                    self.cursor.execute(sql)
+                    cursor.execute(sql)
                     self.logger.info(f"Added '{col}' column to 'system_vars' table.")
 
             # NEW: Add columns for strategy performance persistence
-            self.cursor.execute("PRAGMA table_info(system_vars)")
-            existing_cols = [row["name"] for row in self.cursor.fetchall()]
+            cursor.execute("PRAGMA table_info(system_vars)")
+            existing_cols = [row["name"] for row in cursor.fetchall()]
             if "strategy_start_value" not in existing_cols:
-                self.cursor.execute("ALTER TABLE system_vars ADD COLUMN strategy_start_value REAL DEFAULT 0.0")
+                cursor.execute("ALTER TABLE system_vars ADD COLUMN strategy_start_value REAL DEFAULT 0.0")
                 self.logger.info("Added 'strategy_start_value' column to 'system_vars' table.")
             if "strategy_description" not in existing_cols:
-                self.cursor.execute("ALTER TABLE system_vars ADD COLUMN strategy_description TEXT DEFAULT ''")
+                cursor.execute("ALTER TABLE system_vars ADD COLUMN strategy_description TEXT DEFAULT ''")
                 self.logger.info("Added 'strategy_description' column to 'system_vars' table.")
 
             # Create prices table if it doesn't exist
-            self.cursor.execute("""
+            cursor.execute("""
                 CREATE TABLE IF NOT EXISTS prices (
                     id TEXT PRIMARY KEY,
                     asset_type TEXT,
@@ -117,7 +117,7 @@ class DataLocker:
             """)
 
             # Create positions table if it doesn't exist
-            self.cursor.execute("""
+            cursor.execute("""
                 CREATE TABLE IF NOT EXISTS positions (
                     id TEXT PRIMARY KEY,
                     asset_type TEXT,
@@ -142,7 +142,7 @@ class DataLocker:
             """)
 
             # Create alerts table if it doesn't exist
-            self.cursor.execute("""
+            cursor.execute("""
                 CREATE TABLE IF NOT EXISTS alerts (
                     id TEXT PRIMARY KEY,
                     alert_type TEXT,
@@ -163,7 +163,7 @@ class DataLocker:
             """)
 
             # Create brokers table if it doesn't exist
-            self.cursor.execute("""
+            cursor.execute("""
                 CREATE TABLE IF NOT EXISTS brokers (
                     name TEXT PRIMARY KEY,
                     image_path TEXT,
@@ -173,7 +173,7 @@ class DataLocker:
             """)
 
             # Create wallets table if it doesn't exist
-            self.cursor.execute("""
+            cursor.execute("""
                 CREATE TABLE IF NOT EXISTS wallets (
                     name TEXT PRIMARY KEY,
                     public_address TEXT,
@@ -184,7 +184,7 @@ class DataLocker:
             """)
 
             # Create portfolio_entries table if it doesn't exist
-            self.cursor.execute("""
+            cursor.execute("""
                 CREATE TABLE IF NOT EXISTS portfolio_entries (
                     id TEXT PRIMARY KEY,
                     snapshot_time DATETIME,
@@ -193,7 +193,7 @@ class DataLocker:
             """)
 
             # Create positions_totals_history table if it doesn't exist
-            self.cursor.execute("""
+            cursor.execute("""
                 CREATE TABLE IF NOT EXISTS positions_totals_history (
                     id TEXT PRIMARY KEY,
                     snapshot_time DATETIME,
@@ -208,7 +208,6 @@ class DataLocker:
 
             self.conn.commit()
             self.logger.debug("Database initialization complete.")
-
         except sqlite3.Error as e:
             self.logger.error(f"Error initializing database: {e}", exc_info=True)
             raise
@@ -228,8 +227,6 @@ class DataLocker:
             self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
             self.conn.execute("PRAGMA journal_mode=WAL;")
             self.conn.row_factory = self.DictRow
-        if self.cursor is None:
-            self.cursor = self.conn.cursor()
 
     def get_db_connection(self) -> sqlite3.Connection:
         self._init_sqlite_if_needed()
@@ -240,11 +237,9 @@ class DataLocker:
     # ----------------------------------------------------------------
 
     def set_strategy_performance_data(self, start_value: float, description: str):
-        """
-        Persists the strategy performance data (start value and description) in the DB.
-        """
         self._init_sqlite_if_needed()
-        self.cursor.execute("""
+        cursor = self.conn.cursor()
+        cursor.execute("""
             UPDATE system_vars
                SET strategy_start_value = ?,
                    strategy_description = ?
@@ -254,17 +249,15 @@ class DataLocker:
         self.logger.debug(f"Updated strategy performance data: start_value={start_value}, description={description}")
 
     def get_strategy_performance_data(self) -> dict:
-        """
-        Retrieves the persisted strategy performance data (start value and description).
-        """
         self._init_sqlite_if_needed()
-        self.cursor.execute("""
+        cursor = self.conn.cursor()
+        cursor.execute("""
             SELECT strategy_start_value, strategy_description
             FROM system_vars
             WHERE id = 1
             LIMIT 1
         """)
-        row = self.cursor.fetchone()
+        row = cursor.fetchone()
         if row:
             return {
                 "strategy_start_value": row["strategy_start_value"] or 0.0,
@@ -279,12 +272,13 @@ class DataLocker:
 
     def read_api_counters(self) -> List[dict]:
         self._init_sqlite_if_needed()
-        self.cursor.execute("""
+        cursor = self.conn.cursor()
+        cursor.execute("""
             SELECT api_name, total_reports, last_updated
               FROM api_status_counters
              ORDER BY api_name
         """)
-        rows = self.cursor.fetchall()
+        rows = cursor.fetchall()
         results = []
         for r in rows:
             results.append({
@@ -296,26 +290,28 @@ class DataLocker:
 
     def reset_api_counters(self):
         self._init_sqlite_if_needed()
-        self.cursor.execute("UPDATE api_status_counters SET total_reports = 0")
+        cursor = self.conn.cursor()
+        cursor.execute("UPDATE api_status_counters SET total_reports = 0")
         self.conn.commit()
 
     def increment_api_report_counter(self, api_name: str) -> None:
         self._init_sqlite_if_needed()
-        self.cursor.execute(
+        cursor = self.conn.cursor()
+        cursor.execute(
             "SELECT total_reports FROM api_status_counters WHERE api_name = ?",
             (api_name,)
         )
-        row = self.cursor.fetchone()
+        row = cursor.fetchone()
         now_str = datetime.now().isoformat()
         old_count = row["total_reports"] if row else 0
         self.logger.debug(f"Previous total_reports for {api_name}={old_count}")
         if row is None:
-            self.cursor.execute("""
+            cursor.execute("""
                 INSERT INTO api_status_counters (api_name, total_reports, last_updated)
                 VALUES (?, 1, ?)
             """, (api_name, now_str))
         else:
-            self.cursor.execute("""
+            cursor.execute("""
                 UPDATE api_status_counters
                    SET total_reports = total_reports + 1,
                        last_updated = ?
@@ -326,14 +322,16 @@ class DataLocker:
 
     def get_balance_vars(self) -> dict:
         self._init_sqlite_if_needed()
-        row = self.cursor.execute("""
+        cursor = self.conn.cursor()
+        cursor.execute("""
             SELECT
               total_brokerage_balance,
               total_wallet_balance,
               total_balance
             FROM system_vars
             WHERE id=1
-        """).fetchone()
+        """)
+        row = cursor.fetchone()
         if not row:
             return {
                 "total_brokerage_balance": 0.0,
@@ -352,7 +350,8 @@ class DataLocker:
         new_brokerage = brokerage_balance if brokerage_balance is not None else current["total_brokerage_balance"]
         new_wallet = wallet_balance if wallet_balance is not None else current["total_wallet_balance"]
         new_total = total_balance if total_balance is not None else current["total_balance"]
-        self.cursor.execute("""
+        cursor = self.conn.cursor()
+        cursor.execute("""
             UPDATE system_vars
                SET total_brokerage_balance=?,
                    total_wallet_balance=?,
@@ -379,7 +378,8 @@ class DataLocker:
                 price_dict["previous_update_time"] = None
             if "source" not in price_dict:
                 price_dict["source"] = "Manual"
-            self.cursor.execute("""
+            cursor = self.conn.cursor()
+            cursor.execute("""
                 INSERT INTO prices (
                     id,
                     asset_type,
@@ -403,20 +403,21 @@ class DataLocker:
     def get_prices(self, asset_type: Optional[str] = None) -> List[dict]:
         try:
             self._init_sqlite_if_needed()
+            cursor = self.conn.cursor()
             if asset_type:
-                self.cursor.execute("""
+                cursor.execute("""
                     SELECT *
                       FROM prices
                      WHERE asset_type=?
                      ORDER BY last_update_time DESC
                 """, (asset_type,))
             else:
-                self.cursor.execute("""
+                cursor.execute("""
                     SELECT *
                       FROM prices
                      ORDER BY last_update_time DESC
                 """)
-            rows = self.cursor.fetchall()
+            rows = cursor.fetchall()
             price_list = [dict(r) for r in rows]
             self.logger.debug(f"Retrieved {len(price_list)} price rows.")
             return price_list
@@ -429,21 +430,23 @@ class DataLocker:
 
     def read_prices(self) -> List[dict]:
         self._init_sqlite_if_needed()
-        self.cursor.execute("SELECT * FROM prices ORDER BY last_update_time DESC")
-        rows = self.cursor.fetchall()
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT * FROM prices ORDER BY last_update_time DESC")
+        rows = cursor.fetchall()
         return [dict(r) for r in rows]
 
     def get_latest_price(self, asset_type: str) -> Optional[dict]:
         try:
             self._init_sqlite_if_needed()
-            self.cursor.execute("""
+            cursor = self.conn.cursor()
+            cursor.execute("""
                 SELECT *
                   FROM prices
                  WHERE asset_type=?
                  ORDER BY last_update_time DESC
                  LIMIT 1
             """, (asset_type,))
-            row = self.cursor.fetchone()
+            row = cursor.fetchone()
             return dict(row) if row else None
         except sqlite3.Error as e:
             self.logger.error(f"Database error in get_latest_price: {e}", exc_info=True)
@@ -455,7 +458,8 @@ class DataLocker:
     def delete_price(self, price_id: str):
         try:
             self._init_sqlite_if_needed()
-            self.cursor.execute("DELETE FROM prices WHERE id=?", (price_id,))
+            cursor = self.conn.cursor()
+            cursor.execute("DELETE FROM prices WHERE id=?", (price_id,))
             self.conn.commit()
             self.logger.debug(f"Deleted price row ID={price_id}")
         except sqlite3.Error as e:
@@ -466,50 +470,33 @@ class DataLocker:
             raise
 
     def get_portfolio_history(self) -> List[dict]:
-        """
-        Retrieves the portfolio snapshots from the positions_totals_history table,
-        ordered by snapshot_time in ascending order.
-        This history can be used to graph portfolio performance over time.
-        """
         self._init_sqlite_if_needed()
-        self.cursor.execute("""
+        cursor = self.conn.cursor()
+        cursor.execute("""
             SELECT *
               FROM positions_totals_history
              ORDER BY snapshot_time ASC
         """)
-        rows = self.cursor.fetchall()
+        rows = cursor.fetchall()
         portfolio_history = [dict(row) for row in rows]
         self.logger.debug(f"Fetched {len(portfolio_history)} portfolio snapshots.")
         return portfolio_history
 
     def get_latest_portfolio_snapshot(self) -> Optional[dict]:
-        """
-        Retrieves the most recent portfolio snapshot from the positions_totals_history table.
-        """
         self._init_sqlite_if_needed()
-        self.cursor.execute("""
+        cursor = self.conn.cursor()
+        cursor.execute("""
             SELECT *
               FROM positions_totals_history
              ORDER BY snapshot_time DESC
              LIMIT 1
         """)
-        row = self.cursor.fetchone()
+        row = cursor.fetchone()
         latest_snapshot = dict(row) if row else None
         self.logger.debug("Retrieved latest portfolio snapshot." if latest_snapshot else "No portfolio snapshot found.")
         return latest_snapshot
 
     def record_portfolio_snapshot(self, totals: dict):
-        """
-        Alias for record_positions_totals_snapshot, for clarity in the portfolio context.
-        Inserts a snapshot of aggregated portfolio totals into the positions_totals_history table.
-        Expected keys in 'totals' dict:
-          - total_size
-          - total_value
-          - total_collateral
-          - avg_leverage
-          - avg_travel_percent
-          - avg_heat_index
-        """
         self.record_positions_totals_snapshot(totals)
         self.logger.debug("Recorded portfolio snapshot via record_portfolio_snapshot.")
 
@@ -522,7 +509,8 @@ class DataLocker:
             if not alert_dict.get("id"):
                 alert_dict["id"] = str(uuid4())
             self._init_sqlite_if_needed()
-            self.cursor.execute("""
+            cursor = self.conn.cursor()
+            cursor.execute("""
                 INSERT INTO alerts (
                     id,
                     alert_type,
@@ -561,8 +549,9 @@ class DataLocker:
     def get_alerts(self) -> List[dict]:
         try:
             self._init_sqlite_if_needed()
-            self.cursor.execute("SELECT * FROM alerts")
-            rows = self.cursor.fetchall()
+            cursor = self.conn.cursor()
+            cursor.execute("SELECT * FROM alerts")
+            rows = cursor.fetchall()
             alert_list = [dict(r) for r in rows]
             self.logger.debug(f"Fetched {len(alert_list)} alerts.")
             return alert_list
@@ -576,7 +565,8 @@ class DataLocker:
     def update_alert_status(self, alert_id: str, new_status: str):
         try:
             self._init_sqlite_if_needed()
-            self.cursor.execute("""
+            cursor = self.conn.cursor()
+            cursor.execute("""
                 UPDATE alerts
                    SET status=?
                  WHERE id=?
@@ -593,7 +583,8 @@ class DataLocker:
     def delete_alert(self, alert_id: str):
         try:
             self._init_sqlite_if_needed()
-            self.cursor.execute("DELETE FROM alerts WHERE id=?", (alert_id,))
+            cursor = self.conn.cursor()
+            cursor.execute("DELETE FROM alerts WHERE id=?", (alert_id,))
             self.conn.commit()
             self.logger.debug(f"Deleted alert ID={alert_id}")
         except sqlite3.Error as e:
@@ -649,7 +640,8 @@ class DataLocker:
         pos_dict.setdefault("pnl_after_fees_usd", 0.0)
         try:
             self._init_sqlite_if_needed()
-            self.cursor.execute("""
+            cursor = self.conn.cursor()
+            cursor.execute("""
                 INSERT INTO positions (
                     id, asset_type, position_type,
                     entry_price, liquidation_price, current_travel_percent,
@@ -675,8 +667,9 @@ class DataLocker:
     def get_positions(self) -> List[dict]:
         try:
             self._init_sqlite_if_needed()
-            self.cursor.execute("SELECT * FROM positions")
-            rows = self.cursor.fetchall()
+            cursor = self.conn.cursor()
+            cursor.execute("SELECT * FROM positions")
+            rows = cursor.fetchall()
             results = [dict(r) for r in rows]
             self.logger.debug(f"Fetched {len(results)} positions.")
             return results
@@ -687,14 +680,14 @@ class DataLocker:
             self.logger.exception(f"Error get_positions: {ex}")
             return []
 
-    # NEW: Alias method for backward compatibility with old calls.
     def read_positions(self) -> List[dict]:
         return self.get_positions()
 
     def delete_position(self, position_id: str):
         try:
             self._init_sqlite_if_needed()
-            self.cursor.execute("DELETE FROM positions WHERE id=?", (position_id,))
+            cursor = self.conn.cursor()
+            cursor.execute("DELETE FROM positions WHERE id=?", (position_id,))
             self.conn.commit()
             self.logger.debug(f"Deleted position ID={position_id}")
         except sqlite3.Error as e:
@@ -707,7 +700,8 @@ class DataLocker:
     def delete_all_positions(self):
         try:
             self._init_sqlite_if_needed()
-            self.cursor.execute("DELETE FROM positions")
+            cursor = self.conn.cursor()
+            cursor.execute("DELETE FROM positions")
             self.conn.commit()
             self.logger.debug("Deleted all positions.")
         except Exception as ex:
@@ -768,8 +762,9 @@ class DataLocker:
 
     def read_wallets(self) -> List[dict]:
         self._init_sqlite_if_needed()
-        self.cursor.execute("SELECT * FROM wallets")
-        rows = self.cursor.fetchall()
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT * FROM wallets")
+        rows = cursor.fetchall()
         results = []
         for r in rows:
             results.append({
@@ -792,7 +787,8 @@ class DataLocker:
                    balance = ?
              WHERE name = ?
         """
-        self.cursor.execute(query, (
+        cursor = self.conn.cursor()
+        cursor.execute(query, (
             wallet_dict.get("name"),
             wallet_dict.get("public_address"),
             wallet_dict.get("private_address"),
@@ -805,21 +801,22 @@ class DataLocker:
     def delete_positions_for_wallet(self, wallet_name: str):
         self._init_sqlite_if_needed()
         self.logger.info(f"Deleting positions for wallet: {wallet_name}")
-        self.cursor = self.conn.cursor()
-        self.cursor.execute("DELETE FROM positions WHERE wallet_name IS NOT NULL")
+        cursor = self.conn.cursor()
+        cursor.execute("DELETE FROM positions WHERE wallet_name IS NOT NULL")
         self.conn.commit()
-        self.cursor.close()
+        cursor.close()
 
     def update_position(self, position_id: str, size: float, collateral: float):
         try:
             self._init_sqlite_if_needed()
+            cursor = self.conn.cursor()
             query = """
             UPDATE positions
                SET size=?,
                    collateral=?
              WHERE id=?
             """
-            self.cursor.execute(query, (size, collateral, position_id))
+            cursor.execute(query, (size, collateral, position_id))
             self.conn.commit()
         except Exception as ex:
             self.logger.exception(f"Error updating position {position_id}: {ex}")
@@ -828,7 +825,8 @@ class DataLocker:
     def create_wallet(self, wallet_dict: dict):
         try:
             self._init_sqlite_if_needed()
-            self.cursor.execute("""
+            cursor = self.conn.cursor()
+            cursor.execute("""
                 INSERT INTO wallets (name, public_address, private_address, image_path, balance)
                 VALUES (?,?,?,?,?)
             """, (
@@ -846,7 +844,8 @@ class DataLocker:
     def create_broker(self, broker_dict: dict):
         self._init_sqlite_if_needed()
         try:
-            self.cursor.execute("""
+            cursor = self.conn.cursor()
+            cursor.execute("""
                 INSERT OR REPLACE INTO brokers (name, image_path, web_address, total_holding)
                 VALUES (?,?,?,?)
             """, (
@@ -862,8 +861,9 @@ class DataLocker:
 
     def read_brokers(self) -> List[dict]:
         self._init_sqlite_if_needed()
-        self.cursor.execute("SELECT * FROM brokers")
-        rows = self.cursor.fetchall()
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT * FROM brokers")
+        rows = cursor.fetchall()
         results = []
         for r in rows:
             results.append({
@@ -879,8 +879,9 @@ class DataLocker:
         results: List[Dict] = []
         try:
             self.logger.debug("Reading positions raw...")
-            self.cursor.execute("SELECT * FROM positions")
-            rows = self.cursor.fetchall()
+            cursor = self.conn.cursor()
+            cursor.execute("SELECT * FROM positions")
+            rows = cursor.fetchall()
             for row in rows:
                 results.append(dict(row))
             self.logger.debug(f"Fetched {len(results)} raw positions.")
@@ -890,14 +891,12 @@ class DataLocker:
             return []
 
     def record_positions_totals_snapshot(self, totals: dict):
-        """
-        Inserts a snapshot of aggregated positions totals into the positions_totals_history table.
-        """
         try:
             self._init_sqlite_if_needed()
             snapshot_id = str(uuid4())
             snapshot_time = datetime.now().isoformat()
-            self.cursor.execute("""
+            cursor = self.conn.cursor()
+            cursor.execute("""
                 INSERT INTO positions_totals_history (
                     id, snapshot_time, total_size, total_value, total_collateral,
                     avg_leverage, avg_travel_percent, avg_heat_index
@@ -921,7 +920,8 @@ class DataLocker:
     def update_position_size(self, position_id: str, new_size: float):
         try:
             self._init_sqlite_if_needed()
-            self.cursor.execute("""
+            cursor = self.conn.cursor()
+            cursor.execute("""
                 UPDATE positions
                    SET size=?
                  WHERE id=?
@@ -940,13 +940,6 @@ class DataLocker:
     # ----------------------------------------------------------------
 
     def add_portfolio_entry(self, entry: dict):
-        """
-        Inserts a new portfolio entry into the portfolio_entries table.
-        Expected keys in 'entry' dict:
-          - id (optional; if not provided, will be generated)
-          - snapshot_time (optional; defaults to current timestamp)
-          - total_value (required)
-        """
         self._init_sqlite_if_needed()
         if "id" not in entry:
             entry["id"] = str(uuid4())
@@ -954,7 +947,8 @@ class DataLocker:
             entry["snapshot_time"] = datetime.now().isoformat()
         if "total_value" not in entry:
             raise ValueError("total_value is required for a portfolio entry")
-        self.cursor.execute("""
+        cursor = self.conn.cursor()
+        cursor.execute("""
              INSERT INTO portfolio_entries (id, snapshot_time, total_value)
              VALUES (:id, :snapshot_time, :total_value)
          """, entry)
@@ -962,41 +956,34 @@ class DataLocker:
         self.logger.debug(f"Inserted portfolio entry with ID={entry['id']}")
 
     def get_portfolio_entries(self) -> List[dict]:
-        """
-        Retrieves all portfolio entries from the portfolio_entries table,
-        ordered by snapshot_time in ascending order.
-        """
         self._init_sqlite_if_needed()
-        self.cursor.execute("""
+        cursor = self.conn.cursor()
+        cursor.execute("""
              SELECT * FROM portfolio_entries
              ORDER BY snapshot_time ASC
          """)
-        rows = self.cursor.fetchall()
+        rows = cursor.fetchall()
         entries = [dict(row) for row in rows]
         self.logger.debug(f"Retrieved {len(entries)} portfolio entries.")
         return entries
 
     def get_portfolio_entry_by_id(self, entry_id: str) -> Optional[dict]:
-        """
-        Retrieves a portfolio entry by its id.
-        """
         self._init_sqlite_if_needed()
-        self.cursor.execute("""
+        cursor = self.conn.cursor()
+        cursor.execute("""
              SELECT * FROM portfolio_entries
              WHERE id = ?
              LIMIT 1
          """, (entry_id,))
-        row = self.cursor.fetchone()
+        row = cursor.fetchone()
         return dict(row) if row else None
 
     def update_portfolio_entry(self, entry_id: str, updated_fields: dict):
-        """
-        Updates an existing portfolio entry identified by entry_id with the provided fields.
-        """
         self._init_sqlite_if_needed()
         set_clause = ", ".join([f"{key}=:{key}" for key in updated_fields.keys()])
         updated_fields["id"] = entry_id
-        self.cursor.execute(f"""
+        cursor = self.conn.cursor()
+        cursor.execute(f"""
              UPDATE portfolio_entries
                 SET {set_clause}
               WHERE id=:id
@@ -1005,11 +992,9 @@ class DataLocker:
         self.logger.debug(f"Updated portfolio entry {entry_id} with fields {updated_fields}")
 
     def delete_portfolio_entry(self, entry_id: str):
-        """
-        Deletes the portfolio entry with the given id.
-        """
         self._init_sqlite_if_needed()
-        self.cursor.execute("""
+        cursor = self.conn.cursor()
+        cursor.execute("""
              DELETE FROM portfolio_entries
              WHERE id = ?
          """, (entry_id,))
@@ -1018,7 +1003,8 @@ class DataLocker:
 
     def get_wallet_by_name(self, wallet_name: str) -> Optional[dict]:
         self._init_sqlite_if_needed()
-        self.cursor.execute("""
+        cursor = self.conn.cursor()
+        cursor.execute("""
             SELECT name,
                    public_address,
                    private_address,
@@ -1028,7 +1014,7 @@ class DataLocker:
              WHERE name=?
              LIMIT 1
         """, (wallet_name,))
-        row = self.cursor.fetchone()
+        row = cursor.fetchone()
         if not row:
             return None
         return {

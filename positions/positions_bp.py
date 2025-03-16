@@ -395,30 +395,6 @@ def delete_all_positions():
         logger.error(f"Error deleting all positions: {e}", exc_info=True)
         return jsonify({"error": str(e)}), 500
 
-@positions_bp.route("/hedge_calculator", methods=["GET"])
-def hedge_calculator():
-    try:
-        # Get all positions and split into long and short
-        positions = PositionService.get_all_positions(DB_PATH)
-        long_positions = [p for p in positions if p.get("position_type", "").upper() == "LONG"]
-        short_positions = [p for p in positions if p.get("position_type", "").upper() == "SHORT"]
-
-        # Load the theme configuration using the constant directly.
-        from config.config_constants import THEME_CONFIG_PATH
-        import json
-        with open(THEME_CONFIG_PATH, "r", encoding="utf-8") as f:
-            theme_config = json.load(f)
-        return render_template(
-            "hedge_calculator.html",
-            theme=theme_config,
-            long_positions=long_positions,
-            short_positions=short_positions
-        )
-    except Exception as e:
-        logger.error(f"Error rendering Hedge Calculator: {e}", exc_info=True)
-        return jsonify({"error": str(e)}), 500
-
-
 
 @positions_bp.route("/upload", methods=["POST"])
 def upload_positions():
@@ -960,75 +936,3 @@ def parse_nested_form(form_data: dict) -> dict:
     return updated
 
 
-
-def load_sonic_sauce():
-    """
-    Loads the sonic_sauce.json file and returns its contents as a dictionary.
-    If the file doesn't exist or contains invalid JSON, it will be created with default values.
-    """
-    default = {
-        "hedge_modifiers": {
-            "feePercentage": 0.2,
-            "targetMargin": 15,
-            "adjustmentFactor": 1
-        },
-        "heat_modifiers": {
-            "distanceWeight": 0.45,
-            "leverageWeight": 0.35,
-            "collateralWeight": 0.20
-        }
-    }
-    if not os.path.exists(SONIC_SAUCE_PATH):
-        with open(SONIC_SAUCE_PATH, "w") as f:
-            json.dump(default, f, indent=2)
-        return default.copy()
-    try:
-        with open(SONIC_SAUCE_PATH, "r") as f:
-            return json.load(f)
-    except json.JSONDecodeError:
-        with open(SONIC_SAUCE_PATH, "w") as f:
-            json.dump(default, f, indent=2)
-        return default.copy()
-
-
-@positions_bp.route("/save_sonic_sauce", methods=["POST"])
-def save_sonic_sauce():
-    try:
-        data = request.get_json()  # read the JSON payload
-        # For example, save to "sonic_sauce.json" in your project directory
-        with open("sonic_sauce.json", "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2)
-        return jsonify({"success": True})
-    except Exception as e:
-        current_app.logger.error(f"Error saving modifiers: {e}", exc_info=True)
-        return jsonify({"success": False, "error": str(e)}), 500
-
-
-
-@positions_bp.route("/sonic_sauce", methods=["GET"])
-def get_sonic_sauce():
-    """
-    GET endpoint to load the modifier settings from sonic_sauce.json.
-    Returns a JSON response with the settings.
-    """
-    try:
-        data = load_sonic_sauce()
-        return jsonify(data), 200
-    except Exception as e:
-        logger.error(f"Error loading sonic sauce: {e}", exc_info=True)
-        return jsonify({"error": str(e)}), 500
-
-
-@positions_bp.route("/sonic_sauce", methods=["POST"])
-def update_sonic_sauce():
-    """
-    POST endpoint to update and save the modifier settings to sonic_sauce.json.
-    Expects a JSON payload with the new settings.
-    """
-    try:
-        data = request.get_json()
-        save_sonic_sauce(data)
-        return jsonify({"success": True}), 200
-    except Exception as e:
-        logger.error(f"Error saving sonic sauce: {e}", exc_info=True)
-        return jsonify({"error": str(e)}), 500

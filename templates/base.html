@@ -74,6 +74,26 @@
         color: #ffffff !important;
       }
     </style>
+
+    <!-- Custom CSS to force inline price display -->
+    <style>
+      .inline-price {
+        display: flex !important;
+        align-items: center !important;
+        font-size: 14px !important;
+        margin-right: 20px !important;
+      }
+      .inline-price .price-item {
+        display: flex;
+        align-items: center;
+        margin-right: 15px;
+      }
+      .inline-price .price-item img {
+        width: 20px !important;
+        height: 20px !important;
+        margin-right: 5px !important;
+      }
+    </style>
   </head>
   <body class="layout-fixed sidebar-expand-lg sidebar-mini sidebar-collapse" style="
     {% if theme.get('profiles', {}).get(theme.selected_profile, {}).get('wallpaper', {}).get('image') %}
@@ -100,6 +120,32 @@
             </li>
           </ul>
           <ul class="navbar-nav ms-auto">
+            {# --- Inline Price Display Block --- #}
+            {% if inline_prices %}
+            <li class="nav-item inline-price">
+              <div class="price-item">
+                <img src="{{ url_for('static', filename='images/btc_logo.png') }}" alt="BTC">
+                <span>{{ inline_prices.BTC.current_price | round(2) }}</span>
+                <span class="{% if inline_prices.BTC.percent_change < 0 %}text-danger{% else %}text-success{% endif %}">
+                  ({{ inline_prices.BTC.percent_change | round(2) }}%)
+                </span>
+              </div>
+              <div class="price-item">
+                <img src="{{ url_for('static', filename='images/eth_logo.png') }}" alt="ETH">
+                <span>{{ inline_prices.ETH.current_price | round(2) }}</span>
+                <span class="{% if inline_prices.ETH.percent_change < 0 %}text-danger{% else %}text-success{% endif %}">
+                  ({{ inline_prices.ETH.percent_change | round(2) }}%)
+                </span>
+              </div>
+              <div class="price-item">
+                <img src="{{ url_for('static', filename='images/sol_logo.png') }}" alt="SOL">
+                <span>{{ inline_prices.SOL.current_price | round(2) }}</span>
+                <span class="{% if inline_prices.SOL.percent_change < 0 %}text-danger{% else %}text-success{% endif %}">
+                  ({{ inline_prices.SOL.percent_change | round(2) }}%)
+                </span>
+              </div>
+            </li>
+            {% endif %}
             <!-- Title Bar Theme Toggler -->
             <li class="nav-item dropdown">
               <button class="btn btn-link nav-link py-2 px-0 px-lg-2 dropdown-toggle d-flex align-items-center" id="bd-theme" type="button" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
@@ -243,7 +289,7 @@
               </li>
               <!-- New Hedge Calculator Menu Option -->
               <li class="nav-item">
-                <a href="{{ url_for('positions.hedge_calculator') }}" class="nav-link">
+                <a href="{{ url_for('sonic_labs.hedge_calculator') }}" class="nav-link">
                   <i class="nav-icon">📈📉</i>
                   <p>Hedge Calculator</p>
                 </a>
