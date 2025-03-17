@@ -15,8 +15,22 @@
       </button>
     </div>
     <div class="card-body">
+      <!-- Display Mode Radio Buttons -->
+      <div class="d-flex justify-content-center mb-3" id="displayModeControls">
+        <div class="btn-group" role="group">
+          <input type="radio" class="btn-check" name="displayMode" id="modeFull" autocomplete="off" checked onchange="setDisplayMode('full')">
+          <label class="btn btn-outline-primary" for="modeFull"><i class="fas fa-chart-line"></i></label>
+
+          <input type="radio" class="btn-check" name="displayMode" id="modeGear" autocomplete="off" onchange="setDisplayMode('gear')">
+          <label class="btn btn-outline-primary" for="modeGear"><i class="fas fa-wrench"></i></label>
+
+          <input type="radio" class="btn-check" name="displayMode" id="modeTestTube" autocomplete="off" onchange="setDisplayMode('test')">
+          <label class="btn btn-outline-primary" for="modeTestTube"><i class="fas fa-vial" style="color: green;"></i></label>
+        </div>
+      </div>
+
       <!-- Row 1: Input Boxes for Long & Short Positions -->
-      <div class="row mb-4">
+      <div id="positionInputRow" class="row mb-4">
         <!-- Long Position Input Box -->
         <div class="col-md-6 mb-3">
           <div class="border rounded p-3" style="background-color: #f7f7f7;">
@@ -71,10 +85,8 @@
         </div>
       </div>
 
-      <hr />
-
-      <!-- Row 2: Two Modifier Boxes (Full-width split into two columns) -->
-      <div class="row mb-4">
+      <!-- Row 2: Modifier Boxes -->
+      <div id="modifierRow" class="row mb-4">
         <!-- Hedge Modifiers Box -->
         <div class="col-md-6 mb-3">
           <div class="border rounded p-3" style="background-color: #f7f7f7;">
@@ -143,8 +155,8 @@
         </div>
       </div>
 
-      <!-- Row 3: Full-width Simulated Price Box -->
-      <div class="row mb-4">
+      <!-- Row 3: Simulated Price Box -->
+      <div id="priceSliderRow" class="row mb-4">
         <div class="col-12">
           <div class="border rounded p-3" style="background-color: #f7f7f7;">
             <div class="d-flex justify-content-center mb-2">
@@ -188,8 +200,8 @@
         </div>
       </div>
 
-      <!-- Row 4: Output Section for Long & Short Positions with Heat & Travel Displays -->
-      <div class="row">
+      <!-- Row 4: Output Section for Positions -->
+      <div id="outputRow" class="row">
         <div class="col-md-6">
           <div id="longOutputCard" class="card shadow-sm position-relative">
             <!-- Heat Index Box in upper right -->
@@ -235,7 +247,7 @@
       </div>
 
       <!-- Row 5: Hedge Recommendation Output -->
-      <div class="row mt-4">
+      <div id="recommendationRow" class="row mt-4">
         <div class="col">
           <div id="hedgeRecommendation" class="alert alert-info text-center">
             <strong>Recommended Adjustment (Losing Side):</strong> N/A<br>
@@ -255,6 +267,34 @@
 <script src="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.10.1/js/OverlayScrollbars.min.js"></script>
 <script src="{{ url_for('static', filename='AdminLTE/dist/js/adminlte.js') }}"></script>
 <script>
+  // Display Mode Functions
+  function setDisplayMode(mode) {
+    // Full mode: show all rows
+    if (mode === 'full') {
+      document.getElementById('positionInputRow').style.display = 'flex';
+      document.getElementById('modifierRow').style.display = 'flex';
+      document.getElementById('priceSliderRow').style.display = 'flex';
+      document.getElementById('outputRow').style.display = 'flex';
+      document.getElementById('recommendationRow').style.display = 'flex';
+    } else if (mode === 'gear') {
+      // Hide only the position input row
+      document.getElementById('positionInputRow').style.display = 'none';
+      document.getElementById('modifierRow').style.display = 'flex';
+      document.getElementById('priceSliderRow').style.display = 'flex';
+      document.getElementById('outputRow').style.display = 'flex';
+      document.getElementById('recommendationRow').style.display = 'flex';
+    } else if (mode === 'test') {
+      // Hide the position input and modifier rows
+      document.getElementById('positionInputRow').style.display = 'none';
+      document.getElementById('modifierRow').style.display = 'none';
+      document.getElementById('priceSliderRow').style.display = 'flex';
+      document.getElementById('outputRow').style.display = 'flex';
+      document.getElementById('recommendationRow').style.display = 'flex';
+    }
+  }
+
+  // Existing functions below...
+
   let referencePrice = 100;
   let longLiquidation = null;
   let shortLiquidation = null;
@@ -607,10 +647,10 @@
     // Recommendation for the side that's below target margin (losing side)
     if (shortMargin < targetMargin) {
       const marginDeficit = targetMargin - shortMargin;
-      losingRecommendation = "Short side is at risk. Consider opening an additional short position of ~$" + (shortSize * marginDeficit * adjustmentFactor).toFixed(2);
+      losingRecommendation = "Short side is at risk. Consider opening an additional short position of ~<strong>$" + (shortSize * marginDeficit * adjustmentFactor).toFixed(2) + "</strong>";
     } else if (longMargin < targetMargin) {
       const marginDeficit = targetMargin - longMargin;
-      losingRecommendation = "Long side is at risk. Consider opening an additional long position of ~$" + (longSize * marginDeficit * adjustmentFactor).toFixed(2);
+      losingRecommendation = "Long side is at risk. Consider opening an additional long position of ~<strong>$" + (longSize * marginDeficit * adjustmentFactor).toFixed(2) + "</strong>";
     } else {
       losingRecommendation = "Both positions meet target safety margins. No adjustment needed on the losing side.";
     }
@@ -618,10 +658,10 @@
     // Recommendation for the winning side (margin above target)
     if (shortMargin > targetMargin) {
       const marginSurplus = shortMargin - targetMargin;
-      winningRecommendation = "Short side is in profit. To offset potential loss on the long side, consider increasing short exposure by ~$" + (shortSize * marginSurplus * adjustmentFactor).toFixed(2);
+      winningRecommendation = "Short side is in profit. To offset potential loss on the long side, consider increasing short exposure by ~<strong>$" + (shortSize * marginSurplus * adjustmentFactor).toFixed(2) + "</strong>";
     } else if (longMargin > targetMargin) {
       const marginSurplus = longMargin - targetMargin;
-      winningRecommendation = "Long side is in profit. To offset potential loss on the short side, consider increasing long exposure by ~$" + (longSize * marginSurplus * adjustmentFactor).toFixed(2);
+      winningRecommendation = "Long side is in profit. To offset potential loss on the short side, consider increasing long exposure by ~<strong>$" + (longSize * marginSurplus * adjustmentFactor).toFixed(2) + "</strong>";
     } else {
       winningRecommendation = "No winning side adjustment recommended.";
     }
