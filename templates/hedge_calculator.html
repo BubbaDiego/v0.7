@@ -4,31 +4,30 @@
 
 {% block content %}
 <div class="container-fluid">
+  <!-- Display Mode Radio Buttons -->
+  <div class="d-flex justify-content-center mb-3" id="displayModeControls">
+    <div class="btn-group" role="group">
+      <input type="radio" class="btn-check" name="displayMode" id="modeFull" autocomplete="off" checked onchange="setDisplayMode('full')">
+      <label class="btn btn-outline-primary" for="modeFull"><i class="fas fa-chart-line"></i></label>
+
+      <input type="radio" class="btn-check" name="displayMode" id="modeGear" autocomplete="off" onchange="setDisplayMode('gear')">
+      <label class="btn btn-outline-primary" for="modeGear"><i class="fas fa-wrench"></i></label>
+
+      <input type="radio" class="btn-check" name="displayMode" id="modeTestTube" autocomplete="off" onchange="setDisplayMode('test')">
+      <label class="btn btn-outline-primary" for="modeTestTube"><i class="fas fa-vial" style="color: green;"></i></label>
+    </div>
+  </div>
+
   <!-- Main Card for Hedge Calculator -->
   <div class="card shadow mb-4">
     <!-- Overall Card Header with Save Button -->
     <div class="card-header position-relative" style="background-color: var(--card-title-color);">
       <h4 class="mb-0 text-center" style="color: var(--text-color);">🦔 Hedge Calculator</h4>
-      <!-- Save Button placed in the top right corner -->
       <button id="saveModifiers" class="btn btn-sm btn-outline-secondary position-absolute" style="top: 10px; right: 10px;" title="Save Modifiers">
         <i class="fas fa-save"></i>
       </button>
     </div>
     <div class="card-body">
-      <!-- Display Mode Radio Buttons -->
-      <div class="d-flex justify-content-center mb-3" id="displayModeControls">
-        <div class="btn-group" role="group">
-          <input type="radio" class="btn-check" name="displayMode" id="modeFull" autocomplete="off" checked onchange="setDisplayMode('full')">
-          <label class="btn btn-outline-primary" for="modeFull"><i class="fas fa-chart-line"></i></label>
-
-          <input type="radio" class="btn-check" name="displayMode" id="modeGear" autocomplete="off" onchange="setDisplayMode('gear')">
-          <label class="btn btn-outline-primary" for="modeGear"><i class="fas fa-wrench"></i></label>
-
-          <input type="radio" class="btn-check" name="displayMode" id="modeTestTube" autocomplete="off" onchange="setDisplayMode('test')">
-          <label class="btn btn-outline-primary" for="modeTestTube"><i class="fas fa-vial" style="color: green;"></i></label>
-        </div>
-      </div>
-
       <!-- Row 1: Input Boxes for Long & Short Positions -->
       <div id="positionInputRow" class="row mb-4">
         <!-- Long Position Input Box -->
@@ -96,27 +95,21 @@
                 <strong>💲 Fee (% of total size):</strong>
               </label>
               <input type="number" id="feePercentage" class="form-control" step="any" value="{{ modifiers.hedge_modifiers.feePercentage }}" />
-              <small class="form-text text-muted">
-                The fee percentage applied to the total position size.
-              </small>
+              <small class="form-text text-muted">The fee percentage applied to the total position size.</small>
             </div>
             <div class="mb-3">
               <label for="targetMarginInput" class="form-label">
                 <strong>📏 Target Safety Margin (%)</strong>
               </label>
               <input type="number" id="targetMarginInput" class="form-control" step="0.1" value="{{ modifiers.hedge_modifiers.targetMargin }}">
-              <small class="form-text text-muted">
-                Desired safety margin. For example, 15 means a 15% buffer above liquidation.
-              </small>
+              <small class="form-text text-muted">Desired safety margin. For example, 15 means a 15% buffer above liquidation.</small>
             </div>
             <div class="mb-3">
               <label for="adjustmentFactorInput" class="form-label">
                 <strong>🔧 Adjustment Factor</strong>
               </label>
               <input type="number" id="adjustmentFactorInput" class="form-control" step="0.1" value="{{ modifiers.hedge_modifiers.adjustmentFactor }}">
-              <small class="form-text text-muted">
-                Scales the recommended additional position size.
-              </small>
+              <small class="form-text text-muted">Scales the recommended additional position size.</small>
             </div>
           </div>
         </div>
@@ -129,27 +122,21 @@
                 <strong>📏 Distance Weight</strong>
               </label>
               <input type="number" id="distanceWeightInput" class="form-control" step="0.01" value="{{ modifiers.heat_modifiers.distanceWeight }}" />
-              <small class="form-text text-muted">
-                Weight for the distance to liquidation factor.
-              </small>
+              <small class="form-text text-muted">Weight for the distance to liquidation factor.</small>
             </div>
             <div class="mb-3">
               <label for="leverageWeightInput" class="form-label">
                 <strong>📊 Leverage Weight</strong>
               </label>
               <input type="number" id="leverageWeightInput" class="form-control" step="0.01" value="{{ modifiers.heat_modifiers.leverageWeight }}" />
-              <small class="form-text text-muted">
-                Weight for the leverage factor.
-              </small>
+              <small class="form-text text-muted">Weight for the leverage factor.</small>
             </div>
             <div class="mb-3">
               <label for="collateralWeightInput" class="form-label">
                 <strong>💰 Collateral Weight</strong>
               </label>
               <input type="number" id="collateralWeightInput" class="form-control" step="0.01" value="{{ modifiers.heat_modifiers.collateralWeight }}" />
-              <small class="form-text text-muted">
-                Weight for the collateral ratio factor.
-              </small>
+              <small class="form-text text-muted">Weight for the collateral ratio factor.</small>
             </div>
           </div>
         </div>
@@ -163,52 +150,70 @@
               <h5 class="text-center"><strong>💵 Simulated Price</strong></h5>
             </div>
             <div class="position-relative" style="min-height: 100px;">
-              <!-- Price Slider -->
-              <input type="range" id="priceSlider" step="0.1" class="form-range" oninput="sliderChanged()" />
-              <!-- Current Price Marker (floating on the slider) -->
-              <div id="currentMarker"
-                   class="position-absolute"
-                   style="top: -35px; left: 0; font-size: 1rem; font-weight: bold; background-color: rgba(0,0,0,0.5);
-                          color: #fff; padding: 4px 6px; border-radius: 4px; pointer-events: none;">
+              <input type="range" id="priceSlider" step="0.1" class="form-range" oninput="sliderChanged()">
+              <div id="currentMarker" class="position-absolute" style="top: -35px; left: 0; font-size: 1rem; font-weight: bold; background-color: rgba(0,0,0,0.5); color: #fff; padding: 4px 6px; border-radius: 4px; pointer-events: none;">
                 Price: $0.00
               </div>
-              <!-- Long Entry Marker (above the slider) -->
-              <div id="entryMarkerLong"
-                   class="position-absolute"
-                   style="top: -65px; left: 0; font-size: 0.85rem; font-weight: bold; background-color: rgba(0,0,0,0.5);
-                          color: #fff; padding: 3px 5px; border-radius: 4px; pointer-events: none;">
+              <div id="entryMarkerLong" class="position-absolute" style="top: -65px; left: 0; font-size: 0.85rem; font-weight: bold; background-color: rgba(0,0,0,0.5); color: #fff; padding: 3px 5px; border-radius: 4px; pointer-events: none;">
                 Long Entry: $0.00
               </div>
-              <!-- Short Entry Marker (below the slider) -->
-              <div id="entryMarkerShort"
-                   class="position-absolute"
-                   style="top: 30px; left: 0; font-size: 0.85rem; font-weight: bold; background-color: rgba(0,0,0,0.5);
-                          color: #fff; padding: 3px 5px; border-radius: 4px; pointer-events: none;">
+              <div id="entryMarkerShort" class="position-absolute" style="top: 30px; left: 0; font-size: 0.85rem; font-weight: bold; background-color: rgba(0,0,0,0.5); color: #fff; padding: 3px 5px; border-radius: 4px; pointer-events: none;">
                 Short Entry: $0.00
               </div>
-              <!-- Liquidation Labels -->
               <div class="d-flex justify-content-between" style="margin-top: -5px;">
-                <span id="tickLeft" style="font-size: 1.1rem; font-weight: bold;">
-                  <small>💧 Long Liquidation: $0.00</small>
-                </span>
-                <span id="tickRight" style="font-size: 1.1rem; font-weight: bold;">
-                  <small>💧 Short Liquidation: $0.00</small>
-                </span>
+                <span id="tickLeft" style="font-size: 1.1rem; font-weight: bold;"><small>💧 Long Liquidation: $0.00</small></span>
+                <span id="tickRight" style="font-size: 1.1rem; font-weight: bold;"><small>💧 Short Liquidation: $0.00</small></span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Row 4: Output Section for Positions -->
+      <!-- New Row: Leverage Slider (replacing the ratio slider approach) -->
+      <div id="leverageSliderRow" class="row mb-4">
+        <div class="col-12">
+          <div class="border rounded p-3" style="background-color: #f7f7f7;">
+            <h5 class="text-center"><strong>Adjust Leverage</strong></h5>
+            <div class="d-flex justify-content-center align-items-center mb-2">
+              <!-- Toggle which side we are adjusting -->
+              <div class="form-check form-check-inline me-3">
+                <input class="form-check-input" type="radio" name="levSide" id="levLong" value="long" checked onclick="leverageSliderChanged()">
+                <label class="form-check-label" for="levLong">Long</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="levSide" id="levShort" value="short" onclick="leverageSliderChanged()">
+                <label class="form-check-label" for="levShort">Short</label>
+              </div>
+            </div>
+            <input type="range" id="leverageSlider" min="1" max="50" step="0.1" value="1" class="form-range" oninput="leverageSliderChanged()">
+            <div class="mt-2 text-center" style="font-size: 1.2rem;">
+              <!-- "Additional Size" label now larger -->
+              <span id="totalSizeLabel" class="me-4">
+                <i class="fas fa-coins"></i> Additional Size:
+                $<span id="displaySize">0</span>
+              </span>
+              <!-- "Collateral" label now larger -->
+              <span id="collateralLabel" class="me-4" style="color: green;">
+                <i class="fas fa-piggy-bank"></i> Collateral:
+                $<span id="displayCollateral">0</span>
+              </span>
+              <!-- New: "Heat Index" label for the recommended position at this leverage -->
+              <span id="levHeatLabel" style="color: #ff9900;">
+                <i class="fas fa-fire"></i> Heat Index:
+                <span id="displayLevHeat">0</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 4: Output Section for Positions (Restored to Original) -->
       <div id="outputRow" class="row">
         <div class="col-md-6">
           <div id="longOutputCard" class="card shadow-sm position-relative">
-            <!-- Heat Index Box in upper right -->
             <div id="longHeatBox" style="position:absolute; top:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-size:1.2rem; font-weight:bold; color:#333; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
               🔥 Heat: <span id="longHeatIndex">0</span>
             </div>
-            <!-- Travel Percent Box in lower right -->
             <div id="longTravelBox" style="position:absolute; bottom:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-size:1.2rem; font-weight:bold; color:#333; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
               Travel: <span id="longTravelPercent">0%</span>
             </div>
@@ -225,11 +230,9 @@
         </div>
         <div class="col-md-6">
           <div id="shortOutputCard" class="card shadow-sm position-relative">
-            <!-- Heat Index Box in upper right -->
             <div id="shortHeatBox" style="position:absolute; top:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-size:1.2rem; font-weight:bold; color:#333; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
               🔥 Heat: <span id="shortHeatIndex">0</span>
             </div>
-            <!-- Travel Percent Box in lower right -->
             <div id="shortTravelBox" style="position:absolute; bottom:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-size:1.2rem; font-weight:bold; color:#333; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
               Travel: <span id="shortTravelPercent">0%</span>
             </div>
@@ -267,38 +270,131 @@
 <script src="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.10.1/js/OverlayScrollbars.min.js"></script>
 <script src="{{ url_for('static', filename='AdminLTE/dist/js/adminlte.js') }}"></script>
 <script>
+  /************************************************************************
+   * GLOBALS for recommended additional notional amounts
+   ************************************************************************/
+  window.recommendedNotionalLong = 0;
+  window.recommendedNotionalShort = 0;
+
   // Display Mode Functions
   function setDisplayMode(mode) {
-    // Full mode: show all rows
     if (mode === 'full') {
       document.getElementById('positionInputRow').style.display = 'flex';
       document.getElementById('modifierRow').style.display = 'flex';
       document.getElementById('priceSliderRow').style.display = 'flex';
+      document.getElementById('leverageSliderRow').style.display = 'flex';
       document.getElementById('outputRow').style.display = 'flex';
       document.getElementById('recommendationRow').style.display = 'flex';
     } else if (mode === 'gear') {
-      // Hide only the position input row
       document.getElementById('positionInputRow').style.display = 'none';
       document.getElementById('modifierRow').style.display = 'flex';
       document.getElementById('priceSliderRow').style.display = 'flex';
+      document.getElementById('leverageSliderRow').style.display = 'flex';
       document.getElementById('outputRow').style.display = 'flex';
       document.getElementById('recommendationRow').style.display = 'flex';
     } else if (mode === 'test') {
-      // Hide the position input and modifier rows
       document.getElementById('positionInputRow').style.display = 'none';
       document.getElementById('modifierRow').style.display = 'none';
       document.getElementById('priceSliderRow').style.display = 'flex';
+      document.getElementById('leverageSliderRow').style.display = 'flex';
       document.getElementById('outputRow').style.display = 'flex';
       document.getElementById('recommendationRow').style.display = 'flex';
     }
   }
 
-  // Existing functions below...
+  /************************************************************************
+   * LEVERAGE SLIDER
+   * We'll show "Additional Size" in a larger font,
+   * plus a "Heat Index" for that recommended position.
+   ************************************************************************/
+  function leverageSliderChanged() {
+    const leverageSlider = document.getElementById("leverageSlider");
+    const selectedLeverage = parseFloat(leverageSlider.value);
+
+    // Check which radio is selected: "Long" or "Short"
+    const isLong = document.getElementById("levLong").checked;
+
+    // Use the recommended notional from the global variables
+    let recommendedSize = 0;
+    if (isLong) {
+      recommendedSize = window.recommendedNotionalLong;
+    } else {
+      recommendedSize = window.recommendedNotionalShort;
+    }
+
+    // Collateral = recommendedSize / leverage
+    const newCollateral = selectedLeverage > 0 ? (recommendedSize / selectedLeverage) : 0;
+
+    // Update the hidden field for whichever side
+    if (isLong) {
+      document.getElementById("longCollateral").value = newCollateral.toFixed(2);
+    } else {
+      document.getElementById("shortCollateral").value = newCollateral.toFixed(2);
+    }
+
+    // Update the inline display (font-size already increased via style)
+    document.getElementById("displaySize").textContent = recommendedSize.toFixed(2);
+    document.getElementById("displayCollateral").textContent = newCollateral.toFixed(2);
+
+    // Compute the "heat index" for this recommended position
+    const simPrice = parseFloat(document.getElementById("priceSlider").value) || 0;
+    const recHeat = computeRecommendedHeatIndex(isLong, recommendedSize, newCollateral, simPrice);
+    document.getElementById("displayLevHeat").textContent = recHeat.toFixed(2);
+
+    // Then call sliderChanged to refresh everything else
+    sliderChanged();
+  }
+
+  /**
+   * Compute a "Heat Index" for the recommended position alone.
+   * We treat the recommended position as if it shares the same
+   * entry price & liquidation as the chosen side, but with the
+   * recommended notional as 'size' and newly computed 'collateral'.
+   */
+  function computeRecommendedHeatIndex(isLong, recommendedSize, recCollateral, simPrice) {
+    // We'll approximate by using the side's existing entry & liq
+    let entry = 0;
+    let liq = 0;
+    if (isLong) {
+      entry = parseFloat(document.getElementById("longEntry").value) || 0;
+      liq = parseFloat(document.getElementById("longLiqPrice").value) || (entry * 0.8);
+    } else {
+      entry = parseFloat(document.getElementById("shortEntry").value) || 0;
+      liq = parseFloat(document.getElementById("shortLiqPrice").value) || (entry * 1.2);
+    }
+
+    // If missing data, bail
+    if (entry <= 0 || liq <= 0 || recCollateral <= 0 || recommendedSize <= 0) {
+      return 0;
+    }
+
+    // NDL approach
+    let ndl = 0;
+    if (isLong) {
+      ndl = (simPrice - liq) / (entry - liq);
+    } else {
+      ndl = (liq - simPrice) / (liq - entry);
+    }
+    ndl = Math.max(0, Math.min(ndl, 1));
+
+    const distanceFactor = 1 - ndl;
+    const leverage = recCollateral > 0 ? (recommendedSize / recCollateral) : 0;
+    const normalizedLeverage = leverage / 100;
+    let collateralRatio = recCollateral / recommendedSize;
+    collateralRatio = Math.min(collateralRatio, 1);
+    const riskCollateralFactor = 1 - collateralRatio;
+
+    const composite = Math.pow(distanceFactor, 0.45)
+      * Math.pow(normalizedLeverage, 0.35)
+      * Math.pow(riskCollateralFactor, 0.20)
+      * 100;
+
+    return composite;
+  }
 
   let referencePrice = 100;
   let longLiquidation = null;
   let shortLiquidation = null;
-
   const longPositions = {{ long_positions|tojson }};
   const shortPositions = {{ short_positions|tojson }};
 
@@ -350,6 +446,9 @@
     slider.value = currentPrice;
     sliderChanged();
     updateEntryMarkers();
+
+    // Also trigger leverage update so the display updates
+    leverageSliderChanged();
   }
 
   function sliderChanged() {
@@ -408,7 +507,7 @@
     }
   }
 
-  // Update Long Output
+  // Update Long and Short outputs (unchanged from previous version)
   function updateLong(simPrice) {
     const longEntry = parseFloat(document.getElementById("longEntry").value) || 0;
     const longSize = parseFloat(document.getElementById("longSize").value) || 0;
@@ -449,6 +548,7 @@
       recommendation = "At Entry Price";
       recIcon = "— ";
     }
+
     document.getElementById("longSimPrice").innerHTML =
       "<strong>Simulated Price: $" + simPrice.toFixed(2) + "</strong>";
     document.getElementById("longCollateralDisplay").innerHTML =
@@ -460,6 +560,7 @@
     let bgClass = (pnl - feeCost) > 0
       ? "bg-success bg-opacity-10 border border-2 border-success"
       : "bg-danger bg-opacity-10 border border-2 border-danger";
+
     document.getElementById("longPnL").innerHTML =
       "<strong>P&L: <span class='" + pnlColor + "'>" +
       ((pnl - feeCost) >= 0 ? "▲ " : "▼ ") +
@@ -469,7 +570,6 @@
     document.getElementById("longOutputCard").className =
       "card shadow-sm " + bgClass;
 
-    // Safety Margin Calculation
     const longLiq = longLiquidation || (longEntry * 0.8);
     const longRange = longEntry - longLiq;
     const longSafety = simPrice - longLiq;
@@ -478,7 +578,6 @@
       "<strong>Safety Margin: " + (longMargin * 100).toFixed(1) + "%</strong>";
   }
 
-  // Update Short Output
   function updateShort(simPrice) {
     const shortEntry = parseFloat(document.getElementById("shortEntry").value) || 0;
     const shortSize = parseFloat(document.getElementById("shortSize").value) || 0;
@@ -519,6 +618,7 @@
       recommendation = "At Entry Price";
       recIcon = "— ";
     }
+
     document.getElementById("shortSimPrice").innerHTML =
       "<strong>Simulated Price: $" + simPrice.toFixed(2) + "</strong>";
     document.getElementById("shortCollateralDisplay").innerHTML =
@@ -530,6 +630,7 @@
     let bgClass = (pnl - feeCost) > 0
       ? "bg-success bg-opacity-10 border border-2 border-success"
       : "bg-danger bg-opacity-10 border border-2 border-danger";
+
     document.getElementById("shortPnL").innerHTML =
       "<strong>P&L: <span class='" + pnlColor + "'>" +
       ((pnl - feeCost) >= 0 ? "▲ " : "▼ ") +
@@ -539,7 +640,6 @@
     document.getElementById("shortOutputCard").className =
       "card shadow-sm " + bgClass;
 
-    // Safety Margin Calculation
     const shortLiq = shortLiquidation || (shortEntry * 1.2);
     const shortRange = shortLiq - shortEntry;
     const shortSafety = shortLiq - simPrice;
@@ -548,14 +648,13 @@
       "<strong>Safety Margin: " + (shortMargin * 100).toFixed(1) + "%</strong>";
   }
 
-  // Update Heat Index for Long Position using composite risk formula
   function updateLongHeatIndex(simPrice) {
     const longEntry = parseFloat(document.getElementById("longEntry").value) || 0;
     const longLiq = parseFloat(document.getElementById("longLiqPrice").value) || (longEntry * 0.8);
-    const longCollateral = parseFloat(document.getElementById("longCollateral").value) || 0;
-    const longSize = parseFloat(document.getElementById("longSize").value) || 0;
-    let leverage = longCollateral > 0 ? longSize / longCollateral : 0;
-    if (longEntry <= 0 || longLiq <= 0 || longCollateral <= 0 || longSize <= 0) {
+    const collateral = parseFloat(document.getElementById("longCollateral").value) || 0;
+    const size = parseFloat(document.getElementById("longSize").value) || 0;
+    let leverage = collateral > 0 ? size / collateral : 0;
+    if (longEntry <= 0 || longLiq <= 0 || collateral <= 0 || size <= 0) {
       document.getElementById("longHeatIndex").innerText = "N/A";
       return;
     }
@@ -563,22 +662,20 @@
     ndl = Math.max(0, Math.min(ndl, 1));
     let distanceFactor = 1 - ndl;
     let normalizedLeverage = leverage / 100;
-    let collateralRatio = longCollateral / longSize;
+    let collateralRatio = collateral / size;
     collateralRatio = Math.min(collateralRatio, 1);
     let riskCollateralFactor = 1 - collateralRatio;
     let composite = Math.pow(distanceFactor, 0.45) * Math.pow(normalizedLeverage, 0.35) * Math.pow(riskCollateralFactor, 0.20) * 100;
-    composite = composite.toFixed(2);
-    document.getElementById("longHeatIndex").innerText = composite;
+    document.getElementById("longHeatIndex").innerText = composite.toFixed(2);
   }
 
-  // Update Heat Index for Short Position using composite risk formula
   function updateShortHeatIndex(simPrice) {
     const shortEntry = parseFloat(document.getElementById("shortEntry").value) || 0;
     const shortLiq = parseFloat(document.getElementById("shortLiqPrice").value) || (shortEntry * 1.2);
-    const shortCollateral = parseFloat(document.getElementById("shortCollateral").value) || 0;
-    const shortSize = parseFloat(document.getElementById("shortSize").value) || 0;
-    let leverage = shortCollateral > 0 ? shortSize / shortCollateral : 0;
-    if (shortEntry <= 0 || shortLiq <= 0 || shortCollateral <= 0 || shortSize <= 0) {
+    const collateral = parseFloat(document.getElementById("shortCollateral").value) || 0;
+    const size = parseFloat(document.getElementById("shortSize").value) || 0;
+    let leverage = collateral > 0 ? size / collateral : 0;
+    if (shortEntry <= 0 || shortLiq <= 0 || collateral <= 0 || size <= 0) {
       document.getElementById("shortHeatIndex").innerText = "N/A";
       return;
     }
@@ -586,15 +683,13 @@
     ndl = Math.max(0, Math.min(ndl, 1));
     let distanceFactor = 1 - ndl;
     let normalizedLeverage = leverage / 100;
-    let collateralRatio = shortCollateral / shortSize;
+    let collateralRatio = collateral / size;
     collateralRatio = Math.min(collateralRatio, 1);
     let riskCollateralFactor = 1 - collateralRatio;
     let composite = Math.pow(distanceFactor, 0.45) * Math.pow(normalizedLeverage, 0.35) * Math.pow(riskCollateralFactor, 0.20) * 100;
-    composite = composite.toFixed(2);
-    document.getElementById("shortHeatIndex").innerText = composite;
+    document.getElementById("shortHeatIndex").innerText = composite.toFixed(2);
   }
 
-  // Update Travel Percent for Long Position using business logic from CalcServices
   function updateLongTravelPercent(simPrice) {
     const longEntry = parseFloat(document.getElementById("longEntry").value) || 0;
     const longLiq = parseFloat(document.getElementById("longLiqPrice").value) || (longEntry * 0.8);
@@ -608,7 +703,6 @@
     }
   }
 
-  // Update Travel Percent for Short Position using business logic from CalcServices
   function updateShortTravelPercent(simPrice) {
     const shortEntry = parseFloat(document.getElementById("shortEntry").value) || 0;
     const shortLiq = parseFloat(document.getElementById("shortLiqPrice").value) || (shortEntry * 1.2);
@@ -622,18 +716,20 @@
     }
   }
 
-  // Hedge Recommendations: Now with two recommendations (losing & winning)
+  /**
+   * Updated Hedge Recommendations:
+   * - We store recommendedNotionalLong / recommendedNotionalShort for the losing & winning sides.
+   * - Then the leverage slider uses these recommended amounts to display "Additional Size" & "Collateral."
+   */
   function updateHedgeRecommendations(simPrice) {
     const targetMargin = parseFloat(document.getElementById("targetMarginInput").value) / 100;
     const adjustmentFactor = parseFloat(document.getElementById("adjustmentFactorInput").value);
-
     const longEntry = parseFloat(document.getElementById("longEntry").value) || 0;
     const shortEntry = parseFloat(document.getElementById("shortEntry").value) || 0;
     const longSize = parseFloat(document.getElementById("longSize").value) || 0;
     const shortSize = parseFloat(document.getElementById("shortSize").value) || 0;
     const longLiq = longLiquidation || (longEntry * 0.8);
     const shortLiq = shortLiquidation || (shortEntry * 1.2);
-
     const longRange = longEntry - longLiq;
     const shortRange = shortLiq - shortEntry;
     const longSafety = simPrice - longLiq;
@@ -641,37 +737,63 @@
     const longMargin = longRange > 0 ? longSafety / longRange : 0;
     const shortMargin = shortRange > 0 ? shortSafety / shortRange : 0;
 
+    // Reset recommended notionals each time
+    window.recommendedNotionalLong = 0;
+    window.recommendedNotionalShort = 0;
+
     let losingRecommendation = "";
     let winningRecommendation = "";
 
-    // Recommendation for the side that's below target margin (losing side)
+    // L O S I N G  side
     if (shortMargin < targetMargin) {
       const marginDeficit = targetMargin - shortMargin;
-      losingRecommendation = "Short side is at risk. Consider opening an additional short position of ~<strong>$" + (shortSize * marginDeficit * adjustmentFactor).toFixed(2) + "</strong>";
+      const additionalShort = shortSize * marginDeficit * adjustmentFactor;
+      losingRecommendation =
+        "Short side is at risk. Consider opening an additional short position of ~<strong>$"
+        + additionalShort.toFixed(2) + "</strong>";
+      window.recommendedNotionalShort = additionalShort;
     } else if (longMargin < targetMargin) {
       const marginDeficit = targetMargin - longMargin;
-      losingRecommendation = "Long side is at risk. Consider opening an additional long position of ~<strong>$" + (longSize * marginDeficit * adjustmentFactor).toFixed(2) + "</strong>";
+      const additionalLong = longSize * marginDeficit * adjustmentFactor;
+      losingRecommendation =
+        "Long side is at risk. Consider opening an additional long position of ~<strong>$"
+        + additionalLong.toFixed(2) + "</strong>";
+      window.recommendedNotionalLong = additionalLong;
     } else {
-      losingRecommendation = "Both positions meet target safety margins. No adjustment needed on the losing side.";
+      losingRecommendation =
+        "Both positions meet target safety margins. No adjustment needed on the losing side.";
     }
 
-    // Recommendation for the winning side (margin above target)
+    // W I N N I N G  side
     if (shortMargin > targetMargin) {
       const marginSurplus = shortMargin - targetMargin;
-      winningRecommendation = "Short side is in profit. To offset potential loss on the long side, consider increasing short exposure by ~<strong>$" + (shortSize * marginSurplus * adjustmentFactor).toFixed(2) + "</strong>";
+      const additionalShort = shortSize * marginSurplus * adjustmentFactor;
+      winningRecommendation =
+        "Short side is in profit. To offset potential loss on the long side, consider increasing short exposure by ~<strong>$"
+        + additionalShort.toFixed(2) + "</strong>";
+      // Might also want to store this in recommendedNotionalShort if it's bigger
+      window.recommendedNotionalShort = Math.max(window.recommendedNotionalShort, additionalShort);
     } else if (longMargin > targetMargin) {
       const marginSurplus = longMargin - targetMargin;
-      winningRecommendation = "Long side is in profit. To offset potential loss on the short side, consider increasing long exposure by ~<strong>$" + (longSize * marginSurplus * adjustmentFactor).toFixed(2) + "</strong>";
+      const additionalLong = longSize * marginSurplus * adjustmentFactor;
+      winningRecommendation =
+        "Long side is in profit. To offset potential loss on the short side, consider increasing long exposure by ~<strong>$"
+        + additionalLong.toFixed(2) + "</strong>";
+      window.recommendedNotionalLong = Math.max(window.recommendedNotionalLong, additionalLong);
     } else {
-      winningRecommendation = "No winning side adjustment recommended.";
+      winningRecommendation =
+        "No winning side adjustment recommended.";
     }
 
     document.getElementById("hedgeRecommendation").innerHTML =
       "<strong>Recommended Adjustment (Losing Side):</strong> " + losingRecommendation + "<br>" +
       "<strong>Recommended Adjustment (Winning Side):</strong> " + winningRecommendation;
+
+    // Now that we have updated recommendedNotionalLong/Short,
+    // we refresh the leverage slider display so user sees new "Additional Size" & Heat
+    leverageSliderChanged();
   }
 
-  // Save Modifiers Button click handler
   document.getElementById("saveModifiers").addEventListener("click", function() {
     const modifiers = {
       hedge_modifiers: {
@@ -685,12 +807,9 @@
         collateralWeight: parseFloat(document.getElementById("collateralWeightInput").value)
       }
     };
-    // Updated endpoint to match blueprint URL prefix
     fetch("/sonic_labs/sonic_sauce", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(modifiers)
     })
     .then(response => response.json())
