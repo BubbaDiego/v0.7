@@ -238,7 +238,8 @@
       <div class="row mt-4">
         <div class="col">
           <div id="hedgeRecommendation" class="alert alert-info text-center">
-            <strong>Recommended Adjustment:</strong> N/A
+            <strong>Recommended Adjustment (Losing Side):</strong> N/A<br>
+            <strong>Recommended Adjustment (Winning Side):</strong> N/A
           </div>
         </div>
       </div>
@@ -581,7 +582,7 @@
     }
   }
 
-  // Hedge Recommendations
+  // Hedge Recommendations: Now with two recommendations (losing & winning)
   function updateHedgeRecommendations(simPrice) {
     const targetMargin = parseFloat(document.getElementById("targetMarginInput").value) / 100;
     const adjustmentFactor = parseFloat(document.getElementById("adjustmentFactorInput").value);
@@ -600,24 +601,34 @@
     const longMargin = longRange > 0 ? longSafety / longRange : 0;
     const shortMargin = shortRange > 0 ? shortSafety / shortRange : 0;
 
-    let recommendation = "";
-    recommendation += "Long Safety Margin: " + (longMargin * 100).toFixed(1) + "%; ";
-    recommendation += "Short Safety Margin: " + (shortMargin * 100).toFixed(1) + "%.<br>";
+    let losingRecommendation = "";
+    let winningRecommendation = "";
 
+    // Recommendation for the side that's below target margin (losing side)
     if (shortMargin < targetMargin) {
       const marginDeficit = targetMargin - shortMargin;
-      const recommendedNotional = shortSize * marginDeficit * adjustmentFactor;
-      recommendation += "Short side is at risk. Consider opening an additional short position of ~$" + recommendedNotional.toFixed(2);
+      losingRecommendation = "Short side is at risk. Consider opening an additional short position of ~$" + (shortSize * marginDeficit * adjustmentFactor).toFixed(2);
     } else if (longMargin < targetMargin) {
       const marginDeficit = targetMargin - longMargin;
-      const recommendedNotional = longSize * marginDeficit * adjustmentFactor;
-      recommendation += "Long side is at risk. Consider opening an additional long position of ~$" + recommendedNotional.toFixed(2);
+      losingRecommendation = "Long side is at risk. Consider opening an additional long position of ~$" + (longSize * marginDeficit * adjustmentFactor).toFixed(2);
     } else {
-      recommendation += "Both positions are within target safety margins. No new position recommended.";
+      losingRecommendation = "Both positions meet target safety margins. No adjustment needed on the losing side.";
+    }
+
+    // Recommendation for the winning side (margin above target)
+    if (shortMargin > targetMargin) {
+      const marginSurplus = shortMargin - targetMargin;
+      winningRecommendation = "Short side is in profit. To offset potential loss on the long side, consider increasing short exposure by ~$" + (shortSize * marginSurplus * adjustmentFactor).toFixed(2);
+    } else if (longMargin > targetMargin) {
+      const marginSurplus = longMargin - targetMargin;
+      winningRecommendation = "Long side is in profit. To offset potential loss on the short side, consider increasing long exposure by ~$" + (longSize * marginSurplus * adjustmentFactor).toFixed(2);
+    } else {
+      winningRecommendation = "No winning side adjustment recommended.";
     }
 
     document.getElementById("hedgeRecommendation").innerHTML =
-      "<strong>Recommended Adjustment:</strong> " + recommendation;
+      "<strong>Recommended Adjustment (Losing Side):</strong> " + losingRecommendation + "<br>" +
+      "<strong>Recommended Adjustment (Winning Side):</strong> " + winningRecommendation;
   }
 
   // Save Modifiers Button click handler
