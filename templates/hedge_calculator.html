@@ -14,6 +14,28 @@
   .reduced-height {
       height: 300px;
   }
+  /* New: Make the details text a little smaller */
+  #longDetailsBox, #shortDetailsBox, #projectedLongDetailsBox, #projectedShortDetailsBox {
+      font-size: 0.8rem !important;
+  }
+  /* New: Sim Heat boxes styling with increased top margin */
+  .sim-heat-box {
+      position: absolute;
+      top: 55px; /* increased from 35px for extra spacing */
+      right: 10px;
+      background-color: #f3e8ff; /* subtle purple/light blue */
+      border-radius: 10px;
+      padding: 6px 10px;
+      font-size: 1rem;
+      font-weight: bold;
+      color: #333;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+  /* New: Collateral value style in the Projected Leverage Box */
+  .collateral-value {
+      font-weight: bold;
+      color: green;
+  }
 </style>
 {% endblock %}
 
@@ -179,6 +201,11 @@
             <div class="text-center mt-2">
               <span id="leverageValue">Leverage: 10x</span>
             </div>
+            <!-- New: Display the collateral and notional additions from the slider -->
+            <div class="text-center mt-2">
+              <span id="longSizeComposition">Long Addition: <span class="collateral-value">Collateral: $0.00</span>, Notional: $0.00</span><br>
+              <span id="shortSizeComposition">Short Addition: <span class="collateral-value">Collateral: $0.00</span>, Notional: $0.00</span>
+            </div>
           </div>
         </div>
       </div>
@@ -218,8 +245,12 @@
             <div id="longHeatBox" style="position:absolute; top:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-size:1.2rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
               🔥 Heat: <span id="longHeatIndex">0</span>
             </div>
+            <!-- NEW: Simulated Heat box (Resulting Heat Index) -->
+            <div id="longSimHeatBox" class="sim-heat-box">
+              Sim Heat: <span id="longSimHeatIndex">0</span>
+            </div>
             <!-- Details box (centered vertically) -->
-            <div id="longDetailsBox" style="position:absolute; top:50%; right:10px; transform:translateY(-50%); background-color:#fff; border-radius:10px; padding:4px 8px; font-size:0.9rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
+            <div id="longDetailsBox" style="position:absolute; top:50%; right:10px; transform:translateY(-50%); background-color:#fff; border-radius:10px; padding:4px 8px; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
               <!-- Filled by JS -->
             </div>
             <!-- Travel box at bottom -->
@@ -244,8 +275,12 @@
             <div id="shortHeatBox" style="position:absolute; top:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-size:1.2rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
               🔥 Heat: <span id="shortHeatIndex">0</span>
             </div>
+            <!-- NEW: Simulated Heat box for short position -->
+            <div id="shortSimHeatBox" class="sim-heat-box">
+              Sim Heat: <span id="shortSimHeatIndex">0</span>
+            </div>
             <!-- Details box (centered vertically) -->
-            <div id="shortDetailsBox" style="position:absolute; top:50%; right:10px; transform:translateY(-50%); background-color:#fff; border-radius:10px; padding:4px 8px; font-size:0.9rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
+            <div id="shortDetailsBox" style="position:absolute; top:50%; right:10px; transform:translateY(-50%); background-color:#fff; border-radius:10px; padding:4px 8px; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
               <!-- Filled by JS -->
             </div>
             <!-- Travel box at bottom -->
@@ -271,7 +306,7 @@
         <div class="col-md-6">
           <div id="projectedLongOutputCard" class="card shadow-sm position-relative reduced-height">
             <!-- Heat box at top -->
-            <div id="projectedLongHeatBox" style="position:absolute; top:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-size:1.2rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
+            <div id="projectedLongHeatBox" style="position:absolute; top:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
               🔥 Projected Heat: <span id="projectedLongHeatIndex">0</span>
             </div>
             <!-- Details box (centered vertically) -->
@@ -296,7 +331,7 @@
         <div class="col-md-6">
           <div id="projectedShortOutputCard" class="card shadow-sm position-relative reduced-height">
             <!-- Heat box at top -->
-            <div id="projectedShortHeatBox" style="position:absolute; top:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-size:1.2rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
+            <div id="projectedShortHeatBox" style="position:absolute; top:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
               🔥 Projected Heat: <span id="projectedShortHeatIndex">0</span>
             </div>
             <!-- Details box (centered vertically) -->
@@ -338,7 +373,6 @@
     if (mode === 'full') {
       document.getElementById('positionInputRow').style.display = 'flex';
       document.getElementById('modifierRow').style.display = 'flex';
-      // Combined slider row is visible
       document.getElementById('approachToggleRow').style.display = 'flex';
       document.getElementById('recommendationRow').style.display = 'flex';
       document.getElementById('outputRow').style.display = 'flex';
@@ -438,6 +472,9 @@
     updateLongTravelPercent(simPrice);
     updateShortTravelPercent(simPrice);
     updateProjectedPositions(simPrice);
+    // NEW: Update the simulated (resulting) heat index displays
+    updateLongSimHeatIndex(simPrice);
+    updateShortSimHeatIndex(simPrice);
   }
 
   function updatePriceTicks() {
@@ -795,6 +832,7 @@
       }
     }
     const projectedLongSize = longSize + recommendedLongExtra;
+    window.projectedLongSize = projectedLongSize;
     const projectedLongCollateral = projectedLongSize / sliderLeverage;
 
     let ndlLong = (simPrice - longLiq) / (longEntry - longLiq);
@@ -874,6 +912,7 @@
       }
     }
     const projectedShortSize = shortSize + recommendedShortExtra;
+    window.projectedShortSize = projectedShortSize;
     const projectedShortCollateral = projectedShortSize / sliderLeverage;
 
     let ndlShort = (shortLiq - simPrice) / (shortLiq - shortEntry);
@@ -933,6 +972,86 @@
       (typeof projectedShortTravelPercent === "number")
         ? projectedShortTravelPercent.toFixed(2) + "%"
         : projectedShortTravelPercent;
+
+    /***** Update Size Composition in Leverage Slider Box *****/
+    let currentLongSize = parseFloat(document.getElementById("longSize").value) || 0;
+    let currentLongCollateral = parseFloat(document.getElementById("longCollateral").value) || 0;
+    let longAddition = projectedLongSize - currentLongSize;
+    let additionalCollateralLong = projectedLongCollateral - currentLongCollateral;
+    let notionalAdditionLong = longAddition - additionalCollateralLong;
+    document.getElementById("longSizeComposition").innerHTML =
+      "Long Addition: <span class='collateral-value'>Collateral: $" + additionalCollateralLong.toFixed(2) + "</span>, Notional: $" + notionalAdditionLong.toFixed(2);
+
+    let currentShortSize = parseFloat(document.getElementById("shortSize").value) || 0;
+    let currentShortCollateral = parseFloat(document.getElementById("shortCollateral").value) || 0;
+    let shortAddition = projectedShortSize - currentShortSize;
+    let additionalCollateralShort = projectedShortCollateral - currentShortCollateral;
+    let notionalAdditionShort = shortAddition - additionalCollateralShort;
+    document.getElementById("shortSizeComposition").innerHTML =
+      "Short Addition: <span class='collateral-value'>Collateral: $" + additionalCollateralShort.toFixed(2) + "</span>, Notional: $" + notionalAdditionShort.toFixed(2);
+  }
+
+  /*************************************
+   * New: Simulated (Resulting) Heat Index Calculations
+   * These use the simulated price but assume that any additional collateral
+   * required for an opposing position is taken from the current position’s collateral.
+   *************************************/
+  function updateLongSimHeatIndex(simPrice) {
+    const longEntry = parseFloat(document.getElementById("longEntry").value) || 0;
+    const currentLongSize = parseFloat(document.getElementById("longSize").value) || 0;
+    const currentCollateral = parseFloat(document.getElementById("longCollateral").value) || 0;
+    const fee = parseFloat(document.getElementById("feePercentage").value) || 0;
+    if (longEntry <= 0 || currentCollateral <= 0) {
+      document.getElementById("longSimHeatIndex").innerText = "N/A";
+      return;
+    }
+    const simulatedSize = window.projectedLongSize || currentLongSize;
+    let tokenCount = longEntry > 0 ? simulatedSize / longEntry : 0;
+    let pnl = (simPrice - longEntry) * tokenCount;
+    let feeCost = (fee / 100) * simulatedSize;
+    let netValue = currentCollateral + pnl - feeCost;
+    const longLiq = longLiquidation || (longEntry * 0.8);
+    let ndl = (simPrice - longLiq) / (longEntry - longLiq);
+    ndl = Math.max(0, Math.min(ndl, 1));
+    let distanceFactor = 1 - ndl;
+    let leverageSim = currentCollateral > 0 ? simulatedSize / currentCollateral : 0;
+    let normalizedLeverage = leverageSim / 100;
+    let collateralRatio = currentCollateral / simulatedSize;
+    collateralRatio = Math.min(collateralRatio, 1);
+    let riskCollateralFactor = 1 - collateralRatio;
+    let compositeSim = Math.pow(distanceFactor, 0.45) *
+                       Math.pow(normalizedLeverage, 0.35) *
+                       Math.pow(riskCollateralFactor, 0.20) * 100;
+    document.getElementById("longSimHeatIndex").innerText = compositeSim.toFixed(2);
+  }
+
+  function updateShortSimHeatIndex(simPrice) {
+    const shortEntry = parseFloat(document.getElementById("shortEntry").value) || 0;
+    const currentShortSize = parseFloat(document.getElementById("shortSize").value) || 0;
+    const currentCollateral = parseFloat(document.getElementById("shortCollateral").value) || 0;
+    const fee = parseFloat(document.getElementById("feePercentage").value) || 0;
+    if (shortEntry <= 0 || currentCollateral <= 0) {
+      document.getElementById("shortSimHeatIndex").innerText = "N/A";
+      return;
+    }
+    const simulatedSize = window.projectedShortSize || currentShortSize;
+    let tokenCount = shortEntry > 0 ? simulatedSize / shortEntry : 0;
+    let pnl = (shortEntry - simPrice) * tokenCount;
+    let feeCost = (fee / 100) * simulatedSize;
+    let netValue = currentCollateral + pnl - feeCost;
+    const shortLiq = shortLiquidation || (shortEntry * 1.2);
+    let ndl = (shortLiq - simPrice) / (shortLiq - shortEntry);
+    ndl = Math.max(0, Math.min(ndl, 1));
+    let distanceFactor = 1 - ndl;
+    let leverageSim = currentCollateral > 0 ? simulatedSize / currentCollateral : 0;
+    let normalizedLeverage = leverageSim / 100;
+    let collateralRatio = currentCollateral / simulatedSize;
+    collateralRatio = Math.min(collateralRatio, 1);
+    let riskCollateralFactor = 1 - collateralRatio;
+    let compositeSim = Math.pow(distanceFactor, 0.45)
+                     * Math.pow(normalizedLeverage, 0.35)
+                     * Math.pow(riskCollateralFactor, 0.20) * 100;
+    document.getElementById("shortSimHeatIndex").innerText = compositeSim.toFixed(2);
   }
 
   /*************************************
