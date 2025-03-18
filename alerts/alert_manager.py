@@ -10,6 +10,7 @@ from twilio.rest import Client
 from config.unified_config_manager import UnifiedConfigManager
 from config.config_constants import DB_PATH, CONFIG_PATH, ALERT_LIMITS_PATH, BASE_DIR
 from pathlib import Path
+import inspect  # Added at the top for obtaining caller line numbers
 #from utils.operations_manager import OperationsLogger
 from utils.unified_logger import UnifiedLogger
 
@@ -47,7 +48,8 @@ def trigger_twilio_flow(custom_message: str, twilio_config: dict) -> str:
         operation_type="Twilio Notification",
         primary_text="Twilio alert sent",
         source="system",
-        file="alert_manager.py"
+        file="alert_manager.py",
+        extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
     )
     return execution.sid
 
@@ -118,7 +120,8 @@ class AlertManager:
                 operation_type="Alert Configuration Failed",
                 primary_text="Initial Alert Config Load Failed",
                 source="System",
-                file="alert_manager.py"
+                file="alert_manager.py",
+                extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
             )
             self.config = {}
 
@@ -135,21 +138,24 @@ class AlertManager:
                     operation_type="Alerts Configuration Successful",
                     primary_text="Alerts Config Successful",
                     source="System",
-                    file="alert_manager.py"
+                    file="alert_manager.py",
+                    extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
                 )
             else:
                 u_logger.log_operation(
                     operation_type="Alert Config Merge",
                     primary_text="No alert_ranges found in alert_limits.json.",
                     source="AlertManager",
-                    file="alert_manager.py"
+                    file="alert_manager.py",
+                    extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
                 )
         except Exception as merge_exc:
             u_logger.log_operation(
                 operation_type="Alert Config Merge",
                 primary_text=f"Failed to load alert limits from file: {merge_exc}",
                 source="AlertManager",
-                file="alert_manager.py"
+                file="alert_manager.py",
+                extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
             )
 
         # Load communication settings and thresholds.
@@ -163,7 +169,8 @@ class AlertManager:
             operation_type="Alert Manager Initialized",
             primary_text="Alert Manager 🏃‍♂️",
             source="system",
-            file="alert_manager.py"
+            file="alert_manager.py",
+            extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
         )
 
     def reload_config(self):
@@ -177,14 +184,16 @@ class AlertManager:
                 operation_type="Alerts Configuration Successful",
                 primary_text="Alerts Config Successful",
                 source="AlertManager",
-                file="alert_manager.py"
+                file="alert_manager.py",
+                extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
             )
         except Exception as e:
             u_logger.log_operation(
                 operation_type="Alert Configuration Failed",
                 primary_text="Alert Config Failed",
                 source="system",
-                file="alert_manager.py"
+                file="alert_manager.py",
+                extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
             )
 
     def run(self):
@@ -192,7 +201,8 @@ class AlertManager:
             operation_type="Monitor Loop",
             primary_text="Starting alert monitoring loop",
             source="AlertManager",
-            file="alert_manager.py"
+            file="alert_manager.py",
+            extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
         )
         while True:
             self.check_alerts()
@@ -204,7 +214,8 @@ class AlertManager:
                 operation_type="Monitor Loop",
                 primary_text="Alert monitoring disabled",
                 source="System",
-                file="alert_manager.py"
+                file="alert_manager.py",
+                extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
             )
             return
 
@@ -216,7 +227,8 @@ class AlertManager:
             operation_type="Alert Check",
             primary_text=f"Checking {len(positions)} positions for alerts",
             source="System",
-            file="alert_manager.py"
+            file="alert_manager.py",
+            extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
         )
 
         for pos in positions:
@@ -240,7 +252,8 @@ class AlertManager:
                 operation_type="Alert Triggered",
                 primary_text=f"{len(aggregated_alerts)} alerts triggered",
                 source=source or "",
-                file="alert_manager.py"
+                file="alert_manager.py",
+                extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
             )
             combined_message = "\n".join(aggregated_alerts)
             self.send_call(combined_message, "all_alerts")
@@ -249,14 +262,16 @@ class AlertManager:
                 operation_type="Alert Silenced",
                 primary_text=f"{self.suppressed_count} alerts suppressed",
                 source=source or "",
-                file="alert_manager.py"
+                file="alert_manager.py",
+                extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
             )
         else:
             u_logger.log_alert(
                 operation_type="No Alerts Found",
                 primary_text="No Alerts Found",
                 source=source or "",
-                file="alert_manager.py"
+                file="alert_manager.py",
+                extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
             )
 
     def check_travel_percent_liquid(self, pos: Dict[str, Any]) -> str:
@@ -330,7 +345,7 @@ class AlertManager:
             "limit": f"{low}%",
             "current": f"{current_val:.2f}%"
         }
-        u_logger.logger.info(msg, extra={"source": "System", "operation_type": "Travel Percent Liquid ALERT", "log_type": "alert", "file": "alert_manager.py", "alert_details": alert_details})
+        u_logger.logger.info(msg, extra={"source": "System", "operation_type": "Travel Percent Liquid ALERT", "log_type": "alert", "file": "alert_manager.py", "alert_details": alert_details, "log_line": inspect.currentframe().f_back.f_lineno})
         travel_logger.debug(f"Triggered travel percent alert: {msg}")
         return msg
 
@@ -398,7 +413,7 @@ class AlertManager:
             "limit": f"{low_thresh} / {med_thresh} / {high_thresh}",
             "current": f"{profit_val:.2f}"
         }
-        u_logger.logger.info(msg, extra={"source": "System", "operation_type": "Profit ALERT", "log_type": "alert", "file": "alert_manager.py", "alert_details": alert_details})
+        u_logger.logger.info(msg, extra={"source": "System", "operation_type": "Profit ALERT", "log_type": "alert", "file": "alert_manager.py", "alert_details": alert_details, "log_line": inspect.currentframe().f_back.f_lineno})
         return msg
 
     def check_swing_alert(self, pos: Dict[str, Any]) -> str:
@@ -461,8 +476,6 @@ class AlertManager:
                 return (f"One Day Blast Radius ALERT: {asset_full} {position_type} (ID: {position_id}) - "
                         f"Actual Value = {current_value:.2f} exceeds Blast Threshold of {blast_threshold:.2f}")
         return ""
-
-    import inspect
 
     def debug_price_alert_details(self, asset: str, asset_config: dict, current_price: float, trigger_val: float,
                                   condition: str, price_info: dict, result_message: str):
@@ -571,7 +584,6 @@ class AlertManager:
 
     def handle_price_alert_trigger_config(self, asset: str, current_price: float, trigger_val: float,
                                           condition: str) -> str:
-        import inspect
         asset_full = self.ASSET_FULL_NAMES.get(asset, asset)
         key = f"price-alert-config-{asset}"
         now = time.time()
@@ -582,23 +594,24 @@ class AlertManager:
                 operation_type="Price ALERT Suppressed",
                 primary_text=f"{asset_full}: Price alert suppressed due to cooldown",
                 source="system",
-                file="alert_manager.py"
+                file="alert_manager.py",
+                extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
             )
             self.suppressed_count += 1
             return ""
         self.last_triggered[key] = now
         msg = f"Price ALERT: {asset_full} - Condition: {condition}, Trigger: {trigger_val}, Current: {current_price}"
 
-        lineno = inspect.currentframe().f_back.f_lineno
+        caller_line = inspect.currentframe().f_back.f_lineno
 
-        # Build detailed alert details including line number
+        # Build detailed alert details including line number (using 'log_line' instead of 'lineno')
         alert_details = {
             "status": "Triggered",
             "type": "Price ALERT",
             "condition": condition,
             "trigger_value": trigger_val,
             "current_price": current_price,
-            "lineno": lineno
+            "log_line": caller_line
         }
 
         extra = {
@@ -606,7 +619,7 @@ class AlertManager:
             "operation_type": "Price ALERT",
             "log_type": "alert",
             "file": "alert_manager.py",
-            "lineno": lineno,
+            "log_line": caller_line,
             "alert_details": alert_details
         }
 
@@ -627,7 +640,8 @@ class AlertManager:
                 operation_type="Alert Silenced",
                 primary_text=f"Alert Silenced: {key}",
                 source="AlertManager",
-                file="alert_manager.py"
+                file="alert_manager.py",
+                extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
             )
             return
         try:
@@ -638,7 +652,8 @@ class AlertManager:
                 operation_type="Notification Failed",
                 primary_text=f"Notification Failed: {key}",
                 source="System",
-                file="alert_manager.py"
+                file="alert_manager.py",
+                extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
             )
             logging.error("Error sending call for '%s'.", key, exc_info=True)
 
@@ -666,5 +681,4 @@ manager = AlertManager(
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     # Updated startup call to include the filename automatically via __file__
-
     manager.run()

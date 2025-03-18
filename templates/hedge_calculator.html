@@ -169,16 +169,31 @@
         </div>
       </div>
 
-      <!-- (Removed Row 4: Leverage Slider Row) -->
+      <!-- New Row: Projected Leverage Slider -->
+      <div id="leverageSliderRow" class="row mb-4">
+        <div class="col-12">
+          <div class="border rounded p-3" style="background-color: #f7f7f7;">
+            <div class="d-flex justify-content-center mb-2">
+              <h5 class="text-center"><strong>Projected Leverage</strong></h5>
+            </div>
+            <input type="range" id="leverageSlider" min="1" max="100" step="0.1" value="10" class="form-range" oninput="updateProjectedHeatIndex()">
+            <div class="text-center mt-2">
+              <span id="leverageValue">Leverage: 10x</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      <!-- (Removed Row 6: Projected Heat Index) -->
-
-      <!-- Row 7: Output Section for Positions -->
+      <!-- Row 7: Output Section for Current Positions -->
       <div id="outputRow" class="row">
         <div class="col-md-6">
           <div id="longOutputCard" class="card shadow-sm position-relative">
             <div id="longHeatBox" style="position:absolute; top:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-size:1.2rem; font-weight:bold; color:#333; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
               🔥 Heat: <span id="longHeatIndex">0</span>
+            </div>
+            <!-- New details box for the CURRENT long position -->
+            <div id="longDetailsBox" style="position:absolute; top:50px; right:10px; background-color:#fff; border-radius:10px; padding:4px 8px; font-size:0.9rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
+              <!-- Filled by JS -->
             </div>
             <div id="longTravelBox" style="position:absolute; bottom:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-size:1.2rem; font-weight:bold; color:#333; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
               Travel: <span id="longTravelPercent">0%</span>
@@ -199,6 +214,10 @@
             <div id="shortHeatBox" style="position:absolute; top:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-size:1.2rem; font-weight:bold; color:#333; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
               🔥 Heat: <span id="shortHeatIndex">0</span>
             </div>
+            <!-- New details box for the CURRENT short position -->
+            <div id="shortDetailsBox" style="position:absolute; top:50px; right:10px; background-color:#fff; border-radius:10px; padding:4px 8px; font-size:0.9rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
+              <!-- Filled by JS -->
+            </div>
             <div id="shortTravelBox" style="position:absolute; bottom:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-size:1.2rem; font-weight:bold; color:#333; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
               Travel: <span id="shortTravelPercent">0%</span>
             </div>
@@ -210,6 +229,58 @@
               <p id="shortPnL"><strong>P&L: $-</strong></p>
               <p id="shortSLTP"><strong>Recommended: -</strong></p>
               <p id="shortSafetyMargin"><strong>Safety Margin: --</strong></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- New Row: Projected Output Section for Positions -->
+      <div id="projectedOutputRow" class="row mt-4">
+        <div class="col-md-6">
+          <div id="projectedLongOutputCard" class="card shadow-sm position-relative">
+            <div id="projectedLongHeatBox" style="position:absolute; top:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-size:1.2rem; font-weight:bold; color:#333; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+              🔥 Projected Heat: <span id="projectedLongHeatIndex">0</span>
+            </div>
+            <!-- New details box -->
+            <div id="projectedLongDetailsBox" style="position:absolute; bottom:40px; right:10px; background-color:#fff; border-radius:10px; padding:4px 8px; font-size:0.9rem; font-weight:bold; color:#333; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+              <!-- Filled by JS -->
+            </div>
+            <!-- New projected travel box -->
+            <div id="projectedLongTravelBox" style="position:absolute; bottom:10px; right:10px; background-color:#fff; border-radius:10px; padding:4px 8px; font-size:0.9rem; font-weight:bold; color:#333; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+              Projected Travel: <span id="projectedLongTravelPercent">0%</span>
+            </div>
+            <div class="card-body fs-5">
+              <h6 class="text-center fw-bold" style="font-size: 1.5rem;">📈 Projected Long Position</h6>
+              <p id="projectedLongSimPrice"><strong>Simulated Price: $-</strong></p>
+              <p id="projectedLongCollateralDisplay"><strong>Collateral: $-</strong></p>
+              <p id="projectedLongValue"><strong>Position Value: $-</strong></p>
+              <p id="projectedLongPnL"><strong>P&L: $-</strong></p>
+              <p id="projectedLongSLTP"><strong>Proposed New Size: $-</strong></p>
+              <p id="projectedLongSafetyMargin"><strong>Safety Margin: --</strong></p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div id="projectedShortOutputCard" class="card shadow-sm position-relative">
+            <div id="projectedShortHeatBox" style="position:absolute; top:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-size:1.2rem; font-weight:bold; color:#333; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+              🔥 Projected Heat: <span id="projectedShortHeatIndex">0</span>
+            </div>
+            <!-- New details box -->
+            <div id="projectedShortDetailsBox" style="position:absolute; bottom:40px; right:10px; background-color:#fff; border-radius:10px; padding:4px 8px; font-size:0.9rem; font-weight:bold; color:#333; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+              <!-- Filled by JS -->
+            </div>
+            <!-- New projected travel box -->
+            <div id="projectedShortTravelBox" style="position:absolute; bottom:10px; right:10px; background-color:#fff; border-radius:10px; padding:4px 8px; font-size:0.9rem; font-weight:bold; color:#333; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+              Projected Travel: <span id="projectedShortTravelPercent">0%</span>
+            </div>
+            <div class="card-body fs-5">
+              <h6 class="text-center fw-bold" style="font-size: 1.5rem;">📉 Projected Short Position</h6>
+              <p id="projectedShortSimPrice"><strong>Simulated Price: $-</strong></p>
+              <p id="projectedShortCollateralDisplay"><strong>Collateral: $-</strong></p>
+              <p id="projectedShortValue"><strong>Position Value: $-</strong></p>
+              <p id="projectedShortPnL"><strong>P&L: $-</strong></p>
+              <p id="projectedShortSLTP"><strong>Proposed New Size: $-</strong></p>
+              <p id="projectedShortSafetyMargin"><strong>Safety Margin: --</strong></p>
             </div>
           </div>
         </div>
@@ -244,29 +315,28 @@
       document.getElementById('positionInputRow').style.display = 'flex';
       document.getElementById('modifierRow').style.display = 'flex';
       document.getElementById('priceSliderRow').style.display = 'flex';
-      // Removed leverageSliderRow & projectedHeatRow references
+      document.getElementById('leverageSliderRow').style.display = 'flex';
       document.getElementById('outputRow').style.display = 'flex';
+      document.getElementById('projectedOutputRow').style.display = 'flex';
       document.getElementById('recommendationRow').style.display = 'flex';
     } else if (mode === 'gear') {
       document.getElementById('positionInputRow').style.display = 'none';
       document.getElementById('modifierRow').style.display = 'flex';
       document.getElementById('priceSliderRow').style.display = 'flex';
-      // Removed leverageSliderRow & projectedHeatRow references
+      document.getElementById('leverageSliderRow').style.display = 'flex';
       document.getElementById('outputRow').style.display = 'flex';
+      document.getElementById('projectedOutputRow').style.display = 'flex';
       document.getElementById('recommendationRow').style.display = 'flex';
     } else if (mode === 'test') {
       document.getElementById('positionInputRow').style.display = 'none';
       document.getElementById('modifierRow').style.display = 'none';
       document.getElementById('priceSliderRow').style.display = 'flex';
-      // Removed leverageSliderRow & projectedHeatRow references
+      document.getElementById('leverageSliderRow').style.display = 'flex';
       document.getElementById('outputRow').style.display = 'flex';
+      document.getElementById('projectedOutputRow').style.display = 'flex';
       document.getElementById('recommendationRow').style.display = 'flex';
     }
   }
-
-  /*************************************
-   * (Removed Leverage Slider & Projected Heat Functions)
-   *************************************/
 
   /*************************************
    * Existing Price Slider and Position Functions
@@ -339,6 +409,8 @@
     updateShortHeatIndex(simPrice);
     updateLongTravelPercent(simPrice);
     updateShortTravelPercent(simPrice);
+    // Update projected positions using slider leverage
+    updateProjectedPositions(simPrice);
   }
 
   function updatePriceTicks() {
@@ -383,7 +455,7 @@
     }
   }
 
-  // Update Long and Short Outputs
+  // Update Long and Short Outputs (CURRENT positions)
   function updateLong(simPrice) {
     const longEntry = parseFloat(document.getElementById("longEntry").value) || 0;
     const longSize = parseFloat(document.getElementById("longSize").value) || 0;
@@ -408,6 +480,8 @@
         "<strong>Safety Margin: 0%</strong>";
       document.getElementById("longOutputCard").className =
         "card shadow-sm bg-secondary bg-opacity-25 border border-2 border-secondary";
+      // Clear the details box for a liquidated position
+      document.getElementById("longDetailsBox").innerText = "";
       return;
     }
     let recommendation = "";
@@ -440,12 +514,33 @@
       "<strong>Recommended: " + recIcon + recommendation + "</strong>";
     document.getElementById("longOutputCard").className =
       "card shadow-sm " + bgClass;
+
+    // Safety margin
     const longLiq = longLiquidation || (longEntry * 0.8);
     const longRange = longEntry - longLiq;
     const longSafety = simPrice - longLiq;
     const longMargin = longRange > 0 ? longSafety / longRange : 0;
     document.getElementById("longSafetyMargin").innerHTML =
       "<strong>Safety Margin: " + (longMargin * 100).toFixed(1) + "%</strong>";
+
+    // Compute DTL, Lev, CR for the current long position
+    // We'll define "DTL" as the "distanceFactor" = 1 - NDL
+    let ndl = (simPrice - longLiq) / (longEntry - longLiq);
+    ndl = Math.max(0, Math.min(ndl, 1));
+    let distanceFactor = 1 - ndl;
+    let actualLeverage = 0;
+    if (collateral > 0) {
+      actualLeverage = longSize / collateral;
+    }
+    let collateralRatio = collateral / longSize;
+    if (collateralRatio > 1) {
+      collateralRatio = 1;
+    }
+    // Fill the details box
+    document.getElementById("longDetailsBox").innerText =
+      "DTL: " + distanceFactor.toFixed(2) +
+      " | Lev: " + actualLeverage.toFixed(1) + "x" +
+      " | CR: " + (collateralRatio * 100).toFixed(0) + "%";
   }
 
   function updateShort(simPrice) {
@@ -472,6 +567,8 @@
         "<strong>Safety Margin: 0%</strong>";
       document.getElementById("shortOutputCard").className =
         "card shadow-sm bg-secondary bg-opacity-25 border border-2 border-secondary";
+      // Clear the details box for a liquidated position
+      document.getElementById("shortDetailsBox").innerText = "";
       return;
     }
     let recommendation = "";
@@ -504,12 +601,33 @@
       "<strong>Recommended: " + recIcon + recommendation + "</strong>";
     document.getElementById("shortOutputCard").className =
       "card shadow-sm " + bgClass;
+
+    // Safety margin
     const shortLiq = shortLiquidation || (shortEntry * 1.2);
     const shortRange = shortLiq - shortEntry;
     const shortSafety = shortLiq - simPrice;
     const shortMargin = shortRange > 0 ? shortSafety / shortRange : 0;
     document.getElementById("shortSafetyMargin").innerHTML =
       "<strong>Safety Margin: " + (shortMargin * 100).toFixed(1) + "%</strong>";
+
+    // Compute DTL, Lev, CR for the current short position
+    // "DTL" is distanceFactor = 1 - ndl
+    let ndl = (shortLiq - simPrice) / (shortLiq - shortEntry);
+    ndl = Math.max(0, Math.min(ndl, 1));
+    let distanceFactor = 1 - ndl;
+    let actualLeverage = 0;
+    if (collateral > 0) {
+      actualLeverage = shortSize / collateral;
+    }
+    let collateralRatio = collateral / shortSize;
+    if (collateralRatio > 1) {
+      collateralRatio = 1;
+    }
+    // Fill the details box
+    document.getElementById("shortDetailsBox").innerText =
+      "DTL: " + distanceFactor.toFixed(2) +
+      " | Lev: " + actualLeverage.toFixed(1) + "x" +
+      " | CR: " + (collateralRatio * 100).toFixed(0) + "%";
   }
 
   function updateLongHeatIndex(simPrice) {
@@ -575,7 +693,7 @@
     const shortEntry = parseFloat(document.getElementById("shortEntry").value) || 0;
     const shortLiq = parseFloat(document.getElementById("shortLiqPrice").value) || (shortEntry * 1.2);
     if (shortEntry > 0 && shortLiq > 0 && shortEntry !== shortLiq) {
-      const denom = Math.abs(shortEntry - shortLiq);
+      const denom = Math.abs(shortLiq - shortEntry);
       const numer = shortEntry - simPrice;
       const travelPercent = (numer / denom) * 100;
       document.getElementById("shortTravelPercent").innerText = travelPercent.toFixed(2) + "%";
@@ -622,6 +740,190 @@
     document.getElementById("hedgeRecommendation").innerHTML =
       "<strong>Recommended Adjustment (Losing Side):</strong> " + losingRecommendation + "<br>" +
       "<strong>Recommended Adjustment (Winning Side):</strong> " + winningRecommendation;
+  }
+
+  /*************************************
+   * New: Function to update Projected Positions using slider-controlled leverage
+   *************************************/
+  function updateProjectedPositions(simPrice) {
+    // Grab the slider leverage
+    const sliderLeverage = parseFloat(document.getElementById("leverageSlider").value);
+
+    // For Long Position
+    const longEntry = parseFloat(document.getElementById("longEntry").value) || 0;
+    const longSize = parseFloat(document.getElementById("longSize").value) || 0;
+    const fee = parseFloat(document.getElementById("feePercentage").value) || 0;
+    const targetMargin = parseFloat(document.getElementById("targetMarginInput").value) / 100;
+    const adjustmentFactor = parseFloat(document.getElementById("adjustmentFactorInput").value);
+    const longLiq = parseFloat(document.getElementById("longLiqPrice").value) || (longEntry * 0.8);
+
+    let longRange = longEntry - longLiq;
+    let longSafety = simPrice - longLiq;
+    let longMarginCalc = longRange > 0 ? longSafety / longRange : 0;
+    let recommendedLongExtra = 0;
+    if (longMarginCalc < targetMargin) {
+      recommendedLongExtra = longSize * (targetMargin - longMarginCalc) * adjustmentFactor;
+    }
+    const projectedLongSize = longSize + recommendedLongExtra;
+    const projectedLongCollateral = projectedLongSize / sliderLeverage;
+
+    // Heat index for projected long
+    let ndlLong = (simPrice - longLiq) / (longEntry - longLiq);
+    ndlLong = Math.max(0, Math.min(ndlLong, 1));
+    let distanceFactorLong = 1 - ndlLong;
+    let normalizedLeverageLong = sliderLeverage / 100;
+    let collateralRatioLong = projectedLongCollateral / projectedLongSize;
+    collateralRatioLong = Math.min(collateralRatioLong, 1);
+    let projectedHeatLong = Math.pow(distanceFactorLong, 0.45) *
+                            Math.pow(normalizedLeverageLong, 0.35) *
+                            Math.pow(1 - collateralRatioLong, 0.20) * 100;
+
+    // P&L and net value
+    let tokenCountLongProjected = longEntry > 0 ? projectedLongSize / longEntry : 0;
+    let pnlLongProjected = (simPrice - longEntry) * tokenCountLongProjected;
+    let feeCostLongProjected = (fee / 100) * projectedLongSize;
+    let netValueLongProjected = projectedLongCollateral + pnlLongProjected - feeCostLongProjected;
+
+    // Proposed new size
+    document.getElementById("projectedLongSLTP").innerHTML =
+      "<strong>Proposed New Size: $" + projectedLongSize.toFixed(2) + "</strong>";
+
+    let longRangeProjected = longEntry - longLiq;
+    let longSafetyProjected = simPrice - longLiq;
+    let longMarginProjected = longRangeProjected > 0 ? longSafetyProjected / longRangeProjected : 0;
+    let projectedLongTravelPercent = "N/A";
+    if (longEntry > 0 && longLiq > 0 && longEntry !== longLiq) {
+      const denom = Math.abs(longEntry - longLiq);
+      const numer = simPrice - longEntry;
+      projectedLongTravelPercent = (numer / denom) * 100;
+    }
+
+    // Update projected long outputs
+    document.getElementById("projectedLongSimPrice").innerHTML =
+      "<strong>Simulated Price: $" + simPrice.toFixed(2) + "</strong>";
+    document.getElementById("projectedLongCollateralDisplay").innerHTML =
+      "<strong>Collateral: $" + projectedLongCollateral.toFixed(2) + "</strong>";
+    document.getElementById("projectedLongValue").innerHTML =
+      "<strong>Position Value: $" + netValueLongProjected.toFixed(2) + "</strong>";
+    document.getElementById("projectedLongPnL").innerHTML =
+      "<strong>P&L: " + ((pnlLongProjected >= 0) ? "▲ " : "▼ ") +
+      "$" + pnlLongProjected.toFixed(2) + "</strong>";
+    document.getElementById("projectedLongSafetyMargin").innerHTML =
+      "<strong>Safety Margin: " + (longMarginProjected * 100).toFixed(1) + "%</strong>";
+    document.getElementById("projectedLongHeatIndex").innerText =
+      projectedHeatLong.toFixed(2);
+
+    // Color logic for the projected LONG box
+    let projectedLongBgClass = (pnlLongProjected >= 0)
+      ? "bg-success bg-opacity-10 border border-2 border-success"
+      : "bg-danger bg-opacity-10 border border-2 border-danger";
+    document.getElementById("projectedLongOutputCard").className =
+      "card shadow-sm " + projectedLongBgClass;
+
+    // Fill the details box (DTL, Lev, CR)
+    document.getElementById("projectedLongDetailsBox").innerText =
+      "DTL: " + distanceFactorLong.toFixed(2) +
+      " | Lev: " + sliderLeverage.toFixed(1) + "x" +
+      " | CR: " + (collateralRatioLong * 100).toFixed(0) + "%";
+
+    // Projected travel
+    document.getElementById("projectedLongTravelPercent").innerText =
+      (typeof projectedLongTravelPercent === "number")
+        ? projectedLongTravelPercent.toFixed(2) + "%"
+        : projectedLongTravelPercent;
+
+    // For Short Position
+    const shortEntry = parseFloat(document.getElementById("shortEntry").value) || 0;
+    const shortSize = parseFloat(document.getElementById("shortSize").value) || 0;
+    const shortLiq = parseFloat(document.getElementById("shortLiqPrice").value) || (shortEntry * 1.2);
+
+    let shortRange = shortLiq - shortEntry;
+    let shortSafety = shortLiq - simPrice;
+    let shortMarginCalc = shortRange > 0 ? shortSafety / shortRange : 0;
+    let recommendedShortExtra = 0;
+    if (shortMarginCalc < targetMargin) {
+      recommendedShortExtra = shortSize * (targetMargin - shortMarginCalc) * adjustmentFactor;
+    }
+    const projectedShortSize = shortSize + recommendedShortExtra;
+    const projectedShortCollateral = projectedShortSize / sliderLeverage;
+
+    // Heat index for projected short
+    let ndlShort = (shortLiq - simPrice) / (shortLiq - shortEntry);
+    ndlShort = Math.max(0, Math.min(ndlShort, 1));
+    let distanceFactorShort = 1 - ndlShort;
+    let normalizedLeverageShort = sliderLeverage / 100;
+    let collateralRatioShort = projectedShortCollateral / projectedShortSize;
+    collateralRatioShort = Math.min(collateralRatioShort, 1);
+    let projectedHeatShort = Math.pow(distanceFactorShort, 0.45) *
+                             Math.pow(normalizedLeverageShort, 0.35) *
+                             Math.pow(1 - collateralRatioShort, 0.20) * 100;
+
+    // P&L and net value
+    let tokenCountShortProjected = shortEntry > 0 ? projectedShortSize / shortEntry : 0;
+    let pnlShortProjected = (shortEntry - simPrice) * tokenCountShortProjected;
+    let feeCostShortProjected = (fee / 100) * projectedShortSize;
+    let netValueShortProjected = projectedShortCollateral + pnlShortProjected - feeCostShortProjected;
+
+    // Proposed new size
+    document.getElementById("projectedShortSLTP").innerHTML =
+      "<strong>Proposed New Size: $" + projectedShortSize.toFixed(2) + "</strong>";
+
+    let shortRangeProjected = shortLiq - shortEntry;
+    let shortSafetyProjected = shortLiq - simPrice;
+    let shortMarginProjected = shortRangeProjected > 0 ? shortSafetyProjected / shortRangeProjected : 0;
+    let projectedShortTravelPercent = "N/A";
+    if (shortEntry > 0 && shortLiq > 0 && shortEntry !== shortLiq) {
+      const denom = Math.abs(shortLiq - shortEntry);
+      const numer = shortEntry - simPrice;
+      projectedShortTravelPercent = (numer / denom) * 100;
+    }
+
+    // Update projected short outputs
+    document.getElementById("projectedShortSimPrice").innerHTML =
+      "<strong>Simulated Price: $" + simPrice.toFixed(2) + "</strong>";
+    document.getElementById("projectedShortCollateralDisplay").innerHTML =
+      "<strong>Collateral: $" + projectedShortCollateral.toFixed(2) + "</strong>";
+    document.getElementById("projectedShortValue").innerHTML =
+      "<strong>Position Value: $" + netValueShortProjected.toFixed(2) + "</strong>";
+    document.getElementById("projectedShortPnL").innerHTML =
+      "<strong>P&L: " + ((pnlShortProjected >= 0) ? "▲ " : "▼ ") +
+      "$" + pnlShortProjected.toFixed(2) + "</strong>";
+    document.getElementById("projectedShortSafetyMargin").innerHTML =
+      "<strong>Safety Margin: " + (shortMarginProjected * 100).toFixed(1) + "%</strong>";
+    document.getElementById("projectedShortHeatIndex").innerText =
+      projectedHeatShort.toFixed(2);
+
+    // Color logic for the projected SHORT box
+    let projectedShortBgClass = (pnlShortProjected >= 0)
+      ? "bg-success bg-opacity-10 border border-2 border-success"
+      : "bg-danger bg-opacity-10 border border-2 border-danger";
+    document.getElementById("projectedShortOutputCard").className =
+      "card shadow-sm " + projectedShortBgClass;
+
+    // Fill the details box (DTL, Leverage, CR)
+    document.getElementById("projectedShortDetailsBox").innerText =
+      "DTL: " + distanceFactorShort.toFixed(2) +
+      " | Lev: " + sliderLeverage.toFixed(1) + "x" +
+      " | CR: " + (collateralRatioShort * 100).toFixed(0) + "%";
+
+    // Projected travel
+    document.getElementById("projectedShortTravelPercent").innerText =
+      (typeof projectedShortTravelPercent === "number")
+        ? projectedShortTravelPercent.toFixed(2) + "%"
+        : projectedShortTravelPercent;
+  }
+
+  /*************************************
+   * Update the leverage slider function to recalc with new leverage
+   *************************************/
+  function updateProjectedHeatIndex() {
+    const leverageSlider = document.getElementById("leverageSlider");
+    const leverageValueDisplay = document.getElementById("leverageValue");
+    let currentLeverage = parseFloat(leverageSlider.value);
+    leverageValueDisplay.innerText = "Leverage: " + currentLeverage.toFixed(1) + "x";
+    const priceSlider = document.getElementById("priceSlider");
+    let simPrice = parseFloat(priceSlider.value);
+    updateProjectedPositions(simPrice);
   }
 
   document.getElementById("saveModifiers").addEventListener("click", function() {
