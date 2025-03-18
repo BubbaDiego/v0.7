@@ -2,6 +2,21 @@
 {% block title %}Hedge Calculator{% endblock %}
 {% block page_title %}{% endblock %} {# Remove outer heading #}
 
+{% block extra_styles %}
+<style>
+  /* Increase leverage font size and bold the text */
+  #leverageValue {
+      font-size: 1.5rem;
+      font-weight: bold;
+  }
+  /* Reduce height of the output position boxes by 20%
+     (Assuming original height ~375px, now fixed at 300px) */
+  .reduced-height {
+      height: 300px;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid">
   <!-- Display Mode Radio Buttons -->
@@ -9,10 +24,8 @@
     <div class="btn-group" role="group">
       <input type="radio" class="btn-check" name="displayMode" id="modeFull" autocomplete="off" checked onchange="setDisplayMode('full')">
       <label class="btn btn-outline-primary" for="modeFull"><i class="fas fa-chart-line"></i></label>
-
       <input type="radio" class="btn-check" name="displayMode" id="modeGear" autocomplete="off" onchange="setDisplayMode('gear')">
       <label class="btn btn-outline-primary" for="modeGear"><i class="fas fa-wrench"></i></label>
-
       <input type="radio" class="btn-check" name="displayMode" id="modeTestTube" autocomplete="off" onchange="setDisplayMode('test')">
       <label class="btn btn-outline-primary" for="modeTestTube"><i class="fas fa-vial" style="color: green;"></i></label>
     </div>
@@ -130,10 +143,11 @@
         </div>
       </div>
 
-      <!-- Row 3: Simulated Price Box -->
-      <div id="priceSliderRow" class="row mb-4">
-        <div class="col-12">
-          <div class="border rounded p-3" style="background-color: #f7f7f7;">
+      <!-- New Row: Combined Price Slider and Projected Leverage Slider Side by Side -->
+      <div class="row mb-4">
+        <div class="col-md-6">
+          <!-- Simulated Price Box -->
+          <div id="priceSliderRow" class="border rounded p-3" style="background-color: #f7f7f7;">
             <div class="d-flex justify-content-center mb-2">
               <h5 class="text-center"><strong>💵 Simulated Price</strong></h5>
             </div>
@@ -155,12 +169,9 @@
             </div>
           </div>
         </div>
-      </div>
-
-      <!-- Row 4: Projected Leverage Slider -->
-      <div id="leverageSliderRow" class="row mb-4">
-        <div class="col-12">
-          <div class="border rounded p-3" style="background-color: #f7f7f7;">
+        <div class="col-md-6">
+          <!-- Projected Leverage Slider Box -->
+          <div id="leverageSliderRow" class="border rounded p-3" style="background-color: #f7f7f7;">
             <div class="d-flex justify-content-center mb-2">
               <h5 class="text-center"><strong>Projected Leverage</strong></h5>
             </div>
@@ -172,7 +183,7 @@
         </div>
       </div>
 
-      <!-- Row 5: Approach Toggle -->
+      <!-- Row 3: Approach Toggle -->
       <div id="approachToggleRow" class="row mb-4">
         <div class="col-12">
           <div class="d-flex justify-content-center align-items-center">
@@ -189,10 +200,20 @@
         </div>
       </div>
 
-      <!-- Row 6: Output Section for Current Positions -->
+      <!-- Row 4: Recommendation Box (Moved Above Position Boxes) -->
+      <div id="recommendationRow" class="row mb-4">
+        <div class="col">
+          <div id="hedgeRecommendation" class="alert alert-info text-center">
+            <strong>Recommended Adjustment (Losing Side):</strong> N/A<br>
+            <strong>Recommended Adjustment (Winning Side):</strong> N/A
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 5: Output Section for Current Positions -->
       <div id="outputRow" class="row">
         <div class="col-md-6">
-          <div id="longOutputCard" class="card shadow-sm position-relative">
+          <div id="longOutputCard" class="card shadow-sm position-relative reduced-height">
             <!-- Heat box at top -->
             <div id="longHeatBox" style="position:absolute; top:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-size:1.2rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
               🔥 Heat: <span id="longHeatIndex">0</span>
@@ -212,14 +233,13 @@
               <p id="longValue"><strong>Position Value: $-</strong></p>
               <p id="longPnL"><strong>P&L: $-</strong></p>
               <p id="longSLTP"><strong>Recommended: -</strong></p>
-              <!-- New: Current Size -->
               <p id="longCurrentSize"><strong>Current Size: $-</strong></p>
               <p id="longSafetyMargin"><strong>Safety Margin: --</strong></p>
             </div>
           </div>
         </div>
         <div class="col-md-6">
-          <div id="shortOutputCard" class="card shadow-sm position-relative">
+          <div id="shortOutputCard" class="card shadow-sm position-relative reduced-height">
             <!-- Heat box at top -->
             <div id="shortHeatBox" style="position:absolute; top:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-size:1.2rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
               🔥 Heat: <span id="shortHeatIndex">0</span>
@@ -239,7 +259,6 @@
               <p id="shortValue"><strong>Position Value: $-</strong></p>
               <p id="shortPnL"><strong>P&L: $-</strong></p>
               <p id="shortSLTP"><strong>Recommended: -</strong></p>
-              <!-- New: Current Size -->
               <p id="shortCurrentSize"><strong>Current Size: $-</strong></p>
               <p id="shortSafetyMargin"><strong>Safety Margin: --</strong></p>
             </div>
@@ -250,7 +269,7 @@
       <!-- Row 6: Projected Output Section for Positions -->
       <div id="projectedOutputRow" class="row mt-4">
         <div class="col-md-6">
-          <div id="projectedLongOutputCard" class="card shadow-sm position-relative">
+          <div id="projectedLongOutputCard" class="card shadow-sm position-relative reduced-height">
             <!-- Heat box at top -->
             <div id="projectedLongHeatBox" style="position:absolute; top:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-size:1.2rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
               🔥 Projected Heat: <span id="projectedLongHeatIndex">0</span>
@@ -275,7 +294,7 @@
           </div>
         </div>
         <div class="col-md-6">
-          <div id="projectedShortOutputCard" class="card shadow-sm position-relative">
+          <div id="projectedShortOutputCard" class="card shadow-sm position-relative reduced-height">
             <!-- Heat box at top -->
             <div id="projectedShortHeatBox" style="position:absolute; top:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-size:1.2rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
               🔥 Projected Heat: <span id="projectedShortHeatIndex">0</span>
@@ -301,15 +320,6 @@
         </div>
       </div>
 
-      <!-- Row 7: Hedge Recommendation Output -->
-      <div id="recommendationRow" class="row mt-4">
-        <div class="col">
-          <div id="hedgeRecommendation" class="alert alert-info text-center">
-            <strong>Recommended Adjustment (Losing Side):</strong> N/A<br>
-            <strong>Recommended Adjustment (Winning Side):</strong> N/A
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </div>
@@ -328,30 +338,25 @@
     if (mode === 'full') {
       document.getElementById('positionInputRow').style.display = 'flex';
       document.getElementById('modifierRow').style.display = 'flex';
-      document.getElementById('priceSliderRow').style.display = 'flex';
-      document.getElementById('leverageSliderRow').style.display = 'flex';
+      // Combined slider row is visible
       document.getElementById('approachToggleRow').style.display = 'flex';
+      document.getElementById('recommendationRow').style.display = 'flex';
       document.getElementById('outputRow').style.display = 'flex';
       document.getElementById('projectedOutputRow').style.display = 'flex';
-      document.getElementById('recommendationRow').style.display = 'flex';
     } else if (mode === 'gear') {
       document.getElementById('positionInputRow').style.display = 'none';
       document.getElementById('modifierRow').style.display = 'flex';
-      document.getElementById('priceSliderRow').style.display = 'flex';
-      document.getElementById('leverageSliderRow').style.display = 'flex';
       document.getElementById('approachToggleRow').style.display = 'flex';
+      document.getElementById('recommendationRow').style.display = 'flex';
       document.getElementById('outputRow').style.display = 'flex';
       document.getElementById('projectedOutputRow').style.display = 'flex';
-      document.getElementById('recommendationRow').style.display = 'flex';
     } else if (mode === 'test') {
       document.getElementById('positionInputRow').style.display = 'none';
       document.getElementById('modifierRow').style.display = 'none';
-      document.getElementById('priceSliderRow').style.display = 'flex';
-      document.getElementById('leverageSliderRow').style.display = 'flex';
       document.getElementById('approachToggleRow').style.display = 'flex';
+      document.getElementById('recommendationRow').style.display = 'flex';
       document.getElementById('outputRow').style.display = 'flex';
       document.getElementById('projectedOutputRow').style.display = 'flex';
-      document.getElementById('recommendationRow').style.display = 'flex';
     }
   }
 
@@ -432,7 +437,6 @@
     updateShortHeatIndex(simPrice);
     updateLongTravelPercent(simPrice);
     updateShortTravelPercent(simPrice);
-    // Update projected positions using slider-controlled leverage and approach toggle
     updateProjectedPositions(simPrice);
   }
 
@@ -504,7 +508,7 @@
       document.getElementById("longSafetyMargin").innerHTML =
         "<strong>Safety Margin: 0%</strong>";
       document.getElementById("longOutputCard").className =
-        "card shadow-sm bg-secondary bg-opacity-25 border border-2 border-secondary";
+        "card shadow-sm bg-secondary bg-opacity-25 border border-2 border-secondary reduced-height";
       document.getElementById("longCurrentSize").innerHTML =
         "<strong>Current Size: $0.00</strong>";
       document.getElementById("longDetailsBox").innerText = "";
@@ -522,8 +526,8 @@
       : "bg-danger bg-opacity-10 border border-2 border-danger";
     document.getElementById("longPnL").innerHTML =
       "<strong>P&L: <span class='" + pnlColor + "'>" +
-      ((pnl - feeCost) >= 0 ? "▲ " : "▼ ") +
-      "$" + (pnl - feeCost).toFixed(2) + "</span></strong>";
+      ((pnl - feeCost) >= 0 ? "▲ " : "▼ ") + "$" +
+      (pnl - feeCost).toFixed(2) + "</span></strong>";
     let recommendation = "";
     let recIcon = "";
     if (simPrice < longEntry) {
@@ -539,7 +543,7 @@
     document.getElementById("longSLTP").innerHTML =
       "<strong>Recommended: " + recIcon + recommendation + "</strong>";
     document.getElementById("longOutputCard").className =
-      "card shadow-sm " + bgClass;
+      "card shadow-sm " + bgClass + " reduced-height";
     document.getElementById("longCurrentSize").innerHTML =
       "<strong>Current Size: $" + longSize.toFixed(2) + "</strong>";
     const longLiq = longLiquidation || (longEntry * 0.8);
@@ -583,7 +587,7 @@
       document.getElementById("shortSafetyMargin").innerHTML =
         "<strong>Safety Margin: 0%</strong>";
       document.getElementById("shortOutputCard").className =
-        "card shadow-sm bg-secondary bg-opacity-25 border border-2 border-secondary";
+        "card shadow-sm bg-secondary bg-opacity-25 border border-2 border-secondary reduced-height";
       document.getElementById("shortCurrentSize").innerHTML =
         "<strong>Current Size: $0.00</strong>";
       document.getElementById("shortDetailsBox").innerText = "";
@@ -618,7 +622,7 @@
     document.getElementById("shortSLTP").innerHTML =
       "<strong>Recommended: " + recIcon + recommendation + "</strong>";
     document.getElementById("shortOutputCard").className =
-      "card shadow-sm " + bgClass;
+      "card shadow-sm " + bgClass + " reduced-height";
     document.getElementById("shortCurrentSize").innerHTML =
       "<strong>Current Size: $" + shortSize.toFixed(2) + "</strong>";
     const shortLiq = shortLiquidation || (shortEntry * 1.2);
@@ -839,7 +843,7 @@
       ? "bg-success bg-opacity-10 border border-2 border-success"
       : "bg-danger bg-opacity-10 border border-2 border-danger";
     document.getElementById("projectedLongOutputCard").className =
-      "card shadow-sm " + projectedLongBgClass;
+      "card shadow-sm " + projectedLongBgClass + " reduced-height";
 
     document.getElementById("projectedLongDetailsBox").innerText =
       "DTL: " + distanceFactorLong.toFixed(2) +
@@ -878,9 +882,9 @@
     let normalizedLeverageShort = sliderLeverage / 100;
     let collateralRatioShort = projectedShortCollateral / projectedShortSize;
     collateralRatioShort = Math.min(collateralRatioShort, 1);
-    let projectedHeatShort = Math.pow(distanceFactorShort, 0.45) *
-                             Math.pow(normalizedLeverageShort, 0.35) *
-                             Math.pow(1 - collateralRatioShort, 0.20) * 100;
+    let projectedHeatShort = Math.pow(distanceFactorShort, 0.45)
+                           * Math.pow(normalizedLeverageShort, 0.35)
+                           * Math.pow(1 - collateralRatioShort, 0.20) * 100;
 
     let tokenCountShortProjected = shortEntry > 0 ? projectedShortSize / shortEntry : 0;
     let pnlShortProjected = (shortEntry - simPrice) * tokenCountShortProjected;
@@ -918,7 +922,7 @@
       ? "bg-success bg-opacity-10 border border-2 border-success"
       : "bg-danger bg-opacity-10 border border-2 border-danger";
     document.getElementById("projectedShortOutputCard").className =
-      "card shadow-sm " + projectedShortBgClass;
+      "card shadow-sm " + projectedShortBgClass + " reduced-height";
 
     document.getElementById("projectedShortDetailsBox").innerText =
       "DTL: " + distanceFactorShort.toFixed(2) +
