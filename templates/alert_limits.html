@@ -4,19 +4,19 @@
   <meta charset="UTF-8">
   <title>Alert Limits Configuration</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <!-- AdminLTE & Bootstrap CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0/dist/css/adminlte.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
-  <!-- Bootstrap Icons (for telephone, chat, envelope, currency) -->
-  <link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
-  />
+
+  <!-- Bootstrap Icons (kept for any icons you still want) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
   <style>
     body {
       background-color: lightgrey;
     }
-    /* Outer wrapper for the entire set of cards */
+    /* Outer wrapper for all alert sections */
     .alert-limits-wrapper {
       background: #fff;
       border-radius: 12px;
@@ -24,16 +24,21 @@
       margin-top: 1rem;
       margin-bottom: 2rem;
     }
-    /* Make card headers a bit smaller */
+    /* Smaller card header text */
     .card-header h5 {
       font-size: 1.25rem;
       margin: 0;
     }
-    /* Table styling for Price Alerts and Alert Limits */
-    .table td {
-      vertical-align: middle;
+    /* Header countdown timers */
+    .header-timers {
+      float: right;
+      font-size: 0.9rem;
+      color: #333;
     }
-    /* Notification checkboxes inline for less row height */
+    .header-timers span {
+      margin-left: 1rem;
+    }
+    /* Table styling for inline notification selectors */
     .notif-inline {
       display: flex;
       align-items: center;
@@ -47,19 +52,31 @@
     .notif-inline .form-check-input {
       margin-right: 0.3rem;
     }
-    /* For the Alert Limits thresholds: input + inline checkboxes */
+    /* For threshold input with inline notification selectors */
     .threshold-cell {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 0.5rem;
     }
-    .threshold-input {
-      width: 60px;
+    /* Increase the width so text won't be cut off */
+    .threshold-input,
+    .form-control.threshold-input {
+      width: 100px;
+      position: relative;
+      z-index: 2;
     }
-    /* Add spacing between the two card rows */
+    /* Spacing between card rows */
     .card-row + .card-row {
       margin-top: 1.5rem;
+    }
+    /* Let the second column match the height of the first by using flex-fill */
+    .equal-height-col {
+      display: flex;
+      flex-direction: column;
+    }
+    .equal-height-col .card {
+      flex: 1 1 auto;
     }
   </style>
 </head>
@@ -67,7 +84,7 @@
   <div class="wrapper">
     <!-- Content Wrapper -->
     <div class="content-wrapper">
-      <!-- Content Header -->
+      <!-- Content Header with Countdown Timers -->
       <section class="content-header">
         <div class="container-fluid">
           <div class="row mb-2">
@@ -78,6 +95,15 @@
               <ol class="breadcrumb float-sm-right">
                 <li class="breadcrumb-item"><a href="#">Home</a></li>
                 <li class="breadcrumb-item active">Alert Limits</li>
+                <li class="header-timers">
+                  <!-- The actual call & snooze countdown timers -->
+                  <span id="callTimer" style="margin-left:0;">
+                    <span style="color:green;">☎</span> Call: 1800
+                  </span>
+                  <span id="snoozeTimer">
+                    <span style="color:blue;">⏳</span> Snooze: 300
+                  </span>
+                </li>
               </ol>
             </div>
           </div>
@@ -87,13 +113,11 @@
       <!-- Main content -->
       <section class="content">
         <div class="container-fluid">
-
-          <!-- BEGIN: Rounded Wrapper for All Cards -->
+          <!-- Rounded wrapper for all cards -->
           <div class="alert-limits-wrapper">
-
             <!-- First row: Price Alerts & Alert Timing side by side -->
             <div class="row card-row">
-              <!-- Price Alerts Column -->
+              <!-- Price Alerts Column (left) -->
               <div class="col-lg-7">
                 <div class="card card-primary">
                   <div class="card-header">
@@ -114,27 +138,29 @@
                         <!-- BTC Row -->
                         <tr>
                           <td>
-                            <i class="bi bi-currency-bitcoin" style="color: #f2a900; font-size: 1.3rem;"></i>
-                            <span class="ml-1">BTC</span>
+                            <img src="https://cryptologos.cc/logos/bitcoin-btc-logo.png"
+                                 alt="BTC"
+                                 style="height:24px; margin-right:5px;">
+                            BTC
                           </td>
                           <td><input type="checkbox" checked /></td>
                           <td>Above</td>
                           <td>
-                            <input type="number" class="form-control d-inline-block" style="width: 80px;" value="30000" />
+                            <input type="number" class="form-control" style="width:100px;" value="30000" />
                           </td>
                           <td>
                             <div class="notif-inline justify-content-center">
                               <label class="form-check">
                                 <input type="checkbox" class="form-check-input" checked />
-                                <i class="bi bi-telephone"></i>
+                                <span style="color:green;">☎</span>
                               </label>
                               <label class="form-check">
                                 <input type="checkbox" class="form-check-input" />
-                                <i class="bi bi-chat-dots"></i>
+                                <span style="color:orange;">💬</span>
                               </label>
                               <label class="form-check">
                                 <input type="checkbox" class="form-check-input" />
-                                <i class="bi bi-envelope"></i>
+                                <span style="color:blue;">✉</span>
                               </label>
                             </div>
                           </td>
@@ -142,27 +168,29 @@
                         <!-- ETH Row -->
                         <tr>
                           <td>
-                            <i class="bi bi-currency-bitcoin" style="color: #626890; font-size: 1.3rem; transform: rotate(90deg);"></i>
-                            <span class="ml-1">ETH</span>
+                            <img src="https://cryptologos.cc/logos/ethereum-eth-logo.png"
+                                 alt="ETH"
+                                 style="height:24px; margin-right:5px;">
+                            ETH
                           </td>
                           <td><input type="checkbox" /></td>
                           <td>Below</td>
                           <td>
-                            <input type="number" class="form-control d-inline-block" style="width: 80px;" value="1200" />
+                            <input type="number" class="form-control" style="width:100px;" value="1200" />
                           </td>
                           <td>
                             <div class="notif-inline justify-content-center">
                               <label class="form-check">
                                 <input type="checkbox" class="form-check-input" />
-                                <i class="bi bi-telephone"></i>
+                                <span style="color:green;">☎</span>
                               </label>
                               <label class="form-check">
                                 <input type="checkbox" class="form-check-input" checked />
-                                <i class="bi bi-chat-dots"></i>
+                                <span style="color:orange;">💬</span>
                               </label>
                               <label class="form-check">
                                 <input type="checkbox" class="form-check-input" />
-                                <i class="bi bi-envelope"></i>
+                                <span style="color:blue;">✉</span>
                               </label>
                             </div>
                           </td>
@@ -172,27 +200,27 @@
                           <td>
                             <img src="https://cryptologos.cc/logos/solana-sol-logo.png"
                                  alt="SOL"
-                                 style="height: 20px; margin-right: 5px;">
+                                 style="height:24px; margin-right:5px;">
                             SOL
                           </td>
                           <td><input type="checkbox" /></td>
                           <td>Above</td>
                           <td>
-                            <input type="number" class="form-control d-inline-block" style="width: 80px;" value="30" />
+                            <input type="number" class="form-control" style="width:100px;" value="30" />
                           </td>
                           <td>
                             <div class="notif-inline justify-content-center">
                               <label class="form-check">
                                 <input type="checkbox" class="form-check-input" />
-                                <i class="bi bi-telephone"></i>
+                                <span style="color:green;">☎</span>
                               </label>
                               <label class="form-check">
                                 <input type="checkbox" class="form-check-input" />
-                                <i class="bi bi-chat-dots"></i>
+                                <span style="color:orange;">💬</span>
                               </label>
                               <label class="form-check">
                                 <input type="checkbox" class="form-check-input" checked />
-                                <i class="bi bi-envelope"></i>
+                                <span style="color:blue;">✉</span>
                               </label>
                             </div>
                           </td>
@@ -203,41 +231,35 @@
                 </div>
               </div>
 
-              <!-- Alert Timing Column -->
-              <div class="col-lg-5">
-                <div class="card card-secondary">
+              <!-- Alert Timing Column (right) matches height of left by flex -->
+              <div class="col-lg-5 equal-height-col">
+                <div class="card card-secondary flex-fill">
                   <div class="card-header">
                     <h5 class="card-title">⏱ Alert Timing</h5>
                   </div>
                   <div class="card-body">
+                    <!-- All three fields look the same now -->
                     <div class="form-group">
-                      <label>
-                        <i class="bi bi-stopwatch"></i>
-                        Alert Cooldown (seconds)
-                      </label>
-                      <input type="number" class="form-control" value="900">
+                      <label>Alert Cooldown (seconds)</label>
+                      <input type="number" class="form-control" style="width:100px;" value="900">
                     </div>
                     <div class="form-group">
-                      <label>
-                        <i class="bi bi-telephone"></i>
-                        Call Refractory Period (seconds)
-                      </label>
-                      <input type="number" class="form-control" value="1800">
+                      <label>Call Refractory Period (seconds)</label>
+                      <input type="number" class="form-control" style="width:100px;" value="1800" id="callRefractoryInput">
+                      <!-- Progress bar removed from display, but code is left commented if needed
+                      <div id="callRefractoryProgress" class="input-progress bg-success"></div>
+                      -->
                     </div>
                     <div class="form-group">
-                      <label>
-                        <i class="bi bi-clock-history"></i>
-                        Snooze Countdown (seconds)
-                      </label>
-                      <input type="number" class="form-control" value="300" readonly>
+                      <label>Snooze Countdown (seconds)</label>
+                      <input type="number" class="form-control" style="width:100px;" value="300" readonly>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-            <!-- END row for Price Alerts & Alert Timing -->
 
-            <!-- Second row: Alert Limits -->
+            <!-- Second row: Alert Limits (full width) -->
             <div class="row card-row">
               <div class="col-12">
                 <div class="card card-info">
@@ -248,11 +270,11 @@
                     <table class="table table-bordered text-center">
                       <thead class="bg-info text-white">
                         <tr>
-                          <th style="width: 18%;">Metric</th>
-                          <th style="width: 10%;">Enabled</th>
-                          <th style="width: 24%;">Low</th>
-                          <th style="width: 24%;">Medium</th>
-                          <th style="width: 24%;">High</th>
+                          <th style="width:18%;">Metric</th>
+                          <th style="width:10%;">Enabled</th>
+                          <th style="width:24%;">Low</th>
+                          <th style="width:24%;">Medium</th>
+                          <th style="width:24%;">High</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -265,16 +287,16 @@
                               <input type="number" class="threshold-input form-control" value="25">
                               <div class="notif-inline">
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" checked />
-                                  <i class="bi bi-telephone"></i>
+                                  <input type="checkbox" class="form-check-input" checked>
+                                  <span style="color:green;">☎</span>
                                 </label>
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" />
-                                  <i class="bi bi-chat-dots"></i>
+                                  <input type="checkbox" class="form-check-input">
+                                  <span style="color:orange;">💬</span>
                                 </label>
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" />
-                                  <i class="bi bi-envelope"></i>
+                                  <input type="checkbox" class="form-check-input">
+                                  <span style="color:blue;">✉</span>
                                 </label>
                               </div>
                             </div>
@@ -284,16 +306,16 @@
                               <input type="number" class="threshold-input form-control" value="50">
                               <div class="notif-inline">
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" />
-                                  <i class="bi bi-telephone"></i>
+                                  <input type="checkbox" class="form-check-input">
+                                  <span style="color:green;">☎</span>
                                 </label>
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" checked />
-                                  <i class="bi bi-chat-dots"></i>
+                                  <input type="checkbox" class="form-check-input" checked>
+                                  <span style="color:orange;">💬</span>
                                 </label>
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" />
-                                  <i class="bi bi-envelope"></i>
+                                  <input type="checkbox" class="form-check-input">
+                                  <span style="color:blue;">✉</span>
                                 </label>
                               </div>
                             </div>
@@ -303,16 +325,16 @@
                               <input type="number" class="threshold-input form-control" value="100">
                               <div class="notif-inline">
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" />
-                                  <i class="bi bi-telephone"></i>
+                                  <input type="checkbox" class="form-check-input">
+                                  <span style="color:green;">☎</span>
                                 </label>
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" />
-                                  <i class="bi bi-chat-dots"></i>
+                                  <input type="checkbox" class="form-check-input">
+                                  <span style="color:orange;">💬</span>
                                 </label>
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" checked />
-                                  <i class="bi bi-envelope"></i>
+                                  <input type="checkbox" class="form-check-input" checked>
+                                  <span style="color:blue;">✉</span>
                                 </label>
                               </div>
                             </div>
@@ -327,16 +349,16 @@
                               <input type="number" class="threshold-input form-control" value="-50">
                               <div class="notif-inline">
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" checked />
-                                  <i class="bi bi-telephone"></i>
+                                  <input type="checkbox" class="form-check-input" checked>
+                                  <span style="color:green;">☎</span>
                                 </label>
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" />
-                                  <i class="bi bi-chat-dots"></i>
+                                  <input type="checkbox" class="form-check-input">
+                                  <span style="color:orange;">💬</span>
                                 </label>
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" />
-                                  <i class="bi bi-envelope"></i>
+                                  <input type="checkbox" class="form-check-input">
+                                  <span style="color:blue;">✉</span>
                                 </label>
                               </div>
                             </div>
@@ -346,16 +368,16 @@
                               <input type="number" class="threshold-input form-control" value="-60">
                               <div class="notif-inline">
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" />
-                                  <i class="bi bi-telephone"></i>
+                                  <input type="checkbox" class="form-check-input">
+                                  <span style="color:green;">☎</span>
                                 </label>
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" checked />
-                                  <i class="bi bi-chat-dots"></i>
+                                  <input type="checkbox" class="form-check-input" checked>
+                                  <span style="color:orange;">💬</span>
                                 </label>
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" />
-                                  <i class="bi bi-envelope"></i>
+                                  <input type="checkbox" class="form-check-input">
+                                  <span style="color:blue;">✉</span>
                                 </label>
                               </div>
                             </div>
@@ -365,16 +387,16 @@
                               <input type="number" class="threshold-input form-control" value="-75">
                               <div class="notif-inline">
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" />
-                                  <i class="bi bi-telephone"></i>
+                                  <input type="checkbox" class="form-check-input">
+                                  <span style="color:green;">☎</span>
                                 </label>
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" />
-                                  <i class="bi bi-chat-dots"></i>
+                                  <input type="checkbox" class="form-check-input">
+                                  <span style="color:orange;">💬</span>
                                 </label>
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" checked />
-                                  <i class="bi bi-envelope"></i>
+                                  <input type="checkbox" class="form-check-input" checked>
+                                  <span style="color:blue;">✉</span>
                                 </label>
                               </div>
                             </div>
@@ -389,16 +411,16 @@
                               <input type="number" class="threshold-input form-control" value="-5.222">
                               <div class="notif-inline">
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" />
-                                  <i class="bi bi-telephone"></i>
+                                  <input type="checkbox" class="form-check-input">
+                                  <span style="color:green;">☎</span>
                                 </label>
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" />
-                                  <i class="bi bi-chat-dots"></i>
+                                  <input type="checkbox" class="form-check-input">
+                                  <span style="color:orange;">💬</span>
                                 </label>
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" />
-                                  <i class="bi bi-envelope"></i>
+                                  <input type="checkbox" class="form-check-input">
+                                  <span style="color:blue;">✉</span>
                                 </label>
                               </div>
                             </div>
@@ -408,16 +430,16 @@
                               <input type="number" class="threshold-input form-control" value="-35">
                               <div class="notif-inline">
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" checked />
-                                  <i class="bi bi-telephone"></i>
+                                  <input type="checkbox" class="form-check-input" checked>
+                                  <span style="color:green;">☎</span>
                                 </label>
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" />
-                                  <i class="bi bi-chat-dots"></i>
+                                  <input type="checkbox" class="form-check-input">
+                                  <span style="color:orange;">💬</span>
                                 </label>
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" />
-                                  <i class="bi bi-envelope"></i>
+                                  <input type="checkbox" class="form-check-input">
+                                  <span style="color:blue;">✉</span>
                                 </label>
                               </div>
                             </div>
@@ -427,16 +449,16 @@
                               <input type="number" class="threshold-input form-control" value="-100">
                               <div class="notif-inline">
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" />
-                                  <i class="bi bi-telephone"></i>
+                                  <input type="checkbox" class="form-check-input">
+                                  <span style="color:green;">☎</span>
                                 </label>
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" />
-                                  <i class="bi bi-chat-dots"></i>
+                                  <input type="checkbox" class="form-check-input">
+                                  <span style="color:orange;">💬</span>
                                 </label>
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" checked />
-                                  <i class="bi bi-envelope"></i>
+                                  <input type="checkbox" class="form-check-input" checked>
+                                  <span style="color:blue;">✉</span>
                                 </label>
                               </div>
                             </div>
@@ -451,16 +473,16 @@
                               <input type="number" class="threshold-input form-control" value="25">
                               <div class="notif-inline">
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" />
-                                  <i class="bi bi-telephone"></i>
+                                  <input type="checkbox" class="form-check-input">
+                                  <span style="color:green;">☎</span>
                                 </label>
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" />
-                                  <i class="bi bi-chat-dots"></i>
+                                  <input type="checkbox" class="form-check-input">
+                                  <span style="color:orange;">💬</span>
                                 </label>
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" />
-                                  <i class="bi bi-envelope"></i>
+                                  <input type="checkbox" class="form-check-input">
+                                  <span style="color:blue;">✉</span>
                                 </label>
                               </div>
                             </div>
@@ -470,16 +492,16 @@
                               <input type="number" class="threshold-input form-control" value="50">
                               <div class="notif-inline">
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" />
-                                  <i class="bi bi-telephone"></i>
+                                  <input type="checkbox" class="form-check-input">
+                                  <span style="color:green;">☎</span>
                                 </label>
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" />
-                                  <i class="bi bi-chat-dots"></i>
+                                  <input type="checkbox" class="form-check-input">
+                                  <span style="color:orange;">💬</span>
                                 </label>
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" />
-                                  <i class="bi bi-envelope"></i>
+                                  <input type="checkbox" class="form-check-input">
+                                  <span style="color:blue;">✉</span>
                                 </label>
                               </div>
                             </div>
@@ -489,16 +511,16 @@
                               <input type="number" class="threshold-input form-control" value="100">
                               <div class="notif-inline">
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" checked />
-                                  <i class="bi bi-telephone"></i>
+                                  <input type="checkbox" class="form-check-input" checked>
+                                  <span style="color:green;">☎</span>
                                 </label>
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" />
-                                  <i class="bi bi-chat-dots"></i>
+                                  <input type="checkbox" class="form-check-input">
+                                  <span style="color:orange;">💬</span>
                                 </label>
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" />
-                                  <i class="bi bi-envelope"></i>
+                                  <input type="checkbox" class="form-check-input">
+                                  <span style="color:blue;">✉</span>
                                 </label>
                               </div>
                             </div>
@@ -513,35 +535,16 @@
                               <input type="number" class="threshold-input form-control" placeholder="N/A">
                               <div class="notif-inline">
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" />
-                                  <i class="bi bi-telephone"></i>
+                                  <input type="checkbox" class="form-check-input">
+                                  <span style="color:green;">☎</span>
                                 </label>
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" />
-                                  <i class="bi bi-chat-dots"></i>
+                                  <input type="checkbox" class="form-check-input">
+                                  <span style="color:orange;">💬</span>
                                 </label>
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" />
-                                  <i class="bi bi-envelope"></i>
-                                </label>
-                              </div>
-                            </div>
-                          </td>
-                          <td>
-                            <div class="threshold-cell">
-                              <input type="number" class="threshold-input form-control" placeholder="N/A">
-                              <div class="notif-inline">
-                                <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" />
-                                  <i class="bi bi-telephone"></i>
-                                </label>
-                                <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" />
-                                  <i class="bi bi-chat-dots"></i>
-                                </label>
-                                <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" />
-                                  <i class="bi bi-envelope"></i>
+                                  <input type="checkbox" class="form-check-input">
+                                  <span style="color:blue;">✉</span>
                                 </label>
                               </div>
                             </div>
@@ -551,16 +554,35 @@
                               <input type="number" class="threshold-input form-control" placeholder="N/A">
                               <div class="notif-inline">
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" />
-                                  <i class="bi bi-telephone"></i>
+                                  <input type="checkbox" class="form-check-input">
+                                  <span style="color:green;">☎</span>
                                 </label>
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" />
-                                  <i class="bi bi-chat-dots"></i>
+                                  <input type="checkbox" class="form-check-input">
+                                  <span style="color:orange;">💬</span>
                                 </label>
                                 <label class="form-check">
-                                  <input type="checkbox" class="form-check-input" />
-                                  <i class="bi bi-envelope"></i>
+                                  <input type="checkbox" class="form-check-input">
+                                  <span style="color:blue;">✉</span>
+                                </label>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <div class="threshold-cell">
+                              <input type="number" class="threshold-input form-control" placeholder="N/A">
+                              <div class="notif-inline">
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input">
+                                  <span style="color:green;">☎</span>
+                                </label>
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input">
+                                  <span style="color:orange;">💬</span>
+                                </label>
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input">
+                                  <span style="color:blue;">✉</span>
                                 </label>
                               </div>
                             </div>
@@ -572,7 +594,6 @@
                 </div>
               </div>
             </div>
-            <!-- END second row (Alert Limits) -->
 
             <!-- Save Configuration Button -->
             <div class="row mt-4">
@@ -580,10 +601,8 @@
                 <button type="submit" class="btn btn-success btn-lg">Save Configuration</button>
               </div>
             </div>
-
           </div>
-          <!-- END: Rounded Wrapper for All Cards -->
-
+          <!-- END: alert-limits-wrapper -->
         </div>
       </section>
       <!-- /.content -->
@@ -593,11 +612,62 @@
   <!-- ./wrapper -->
 
   <!-- REQUIRED SCRIPTS -->
-  <!-- jQuery -->
   <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
-  <!-- Bootstrap 4 -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
-  <!-- AdminLTE App -->
   <script src="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0/dist/js/adminlte.min.js"></script>
+
+  <!-- Countdown Timer Script -->
+  <script>
+    let callRefractory = 1800;
+    let snoozeCountdown = 300;
+
+    function updateTimers() {
+      document.getElementById('callTimer').textContent = `☎ Call: ${callRefractory}`;
+      document.getElementById('snoozeTimer').textContent = `⏳ Snooze: ${snoozeCountdown}`;
+      if(callRefractory > 0) callRefractory--;
+      if(snoozeCountdown > 0) snoozeCountdown--;
+    }
+    setInterval(updateTimers, 1000);
+  </script>
+
+  <!-- We keep the code for a progress bar if needed in the future (commented out) -->
+  <!--
+  <script>
+    $(document).ready(function(){
+      let $callRefrInput = $('#callRefractoryInput');
+      if ($callRefrInput.length && !$('#callRefractoryProgress').length) {
+        $callRefrInput.wrap('<div class="position-relative"></div>');
+        $callRefrInput.after('<div id="callRefractoryProgress" class="input-progress bg-success"></div>');
+      }
+    });
+
+    setInterval(function(){
+      let callRefrInput = document.getElementById('callRefractoryInput');
+      let progressEl = document.getElementById('callRefractoryProgress');
+      if(callRefractory > 0 && progressEl){
+        let percentage = (callRefractory / 1800) * 100;
+        progressEl.style.width = percentage + "%";
+      }
+    }, 1000);
+  </script>
+
+  <script>
+    const style = document.createElement('style');
+    style.innerHTML = `
+      .input-progress {
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 100%;
+        border-radius: 0.25rem;
+        opacity: 0.3;
+        z-index: 1;
+        background: linear-gradient(to right, #28a745, #218838);
+      }
+    `;
+    document.head.appendChild(style);
+  </script>
+  -->
 </body>
 </html>
