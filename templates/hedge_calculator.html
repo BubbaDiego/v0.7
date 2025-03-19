@@ -14,25 +14,29 @@
   .reduced-height {
       height: 300px;
   }
-  /* New: Adjust the details text to be smaller and left-aligned */
+  /* Make the text on the right side a bit larger (was 0.8rem) */
   .position-details-section {
-      font-size: 0.8rem;
+      font-size: 1rem; /* increased from 0.8rem */
       text-align: left;
   }
-  /* New: Sim Heat boxes styling with extra spacing */
+  /* Keep the original "Heat" box style for the main Heat box */
+  /* We'll replicate it for the Sim Heat box but keep purple background */
+
+  /* The "Sim Heat" box style (now matching the Heat box, plus purple BG) */
   .sim-heat-box {
       position: absolute;
-      top: 60px; /* increased spacing from top heat box for better separation */
+      top: 50%; /* vertically center */
       right: 10px;
+      transform: translateY(-50%);
       background-color: #f3e8ff; /* subtle purple background */
       border-radius: 10px;
-      padding: 6px 10px;
-      font-size: 1rem;
+      padding: 8px 12px;
+      font-size: 1.2rem; /* match Heat box size */
       font-weight: bold;
       color: #333;
       box-shadow: 0 2px 4px rgba(0,0,0,0.2);
   }
-  /* New: Recommendation boxes styling (blue boxes) */
+  /* Recommendation boxes styling (blue boxes) */
   .recommendation-box {
       background-color: #cce5ff;
       color: #004085;
@@ -40,7 +44,7 @@
       padding: 10px;
       border-radius: 5px;
   }
-  /* New: Collateral value style in the Projected Leverage Box */
+  /* Collateral value style in the Projected Leverage Box */
   .collateral-value {
       font-weight: bold;
       color: green;
@@ -258,23 +262,19 @@
             <!-- Heat box at top -->
             <div id="longHeatBox" style="position:absolute; top:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-size:1.2rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
               🔥 Heat: <span id="longHeatIndex">0</span>
-              <!-- ADDED: smaller text section for DTL, Lev, CR -->
               <div id="longHeatDetails" style="font-size: 0.8rem; margin-top: 4px;">
                 DTL: <span id="longHeatDTL">0</span> | Lev: <span id="longHeatLev">0</span>x | CR: <span id="longHeatCR">0</span>%
               </div>
             </div>
-            <!-- NEW: Simulated Heat box (Resulting Heat Index) -->
-            <div id="longSimHeatBox" class="sim-heat-box" style="font-size: 1rem;">
-              Sim Heat: <span id="longSimHeatIndex">0</span>
-              <!-- ADDED: smaller text section for DTL, Lev, CR, Collateral -->
+            <!-- Sim Heat box: now same style as Heat box but purple, moved to center -->
+            <div id="longSimHeatBox" class="sim-heat-box">
+              🔥 Sim Heat: <span id="longSimHeatIndex">0</span>
               <div id="longSimHeatDetails" style="font-size: 0.8rem; margin-top: 4px;">
                 DTL: <span id="longSimHeatDTL">0</span> | Lev: <span id="longSimHeatLev">0</span>x | CR: <span id="longSimHeatCR">0</span>% | Collateral: $<span id="longSimHeatCollateral">0.00</span>
               </div>
             </div>
-            <!-- Details box (centered vertically) -->
-            <div id="longDetailsBox" style="position:absolute; top:50%; right:10px; transform:translateY(-50%); background-color:#fff; border-radius:10px; padding:4px 8px; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
-              <!-- Filled by JS -->
-            </div>
+            <!-- REMOVED the old "longDetailsBox" middle white box -->
+
             <!-- Travel box at bottom -->
             <div id="longTravelBox" style="position:absolute; bottom:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-size:1.2rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
               Travel: <span id="longTravelPercent">0%</span>
@@ -298,23 +298,19 @@
             <!-- Heat box at top -->
             <div id="shortHeatBox" style="position:absolute; top:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-size:1.2rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
               🔥 Heat: <span id="shortHeatIndex">0</span>
-              <!-- ADDED: smaller text section for DTL, Lev, CR -->
               <div id="shortHeatDetails" style="font-size: 0.8rem; margin-top: 4px;">
                 DTL: <span id="shortHeatDTL">0</span> | Lev: <span id="shortHeatLev">0</span>x | CR: <span id="shortHeatCR">0</span>%
               </div>
             </div>
-            <!-- NEW: Simulated Heat box for short position -->
-            <div id="shortSimHeatBox" class="sim-heat-box" style="font-size: 1rem;">
-              Sim Heat: <span id="shortSimHeatIndex">0</span>
-              <!-- ADDED: smaller text section for DTL, Lev, CR, Collateral -->
+            <!-- Sim Heat box: now same style as Heat box but purple, moved to center -->
+            <div id="shortSimHeatBox" class="sim-heat-box">
+              🔥 Sim Heat: <span id="shortSimHeatIndex">0</span>
               <div id="shortSimHeatDetails" style="font-size: 0.8rem; margin-top: 4px;">
                 DTL: <span id="shortSimHeatDTL">0</span> | Lev: <span id="shortSimHeatLev">0</span>x | CR: <span id="shortSimHeatCR">0</span>% | Collateral: $<span id="shortSimHeatCollateral">0.00</span>
               </div>
             </div>
-            <!-- Details box (centered vertically) -->
-            <div id="shortDetailsBox" style="position:absolute; top:50%; right:10px; transform:translateY(-50%); background-color:#fff; border-radius:10px; padding:4px 8px; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
-              <!-- Filled by JS -->
-            </div>
+            <!-- REMOVED the old "shortDetailsBox" middle white box -->
+
             <!-- Travel box at bottom -->
             <div id="shortTravelBox" style="position:absolute; bottom:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-size:1.2rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
               Travel: <span id="shortTravelPercent">0%</span>
@@ -343,10 +339,8 @@
             <div id="projectedLongHeatBox" style="position:absolute; top:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
               🔥 Projected Heat: <span id="projectedLongHeatIndex">0</span>
             </div>
-            <!-- Details box (centered vertically) -->
-            <div id="projectedLongDetailsBox" style="position:absolute; top:50%; right:10px; transform:translateY(-50%); background-color:#fff; border-radius:10px; padding:4px 8px; font-size:0.9rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
-              <!-- Filled by JS -->
-            </div>
+            <!-- REMOVED the old "projectedLongDetailsBox" middle white box -->
+
             <!-- Travel box at bottom -->
             <div id="projectedLongTravelBox" style="position:absolute; bottom:10px; right:10px; background-color:#fff; border-radius:10px; padding:4px 8px; font-size:0.9rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
               Projected Travel: <span id="projectedLongTravelPercent">0%</span>
@@ -370,10 +364,8 @@
             <div id="projectedShortHeatBox" style="position:absolute; top:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
               🔥 Projected Heat: <span id="projectedShortHeatIndex">0</span>
             </div>
-            <!-- Details box (centered vertically) -->
-            <div id="projectedShortDetailsBox" style="position:absolute; top:50%; right:10px; transform:translateY(-50%); background-color:#fff; border-radius:10px; padding:4px 8px; font-size:0.9rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
-              <!-- Filled by JS -->
-            </div>
+            <!-- REMOVED the old "projectedShortDetailsBox" middle white box -->
+
             <!-- Travel box at bottom -->
             <div id="projectedShortTravelBox" style="position:absolute; bottom:10px; right:10px; background-color:#fff; border-radius:10px; padding:4px 8px; font-size:0.9rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
               Projected Travel: <span id="projectedShortTravelPercent">0%</span>
@@ -586,7 +578,7 @@
         "card shadow-sm bg-secondary bg-opacity-25 border border-2 border-secondary reduced-height";
       document.getElementById("longCurrentSize").innerHTML =
         "<strong>Current Size: $0.00</strong>";
-      document.getElementById("longDetailsBox").innerText = "";
+      // no box to fill for details now
       return;
     }
     document.getElementById("longSimPrice").innerHTML =
@@ -627,16 +619,6 @@
     const longMargin = longRange > 0 ? longSafety / longRange : 0;
     document.getElementById("longSafetyMargin").innerHTML =
       "<strong>Safety Margin: " + (longMargin * 100).toFixed(1) + "%</strong>";
-    let ndl = (simPrice - longLiq) / (longEntry - longLiq);
-    ndl = Math.max(0, Math.min(ndl, 1));
-    let distanceFactor = 1 - ndl;
-    let actualLeverage = (collateral > 0) ? (longSize / collateral) : 0;
-    let collateralRatio = collateral / longSize;
-    if (collateralRatio > 1) { collateralRatio = 1; }
-    document.getElementById("longDetailsBox").innerText =
-      "DTL: " + distanceFactor.toFixed(2) +
-      " | Lev: " + actualLeverage.toFixed(1) + "x" +
-      " | CR: " + (collateralRatio * 100).toFixed(0) + "%";
   }
 
   function updateShort(simPrice) {
@@ -665,7 +647,7 @@
         "card shadow-sm bg-secondary bg-opacity-25 border border-2 border-secondary reduced-height";
       document.getElementById("shortCurrentSize").innerHTML =
         "<strong>Current Size: $0.00</strong>";
-      document.getElementById("shortDetailsBox").innerText = "";
+      // no box to fill for details now
       return;
     }
     document.getElementById("shortSimPrice").innerHTML =
@@ -706,16 +688,6 @@
     const shortMargin = shortRange > 0 ? shortSafety / shortRange : 0;
     document.getElementById("shortSafetyMargin").innerHTML =
       "<strong>Safety Margin: " + (shortMargin * 100).toFixed(1) + "%</strong>";
-    let ndl = (shortLiq - simPrice) / (shortLiq - shortEntry);
-    ndl = Math.max(0, Math.min(ndl, 1));
-    let distanceFactor = 1 - ndl;
-    let actualLeverage = (collateral > 0) ? (shortSize / collateral) : 0;
-    let collateralRatio = collateral / shortSize;
-    if (collateralRatio > 1) { collateralRatio = 1; }
-    document.getElementById("shortDetailsBox").innerText =
-      "DTL: " + distanceFactor.toFixed(2) +
-      " | Lev: " + actualLeverage.toFixed(1) + "x" +
-      " | CR: " + (collateralRatio * 100).toFixed(0) + "%";
   }
 
   /*************************************
@@ -729,7 +701,6 @@
     let leverage = (collateral > 0) ? (size / collateral) : 0;
     if (longEntry <= 0 || longLiq <= 0 || collateral <= 0 || size <= 0) {
       document.getElementById("longHeatIndex").innerText = "N/A";
-      // Also set new details to N/A
       document.getElementById("longHeatDTL").innerText = "N/A";
       document.getElementById("longHeatLev").innerText = "N/A";
       document.getElementById("longHeatCR").innerText = "N/A";
@@ -747,7 +718,6 @@
                   * Math.pow(riskCollateralFactor, 0.20) * 100;
     document.getElementById("longHeatIndex").innerText = composite.toFixed(2);
 
-    // Populate new small-text fields
     document.getElementById("longHeatDTL").innerText = distanceFactor.toFixed(2);
     document.getElementById("longHeatLev").innerText = leverage.toFixed(1);
     document.getElementById("longHeatCR").innerText = (collateralRatio * 100).toFixed(0);
@@ -761,7 +731,6 @@
     let leverage = (collateral > 0) ? (size / collateral) : 0;
     if (shortEntry <= 0 || shortLiq <= 0 || collateral <= 0 || size <= 0) {
       document.getElementById("shortHeatIndex").innerText = "N/A";
-      // Also set new details to N/A
       document.getElementById("shortHeatDTL").innerText = "N/A";
       document.getElementById("shortHeatLev").innerText = "N/A";
       document.getElementById("shortHeatCR").innerText = "N/A";
@@ -779,7 +748,6 @@
                   * Math.pow(riskCollateralFactor, 0.20) * 100;
     document.getElementById("shortHeatIndex").innerText = composite.toFixed(2);
 
-    // Populate new small-text fields
     document.getElementById("shortHeatDTL").innerText = distanceFactor.toFixed(2);
     document.getElementById("shortHeatLev").innerText = leverage.toFixed(1);
     document.getElementById("shortHeatCR").innerText = (collateralRatio * 100).toFixed(0);
@@ -936,11 +904,7 @@
     document.getElementById("projectedLongOutputCard").className =
       "card shadow-sm " + projectedLongBgClass + " reduced-height";
 
-    document.getElementById("projectedLongDetailsBox").innerText =
-      "DTL: " + distanceFactorLong.toFixed(2) +
-      " | Lev: " + sliderLeverage.toFixed(1) + "x" +
-      " | CR: " + (collateralRatioLong * 100).toFixed(0) + "%";
-
+    // no middle details box for projected long
     document.getElementById("projectedLongTravelPercent").innerText =
       (typeof projectedLongTravelPercent === "number")
         ? projectedLongTravelPercent.toFixed(2) + "%"
@@ -1016,11 +980,7 @@
     document.getElementById("projectedShortOutputCard").className =
       "card shadow-sm " + projectedShortBgClass + " reduced-height";
 
-    document.getElementById("projectedShortDetailsBox").innerText =
-      "DTL: " + distanceFactorShort.toFixed(2) +
-      " | Lev: " + sliderLeverage.toFixed(1) + "x" +
-      " | CR: " + (collateralRatioShort * 100).toFixed(0) + "%";
-
+    // no middle details box for projected short
     document.getElementById("projectedShortTravelPercent").innerText =
       (typeof projectedShortTravelPercent === "number")
         ? projectedShortTravelPercent.toFixed(2) + "%"
@@ -1079,7 +1039,6 @@
                        Math.pow(riskCollateralFactor, 0.20) * 100;
     document.getElementById("longSimHeatIndex").innerText = compositeSim.toFixed(2);
 
-    // Populate new fields
     document.getElementById("longSimHeatDTL").innerText = distanceFactor.toFixed(2);
     document.getElementById("longSimHeatLev").innerText = leverageSim.toFixed(1);
     document.getElementById("longSimHeatCR").innerText = (collateralRatio * 100).toFixed(0);
@@ -1118,7 +1077,6 @@
                      * Math.pow(riskCollateralFactor, 0.20) * 100;
     document.getElementById("shortSimHeatIndex").innerText = compositeSim.toFixed(2);
 
-    // Populate new fields
     document.getElementById("shortSimHeatDTL").innerText = distanceFactor.toFixed(2);
     document.getElementById("shortSimHeatLev").innerText = leverageSim.toFixed(1);
     document.getElementById("shortSimHeatCR").innerText = (collateralRatio * 100).toFixed(0);
