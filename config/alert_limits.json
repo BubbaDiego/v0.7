@@ -2,19 +2,19 @@
   "alert_ranges": {
     "heat_index_ranges": {
       "enabled": false,
-      "low": "",
+      "low": "22",
       "low_notifications": {
         "call": false,
         "sms": false,
         "email": false
       },
-      "medium": "",
+      "medium": "44",
       "medium_notifications": {
         "call": false,
         "sms": false,
         "email": false
       },
-      "high": "",
+      "high": "66",
       "high_notifications": {
         "call": false,
         "sms": false,

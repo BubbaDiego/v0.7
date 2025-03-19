@@ -1,231 +1,603 @@
-{% extends "base.html" %}
-
-{% block content %}
-<div class="container-fluid" style="background: url('{{ url_for('static', filename=theme.background_image|default('images/wallpaper_theme_page') ) }}') no-repeat center center; background-size: cover; min-height: 100vh; padding-top: 20px;">
-  <!-- Toggle Switch: Viewer vs. Alert Limits -->
-  <div class="d-flex justify-content-start mb-4">
-    <div class="btn-group" role="group" aria-label="Alert Mode Toggle">
-      <a href="{{ url_for('alerts_bp.alarm_viewer') }}" class="btn btn-outline-primary">Viewer</a>
-      <a href="{{ url_for('alerts_bp.alert_config_page') }}" class="btn btn-primary active">Alert Limits</a>
-    </div>
-  </div>
-
-  <form id="alert-config-form" method="POST" action="{{ url_for('alerts_bp.update_alert_config') }}">
-    <div class="row">
-      <!-- Left Column: Price Alerts Configuration Card -->
-      <div class="col-md-8">
-        <div class="card" style="margin: 20px; background: rgba(255,255,255,0.9);">
-          <div class="card-header" style="background-color: #004085; color: white; display: flex; justify-content: space-between; align-items: center;">
-            <h3 class="card-title mb-0">Price Alerts Configuration</h3>
-          </div>
-          <div class="card-body">
-            <div class="table-responsive">
-              <table class="table table-bordered text-center" style="border: 2px solid #004085;">
-                <thead style="background-color: #004085; color: white; border-bottom: 2px solid #004085;">
-                  <tr>
-                    <th>Asset</th>
-                    <th>Enabled</th>
-                    <th>Condition</th>
-                    <th>Trigger Value</th>
-                    <th>Notifications<br>(Call/SMS/Email)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for asset in ['BTC', 'ETH', 'SOL'] %}
-                    {% set config = price_alerts.get(asset, {}) %}
-                    <tr>
-                      <td>{{ asset }}</td>
-                      <td>
-                        <input type="hidden" name="price_alerts[{{ asset }}][enabled]" value="false">
-                        <input type="checkbox" id="price_alerts_{{ asset }}_enabled" name="price_alerts[{{ asset }}][enabled]" value="true" class="form-check-input" {% if config.enabled %}checked{% endif %}>
-                      </td>
-                      <td>
-                        <select name="price_alerts[{{ asset }}][condition]" id="price_alerts_{{ asset }}_condition" class="form-control">
-                          <option value="ABOVE" {% if config.condition == "ABOVE" %}selected{% endif %}>Above</option>
-                          <option value="BELOW" {% if config.condition == "BELOW" %}selected{% endif %}>Below</option>
-                        </select>
-                      </td>
-                      <td>
-                        <input type="number" step="any" id="price_alerts_{{ asset }}_trigger_value" name="price_alerts[{{ asset }}][trigger_value]" class="form-control" value="{{ config.trigger_value if config.trigger_value is defined }}">
-                      </td>
-                      <td>
-                        <div class="form-check form-check-inline">
-                          <input type="hidden" name="price_alerts[{{ asset }}][notifications][call]" value="false">
-                          <input type="checkbox" id="price_alerts_{{ asset }}_notif_call" name="price_alerts[{{ asset }}][notifications][call]" value="true" class="form-check-input" {% if config.notifications and config.notifications.call %}checked{% endif %}>
-                          <label class="form-check-label">Call</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                          <input type="hidden" name="price_alerts[{{ asset }}][notifications][sms]" value="false">
-                          <input type="checkbox" id="price_alerts_{{ asset }}_notif_sms" name="price_alerts[{{ asset }}][notifications][sms]" value="true" class="form-check-input" {% if config.notifications and config.notifications.sms %}checked{% endif %}>
-                          <label class="form-check-label">SMS</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                          <input type="hidden" name="price_alerts[{{ asset }}][notifications][email]" value="false">
-                          <input type="checkbox" id="price_alerts_{{ asset }}_notif_email" name="price_alerts[{{ asset }}][notifications][email]" value="true" class="form-check-input" {% if config.notifications and config.notifications.email %}checked{% endif %}>
-                          <label class="form-check-label">Email</label>
-                        </div>
-                      </td>
-                    </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Alert Limits Configuration</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- AdminLTE & Bootstrap CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0/dist/css/adminlte.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+  <!-- Bootstrap Icons (for telephone, chat, envelope, currency) -->
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
+  />
+  <style>
+    body {
+      background-color: lightgrey;
+    }
+    /* Outer wrapper for the entire set of cards */
+    .alert-limits-wrapper {
+      background: #fff;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-top: 1rem;
+      margin-bottom: 2rem;
+    }
+    /* Make card headers a bit smaller */
+    .card-header h5 {
+      font-size: 1.25rem;
+      margin: 0;
+    }
+    /* Table styling for Price Alerts and Alert Limits */
+    .table td {
+      vertical-align: middle;
+    }
+    /* Notification checkboxes inline for less row height */
+    .notif-inline {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .notif-inline .form-check {
+      display: flex;
+      align-items: center;
+      margin-bottom: 0;
+    }
+    .notif-inline .form-check-input {
+      margin-right: 0.3rem;
+    }
+    /* For the Alert Limits thresholds: input + inline checkboxes */
+    .threshold-cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .threshold-input {
+      width: 60px;
+    }
+    /* Add spacing between the two card rows */
+    .card-row + .card-row {
+      margin-top: 1.5rem;
+    }
+  </style>
+</head>
+<body class="hold-transition sidebar-mini">
+  <div class="wrapper">
+    <!-- Content Wrapper -->
+    <div class="content-wrapper">
+      <!-- Content Header -->
+      <section class="content-header">
+        <div class="container-fluid">
+          <div class="row mb-2">
+            <div class="col-sm-6">
+              <h1>Alert Limits Configuration</h1>
+            </div>
+            <div class="col-sm-6">
+              <ol class="breadcrumb float-sm-right">
+                <li class="breadcrumb-item"><a href="#">Home</a></li>
+                <li class="breadcrumb-item active">Alert Limits</li>
+              </ol>
             </div>
           </div>
         </div>
-      </div>
-      <!-- Right Column: Alert Timing Configuration Card -->
-      <div class="col-md-4">
-        <div class="card" style="margin: 20px; background: rgba(255,255,255,0.9);">
-          <div class="card-header" style="background-color: #004085; color: white;">
-             <h3 class="card-title mb-0">Alert Timing Configuration</h3>
-          </div>
-          <div class="card-body">
-             <div class="mb-3">
-                 <label for="alert_cooldown_seconds" class="form-label">Alert Cooldown (seconds)</label>
-                 <input type="number" class="form-control" name="alert_cooldown_seconds" id="alert_cooldown_seconds" value="{{ alert_cooldown_seconds }}">
-             </div>
-             <div class="mb-3">
-                 <label for="call_refractory_period" class="form-label">Call Refractory Period (seconds)</label>
-                 <input type="number" class="form-control" name="call_refractory_period" id="call_refractory_period" value="{{ call_refractory_period }}">
-             </div>
-          </div>
-        </div>
-      </div>
-    </div>
+      </section>
 
-    <!-- Full Width: Alert Manager Configuration Card -->
-    <div class="card" style="margin: 20px auto; max-width: 1200px; background: rgba(255,255,255,0.9);">
-      <div class="card-header" style="background-color: #004085; color: white; display: flex; justify-content: space-between; align-items: center;">
-        <h3 class="card-title mb-0">Alert Manager Configuration</h3>
-        <button type="submit" class="btn btn-light">Save Alert Ranges</button>
-      </div>
-      <div class="card-body">
-        <div class="table-responsive">
-          <table class="table table-bordered text-center" style="border: 2px solid #004085;">
-            <thead style="background-color: #004085; color: white; border-bottom: 2px solid #004085;">
-              <tr>
-                <th>Metric</th>
-                <th>Enabled</th>
-                <th>Low Threshold</th>
-                <th>Low Notifications<br>(Call/SMS/Email)</th>
-                <th>Medium Threshold</th>
-                <th>Medium Notifications<br>(Call/SMS/Email)</th>
-                <th>High Threshold</th>
-                <th>High Notifications<br>(Call/SMS/Email)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% set metrics = [
-                {'name': 'Heat Index', 'field': 'heat_index_ranges'},
-                {'name': 'Liquidation Distance', 'field': 'liquidation_distance_ranges'},
-                {'name': 'Travel Percent Liquid', 'field': 'travel_percent_liquid_ranges'},
-                {'name': 'Travel Percent Profit', 'field': 'travel_percent_profit_ranges'},
-                {'name': 'Profit', 'field': 'profit_ranges'}
-              ] %}
-              {% for metric in metrics|reverse %}
-                {% set m = alert_ranges[metric.field] if alert_ranges is defined and alert_ranges[metric.field] is defined else {} %}
-              <tr>
-                <td><strong>{{ metric.name }}</strong></td>
-                <td>
-                  <input type="hidden" name="alert_ranges[{{ metric.field }}][enabled]" value="false">
-                  <input type="checkbox" id="{{ metric.field }}_enabled" name="alert_ranges[{{ metric.field }}][enabled]" value="true" class="form-check-input" {% if m.enabled %}checked{% endif %}>
-                </td>
-                <td>
-                  <input type="number" step="any" id="{{ metric.field }}_low" name="alert_ranges[{{ metric.field }}][low]" class="form-control" value="{{ m.low if m.low is defined }}">
-                </td>
-                <td>
-                  <div class="form-check form-check-inline">
-                    <input type="hidden" name="alert_ranges[{{ metric.field }}][low_notifications][call]" value="false">
-                    <input type="checkbox" id="{{ metric.field }}_low_call" name="alert_ranges[{{ metric.field }}][low_notifications][call]" value="true" class="form-check-input" {% if m.low_notifications and m.low_notifications.call %}checked{% endif %}>
-                    <label class="form-check-label">Call</label>
-                  </div>
-                  <div class="form-check form-check-inline">
-                    <input type="hidden" name="alert_ranges[{{ metric.field }}][low_notifications][sms]" value="false">
-                    <input type="checkbox" id="{{ metric.field }}_low_sms" name="alert_ranges[{{ metric.field }}][low_notifications][sms]" value="true" class="form-check-input" {% if m.low_notifications and m.low_notifications.sms %}checked{% endif %}>
-                    <label class="form-check-label">SMS</label>
-                  </div>
-                  <div class="form-check form-check-inline">
-                    <input type="hidden" name="alert_ranges[{{ metric.field }}][low_notifications][email]" value="false">
-                    <input type="checkbox" id="{{ metric.field }}_low_email" name="alert_ranges[{{ metric.field }}][low_notifications][email]" value="true" class="form-check-input" {% if m.low_notifications and m.low_notifications.email %}checked{% endif %}>
-                    <label class="form-check-label">Email</label>
-                  </div>
-                </td>
-                <td>
-                  <input type="number" step="any" id="{{ metric.field }}_medium" name="alert_ranges[{{ metric.field }}][medium]" class="form-control" value="{{ m.medium if m.medium is defined }}">
-                </td>
-                <td>
-                  <div class="form-check form-check-inline">
-                    <input type="hidden" name="alert_ranges[{{ metric.field }}][medium_notifications][call]" value="false">
-                    <input type="checkbox" id="{{ metric.field }}_medium_call" name="alert_ranges[{{ metric.field }}][medium_notifications][call]" value="true" class="form-check-input" {% if m.medium_notifications and m.medium_notifications.call %}checked{% endif %}>
-                    <label class="form-check-label">Call</label>
-                  </div>
-                  <div class="form-check form-check-inline">
-                    <input type="hidden" name="alert_ranges[{{ metric.field }}][medium_notifications][sms]" value="false">
-                    <input type="checkbox" id="{{ metric.field }}_medium_sms" name="alert_ranges[{{ metric.field }}][medium_notifications][sms]" value="true" class="form-check-input" {% if m.medium_notifications and m.medium_notifications.sms %}checked{% endif %}>
-                    <label class="form-check-label">SMS</label>
-                  </div>
-                  <div class="form-check form-check-inline">
-                    <input type="hidden" name="alert_ranges[{{ metric.field }}][medium_notifications][email]" value="false">
-                    <input type="checkbox" id="{{ metric.field }}_medium_email" name="alert_ranges[{{ metric.field }}][medium_notifications][email]" value="true" class="form-check-input" {% if m.medium_notifications and m.medium_notifications.email %}checked{% endif %}>
-                    <label class="form-check-label">Email</label>
-                  </div>
-                </td>
-                <td>
-                  <input type="number" step="any" id="{{ metric.field }}_high" name="alert_ranges[{{ metric.field }}][high]" class="form-control" value="{{ m.high if m.high is defined }}">
-                </td>
-                <td>
-                  <div class="form-check form-check-inline">
-                    <input type="hidden" name="alert_ranges[{{ metric.field }}][high_notifications][call]" value="false">
-                    <input type="checkbox" id="{{ metric.field }}_high_call" name="alert_ranges[{{ metric.field }}][high_notifications][call]" value="true" class="form-check-input" {% if m.high_notifications and m.high_notifications.call %}checked{% endif %}>
-                    <label class="form-check-label">Call</label>
-                  </div>
-                  <div class="form-check form-check-inline">
-                    <input type="hidden" name="alert_ranges[{{ metric.field }}][high_notifications][sms]" value="false">
-                    <input type="checkbox" id="{{ metric.field }}_high_sms" name="alert_ranges[{{ metric.field }}][high_notifications][sms]" value="true" class="form-check-input" {% if m.high_notifications and m.high_notifications.sms %}checked{% endif %}>
-                    <label class="form-check-label">SMS</label>
-                  </div>
-                  <div class="form-check form-check-inline">
-                    <input type="hidden" name="alert_ranges[{{ metric.field }}][high_notifications][email]" value="false">
-                    <input type="checkbox" id="{{ metric.field }}_high_email" name="alert_ranges[{{ metric.field }}][high_notifications][email]" value="true" class="form-check-input" {% if m.high_notifications and m.high_notifications.email %}checked{% endif %}>
-                    <label class="form-check-label">Email</label>
-                  </div>
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </form>
-</div>
-{% endblock content %}
+      <!-- Main content -->
+      <section class="content">
+        <div class="container-fluid">
 
-{% block extra_scripts %}
-<script src="https://code.jquery.com/jquery-3.6.0.min.js" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.10.1/js/OverlayScrollbars.min.js"></script>
-<script src="{{ url_for('static', filename='AdminLTE/dist/js/adminlte.js') }}"></script>
-<script>
-$(document).ready(function(){
-  $("#alert-config-form").on("submit", function(e){
-    e.preventDefault();
-    var formData = $(this).serialize();
-    console.log("Submitting alert config form:", formData);
-    $.post("{{ url_for('alerts_bp.update_alert_config') }}", formData)
-      .done(function(data){
-        console.log("Alert config update response:", data);
-        if(data.success)
-          // Confirmation readback area removed
-        } else {
-          alert("Error: " + data.error);
-        }
-      })
-      .fail(function(jqXHR, textStatus, errorThrown){
-        console.error("Failed to update alert config:", textStatus, errorThrown);
-        alert("Failed to update alert configuration.");
-      });
-  });
-});
-</script>
-{% endblock extra_scripts %}
+          <!-- BEGIN: Rounded Wrapper for All Cards -->
+          <div class="alert-limits-wrapper">
+
+            <!-- First row: Price Alerts & Alert Timing side by side -->
+            <div class="row card-row">
+              <!-- Price Alerts Column -->
+              <div class="col-lg-7">
+                <div class="card card-primary">
+                  <div class="card-header">
+                    <h5 class="card-title">💲 Price Alerts</h5>
+                  </div>
+                  <div class="card-body">
+                    <table class="table table-bordered text-center">
+                      <thead class="bg-primary text-white">
+                        <tr>
+                          <th>Asset</th>
+                          <th>Enabled</th>
+                          <th>Condition</th>
+                          <th>Trigger Value</th>
+                          <th>Notifications</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <!-- BTC Row -->
+                        <tr>
+                          <td>
+                            <i class="bi bi-currency-bitcoin" style="color: #f2a900; font-size: 1.3rem;"></i>
+                            <span class="ml-1">BTC</span>
+                          </td>
+                          <td><input type="checkbox" checked /></td>
+                          <td>Above</td>
+                          <td>
+                            <input type="number" class="form-control d-inline-block" style="width: 80px;" value="30000" />
+                          </td>
+                          <td>
+                            <div class="notif-inline justify-content-center">
+                              <label class="form-check">
+                                <input type="checkbox" class="form-check-input" checked />
+                                <i class="bi bi-telephone"></i>
+                              </label>
+                              <label class="form-check">
+                                <input type="checkbox" class="form-check-input" />
+                                <i class="bi bi-chat-dots"></i>
+                              </label>
+                              <label class="form-check">
+                                <input type="checkbox" class="form-check-input" />
+                                <i class="bi bi-envelope"></i>
+                              </label>
+                            </div>
+                          </td>
+                        </tr>
+                        <!-- ETH Row -->
+                        <tr>
+                          <td>
+                            <i class="bi bi-currency-bitcoin" style="color: #626890; font-size: 1.3rem; transform: rotate(90deg);"></i>
+                            <span class="ml-1">ETH</span>
+                          </td>
+                          <td><input type="checkbox" /></td>
+                          <td>Below</td>
+                          <td>
+                            <input type="number" class="form-control d-inline-block" style="width: 80px;" value="1200" />
+                          </td>
+                          <td>
+                            <div class="notif-inline justify-content-center">
+                              <label class="form-check">
+                                <input type="checkbox" class="form-check-input" />
+                                <i class="bi bi-telephone"></i>
+                              </label>
+                              <label class="form-check">
+                                <input type="checkbox" class="form-check-input" checked />
+                                <i class="bi bi-chat-dots"></i>
+                              </label>
+                              <label class="form-check">
+                                <input type="checkbox" class="form-check-input" />
+                                <i class="bi bi-envelope"></i>
+                              </label>
+                            </div>
+                          </td>
+                        </tr>
+                        <!-- SOL Row -->
+                        <tr>
+                          <td>
+                            <img src="https://cryptologos.cc/logos/solana-sol-logo.png"
+                                 alt="SOL"
+                                 style="height: 20px; margin-right: 5px;">
+                            SOL
+                          </td>
+                          <td><input type="checkbox" /></td>
+                          <td>Above</td>
+                          <td>
+                            <input type="number" class="form-control d-inline-block" style="width: 80px;" value="30" />
+                          </td>
+                          <td>
+                            <div class="notif-inline justify-content-center">
+                              <label class="form-check">
+                                <input type="checkbox" class="form-check-input" />
+                                <i class="bi bi-telephone"></i>
+                              </label>
+                              <label class="form-check">
+                                <input type="checkbox" class="form-check-input" />
+                                <i class="bi bi-chat-dots"></i>
+                              </label>
+                              <label class="form-check">
+                                <input type="checkbox" class="form-check-input" checked />
+                                <i class="bi bi-envelope"></i>
+                              </label>
+                            </div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Alert Timing Column -->
+              <div class="col-lg-5">
+                <div class="card card-secondary">
+                  <div class="card-header">
+                    <h5 class="card-title">⏱ Alert Timing</h5>
+                  </div>
+                  <div class="card-body">
+                    <div class="form-group">
+                      <label>
+                        <i class="bi bi-stopwatch"></i>
+                        Alert Cooldown (seconds)
+                      </label>
+                      <input type="number" class="form-control" value="900">
+                    </div>
+                    <div class="form-group">
+                      <label>
+                        <i class="bi bi-telephone"></i>
+                        Call Refractory Period (seconds)
+                      </label>
+                      <input type="number" class="form-control" value="1800">
+                    </div>
+                    <div class="form-group">
+                      <label>
+                        <i class="bi bi-clock-history"></i>
+                        Snooze Countdown (seconds)
+                      </label>
+                      <input type="number" class="form-control" value="300" readonly>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- END row for Price Alerts & Alert Timing -->
+
+            <!-- Second row: Alert Limits -->
+            <div class="row card-row">
+              <div class="col-12">
+                <div class="card card-info">
+                  <div class="card-header">
+                    <h5 class="card-title">⚙️ Alert Limits</h5>
+                  </div>
+                  <div class="card-body">
+                    <table class="table table-bordered text-center">
+                      <thead class="bg-info text-white">
+                        <tr>
+                          <th style="width: 18%;">Metric</th>
+                          <th style="width: 10%;">Enabled</th>
+                          <th style="width: 24%;">Low</th>
+                          <th style="width: 24%;">Medium</th>
+                          <th style="width: 24%;">High</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <!-- Heat Index -->
+                        <tr>
+                          <td>🔥 Heat Index</td>
+                          <td><input type="checkbox" checked /></td>
+                          <td>
+                            <div class="threshold-cell">
+                              <input type="number" class="threshold-input form-control" value="25">
+                              <div class="notif-inline">
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" checked />
+                                  <i class="bi bi-telephone"></i>
+                                </label>
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" />
+                                  <i class="bi bi-chat-dots"></i>
+                                </label>
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" />
+                                  <i class="bi bi-envelope"></i>
+                                </label>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <div class="threshold-cell">
+                              <input type="number" class="threshold-input form-control" value="50">
+                              <div class="notif-inline">
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" />
+                                  <i class="bi bi-telephone"></i>
+                                </label>
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" checked />
+                                  <i class="bi bi-chat-dots"></i>
+                                </label>
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" />
+                                  <i class="bi bi-envelope"></i>
+                                </label>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <div class="threshold-cell">
+                              <input type="number" class="threshold-input form-control" value="100">
+                              <div class="notif-inline">
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" />
+                                  <i class="bi bi-telephone"></i>
+                                </label>
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" />
+                                  <i class="bi bi-chat-dots"></i>
+                                </label>
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" checked />
+                                  <i class="bi bi-envelope"></i>
+                                </label>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                        <!-- Travel Percent Liquid -->
+                        <tr>
+                          <td>💧 Travel % Liquid</td>
+                          <td><input type="checkbox" /></td>
+                          <td>
+                            <div class="threshold-cell">
+                              <input type="number" class="threshold-input form-control" value="-50">
+                              <div class="notif-inline">
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" checked />
+                                  <i class="bi bi-telephone"></i>
+                                </label>
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" />
+                                  <i class="bi bi-chat-dots"></i>
+                                </label>
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" />
+                                  <i class="bi bi-envelope"></i>
+                                </label>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <div class="threshold-cell">
+                              <input type="number" class="threshold-input form-control" value="-60">
+                              <div class="notif-inline">
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" />
+                                  <i class="bi bi-telephone"></i>
+                                </label>
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" checked />
+                                  <i class="bi bi-chat-dots"></i>
+                                </label>
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" />
+                                  <i class="bi bi-envelope"></i>
+                                </label>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <div class="threshold-cell">
+                              <input type="number" class="threshold-input form-control" value="-75">
+                              <div class="notif-inline">
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" />
+                                  <i class="bi bi-telephone"></i>
+                                </label>
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" />
+                                  <i class="bi bi-chat-dots"></i>
+                                </label>
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" checked />
+                                  <i class="bi bi-envelope"></i>
+                                </label>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                        <!-- Travel Percent Profit -->
+                        <tr>
+                          <td>📈 Travel % Profit</td>
+                          <td><input type="checkbox" /></td>
+                          <td>
+                            <div class="threshold-cell">
+                              <input type="number" class="threshold-input form-control" value="-5.222">
+                              <div class="notif-inline">
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" />
+                                  <i class="bi bi-telephone"></i>
+                                </label>
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" />
+                                  <i class="bi bi-chat-dots"></i>
+                                </label>
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" />
+                                  <i class="bi bi-envelope"></i>
+                                </label>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <div class="threshold-cell">
+                              <input type="number" class="threshold-input form-control" value="-35">
+                              <div class="notif-inline">
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" checked />
+                                  <i class="bi bi-telephone"></i>
+                                </label>
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" />
+                                  <i class="bi bi-chat-dots"></i>
+                                </label>
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" />
+                                  <i class="bi bi-envelope"></i>
+                                </label>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <div class="threshold-cell">
+                              <input type="number" class="threshold-input form-control" value="-100">
+                              <div class="notif-inline">
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" />
+                                  <i class="bi bi-telephone"></i>
+                                </label>
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" />
+                                  <i class="bi bi-chat-dots"></i>
+                                </label>
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" checked />
+                                  <i class="bi bi-envelope"></i>
+                                </label>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                        <!-- Profit -->
+                        <tr>
+                          <td>💰 Profit</td>
+                          <td><input type="checkbox" /></td>
+                          <td>
+                            <div class="threshold-cell">
+                              <input type="number" class="threshold-input form-control" value="25">
+                              <div class="notif-inline">
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" />
+                                  <i class="bi bi-telephone"></i>
+                                </label>
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" />
+                                  <i class="bi bi-chat-dots"></i>
+                                </label>
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" />
+                                  <i class="bi bi-envelope"></i>
+                                </label>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <div class="threshold-cell">
+                              <input type="number" class="threshold-input form-control" value="50">
+                              <div class="notif-inline">
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" />
+                                  <i class="bi bi-telephone"></i>
+                                </label>
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" />
+                                  <i class="bi bi-chat-dots"></i>
+                                </label>
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" />
+                                  <i class="bi bi-envelope"></i>
+                                </label>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <div class="threshold-cell">
+                              <input type="number" class="threshold-input form-control" value="100">
+                              <div class="notif-inline">
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" checked />
+                                  <i class="bi bi-telephone"></i>
+                                </label>
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" />
+                                  <i class="bi bi-chat-dots"></i>
+                                </label>
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" />
+                                  <i class="bi bi-envelope"></i>
+                                </label>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                        <!-- Liquidation Distance -->
+                        <tr>
+                          <td>📏 Liquidation Distance</td>
+                          <td><input type="checkbox" /></td>
+                          <td>
+                            <div class="threshold-cell">
+                              <input type="number" class="threshold-input form-control" placeholder="N/A">
+                              <div class="notif-inline">
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" />
+                                  <i class="bi bi-telephone"></i>
+                                </label>
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" />
+                                  <i class="bi bi-chat-dots"></i>
+                                </label>
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" />
+                                  <i class="bi bi-envelope"></i>
+                                </label>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <div class="threshold-cell">
+                              <input type="number" class="threshold-input form-control" placeholder="N/A">
+                              <div class="notif-inline">
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" />
+                                  <i class="bi bi-telephone"></i>
+                                </label>
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" />
+                                  <i class="bi bi-chat-dots"></i>
+                                </label>
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" />
+                                  <i class="bi bi-envelope"></i>
+                                </label>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <div class="threshold-cell">
+                              <input type="number" class="threshold-input form-control" placeholder="N/A">
+                              <div class="notif-inline">
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" />
+                                  <i class="bi bi-telephone"></i>
+                                </label>
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" />
+                                  <i class="bi bi-chat-dots"></i>
+                                </label>
+                                <label class="form-check">
+                                  <input type="checkbox" class="form-check-input" />
+                                  <i class="bi bi-envelope"></i>
+                                </label>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- END second row (Alert Limits) -->
+
+            <!-- Save Configuration Button -->
+            <div class="row mt-4">
+              <div class="col-12 text-center">
+                <button type="submit" class="btn btn-success btn-lg">Save Configuration</button>
+              </div>
+            </div>
+
+          </div>
+          <!-- END: Rounded Wrapper for All Cards -->
+
+        </div>
+      </section>
+      <!-- /.content -->
+    </div>
+    <!-- /.content-wrapper -->
+  </div>
+  <!-- ./wrapper -->
+
+  <!-- REQUIRED SCRIPTS -->
+  <!-- jQuery -->
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+  <!-- Bootstrap 4 -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- AdminLTE App -->
+  <script src="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0/dist/js/adminlte.min.js"></script>
+</body>
+</html>
