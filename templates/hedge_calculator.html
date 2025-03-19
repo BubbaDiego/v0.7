@@ -19,10 +19,7 @@
       font-size: 1rem; /* increased from 0.8rem */
       text-align: left;
   }
-  /* Keep the original "Heat" box style for the main Heat box */
-  /* We'll replicate it for the Sim Heat box but keep purple background */
-
-  /* The "Sim Heat" box style (now matching the Heat box, plus purple BG) */
+  /* The "Sim Heat" box style (same style as Heat box, but purple BG) */
   .sim-heat-box {
       position: absolute;
       top: 50%; /* vertically center */
@@ -48,6 +45,10 @@
   .collateral-value {
       font-weight: bold;
       color: green;
+  }
+  /* Make both slider boxes the same height */
+  .slider-box {
+      height: 180px; /* pick a height that accommodates the slider & labels */
   }
 </style>
 {% endblock %}
@@ -182,8 +183,8 @@
       <!-- New Row: Combined Price Slider and Projected Leverage Slider Side by Side -->
       <div class="row mb-4">
         <div class="col-md-6">
-          <!-- Simulated Price Box -->
-          <div id="priceSliderRow" class="border rounded p-3" style="background-color: #f7f7f7;">
+          <!-- Simulated Price Box: now same height as Projected Leverage box -->
+          <div id="priceSliderRow" class="border rounded p-3 slider-box" style="background-color: #f7f7f7;">
             <div class="d-flex justify-content-center mb-2">
               <h5 class="text-center"><strong>💵 Simulated Price</strong></h5>
             </div>
@@ -206,8 +207,8 @@
           </div>
         </div>
         <div class="col-md-6">
-          <!-- Projected Leverage Slider Box -->
-          <div id="leverageSliderRow" class="border rounded p-3" style="background-color: #f7f7f7;">
+          <!-- Projected Leverage Slider Box: same slider-box class -->
+          <div id="leverageSliderRow" class="border rounded p-3 slider-box" style="background-color: #f7f7f7;">
             <div class="d-flex justify-content-center mb-2">
               <h5 class="text-center"><strong>Projected Leverage</strong></h5>
             </div>
@@ -217,8 +218,12 @@
             </div>
             <!-- Display collateral and notional additions (already styled) -->
             <div class="text-center mt-2">
-              <span id="longSizeComposition">Long Addition: <span class="collateral-value">Collateral: $0.00</span>, Notional: $0.00</span><br>
-              <span id="shortSizeComposition">Short Addition: <span class="collateral-value">Collateral: $0.00</span>, Notional: $0.00</span>
+              <span id="longSizeComposition">
+                Long Addition: <span class="collateral-value">Collateral: $0.00</span>, Notional: $0.00
+              </span><br>
+              <span id="shortSizeComposition">
+                Short Addition: <span class="collateral-value">Collateral: $0.00</span>, Notional: $0.00
+              </span>
             </div>
           </div>
         </div>
@@ -273,8 +278,6 @@
                 DTL: <span id="longSimHeatDTL">0</span> | Lev: <span id="longSimHeatLev">0</span>x | CR: <span id="longSimHeatCR">0</span>% | Collateral: $<span id="longSimHeatCollateral">0.00</span>
               </div>
             </div>
-            <!-- REMOVED the old "longDetailsBox" middle white box -->
-
             <!-- Travel box at bottom -->
             <div id="longTravelBox" style="position:absolute; bottom:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-size:1.2rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
               Travel: <span id="longTravelPercent">0%</span>
@@ -309,8 +312,6 @@
                 DTL: <span id="shortSimHeatDTL">0</span> | Lev: <span id="shortSimHeatLev">0</span>x | CR: <span id="shortSimHeatCR">0</span>% | Collateral: $<span id="shortSimHeatCollateral">0.00</span>
               </div>
             </div>
-            <!-- REMOVED the old "shortDetailsBox" middle white box -->
-
             <!-- Travel box at bottom -->
             <div id="shortTravelBox" style="position:absolute; bottom:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-size:1.2rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
               Travel: <span id="shortTravelPercent">0%</span>
@@ -339,8 +340,6 @@
             <div id="projectedLongHeatBox" style="position:absolute; top:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
               🔥 Projected Heat: <span id="projectedLongHeatIndex">0</span>
             </div>
-            <!-- REMOVED the old "projectedLongDetailsBox" middle white box -->
-
             <!-- Travel box at bottom -->
             <div id="projectedLongTravelBox" style="position:absolute; bottom:10px; right:10px; background-color:#fff; border-radius:10px; padding:4px 8px; font-size:0.9rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
               Projected Travel: <span id="projectedLongTravelPercent">0%</span>
@@ -364,8 +363,6 @@
             <div id="projectedShortHeatBox" style="position:absolute; top:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
               🔥 Projected Heat: <span id="projectedShortHeatIndex">0</span>
             </div>
-            <!-- REMOVED the old "projectedShortDetailsBox" middle white box -->
-
             <!-- Travel box at bottom -->
             <div id="projectedShortTravelBox" style="position:absolute; bottom:10px; right:10px; background-color:#fff; border-radius:10px; padding:4px 8px; font-size:0.9rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
               Projected Travel: <span id="projectedShortTravelPercent">0%</span>
@@ -578,7 +575,6 @@
         "card shadow-sm bg-secondary bg-opacity-25 border border-2 border-secondary reduced-height";
       document.getElementById("longCurrentSize").innerHTML =
         "<strong>Current Size: $0.00</strong>";
-      // no box to fill for details now
       return;
     }
     document.getElementById("longSimPrice").innerHTML =
@@ -647,7 +643,6 @@
         "card shadow-sm bg-secondary bg-opacity-25 border border-2 border-secondary reduced-height";
       document.getElementById("shortCurrentSize").innerHTML =
         "<strong>Current Size: $0.00</strong>";
-      // no box to fill for details now
       return;
     }
     document.getElementById("shortSimPrice").innerHTML =
@@ -904,7 +899,6 @@
     document.getElementById("projectedLongOutputCard").className =
       "card shadow-sm " + projectedLongBgClass + " reduced-height";
 
-    // no middle details box for projected long
     document.getElementById("projectedLongTravelPercent").innerText =
       (typeof projectedLongTravelPercent === "number")
         ? projectedLongTravelPercent.toFixed(2) + "%"
@@ -980,7 +974,6 @@
     document.getElementById("projectedShortOutputCard").className =
       "card shadow-sm " + projectedShortBgClass + " reduced-height";
 
-    // no middle details box for projected short
     document.getElementById("projectedShortTravelPercent").innerText =
       (typeof projectedShortTravelPercent === "number")
         ? projectedShortTravelPercent.toFixed(2) + "%"
@@ -992,16 +985,22 @@
     let longAddition = projectedLongSize - currentLongSize;
     let additionalCollateralLong = projectedLongCollateral - currentLongCollateral;
     let notionalAdditionLong = longAddition - additionalCollateralLong;
+    let totalLongAddition = longAddition; // so we can display total
     document.getElementById("longSizeComposition").innerHTML =
-      "Long Addition: <span class='collateral-value'>Collateral: $" + additionalCollateralLong.toFixed(2) + "</span>, Notional: $" + notionalAdditionLong.toFixed(2);
+      "Long Addition: <span class='collateral-value'>Collateral: $" + additionalCollateralLong.toFixed(2) + "</span>, " +
+      "Notional: $" + notionalAdditionLong.toFixed(2) + ", " +
+      "Total: $" + totalLongAddition.toFixed(2);
 
     let currentShortSize = parseFloat(document.getElementById("shortSize").value) || 0;
     let currentShortCollateral = parseFloat(document.getElementById("shortCollateral").value) || 0;
     let shortAddition = projectedShortSize - currentShortSize;
     let additionalCollateralShort = projectedShortCollateral - currentShortCollateral;
     let notionalAdditionShort = shortAddition - additionalCollateralShort;
+    let totalShortAddition = shortAddition; // so we can display total
     document.getElementById("shortSizeComposition").innerHTML =
-      "Short Addition: <span class='collateral-value'>Collateral: $" + additionalCollateralShort.toFixed(2) + "</span>, Notional: $" + notionalAdditionShort.toFixed(2);
+      "Short Addition: <span class='collateral-value'>Collateral: $" + additionalCollateralShort.toFixed(2) + "</span>, " +
+      "Notional: $" + notionalAdditionShort.toFixed(2) + ", " +
+      "Total: $" + totalShortAddition.toFixed(2);
   }
 
   /*************************************
