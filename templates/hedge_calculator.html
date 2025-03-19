@@ -19,6 +19,11 @@
       font-size: 1rem; /* increased from 0.8rem */
       text-align: left;
   }
+  /* Improve spacing in text paragraphs */
+  .position-details-section p {
+      margin-bottom: 0.4rem;
+      line-height: 1.3;
+  }
   /* The "Sim Heat" box style (same style as Heat box, but purple BG) */
   .sim-heat-box {
       position: absolute;
@@ -200,8 +205,8 @@
                 Short Entry: $0.00
               </div>
               <div class="d-flex justify-content-between" style="margin-top: -5px;">
-                <span id="tickLeft" style="font-size: 1.1rem; font-weight: bold;"><small>💧 Long Liquidation: $0.00</small></span>
-                <span id="tickRight" style="font-size: 1.1rem; font-weight: bold;"><small>💧 Short Liquidation: $0.00</small></span>
+                <span id="tickLeft" style="font-size: 1.2rem; font-weight: bold; line-height: 1;"></span>
+                <span id="tickRight" style="font-size: 1.2rem; font-weight: bold; line-height: 1;"></span>
               </div>
             </div>
           </div>
@@ -213,11 +218,11 @@
               <h5 class="text-center"><strong>Projected Leverage</strong></h5>
             </div>
             <input type="range" id="leverageSlider" min="1" max="100" step="0.1" value="10" class="form-range" oninput="updateProjectedHeatIndex()">
-            <div class="text-center mt-2">
+            <div class="text-center" style="margin-top: -2px;">
               <span id="leverageValue">Leverage: 10x</span>
             </div>
-            <!-- Display collateral and notional additions (already styled) -->
-            <div class="text-center mt-2">
+            <!-- Display collateral and notional additions (moved up a bit) -->
+            <div class="text-center" style="margin-top: -2px;">
               <span id="longSizeComposition">
                 Long Addition: <span class="collateral-value">Collateral: $0.00</span>, Notional: $0.00
               </span><br>
@@ -507,11 +512,11 @@
   function updatePriceTicks() {
     if (longLiquidation) {
       document.getElementById("tickLeft").innerHTML =
-        "<small>💧 Long Liquidation: $" + parseFloat(longLiquidation).toFixed(2) + "</small>";
+        `<span style="font-size:1.2rem; font-weight:bold;">$${parseFloat(longLiquidation).toFixed(2)}</span><br><small>💧 Long Liquidation</small>`;
     }
     if (shortLiquidation) {
       document.getElementById("tickRight").innerHTML =
-        "<small>💧 Short Liquidation: $" + parseFloat(shortLiquidation).toFixed(2) + "</small>";
+        `<span style="font-size:1.2rem; font-weight:bold;">$${parseFloat(shortLiquidation).toFixed(2)}</span><br><small>💧 Short Liquidation</small>`;
     }
   }
 

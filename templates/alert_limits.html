@@ -215,7 +215,7 @@ $(document).ready(function(){
     $.post("{{ url_for('alerts_bp.update_alert_config') }}", formData)
       .done(function(data){
         console.log("Alert config update response:", data);
-        if(data.success){
+        if(data.success)
           // Confirmation readback area removed
         } else {
           alert("Error: " + data.error);

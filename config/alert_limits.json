@@ -176,13 +176,13 @@
         "sms": false,
         "email": false
       },
-      "medium": 50.0,
+      "medium": 51.0,
       "medium_notifications": {
         "call": false,
         "sms": false,
         "email": false
       },
-      "high": 100.0,
+      "high": 99.0,
       "high_notifications": {
         "call": true,
         "sms": false,
@@ -228,7 +228,7 @@
     }
   },
   "alert_cooldown_seconds": 900.0,
-  "call_refractory_period": 888.0,
+  "call_refractory_period": 878.0,
   "price_alerts": {
     "BTC": {
       "enabled": false,

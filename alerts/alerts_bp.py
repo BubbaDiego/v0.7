@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 import logging
 from flask import Blueprint, request, jsonify, render_template, current_app
@@ -6,6 +7,12 @@ from config.config_constants import BASE_DIR, ALERT_LIMITS_PATH
 from pathlib import Path
 from utils.operations_manager import OperationsLogger
 from utils.json_manager import JsonManager, JsonType
+from time import time
+
+# Ensure the current directory is in sys.path so we can import alert_manager.py
+current_dir = os.path.dirname(os.path.abspath(__file__))
+if current_dir not in sys.path:
+    sys.path.append(current_dir)
 
 # Create the blueprint with URL prefix '/alerts'
 alerts_bp = Blueprint('alerts_bp', __name__, url_prefix='/alerts')
@@ -19,6 +26,7 @@ if not logger.handlers:
     ch.setFormatter(formatter)
     logger.addHandler(ch)
 
+
 # Deep merge function
 def deep_merge(source: dict, updates: dict) -> dict:
     for key, value in updates.items():
@@ -29,6 +37,7 @@ def deep_merge(source: dict, updates: dict) -> dict:
             logger.debug("Updating key: %s with value: %s", key, value)
             source[key] = value
     return source
+
 
 def convert_types_in_dict(d):
     if isinstance(d, dict):
@@ -51,6 +60,7 @@ def convert_types_in_dict(d):
                 return d
     else:
         return d
+
 
 def parse_nested_form(form: dict) -> dict:
     updated = {}
@@ -96,6 +106,7 @@ def parse_nested_form(form: dict) -> dict:
                 current = current[key]
     return updated
 
+
 def format_alert_config_table(alert_ranges: dict) -> str:
     metrics = [
         "heat_index_ranges", "collateral_ranges", "value_ranges",
@@ -117,28 +128,42 @@ def format_alert_config_table(alert_ranges: dict) -> str:
     html += "</table>"
     return html
 
+
 # New route for the Alarm Viewer (default mode)
 @alerts_bp.route('/viewer', methods=['GET'], endpoint="alarm_viewer")
 def alarm_viewer():
     from data.data_locker import DataLocker
+    # Import the global AlertManager instance from alert_manager.py
+    try:
+        from alert_manager import manager
+    except ModuleNotFoundError as e:
+        logger.error("Error importing alert_manager: %s", e)
+        return "Server configuration error.", 500
+
     data_locker = DataLocker.get_instance()
     json_manager = current_app.json_manager
 
-    # Load the alert config from alert_limits.json
+    # Load alert configuration from alert_limits.json
     config_data = json_manager.load("alert_limits.json", json_type=JsonType.ALERT_LIMITS)
-    travel_cfg = config_data["alert_ranges"]["travel_percent_liquid_ranges"]  # e.g. {enabled, low, medium, high, ...}
-    profit_cfg = config_data["alert_ranges"]["profit_ranges"]                # e.g. {enabled, low, medium, high, ...}
 
-    # For price alerts, if you want to show real triggers:
+    # Get configured timing values (ensure they are floats)
+    cooldown_seconds = float(config_data.get("alert_cooldown_seconds", 900))
+    call_refractory_seconds = float(config_data.get("call_refractory_period", 1800))
+
+    travel_cfg = config_data["alert_ranges"]["travel_percent_liquid_ranges"]
+    profit_cfg = config_data["alert_ranges"]["profit_ranges"]
     price_alerts = config_data["alert_ranges"].get("price_alerts", {})
 
-    # Fetch positions from DB
     positions = data_locker.read_positions()
+    now = time()
 
     for pos in positions:
         asset = pos.get("asset_type", "").upper()
+        position_type = pos.get("position_type", "").capitalize() or "Unknown"
+        position_id = pos.get("position_id") or pos.get("id") or "unknown"
+        asset_full = {"BTC": "Bitcoin", "ETH": "Ethereum", "SOL": "Solana"}.get(asset, asset)
 
-        # Example logic for deciding card color
+        # Decide card color
         if asset == "BTC":
             pos["alert_status"] = "green"
         elif asset == "ETH":
@@ -148,38 +173,80 @@ def alarm_viewer():
         else:
             pos["alert_status"] = "unknown"
 
-        # Attach the real threshold values from your config
-        # so the template can display them:
+        # Attach threshold values from config
         pos["travel_low"] = travel_cfg.get("low")
         pos["travel_medium"] = travel_cfg.get("medium")
         pos["travel_high"] = travel_cfg.get("high")
-
         pos["profit_low"] = profit_cfg.get("low")
         pos["profit_medium"] = profit_cfg.get("medium")
         pos["profit_high"] = profit_cfg.get("high")
 
-        # If you store current_travel_percent, profit, etc. in the DB, you can do:
-        #   pos["current_travel_percent"] = ...
-        #   pos["profit"] = ...
-        # If you want price triggers, you could do something like:
-        #   asset_alert_cfg = price_alerts.get(asset, {})
-        #   pos["price_condition"] = asset_alert_cfg.get("condition", "???")
-        #   pos["price_trigger"] = asset_alert_cfg.get("trigger_value", "???")
+        # Initialize alert type and details dictionary
+        alert_types = []
+        details = {}
 
-        # For demonstration, let's also assume we have a 'current_price' from DB
-        # If get_latest_price(...) returns a dict with e.g. "current_price"
+        # Check Travel Alert if current_travel_percent is negative
+        try:
+            current_travel = float(pos.get("current_travel_percent", 0))
+        except:
+            current_travel = 0
+        if current_travel < 0:
+            low_val = float(travel_cfg.get("low", -50))
+            medium_val = float(travel_cfg.get("medium", -60))
+            high_val = float(travel_cfg.get("high", -75))
+            if current_travel <= high_val:
+                level = "High"
+            elif current_travel <= medium_val:
+                level = "Medium"
+            elif current_travel <= low_val:
+                level = "Low"
+            else:
+                level = None
+            if level:
+                alert_types.append("Travel")
+                key = f"{asset_full}-{position_type}-{position_id}-travel-{level}"
+                last_trigger = manager.last_triggered.get(key, 0)
+                remaining = max(0, cooldown_seconds - (now - last_trigger))
+                details["Travel Alert"] = f"Remaining cooldown: {remaining:.0f} sec (Level: {level})"
+        # Check Profit Alert if profit > 0
+        try:
+            profit_val = float(pos.get("profit", 0))
+        except:
+            profit_val = 0
+        if profit_val > 0:
+            alert_types.append("Profit")
+            key = f"profit-{asset_full}-{position_type}-{position_id}"
+            last_trigger = manager.last_triggered.get(key, 0)
+            remaining = max(0, cooldown_seconds - (now - last_trigger))
+            details["Profit Alert"] = f"Remaining cooldown: {remaining:.0f} sec"
+
+        # (Optional) Add Price alerts similarly if needed
+
+        pos["alert_type"] = ", ".join(alert_types) if alert_types else "None"
+        pos["alert_details"] = details
+
+        # Get current price
         latest_price = data_locker.get_latest_price(asset)
         pos["current_price"] = latest_price["current_price"] if latest_price else 0.0
 
+        # Compute actual time left for global call refractory (using key "all_alerts")
+        last_call = manager.last_call_triggered.get("all_alerts", 0)
+        pos["call_refractory_remaining"] = max(0, call_refractory_seconds - (now - last_call))
+
+        # Also include the configured cooldown and refractory values for reference
+        pos["configured_cooldown"] = cooldown_seconds
+        pos["configured_call_refractory"] = call_refractory_seconds
+
     theme_config = current_app.config.get('theme', {})
-    return render_template("alert_viewer.html", theme=theme_config, positions=positions)
+    return render_template("alert_viewer.html",
+                           theme=theme_config,
+                           positions=positions)
 
 
 @alerts_bp.route('/config', methods=['GET'], endpoint="alert_config_page")
 def config_page():
     try:
         json_manager = current_app.json_manager
-        # Load alert limits using the JsonType enum from our module
         config_data = json_manager.load("alert_limits.json", json_type=JsonType.ALERT_LIMITS)
     except Exception as e:
         op_logger = OperationsLogger(log_filename=os.path.join(os.getcwd(), "operations_log.txt"))
@@ -191,9 +258,8 @@ def config_page():
 
     alert_config = config_data.get("alert_ranges", {})
     price_alerts = alert_config.get("price_alerts", {})
-    theme_config = config_data.get("theme_config", {})  # If theme config is stored here
+    theme_config = config_data.get("theme_config", {})
 
-    # Retrieve the alert timing values from the root of the JSON
     alert_cooldown_seconds = config_data.get("alert_cooldown_seconds", 900)
     call_refractory_period = config_data.get("call_refractory_period", 3600)
 
@@ -203,6 +269,8 @@ def config_page():
                            theme=theme_config,
                            alert_cooldown_seconds=alert_cooldown_seconds,
                            call_refractory_period=call_refractory_period)
+
+
 @alerts_bp.route('/update_config', methods=['POST'], endpoint="update_alert_config")
 def update_alert_config_route():
     op_logger = OperationsLogger(log_filename=os.path.join(os.getcwd(), "operations_log.txt"))
@@ -217,12 +285,13 @@ def update_alert_config_route():
         current_config = json_manager.load("alert_limits.json", json_type=JsonType.ALERT_LIMITS)
         merged_config = deep_merge(current_config, nested_update)
 
-        # --- Begin Patch for Cooldown and Refractory Period ---
-        if "alert_cooldown_seconds" in merged_config and (merged_config["alert_cooldown_seconds"] == "" or merged_config["alert_cooldown_seconds"] is None):
+        # Patch for empty cooldown/refractory values
+        if "alert_cooldown_seconds" in merged_config and (
+                merged_config["alert_cooldown_seconds"] == "" or merged_config["alert_cooldown_seconds"] is None):
             merged_config["alert_cooldown_seconds"] = 900
-        if "call_refractory_period" in merged_config and (merged_config["call_refractory_period"] == "" or merged_config["call_refractory_period"] is None):
+        if "call_refractory_period" in merged_config and (
+                merged_config["call_refractory_period"] == "" or merged_config["call_refractory_period"] is None):
             merged_config["call_refractory_period"] = 1800
-        # --- End Patch ---
 
         json_manager.save("alert_limits.json", merged_config, json_type=JsonType.ALERT_LIMITS)
         updated_config = json_manager.load("alert_limits.json", json_type=JsonType.ALERT_LIMITS)
@@ -239,8 +308,8 @@ def update_alert_config_route():
 # For testing this blueprint independently
 if __name__ == "__main__":
     from flask import Flask
+
     app = Flask(__name__)
     app.register_blueprint(alerts_bp)
-    # Attach a JsonManager instance to the app
     app.json_manager = JsonManager()
     app.run(debug=True, port=5001)
