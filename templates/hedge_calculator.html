@@ -14,22 +14,31 @@
   .reduced-height {
       height: 300px;
   }
-  /* New: Make the details text a little smaller */
-  #longDetailsBox, #shortDetailsBox, #projectedLongDetailsBox, #projectedShortDetailsBox {
-      font-size: 0.8rem !important;
+  /* New: Adjust the details text to be smaller and left-aligned */
+  .position-details-section {
+      font-size: 0.8rem;
+      text-align: left;
   }
-  /* New: Sim Heat boxes styling with increased top margin */
+  /* New: Sim Heat boxes styling with extra spacing */
   .sim-heat-box {
       position: absolute;
-      top: 55px; /* increased from 35px for extra spacing */
+      top: 60px; /* increased spacing from top heat box for better separation */
       right: 10px;
-      background-color: #f3e8ff; /* subtle purple/light blue */
+      background-color: #f3e8ff; /* subtle purple background */
       border-radius: 10px;
       padding: 6px 10px;
       font-size: 1rem;
       font-weight: bold;
       color: #333;
       box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+  /* New: Recommendation boxes styling (blue boxes) */
+  .recommendation-box {
+      background-color: #cce5ff;
+      color: #004085;
+      border: 1px solid #b8daff;
+      padding: 10px;
+      border-radius: 5px;
   }
   /* New: Collateral value style in the Projected Leverage Box */
   .collateral-value {
@@ -58,8 +67,9 @@
     <!-- Overall Card Header with Save Button -->
     <div class="card-header position-relative" style="background-color: var(--card-title-color);">
       <h4 class="mb-0 text-center" style="color: var(--text-color);">🦔 Hedge Calculator</h4>
+      <!-- Better save icon added -->
       <button id="saveModifiers" class="btn btn-sm btn-outline-secondary position-absolute" style="top: 10px; right: 10px;" title="Save Modifiers">
-        <i class="fas fa-save"></i>
+        <i class="fa-solid fa-floppy-disk"></i>
       </button>
     </div>
     <div class="card-body">
@@ -201,7 +211,7 @@
             <div class="text-center mt-2">
               <span id="leverageValue">Leverage: 10x</span>
             </div>
-            <!-- New: Display the collateral and notional additions from the slider -->
+            <!-- Display collateral and notional additions (already styled) -->
             <div class="text-center mt-2">
               <span id="longSizeComposition">Long Addition: <span class="collateral-value">Collateral: $0.00</span>, Notional: $0.00</span><br>
               <span id="shortSizeComposition">Short Addition: <span class="collateral-value">Collateral: $0.00</span>, Notional: $0.00</span>
@@ -227,12 +237,16 @@
         </div>
       </div>
 
-      <!-- Row 4: Recommendation Box (Moved Above Position Boxes) -->
+      <!-- Row 4: Recommendation Boxes (split into two blue boxes) -->
       <div id="recommendationRow" class="row mb-4">
-        <div class="col">
-          <div id="hedgeRecommendation" class="alert alert-info text-center">
-            <strong>Recommended Adjustment (Losing Side):</strong> N/A<br>
-            <strong>Recommended Adjustment (Winning Side):</strong> N/A
+        <div class="col-md-6">
+          <div id="longRecommendationBox" class="recommendation-box text-center">
+            <strong>Long Recommendation:</strong> N/A
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div id="shortRecommendationBox" class="recommendation-box text-center">
+            <strong>Short Recommendation:</strong> N/A
           </div>
         </div>
       </div>
@@ -244,10 +258,18 @@
             <!-- Heat box at top -->
             <div id="longHeatBox" style="position:absolute; top:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-size:1.2rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
               🔥 Heat: <span id="longHeatIndex">0</span>
+              <!-- ADDED: smaller text section for DTL, Lev, CR -->
+              <div id="longHeatDetails" style="font-size: 0.8rem; margin-top: 4px;">
+                DTL: <span id="longHeatDTL">0</span> | Lev: <span id="longHeatLev">0</span>x | CR: <span id="longHeatCR">0</span>%
+              </div>
             </div>
             <!-- NEW: Simulated Heat box (Resulting Heat Index) -->
-            <div id="longSimHeatBox" class="sim-heat-box">
+            <div id="longSimHeatBox" class="sim-heat-box" style="font-size: 1rem;">
               Sim Heat: <span id="longSimHeatIndex">0</span>
+              <!-- ADDED: smaller text section for DTL, Lev, CR, Collateral -->
+              <div id="longSimHeatDetails" style="font-size: 0.8rem; margin-top: 4px;">
+                DTL: <span id="longSimHeatDTL">0</span> | Lev: <span id="longSimHeatLev">0</span>x | CR: <span id="longSimHeatCR">0</span>% | Collateral: $<span id="longSimHeatCollateral">0.00</span>
+              </div>
             </div>
             <!-- Details box (centered vertically) -->
             <div id="longDetailsBox" style="position:absolute; top:50%; right:10px; transform:translateY(-50%); background-color:#fff; border-radius:10px; padding:4px 8px; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
@@ -259,13 +281,15 @@
             </div>
             <div class="card-body fs-5">
               <h6 class="text-center fw-bold" style="font-size:1.5rem;">📈 Long Position</h6>
-              <p id="longSimPrice"><strong>Simulated Price: $-</strong></p>
-              <p id="longCollateralDisplay"><strong>Collateral: $-</strong></p>
-              <p id="longValue"><strong>Position Value: $-</strong></p>
-              <p id="longPnL"><strong>P&L: $-</strong></p>
-              <p id="longSLTP"><strong>Recommended: -</strong></p>
-              <p id="longCurrentSize"><strong>Current Size: $-</strong></p>
-              <p id="longSafetyMargin"><strong>Safety Margin: --</strong></p>
+              <div class="position-details-section">
+                <p id="longSimPrice"><strong>Simulated Price: $-</strong></p>
+                <p id="longCollateralDisplay"><strong>Collateral: $-</strong></p>
+                <p id="longValue"><strong>Position Value: $-</strong></p>
+                <p id="longPnL"><strong>P&L: $-</strong></p>
+                <p id="longSLTP"><strong>Recommended: -</strong></p>
+                <p id="longCurrentSize"><strong>Current Size: $-</strong></p>
+                <p id="longSafetyMargin"><strong>Safety Margin: --</strong></p>
+              </div>
             </div>
           </div>
         </div>
@@ -274,10 +298,18 @@
             <!-- Heat box at top -->
             <div id="shortHeatBox" style="position:absolute; top:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-size:1.2rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
               🔥 Heat: <span id="shortHeatIndex">0</span>
+              <!-- ADDED: smaller text section for DTL, Lev, CR -->
+              <div id="shortHeatDetails" style="font-size: 0.8rem; margin-top: 4px;">
+                DTL: <span id="shortHeatDTL">0</span> | Lev: <span id="shortHeatLev">0</span>x | CR: <span id="shortHeatCR">0</span>%
+              </div>
             </div>
             <!-- NEW: Simulated Heat box for short position -->
-            <div id="shortSimHeatBox" class="sim-heat-box">
+            <div id="shortSimHeatBox" class="sim-heat-box" style="font-size: 1rem;">
               Sim Heat: <span id="shortSimHeatIndex">0</span>
+              <!-- ADDED: smaller text section for DTL, Lev, CR, Collateral -->
+              <div id="shortSimHeatDetails" style="font-size: 0.8rem; margin-top: 4px;">
+                DTL: <span id="shortSimHeatDTL">0</span> | Lev: <span id="shortSimHeatLev">0</span>x | CR: <span id="shortSimHeatCR">0</span>% | Collateral: $<span id="shortSimHeatCollateral">0.00</span>
+              </div>
             </div>
             <!-- Details box (centered vertically) -->
             <div id="shortDetailsBox" style="position:absolute; top:50%; right:10px; transform:translateY(-50%); background-color:#fff; border-radius:10px; padding:4px 8px; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
@@ -289,13 +321,15 @@
             </div>
             <div class="card-body fs-5">
               <h6 class="text-center fw-bold" style="font-size:1.5rem;">📉 Short Position</h6>
-              <p id="shortSimPrice"><strong>Simulated Price: $-</strong></p>
-              <p id="shortCollateralDisplay"><strong>Collateral: $-</strong></p>
-              <p id="shortValue"><strong>Position Value: $-</strong></p>
-              <p id="shortPnL"><strong>P&L: $-</strong></p>
-              <p id="shortSLTP"><strong>Recommended: -</strong></p>
-              <p id="shortCurrentSize"><strong>Current Size: $-</strong></p>
-              <p id="shortSafetyMargin"><strong>Safety Margin: --</strong></p>
+              <div class="position-details-section">
+                <p id="shortSimPrice"><strong>Simulated Price: $-</strong></p>
+                <p id="shortCollateralDisplay"><strong>Collateral: $-</strong></p>
+                <p id="shortValue"><strong>Position Value: $-</strong></p>
+                <p id="shortPnL"><strong>P&L: $-</strong></p>
+                <p id="shortSLTP"><strong>Recommended: -</strong></p>
+                <p id="shortCurrentSize"><strong>Current Size: $-</strong></p>
+                <p id="shortSafetyMargin"><strong>Safety Margin: --</strong></p>
+              </div>
             </div>
           </div>
         </div>
@@ -319,12 +353,14 @@
             </div>
             <div class="card-body fs-5">
               <h6 class="text-center fw-bold" style="font-size:1.5rem;">📈 Projected Long Position</h6>
-              <p id="projectedLongSimPrice"><strong>Simulated Price: $-</strong></p>
-              <p id="projectedLongCollateralDisplay"><strong>Collateral: $-</strong></p>
-              <p id="projectedLongValue"><strong>Position Value: $-</strong></p>
-              <p id="projectedLongPnL"><strong>P&L: $-</strong></p>
-              <p id="projectedLongSLTP"><strong>Proposed New Size: $-</strong></p>
-              <p id="projectedLongSafetyMargin"><strong>Safety Margin: --</strong></p>
+              <div class="position-details-section">
+                <p id="projectedLongSimPrice"><strong>Simulated Price: $-</strong></p>
+                <p id="projectedLongCollateralDisplay"><strong>Collateral: $-</strong></p>
+                <p id="projectedLongValue"><strong>Position Value: $-</strong></p>
+                <p id="projectedLongPnL"><strong>P&L: $-</strong></p>
+                <p id="projectedLongSLTP"><strong>Proposed New Size: $-</strong></p>
+                <p id="projectedLongSafetyMargin"><strong>Safety Margin: --</strong></p>
+              </div>
             </div>
           </div>
         </div>
@@ -344,12 +380,14 @@
             </div>
             <div class="card-body fs-5">
               <h6 class="text-center fw-bold" style="font-size:1.5rem;">📉 Projected Short Position</h6>
-              <p id="projectedShortSimPrice"><strong>Simulated Price: $-</strong></p>
-              <p id="projectedShortCollateralDisplay"><strong>Collateral: $-</strong></p>
-              <p id="projectedShortValue"><strong>Position Value: $-</strong></p>
-              <p id="projectedShortPnL"><strong>P&L: $-</strong></p>
-              <p id="projectedShortSLTP"><strong>Proposed New Size: $-</strong></p>
-              <p id="projectedShortSafetyMargin"><strong>Safety Margin: --</strong></p>
+              <div class="position-details-section">
+                <p id="projectedShortSimPrice"><strong>Simulated Price: $-</strong></p>
+                <p id="projectedShortCollateralDisplay"><strong>Collateral: $-</strong></p>
+                <p id="projectedShortValue"><strong>Position Value: $-</strong></p>
+                <p id="projectedShortPnL"><strong>P&L: $-</strong></p>
+                <p id="projectedShortSLTP"><strong>Proposed New Size: $-</strong></p>
+                <p id="projectedShortSafetyMargin"><strong>Safety Margin: --</strong></p>
+              </div>
             </div>
           </div>
         </div>
@@ -472,7 +510,7 @@
     updateLongTravelPercent(simPrice);
     updateShortTravelPercent(simPrice);
     updateProjectedPositions(simPrice);
-    // NEW: Update the simulated (resulting) heat index displays
+    // Update simulated (resulting) heat index displays
     updateLongSimHeatIndex(simPrice);
     updateShortSimHeatIndex(simPrice);
   }
@@ -691,6 +729,10 @@
     let leverage = (collateral > 0) ? (size / collateral) : 0;
     if (longEntry <= 0 || longLiq <= 0 || collateral <= 0 || size <= 0) {
       document.getElementById("longHeatIndex").innerText = "N/A";
+      // Also set new details to N/A
+      document.getElementById("longHeatDTL").innerText = "N/A";
+      document.getElementById("longHeatLev").innerText = "N/A";
+      document.getElementById("longHeatCR").innerText = "N/A";
       return;
     }
     let ndl = (simPrice - longLiq) / (longEntry - longLiq);
@@ -704,6 +746,11 @@
                   * Math.pow(normalizedLeverage, 0.35)
                   * Math.pow(riskCollateralFactor, 0.20) * 100;
     document.getElementById("longHeatIndex").innerText = composite.toFixed(2);
+
+    // Populate new small-text fields
+    document.getElementById("longHeatDTL").innerText = distanceFactor.toFixed(2);
+    document.getElementById("longHeatLev").innerText = leverage.toFixed(1);
+    document.getElementById("longHeatCR").innerText = (collateralRatio * 100).toFixed(0);
   }
 
   function updateShortHeatIndex(simPrice) {
@@ -714,6 +761,10 @@
     let leverage = (collateral > 0) ? (size / collateral) : 0;
     if (shortEntry <= 0 || shortLiq <= 0 || collateral <= 0 || size <= 0) {
       document.getElementById("shortHeatIndex").innerText = "N/A";
+      // Also set new details to N/A
+      document.getElementById("shortHeatDTL").innerText = "N/A";
+      document.getElementById("shortHeatLev").innerText = "N/A";
+      document.getElementById("shortHeatCR").innerText = "N/A";
       return;
     }
     let ndl = (shortLiq - simPrice) / (shortLiq - shortEntry);
@@ -727,6 +778,11 @@
                   * Math.pow(normalizedLeverage, 0.35)
                   * Math.pow(riskCollateralFactor, 0.20) * 100;
     document.getElementById("shortHeatIndex").innerText = composite.toFixed(2);
+
+    // Populate new small-text fields
+    document.getElementById("shortHeatDTL").innerText = distanceFactor.toFixed(2);
+    document.getElementById("shortHeatLev").innerText = leverage.toFixed(1);
+    document.getElementById("shortHeatCR").innerText = (collateralRatio * 100).toFixed(0);
   }
 
   function updateLongTravelPercent(simPrice) {
@@ -756,7 +812,7 @@
   }
 
   /*************************************
-   * Hedge Recommendations
+   * Hedge Recommendations (Split into Two Boxes)
    *************************************/
   function updateHedgeRecommendations(simPrice) {
     const targetMargin = parseFloat(document.getElementById("targetMarginInput").value) / 100;
@@ -773,32 +829,29 @@
     const shortSafety = shortLiq - simPrice;
     const longMarginCalc = longRange > 0 ? longSafety / longRange : 0;
     const shortMarginCalc = shortRange > 0 ? shortSafety / shortRange : 0;
-    let losingRecommendation = "";
-    let winningRecommendation = "";
+    let longRec = "No long side adjustment recommended.";
+    let shortRec = "No short side adjustment recommended.";
+
+    if (longMarginCalc < targetMargin) {
+      longRec = "Long side is at risk. Consider opening an additional long position of ~<strong>$" +
+                (longSize * (targetMargin - longMarginCalc) * adjustmentFactor).toFixed(2) + "</strong>";
+    } else if (longMarginCalc > targetMargin) {
+      longRec = "Long side is in profit. To offset potential loss on the short side, consider increasing long exposure by ~<strong>$" +
+                (longSize * (longMarginCalc - targetMargin) * adjustmentFactor).toFixed(2) + "</strong>";
+    }
 
     if (shortMarginCalc < targetMargin) {
-      const marginDeficit = targetMargin - shortMarginCalc;
-      losingRecommendation = "Short side is at risk. Consider opening an additional short position of ~<strong>$" + (shortSize * marginDeficit * adjustmentFactor).toFixed(2) + "</strong>";
-    } else if (longMarginCalc < targetMargin) {
-      const marginDeficit = targetMargin - longMarginCalc;
-      losingRecommendation = "Long side is at risk. Consider opening an additional long position of ~<strong>$" + (longSize * marginDeficit * adjustmentFactor).toFixed(2) + "</strong>";
-    } else {
-      losingRecommendation = "Both positions meet target safety margins. No adjustment needed on the losing side.";
+      shortRec = "Short side is at risk. Consider opening an additional short position of ~<strong>$" +
+                 (shortSize * (targetMargin - shortMarginCalc) * adjustmentFactor).toFixed(2) + "</strong>";
+    } else if (shortMarginCalc > targetMargin) {
+      shortRec = "Short side is in profit. To offset potential loss on the long side, consider increasing short exposure by ~<strong>$" +
+                 (shortSize * (shortMarginCalc - targetMargin) * adjustmentFactor).toFixed(2) + "</strong>";
     }
 
-    if (shortMarginCalc > targetMargin) {
-      const marginSurplus = shortMarginCalc - targetMargin;
-      winningRecommendation = "Short side is in profit. To offset potential loss on the long side, consider increasing short exposure by ~<strong>$" + (shortSize * marginSurplus * adjustmentFactor).toFixed(2) + "</strong>";
-    } else if (longMarginCalc > targetMargin) {
-      const marginSurplus = longMarginCalc - targetMargin;
-      winningRecommendation = "Long side is in profit. To offset potential loss on the short side, consider increasing long exposure by ~<strong>$" + (longSize * marginSurplus * adjustmentFactor).toFixed(2) + "</strong>";
-    } else {
-      winningRecommendation = "No winning side adjustment recommended.";
-    }
-
-    document.getElementById("hedgeRecommendation").innerHTML =
-      "<strong>Recommended Adjustment (Losing Side):</strong> " + losingRecommendation + "<br>" +
-      "<strong>Recommended Adjustment (Winning Side):</strong> " + winningRecommendation;
+    document.getElementById("longRecommendationBox").innerHTML =
+      "<strong>Long Recommendation:</strong> " + longRec;
+    document.getElementById("shortRecommendationBox").innerHTML =
+      "<strong>Short Recommendation:</strong> " + shortRec;
   }
 
   /*************************************
@@ -993,8 +1046,6 @@
 
   /*************************************
    * New: Simulated (Resulting) Heat Index Calculations
-   * These use the simulated price but assume that any additional collateral
-   * required for an opposing position is taken from the current position’s collateral.
    *************************************/
   function updateLongSimHeatIndex(simPrice) {
     const longEntry = parseFloat(document.getElementById("longEntry").value) || 0;
@@ -1003,6 +1054,10 @@
     const fee = parseFloat(document.getElementById("feePercentage").value) || 0;
     if (longEntry <= 0 || currentCollateral <= 0) {
       document.getElementById("longSimHeatIndex").innerText = "N/A";
+      document.getElementById("longSimHeatDTL").innerText = "N/A";
+      document.getElementById("longSimHeatLev").innerText = "N/A";
+      document.getElementById("longSimHeatCR").innerText = "N/A";
+      document.getElementById("longSimHeatCollateral").innerText = "0.00";
       return;
     }
     const simulatedSize = window.projectedLongSize || currentLongSize;
@@ -1023,6 +1078,12 @@
                        Math.pow(normalizedLeverage, 0.35) *
                        Math.pow(riskCollateralFactor, 0.20) * 100;
     document.getElementById("longSimHeatIndex").innerText = compositeSim.toFixed(2);
+
+    // Populate new fields
+    document.getElementById("longSimHeatDTL").innerText = distanceFactor.toFixed(2);
+    document.getElementById("longSimHeatLev").innerText = leverageSim.toFixed(1);
+    document.getElementById("longSimHeatCR").innerText = (collateralRatio * 100).toFixed(0);
+    document.getElementById("longSimHeatCollateral").innerText = currentCollateral.toFixed(2);
   }
 
   function updateShortSimHeatIndex(simPrice) {
@@ -1032,6 +1093,10 @@
     const fee = parseFloat(document.getElementById("feePercentage").value) || 0;
     if (shortEntry <= 0 || currentCollateral <= 0) {
       document.getElementById("shortSimHeatIndex").innerText = "N/A";
+      document.getElementById("shortSimHeatDTL").innerText = "N/A";
+      document.getElementById("shortSimHeatLev").innerText = "N/A";
+      document.getElementById("shortSimHeatCR").innerText = "N/A";
+      document.getElementById("shortSimHeatCollateral").innerText = "0.00";
       return;
     }
     const simulatedSize = window.projectedShortSize || currentShortSize;
@@ -1052,6 +1117,12 @@
                      * Math.pow(normalizedLeverage, 0.35)
                      * Math.pow(riskCollateralFactor, 0.20) * 100;
     document.getElementById("shortSimHeatIndex").innerText = compositeSim.toFixed(2);
+
+    // Populate new fields
+    document.getElementById("shortSimHeatDTL").innerText = distanceFactor.toFixed(2);
+    document.getElementById("shortSimHeatLev").innerText = leverageSim.toFixed(1);
+    document.getElementById("shortSimHeatCR").innerText = (collateralRatio * 100).toFixed(0);
+    document.getElementById("shortSimHeatCollateral").innerText = currentCollateral.toFixed(2);
   }
 
   /*************************************

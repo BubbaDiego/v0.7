@@ -11,7 +11,7 @@ from config.config_constants import BASE_DIR, LOG_DATE_FORMAT
 UNIFIED_LOG_CONFIG = {
     "Launch pad started": {"icon": "🚀", "color": "blue"},
     "Jupiter Updated": {"icon": "🪐", "color": "blue"},
-    "Alerts Configuration Successful": {"icon": "✅", "color": "green"},
+    "Alerts Configured": {"icon": "✅", "color": "green"},
     "Alert Manager Initialized": {"icon": "✅", "color": "blue"},
     "Alert Configuration Failed": {"icon": "💀", "color": "red"},
     "Alert Triggered": {"icon": "🚨", "color": "red"},

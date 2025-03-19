@@ -193,8 +193,16 @@ def config_page():
     price_alerts = alert_config.get("price_alerts", {})
     theme_config = config_data.get("theme_config", {})  # If theme config is stored here
 
-    return render_template("alert_limits.html", alert_ranges=alert_config, price_alerts=price_alerts, theme=theme_config)
+    # Retrieve the alert timing values from the root of the JSON
+    alert_cooldown_seconds = config_data.get("alert_cooldown_seconds", 900)
+    call_refractory_period = config_data.get("call_refractory_period", 3600)
 
+    return render_template("alert_limits.html",
+                           alert_ranges=alert_config,
+                           price_alerts=price_alerts,
+                           theme=theme_config,
+                           alert_cooldown_seconds=alert_cooldown_seconds,
+                           call_refractory_period=call_refractory_period)
 @alerts_bp.route('/update_config', methods=['POST'], endpoint="update_alert_config")
 def update_alert_config_route():
     op_logger = OperationsLogger(log_filename=os.path.join(os.getcwd(), "operations_log.txt"))
@@ -208,6 +216,14 @@ def update_alert_config_route():
         json_manager = current_app.json_manager
         current_config = json_manager.load("alert_limits.json", json_type=JsonType.ALERT_LIMITS)
         merged_config = deep_merge(current_config, nested_update)
+
+        # --- Begin Patch for Cooldown and Refractory Period ---
+        if "alert_cooldown_seconds" in merged_config and (merged_config["alert_cooldown_seconds"] == "" or merged_config["alert_cooldown_seconds"] is None):
+            merged_config["alert_cooldown_seconds"] = 900
+        if "call_refractory_period" in merged_config and (merged_config["call_refractory_period"] == "" or merged_config["call_refractory_period"] is None):
+            merged_config["call_refractory_period"] = 1800
+        # --- End Patch ---
+
         json_manager.save("alert_limits.json", merged_config, json_type=JsonType.ALERT_LIMITS)
         updated_config = json_manager.load("alert_limits.json", json_type=JsonType.ALERT_LIMITS)
         formatted_table = format_alert_config_table(updated_config.get("alert_ranges", {}))
@@ -218,6 +234,7 @@ def update_alert_config_route():
         op_logger.log("Alert Configuration Failed", source="System",
                       operation_type="Alert Config Failed", file_name=str(ALERT_LIMITS_PATH))
         return jsonify({"success": False, "error": str(e)}), 500
+
 
 # For testing this blueprint independently
 if __name__ == "__main__":

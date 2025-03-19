@@ -227,8 +227,8 @@
       }
     }
   },
-  "alert_cooldown_seconds": "",
-  "call_refractory_period": "",
+  "alert_cooldown_seconds": 900.0,
+  "call_refractory_period": 888.0,
   "price_alerts": {
     "BTC": {
       "enabled": false,

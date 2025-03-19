@@ -135,7 +135,7 @@ class AlertManager:
             if "alert_ranges" in alert_limits:
                 self.config["alert_ranges"] = alert_limits["alert_ranges"]
                 u_logger.log_operation(
-                    operation_type="Alerts Configuration Successful",
+                    operation_type="Alerts Configured",
                     primary_text="Alerts Config Successful",
                     source="System",
                     file="alert_manager.py",
