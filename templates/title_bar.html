@@ -14,9 +14,9 @@
   <!-- AdminLTE 4 CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0/dist/css/adminlte.min.css">
 
-  {# Dynamic Theme Styles using theme_config from context processor #}
-  {% if theme_config and theme_config['profiles'] and theme_config['selected_profile'] and theme_config['profiles'][theme_config['selected_profile']] %}
-    {% set selected = theme_config['profiles'][theme_config['selected_profile']] %}
+  {# Dynamic Theme Styles using theme from context processor #}
+  {% if theme and theme['profiles'] and theme['selected_profile'] and theme['profiles'][theme['selected_profile']] %}
+    {% set selected = theme['profiles'][theme['selected_profile']] %}
     <style>
       /* Title Bar Background using the theme's title bar color */
       .main-header.navbar {
@@ -136,9 +136,9 @@
           </li>
           <!-- Theme Switcher Dropdown -->
           <li class="nav-item dropdown ms-3">
-            {% if theme_config and theme_config['profiles'] and theme_config['selected_profile'] and theme_config['profiles'][theme_config['selected_profile']] %}
-              {% set current = theme_config['profiles'][theme_config['selected_profile']] %}
-              {% set current_name = current.get('name', theme_config['selected_profile']|capitalize) %}
+            {% if theme and theme['profiles'] and theme['selected_profile'] and theme['profiles'][theme['selected_profile']] %}
+              {% set current = theme['profiles'][theme['selected_profile']] %}
+              {% set current_name = current.get('name', theme['selected_profile']|capitalize) %}
             {% else %}
               {% set current_name = "Default" %}
             {% endif %}
@@ -146,8 +146,8 @@
               <i class="fas fa-cogs"></i> {{ current_name }}
             </a>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="themeDropdown">
-              {% if theme_config and theme_config['profiles'] %}
-                {% for profile_key, profile in theme_config['profiles'].items() %}
+              {% if theme and theme['profiles'] %}
+                {% for profile_key, profile in theme['profiles'].items() %}
                   {% set name = profile.get('name', profile_key|capitalize) %}
                   <li>
                     <a class="dropdown-item theme-profile-option" href="#" data-profile="{{ profile_key }}">

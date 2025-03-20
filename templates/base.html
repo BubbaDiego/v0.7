@@ -1,3 +1,4 @@
+{# base.html #}
 <!doctype html>
 <html lang="en">
   <head>
@@ -31,6 +32,7 @@
     <!-- CSS Variables for Theme Colors -->
     <style>
       :root {
+        /* We read from the selected profile in theme_config */
         --title-bar-color: {{ theme.get('profiles', {}).get(theme.selected_profile, {}).get('title bar', {}).get('color', '#34495E') }};
         --side-bar-color: {{ theme.get('profiles', {}).get(theme.selected_profile, {}).get('side bar', {}).get('color', '#2C3E50') }};
         --wallpaper-color: {{ theme.get('profiles', {}).get(theme.selected_profile, {}).get('wallpaper', {}).get('color', '#900C3F') }};
@@ -66,76 +68,66 @@
         border-color: var(--card-background-color);
       }
 
-      /* Override text color for the title bar and sidebar ONLY */
-      .app-header, .app-sidebar {
+      /* Force text color for the sidebar ONLY (white text) */
+      .app-sidebar,
+      .app-sidebar a {
         color: #ffffff !important;
       }
-      .app-header a, .app-sidebar a {
-        color: #ffffff !important;
-      }
-    </style>
 
-    <!-- Custom CSS to force inline price display -->
-    <style>
-      .inline-price {
-        display: flex !important;
-        align-items: center !important;
-        font-size: 14px !important;
-        margin-right: 20px !important;
+      /* (Optional) If you want to override .card-header color, you can do so: */
+      .card-header {
+        background-color: var(--card-title-color) !important;
+        color: var(--text-color) !important;
       }
-      .inline-price .price-item {
-        display: flex;
-        align-items: center;
-        margin-right: 15px;
+      .card {
+        background-color: var(--card-background-color) !important;
+        color: var(--text-color) !important;
       }
-      .inline-price .price-item img {
-        width: 20px !important;
-        height: 20px !important;
-        margin-right: 5px !important;
-      }
+
     </style>
   </head>
-  <body class="layout-fixed sidebar-expand-lg sidebar-mini sidebar-collapse" style="
-    {% if theme.get('profiles', {}).get(theme.selected_profile, {}).get('wallpaper', {}).get('image') %}
-      background-image: url('{{ url_for('static', filename=theme.get('profiles', {}).get(theme.selected_profile, {}).get('wallpaper', {}).get('image') ) }}');
-    {% else %}
-      background-color: var(--wallpaper-color);
-    {% endif %}
-  ">
+
+  <body class="layout-fixed sidebar-expand-lg sidebar-mini sidebar-collapse"
+        style="
+          {% if theme.get('profiles', {}).get(theme.selected_profile, {}).get('wallpaper', {}).get('image') %}
+            background-image: url('{{ url_for('static', filename=theme.get('profiles', {}).get(theme.selected_profile, {}).get('wallpaper', {}).get('image') ) }}');
+          {% else %}
+            background-color: var(--wallpaper-color);
+          {% endif %}
+        "
+  >
     <div class="app-wrapper">
+      {# This is where we include our top nav bar (title_bar.html). #}
       {% include "title_bar.html" %}
 
       <!-- Sidebar -->
-      <aside class="app-sidebar shadow" style="
-        {% if theme.get('profiles', {}).get(theme.selected_profile, {}).get('side bar', {}).get('image') %}
-          background-image: url('{{ url_for('static', filename=theme.get('profiles', {}).get(theme.selected_profile, {}).get('side bar', {}).get('image') ) }}');
-        {% else %}
-          background-color: var(--side-bar-color);
-        {% endif %}
-      ">
+      <aside class="app-sidebar shadow"
+        style="
+          {% if theme.get('profiles', {}).get(theme.selected_profile, {}).get('side bar', {}).get('image') %}
+            background-image: url('{{ url_for('static', filename=theme.get('profiles', {}).get(theme.selected_profile, {}).get('side bar', {}).get('image')) }}');
+          {% else %}
+            background-color: var(--side-bar-color);
+          {% endif %}
+        "
+      >
         <div class="sidebar-brand">
           <a href="{{ url_for('dashboard.dashboard') }}" class="brand-link">
-            <img src="{{ url_for('static', filename='images/corner_logo_owl.jpg') }}" alt="Admin Logo" class="brand-image rounded-circle shadow" />
-            <span class="brand-text fw-light"> Sonic</span>
+            <img src="{{ url_for('static', filename='images/corner_logo_owl.jpg') }}"
+                 alt="Sonic Logo"
+                 class="brand-image rounded-circle shadow" />
+            <span class="brand-text fw-light">Sonic</span>
           </a>
         </div>
         <div class="sidebar-wrapper">
           <nav class="mt-2">
             <ul class="nav sidebar-menu flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false">
+              <!-- Example Nav Items -->
               <li class="nav-item">
                 <a href="{{ url_for('dashboard.dashboard') }}" class="nav-link">
                   <i class="nav-icon bi bi-speedometer"></i>
                   <p>Dashboard</p>
                 </a>
               </li>
-              <!-- New Jupiter Dash Menu Item -->
-              <li class="nav-item">
-                <a href="{{ url_for('jupiter_bp.dashboard') }}" class="nav-link">
-                  <i class="nav-icon bi bi-lightning-fill"></i>
-                  <p>Jupiter Dash</p>
-                </a>
-              </li>
-              <!-- Additional menu items as needed -->
               <li class="nav-item">
                 <a href="{{ url_for('positions.positions_table') }}" class="nav-link">
                   <i class="nav-icon bi bi-table"></i>
@@ -143,66 +135,12 @@
                 </a>
               </li>
               <li class="nav-item">
-                <a href="{{ url_for('positions.position_trends') }}" class="nav-link">
-                  <i class="nav-icon bi bi-briefcase"></i>
-                  <p>Trends</p>
-                </a>
-              </li>
-              <li class="nav-item">
-                <a href="{{ url_for('prices.price_charts') }}" class="nav-link">
-                  <i class="nav-icon bi bi-currency-dollar"></i>
-                  <p>Prices</p>
-                </a>
-              </li>
-              <li class="nav-item">
-                <a href="{{ url_for('positions.heat_report') }}" class="nav-link">
-                  <i class="nav-icon bi bi-shield-check"></i>
-                  <p>Hedge Report</p>
-                </a>
-              </li>
-              <li class="nav-item">
                 <a href="{{ url_for('alerts_bp.alarm_viewer') }}" class="nav-link">
-                  <i class="nav-icon bi bi-exclamation-triangle-fill"></i>
+                  <i class="nav-icon bi bi-bell"></i>
                   <p>Alerts</p>
                 </a>
               </li>
-              <li class="nav-item">
-                <a href="{{ url_for('portfolio.index') }}" class="nav-link">
-                  <i class="nav-icon bi bi-wallet2"></i>
-                  <p>Portfolio</p>
-                </a>
-              </li>
-              <li class="nav-item">
-                <a href="{{ url_for('simulator.compare_simulation') }}" class="nav-link">
-                  <i class="nav-icon bi bi-controller"></i>
-                  <p>Simulator</p>
-                </a>
-              </li>
-              <li class="nav-item">
-                <a href="{{ url_for('database_viewer') }}" class="nav-link">
-                  <i class="nav-icon bi bi-database"></i>
-                  <p>Database</p>
-                </a>
-              </li>
-              <li class="nav-item">
-                <a href="{{ url_for('positions.blast_radius') }}" class="nav-link">
-                  <i class="nav-icon bi bi-lightning-charge-fill"></i>
-                  <p>Blast Radius</p>
-                </a>
-              </li>
-              <li class="nav-item">
-                <a href="{{ url_for('system_config_page') }}" class="nav-link">
-                  <i class="nav-icon bi bi-gear-fill"></i>
-                  <p>System Config</p>
-                </a>
-              </li>
-              <!-- New Hedge Calculator Menu Option -->
-              <li class="nav-item">
-                <a href="{{ url_for('sonic_labs.hedge_calculator') }}" class="nav-link">
-                  <i class="nav-icon">📈📉</i>
-                  <p>Hedge Calculator</p>
-                </a>
-              </li>
+              <!-- Add any other sidebar items here -->
             </ul>
           </nav>
         </div>
@@ -215,63 +153,89 @@
           <div class="container-fluid">
             <div class="row">
               <div class="col-12">
-                <h3 class="mb-0">{% block page_title %}{% endblock %}</h3>
+                <h3 class="mb-0">
+                  {% block page_title %}{% endblock %}
+                </h3>
               </div>
             </div>
           </div>
         </div>
         <div class="app-content">
           <div class="container-fluid">
-            {% block content %}{% endblock %}
+            {% block content %}
+            <!-- Where child templates put their content -->
+            {% endblock %}
           </div>
         </div>
       </main>
       <!-- End Main Content -->
     </div>
-    <!-- End App Wrapper -->
+    <!-- End .app-wrapper -->
 
-    <!-- Scripts -->
+    <!-- OverlayScrollbars, Bootstrap, AdminLTE JS -->
     <script src="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.10.1/browser/overlayscrollbars.browser.es6.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"></script>
     <script src="{{ url_for('static', filename='AdminLTE/dist/js/adminlte.js') }}"></script>
+
+    <!-- If you need ApexCharts or Chart.js globally, you can add them here -->
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+
+    <!-- Global Theme Switcher (optional) -->
     <script>
       document.addEventListener('DOMContentLoaded', () => {
-        console.log("Global Theme Script: DOMContentLoaded fired.");
-        console.log("--card-title-color:", getComputedStyle(document.documentElement).getPropertyValue('--card-title-color').trim());
-        console.log("--card-background-color:", getComputedStyle(document.documentElement).getPropertyValue('--card-background-color').trim());
-        console.log("--text-color:", getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim());
-        document.querySelectorAll('.theme-option').forEach(item => {
-          item.addEventListener('click', (event) => {
-            event.preventDefault();
-            const selectedProfile = event.currentTarget.getAttribute('data-profile');
-            console.log("Selected profile:", selectedProfile);
+        console.log("base.html: DOMContentLoaded fired, theme:", {{ theme|tojson|safe }});
+        document.querySelectorAll('.theme-profile-option').forEach(option => {
+          option.addEventListener('click', e => {
+            e.preventDefault();
+            const selectedProfile = e.currentTarget.dataset.profile;
+            console.log("Switching theme to:", selectedProfile);
             fetch('{{ url_for("save_theme_route") }}', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ profile: selectedProfile, data: {} })
             })
-            .then(response => response.json())
-            .then(result => {
-              console.log("Response from /save_theme:", result);
-              if (result.success) {
+            .then(r => r.json())
+            .then(data => {
+              if (data.success) {
                 window.location.reload();
               } else {
-                alert("Theme change failed: " + result.error);
+                alert("Error switching theme: " + data.error);
               }
             })
-            .catch(error => {
-              console.error("Error updating theme:", error);
-              alert("Error updating theme");
+            .catch(err => {
+              console.error("Theme switch error:", err);
+              alert("Theme switch error: " + err);
             });
           });
         });
+
+        // Jupiter update button logic if you want it globally:
+        const jupiterBtn = document.querySelector('.update-jupiter-button');
+        if (jupiterBtn) {
+          jupiterBtn.addEventListener('click', function() {
+            jupiterBtn.classList.add('spin');
+            fetch("/positions/update_jupiter?source=User", { method: "POST" })
+              .then(response => response.json())
+              .then(() => {
+                jupiterBtn.classList.remove('spin');
+                window.location.reload();
+              })
+              .catch(err => {
+                jupiterBtn.classList.remove('spin');
+                console.error("Jupiter update error:", err);
+              });
+          });
+        }
       });
     </script>
+
+    <!-- Additional scripts can be placed in extra_scripts block -->
     {% block extra_scripts %}{% endblock %}
+
+    <!-- Optional: If your index route should redirect to /dashboard -->
     {% if request.endpoint == 'index' %}
     <script>
       window.location.href = "{{ url_for('dashboard.dashboard') }}";
