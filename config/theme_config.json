@@ -1,109 +1,113 @@
 {
   "profiles": {
-    "profile1": {
+    "blueTheme": {
+      "name": "Blue Ocean",
       "title bar": {
-        "color": "#B9A5A5",
+        "color": "#007BFF",
         "image": null
       },
       "side bar": {
-        "color": "#30CD58",
+        "color": "#0056b3",
         "image": null
       },
       "wallpaper": {
-        "color": "#E1D7D7",
+        "color": "#E7F1FF",
         "image": null
       },
       "card title": {
-        "color": "#F9F6F6",
+        "color": "#FFFFFF",
         "image": null
       },
       "card background": {
-        "color": "#AFDBB6",
+        "color": "#D0E7FF",
         "image": null
       },
       "text": {
-        "color": "#3918D3",
+        "color": "#FFFFFF",
         "image": null
       }
     },
-    "profile2": {
+    "redTheme": {
+      "name": "Crimson Night",
       "title bar": {
-        "color": "#000000",
+        "color": "#DC3545",
         "image": null
       },
       "side bar": {
-        "color": "#000000",
+        "color": "#C82333",
         "image": null
       },
       "wallpaper": {
-        "color": "#cccccc",
+        "color": "#F8D7DA",
         "image": null
       },
       "card title": {
-        "color": "#dddddd",
+        "color": "#FFFFFF",
         "image": null
       },
       "card background": {
-        "color": "#eeeeee",
+        "color": "#F5C6CB",
         "image": null
       },
       "text": {
-        "color": "#ffffff",
+        "color": "#FFFFFF",
         "image": null
       }
     },
-    "profile3": {
+    "greenTheme": {
+      "name": "Emerald Forest",
       "title bar": {
-        "color": "#000000",
+        "color": "#28A745",
         "image": null
       },
       "side bar": {
-        "color": "#000000",
+        "color": "#218838",
         "image": null
       },
       "wallpaper": {
-        "color": "#0000ff",
+        "color": "#D4EDDA",
         "image": null
       },
       "card title": {
-        "color": "#ffff00",
+        "color": "#FFFFFF",
         "image": null
       },
       "card background": {
-        "color": "#00ffff",
+        "color": "#C3E6CB",
         "image": null
       },
       "text": {
-        "color": "#ff00ff",
+        "color": "#FFFFFF",
         "image": null
       }
     },
-    "profile4": {
+    "purpleTheme": {
+      "name": "Royal Purple",
       "title bar": {
-        "color": "#000000",
+        "color": "#6F42C1",
         "image": null
       },
       "side bar": {
-        "color": "#000000",
+        "color": "#5A32A3",
         "image": null
       },
       "wallpaper": {
-        "color": "#abcdef",
+        "color": "#E2D4F0",
         "image": null
       },
       "card title": {
-        "color": "#fedcba",
+        "color": "#FFFFFF",
         "image": null
       },
       "card background": {
-        "color": "#112233",
+        "color": "#D1B3E1",
         "image": null
       },
       "text": {
-        "color": "#332211",
+        "color": "#FFFFFF",
         "image": null
       }
     }
   },
-  "selected_profile": "profile2"
+  "selected_profile": "blueTheme"
 }

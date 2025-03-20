@@ -198,6 +198,10 @@
               <div id="currentMarker" class="position-absolute" style="top: -35px; left: 0; font-size: 1rem; font-weight: bold; background-color: rgba(0,0,0,0.5); color: #fff; padding: 4px 6px; border-radius: 4px; pointer-events: none;">
                 Price: $0.00
               </div>
+              <!-- Reset button with Unicode price icon -->
+              <button id="resetPriceButton" onclick="resetPriceToCurrent()" title="Reset to current price" style="position: absolute; top: -35px; right: 10px; background: none; border: none; font-size: 1.2rem; cursor: pointer;">
+                💲
+              </button>
               <div id="entryMarkerLong" class="position-absolute" style="top: -65px; left: 0; font-size: 0.85rem; font-weight: bold; background-color: rgba(0,0,0,0.5); color: #fff; padding: 3px 5px; border-radius: 4px; pointer-events: none;">
                 Long Entry: $0.00
               </div>
@@ -1134,5 +1138,12 @@
       alert("Error saving modifiers. Check console for details.");
     });
   });
+
+  /*************************************
+   * Reset Price Functionality
+   *************************************/
+  function resetPriceToCurrent() {
+    updateReferencePrice();
+  }
 </script>
 {% endblock %}
