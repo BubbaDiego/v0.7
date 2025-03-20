@@ -1,0 +1,225 @@
+{# title_bar.html #}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>{% block title %}My Website{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Bootstrap 5 (required by AdminLTE 4) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.1/css/all.min.css">
+  <!-- AdminLTE 4 CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0/dist/css/adminlte.min.css">
+
+  {# Dynamic Theme Styles using theme_config from context processor #}
+  {% if theme_config and theme_config['profiles'] and theme_config['selected_profile'] and theme_config['profiles'][theme_config['selected_profile']] %}
+    {% set selected = theme_config['profiles'][theme_config['selected_profile']] %}
+    <style>
+      /* Title Bar Background using the theme's title bar color */
+      .main-header.navbar {
+        background-color: {{ selected["title bar"]["color"] }};
+      }
+      /* Title Bar text color */
+      .main-header.navbar .navbar-brand,
+      .main-header.navbar .nav-link {
+        color: {{ selected["text"]["color"] }};
+      }
+    </style>
+  {% endif %}
+
+  <style>
+    /* Align asset price panel items in a row */
+    .asset-panel {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 0.25rem 0.5rem;
+      background-color: #f8f9fa;
+      border-radius: 999px;
+    }
+    .asset-panel img {
+      width: 20px;
+      height: 20px;
+    }
+    /* Update Jupiter button styling */
+    .update-jupiter-btn {
+      border: none;
+      background: none;
+      cursor: pointer;
+      padding: 0.25rem;
+    }
+    .update-jupiter-btn img {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .spin { animation: spin 1s linear infinite; }
+  </style>
+</head>
+<body class="hold-transition layout-top-nav">
+  <div class="wrapper">
+    <!-- Title Bar (Navbar) -->
+    <nav class="main-header navbar navbar-expand-md navbar-light navbar-white">
+      <div class="container">
+        <!-- Classic Theme Link -->
+        <a href="/base_classic.html" class="nav-link me-2" title="Classic Theme">
+          <i class="fas fa-history"></i>
+        </a>
+        <!-- Logo and Site Title -->
+        <a href="/" class="navbar-brand">
+          <img src="/path/to/logo.png" alt="Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
+          <span class="brand-text font-weight-light">My Website</span>
+        </a>
+        <!-- Navbar toggler for small screens -->
+        <button class="navbar-toggler order-1" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarCollapse" aria-controls="navbarCollapse"
+                aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <!-- Left Navbar Links -->
+        <div class="collapse navbar-collapse order-3" id="navbarCollapse">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a href="/" class="nav-link" title="Home">
+                <i class="fas fa-home"></i>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{{ url_for('alerts_bp.alarm_viewer') }}" class="nav-link" title="Alert Viewer">
+                <i class="fas fa-bell"></i>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{{ url_for('alerts_bp.alert_config_page') }}" class="nav-link" title="Alert Limits">
+                <i class="fas fa-sliders-h"></i>
+              </a>
+            </li>
+          </ul>
+        </div>
+        <!-- Right Navbar Links -->
+        <ul class="order-1 order-md-3 navbar-nav navbar-no-expand ms-auto">
+          <!-- Price Panel -->
+          <li class="nav-item d-none d-md-flex align-items-center me-3">
+            <div class="d-flex gap-2">
+              <!-- BTC Panel -->
+              <div class="asset-panel">
+                <img src="https://cryptologos.cc/logos/bitcoin-btc-logo.png?v=023" alt="BTC">
+                <span id="btcPrice">$--.--</span>
+                <small id="btcChange" class="fw-bold">0.00%</small>
+              </div>
+              <!-- ETH Panel -->
+              <div class="asset-panel">
+                <img src="https://cryptologos.cc/logos/ethereum-eth-logo.png?v=023" alt="ETH">
+                <span id="ethPrice">$--.--</span>
+                <small id="ethChange" class="fw-bold">0.00%</small>
+              </div>
+              <!-- SOL Panel -->
+              <div class="asset-panel">
+                <img src="https://cryptologos.cc/logos/solana-sol-logo.png?v=023" alt="SOL">
+                <span id="solPrice">$--.--</span>
+                <small id="solChange" class="fw-bold">0.00%</small>
+              </div>
+            </div>
+          </li>
+          <!-- Update Jupiter Button -->
+          <li class="nav-item d-flex align-items-center me-3">
+            <button type="button" class="update-jupiter-btn" title="Update Jupiter" id="updateJupiterBtn">
+              <img src="{{ url_for('static', filename='images/jupiter.jpg') }}" alt="Update Jupiter">
+            </button>
+          </li>
+          <!-- Theme Switcher Dropdown -->
+          <li class="nav-item dropdown ms-3">
+            {% if theme_config and theme_config['profiles'] and theme_config['selected_profile'] and theme_config['profiles'][theme_config['selected_profile']] %}
+              {% set current = theme_config['profiles'][theme_config['selected_profile']] %}
+              {% set current_name = current.get('name', theme_config['selected_profile']|capitalize) %}
+            {% else %}
+              {% set current_name = "Default" %}
+            {% endif %}
+            <a class="nav-link dropdown-toggle" href="#" id="themeDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="Change Theme">
+              <i class="fas fa-cogs"></i> {{ current_name }}
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="themeDropdown">
+              {% if theme_config and theme_config['profiles'] %}
+                {% for profile_key, profile in theme_config['profiles'].items() %}
+                  {% set name = profile.get('name', profile_key|capitalize) %}
+                  <li>
+                    <a class="dropdown-item theme-profile-option" href="#" data-profile="{{ profile_key }}">
+                      <i class="fas fa-paint-brush me-1"></i> {{ name }}
+                    </a>
+                  </li>
+                {% endfor %}
+              {% else %}
+                <li><a class="dropdown-item" href="#">Default</a></li>
+              {% endif %}
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </nav>
+    <!-- End Title Bar -->
+
+    <!-- Price update script to update the price panel -->
+    <script>
+      function updatePrices() {
+        fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd&include_24hr_change=true')
+          .then(response => response.json())
+          .then(data => {
+            // Bitcoin
+            const btcPrice = data.bitcoin.usd;
+            const btcChange = data.bitcoin.usd_24h_change;
+            document.getElementById('btcPrice').textContent = '$' + btcPrice.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+            const btcChangeElem = document.getElementById('btcChange');
+            btcChangeElem.textContent = btcChange.toFixed(2) + '%';
+            btcChangeElem.style.color = btcChange >= 0 ? 'green' : 'red';
+
+            // Ethereum
+            const ethPrice = data.ethereum.usd;
+            const ethChange = data.ethereum.usd_24h_change;
+            document.getElementById('ethPrice').textContent = '$' + ethPrice.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+            const ethChangeElem = document.getElementById('ethChange');
+            ethChangeElem.textContent = ethChange.toFixed(2) + '%';
+            ethChangeElem.style.color = ethChange >= 0 ? 'green' : 'red';
+
+            // Solana
+            const solPrice = data.solana.usd;
+            const solChange = data.solana.usd_24h_change;
+            document.getElementById('solPrice').textContent = '$' + solPrice.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+            const solChangeElem = document.getElementById('solChange');
+            solChangeElem.textContent = solChange.toFixed(2) + '%';
+            solChangeElem.style.color = solChange >= 0 ? 'green' : 'red';
+          })
+          .catch(error => console.error('Error fetching prices:', error));
+      }
+      updatePrices();
+      setInterval(updatePrices, 60000);
+    </script>
+
+    <!-- Jupiter update script -->
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        const updateBtn = document.getElementById("updateJupiterBtn");
+        updateBtn.addEventListener("click", function() {
+          updateBtn.querySelector("img").classList.add("spin");
+          fetch("/positions/update_jupiter?source=User", { method: "POST" })
+            .then(response => response.json())
+            .then(() => {
+              updateBtn.querySelector("img").classList.remove("spin");
+              window.location.reload();
+            })
+            .catch(err => {
+              updateBtn.querySelector("img").classList.remove("spin");
+              console.error(err);
+            });
+        });
+      });
+    </script>
+  </div>
+</body>
+</html>
