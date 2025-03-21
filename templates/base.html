@@ -32,17 +32,17 @@
     <!-- CSS Variables for Theme Colors -->
     <style>
       :root {
-        /* Use .get() to safely access theme properties */
-        --title-bar-color: {{ theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('title bar', {}).get('color', '#34495E') }};
-        --side-bar-color: {{ theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('side bar', {}).get('color', '#2C3E50') }};
-        --wallpaper-color: {{ theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('wallpaper', {}).get('color', '#900C3F') }};
+        /* Use .get() to safely access theme properties with Blue Ocean defaults */
+        --title-bar-color: {{ theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('title bar', {}).get('color', '#007BFF') }};
+        --side-bar-color: {{ theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('side bar', {}).get('color', '#0056b3') }};
+        --wallpaper-color: {{ theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('wallpaper', {}).get('color', '#E7F1FF') }};
         {% set cardTitle = theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('card title', {}) %}
         {% set primary = theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('primary', {}) %}
-        --card-title-color: {{ cardTitle.get('color', primary.get('color', '#581845')) }};
+        --card-title-color: {{ cardTitle.get('color', primary.get('color', '#FFFFFF')) }};
         {% set cardBg = theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('card background', {}) %}
         {% set secondary = theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('secondary', {}) %}
-        --card-background-color: {{ cardBg.get('color', secondary.get('color', '#FFC300')) }};
-        --text-color: {{ theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('text', {}).get('color', '#FFFFFF') }};
+        --card-background-color: {{ cardBg.get('color', secondary.get('color', '#D0E7FF')) }};
+        --text-color: {{ theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('text', {}).get('color', '#00008B') }};
         --border-color: {{ theme.get('border_color', '#ccc') }};
       }
 

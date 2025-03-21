@@ -16,6 +16,42 @@
     margin-left: 10px;
     cursor: pointer;
   }
+
+  /* Ensure our custom alert status colors take precedence */
+  .info-box {
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: stretch;
+  }
+  .info-box-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    padding: 0.5rem;
+  }
+  /* Custom classes for the entire box based on alert status */
+  .info-box.no-alert {
+    background-color: #0d6efd !important; /* Blue */
+    color: #fff !important;
+  }
+  .info-box.low {
+    background-color: #198754 !important; /* Green */
+    color: #fff !important;
+  }
+  .info-box.medium {
+    background-color: #ffc107 !important; /* Yellow */
+    color: #000 !important;
+  }
+  .info-box.high {
+    background-color: #dc3545 !important; /* Red */
+    color: #fff !important;
+  }
+  .info-box.unknown {
+    background-color: #6c757d !important; /* Gray */
+    color: #fff !important;
+  }
 </style>
 {% endblock %}
 
@@ -33,29 +69,37 @@
       <div class="row">
         {% for alert in alerts %}
           <div class="col-md-3 col-sm-6 col-12">
-            <div class="info-box">
-              <span class="info-box-icon
-                {% if alert.status == "Active" %}
-                  text-bg-danger
-                {% elif alert.status == "Inactive" %}
-                  text-bg-success
+            <div
+              class="info-box
+                {% if alert.status == "No Alert" %}
+                  no-alert
+                {% elif alert.status == "Low" %}
+                  low
+                {% elif alert.status == "Medium" %}
+                  medium
+                {% elif alert.status == "High" %}
+                  high
                 {% else %}
-                  text-bg-warning
+                  unknown
                 {% endif %}
-              shadow-sm">
-                <i class="bi {{ alert.icon|default('bi-bell-fill') }}"></i>
+              shadow-sm"
+            >
+              <span class="info-box-icon">
+                {% if alert.alert_type == "PriceThreshold" %}
+                  💲
+                {% elif alert.alert_type == "TravelPercent" %}
+                  💧
+                {% elif alert.alert_type == "DeltaChange" %}
+                  🚀
+                {% else %}
+                  🔔
+                {% endif %}
               </span>
               <div class="info-box-content">
                 <span class="info-box-text">{{ alert.alert_type }}</span>
-                <span class="info-box-number">
-                  Trigger: {{ alert.trigger_value }}
-                </span>
-                <span class="info-box-text">
-                  Condition: {{ alert.condition }}
-                </span>
-                <span class="info-box-text">
-                  Status: {{ alert.status }}
-                </span>
+                <span class="info-box-number">Trigger: {{ alert.trigger_value }}</span>
+                <span class="info-box-text">Condition: {{ alert.condition }}</span>
+                <span class="info-box-text">Status: {{ alert.status }}</span>
               </div>
               <!-- /.info-box-content -->
             </div>

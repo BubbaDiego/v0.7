@@ -22,19 +22,11 @@
     margin-bottom: 2rem;
     color: var(--text-color);
   }
-  /* Smaller card header text */
+  /* Smaller card header text - making titles bold */
   .card-header h5 {
     font-size: 1.25rem;
     margin: 0;
-  }
-  /* Header countdown timers */
-  .header-timers {
-    float: right;
-    font-size: 0.9rem;
-    color: var(--text-color);
-  }
-  .header-timers span {
-    margin-left: 1rem;
+    font-weight: bold;
   }
   /* Table styling for inline notification selectors */
   .notif-inline {
@@ -82,505 +74,290 @@
 {% block content %}
 <div class="container-fluid">
   <div class="alert-limits-wrapper">
-    <!-- Content Header with Countdown Timers -->
-    <section class="content-header">
-      <div class="container-fluid">
-        <div class="row mb-2">
-          <div class="col-sm-6">
-            <h1>Alert Limits Configuration</h1>
-          </div>
-          <div class="col-sm-6">
-            <ol class="breadcrumb float-sm-right">
-              <li class="breadcrumb-item"><a href="#">Home</a></li>
-              <li class="breadcrumb-item active">Alert Limits</li>
-              <li class="header-timers">
-                <span id="callTimer" style="margin-left:0;">
-                  <span style="color:green;">☎</span> Call: 1800
-                </span>
-                <span id="snoozeTimer">
-                  <span style="color:blue;">⏳</span> Snooze: 300
-                </span>
-              </li>
-            </ol>
+    <!-- Wrap the entire configuration in a form -->
+    <form method="POST" action="{{ url_for('alerts_bp.update_alert_config') }}">
+      <!-- Content Header -->
+      <section class="content-header">
+        <div class="container-fluid">
+          <div class="row mb-2">
+            <div class="col-sm-12">
+              <h1>Alert Limits Configuration</h1>
+            </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- Main content -->
-    <section class="content">
-      <div class="container-fluid">
-        <!-- First row: Price Alerts & Alert Timing side by side -->
-        <div class="row card-row">
-          <!-- Price Alerts Column (left) -->
-          <div class="col-lg-7">
-            <div class="card bg-primary">
-              <div class="card-header">
-                <h5 class="card-title">💲 Price Alerts</h5>
+      <!-- Main content -->
+      <section class="content">
+        <div class="container-fluid">
+          <!-- First row: Price Alerts & Alert Timing side by side -->
+          <div class="row card-row">
+            <!-- Price Alerts Column (left) -->
+            <div class="col-lg-7">
+              <div class="card bg-primary">
+                <div class="card-header">
+                  <h5 class="card-title"><strong>💲 Price Alerts</strong></h5>
+                </div>
+                <div class="card-body">
+                  <table class="table table-bordered text-center">
+                    <thead>
+                      <tr>
+                        <th>Asset</th>
+                        <th>Enabled</th>
+                        <th>Condition</th>
+                        <th>Trigger Value</th>
+                        <th>Notifications</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <!-- BTC Row -->
+                      <tr>
+                        <td>
+                          <img src="https://cryptologos.cc/logos/bitcoin-btc-logo.png"
+                               alt="BTC"
+                               style="height:24px; margin-right:5px;">
+                          BTC
+                        </td>
+                        <td>
+                          <input type="checkbox" name="price_alerts[BTC][enabled]" {% if price_alerts.BTC.enabled %}checked{% endif %} />
+                        </td>
+                        <td>{{ price_alerts.BTC.condition }}</td>
+                        <td>
+                          <input type="number" class="form-control" style="width:100px;" name="price_alerts[BTC][trigger_value]" value="{{ price_alerts.BTC.trigger_value }}" />
+                        </td>
+                        <td>
+                          <div class="notif-inline justify-content-center">
+                            <label class="form-check">
+                              <input type="checkbox" class="form-check-input" name="price_alerts[BTC][notifications][call]" {% if price_alerts.BTC.notifications.call %}checked{% endif %} />
+                              <span style="color:green;">☎</span>
+                            </label>
+                            <label class="form-check">
+                              <input type="checkbox" class="form-check-input" name="price_alerts[BTC][notifications][sms]" {% if price_alerts.BTC.notifications.sms %}checked{% endif %} />
+                              <span style="color:orange;">💬</span>
+                            </label>
+                            <label class="form-check">
+                              <input type="checkbox" class="form-check-input" name="price_alerts[BTC][notifications][email]" {% if price_alerts.BTC.notifications.email %}checked{% endif %} />
+                              <span style="color:blue;">✉</span>
+                            </label>
+                          </div>
+                        </td>
+                      </tr>
+                      <!-- ETH Row -->
+                      <tr>
+                        <td>
+                          <img src="https://cryptologos.cc/logos/ethereum-eth-logo.png"
+                               alt="ETH"
+                               style="height:24px; margin-right:5px;">
+                          ETH
+                        </td>
+                        <td>
+                          <input type="checkbox" name="price_alerts[ETH][enabled]" {% if price_alerts.ETH.enabled %}checked{% endif %} />
+                        </td>
+                        <td>{{ price_alerts.ETH.condition }}</td>
+                        <td>
+                          <input type="number" class="form-control" style="width:100px;" name="price_alerts[ETH][trigger_value]" value="{{ price_alerts.ETH.trigger_value }}" />
+                        </td>
+                        <td>
+                          <div class="notif-inline justify-content-center">
+                            <label class="form-check">
+                              <input type="checkbox" class="form-check-input" name="price_alerts[ETH][notifications][call]" {% if price_alerts.ETH.notifications.call %}checked{% endif %} />
+                              <span style="color:green;">☎</span>
+                            </label>
+                            <label class="form-check">
+                              <input type="checkbox" class="form-check-input" name="price_alerts[ETH][notifications][sms]" {% if price_alerts.ETH.notifications.sms %}checked{% endif %} />
+                              <span style="color:orange;">💬</span>
+                            </label>
+                            <label class="form-check">
+                              <input type="checkbox" class="form-check-input" name="price_alerts[ETH][notifications][email]" {% if price_alerts.ETH.notifications.email %}checked{% endif %} />
+                              <span style="color:blue;">✉</span>
+                            </label>
+                          </div>
+                        </td>
+                      </tr>
+                      <!-- SOL Row -->
+                      <tr>
+                        <td>
+                          <img src="https://cryptologos.cc/logos/solana-sol-logo.png"
+                               alt="SOL"
+                               style="height:24px; margin-right:5px;">
+                          SOL
+                        </td>
+                        <td>
+                          <input type="checkbox" name="price_alerts[SOL][enabled]" {% if price_alerts.SOL.enabled %}checked{% endif %} />
+                        </td>
+                        <td>{{ price_alerts.SOL.condition }}</td>
+                        <td>
+                          <input type="number" class="form-control" style="width:100px;" name="price_alerts[SOL][trigger_value]" value="{{ price_alerts.SOL.trigger_value }}" />
+                        </td>
+                        <td>
+                          <div class="notif-inline justify-content-center">
+                            <label class="form-check">
+                              <input type="checkbox" class="form-check-input" name="price_alerts[SOL][notifications][call]" {% if price_alerts.SOL.notifications.call %}checked{% endif %} />
+                              <span style="color:green;">☎</span>
+                            </label>
+                            <label class="form-check">
+                              <input type="checkbox" class="form-check-input" name="price_alerts[SOL][notifications][sms]" {% if price_alerts.SOL.notifications.sms %}checked{% endif %} />
+                              <span style="color:orange;">💬</span>
+                            </label>
+                            <label class="form-check">
+                              <input type="checkbox" class="form-check-input" name="price_alerts[SOL][notifications][email]" {% if price_alerts.SOL.notifications.email %}checked{% endif %} />
+                              <span style="color:blue;">✉</span>
+                            </label>
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
-              <div class="card-body">
-                <table class="table table-bordered text-center">
-                  <thead>
-                    <tr>
-                      <th>Asset</th>
-                      <th>Enabled</th>
-                      <th>Condition</th>
-                      <th>Trigger Value</th>
-                      <th>Notifications</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <!-- BTC Row -->
-                    <tr>
-                      <td>
-                        <img src="https://cryptologos.cc/logos/bitcoin-btc-logo.png"
-                             alt="BTC"
-                             style="height:24px; margin-right:5px;">
-                        BTC
-                      </td>
-                      <td><input type="checkbox" checked /></td>
-                      <td>Above</td>
-                      <td>
-                        <input type="number" class="form-control" style="width:100px;" value="30000" />
-                      </td>
-                      <td>
-                        <div class="notif-inline justify-content-center">
-                          <label class="form-check">
-                            <input type="checkbox" class="form-check-input" checked />
-                            <span style="color:green;">☎</span>
-                          </label>
-                          <label class="form-check">
-                            <input type="checkbox" class="form-check-input" />
-                            <span style="color:orange;">💬</span>
-                          </label>
-                          <label class="form-check">
-                            <input type="checkbox" class="form-check-input" />
-                            <span style="color:blue;">✉</span>
-                          </label>
-                        </div>
-                      </td>
-                    </tr>
-                    <!-- ETH Row -->
-                    <tr>
-                      <td>
-                        <img src="https://cryptologos.cc/logos/ethereum-eth-logo.png"
-                             alt="ETH"
-                             style="height:24px; margin-right:5px;">
-                        ETH
-                      </td>
-                      <td><input type="checkbox" /></td>
-                      <td>Below</td>
-                      <td>
-                        <input type="number" class="form-control" style="width:100px;" value="1200" />
-                      </td>
-                      <td>
-                        <div class="notif-inline justify-content-center">
-                          <label class="form-check">
-                            <input type="checkbox" class="form-check-input" />
-                            <span style="color:green;">☎</span>
-                          </label>
-                          <label class="form-check">
-                            <input type="checkbox" class="form-check-input" checked />
-                            <span style="color:orange;">💬</span>
-                          </label>
-                          <label class="form-check">
-                            <input type="checkbox" class="form-check-input" />
-                            <span style="color:blue;">✉</span>
-                          </label>
-                        </div>
-                      </td>
-                    </tr>
-                    <!-- SOL Row -->
-                    <tr>
-                      <td>
-                        <img src="https://cryptologos.cc/logos/solana-sol-logo.png"
-                             alt="SOL"
-                             style="height:24px; margin-right:5px;">
-                        SOL
-                      </td>
-                      <td><input type="checkbox" /></td>
-                      <td>Above</td>
-                      <td>
-                        <input type="number" class="form-control" style="width:100px;" value="30" />
-                      </td>
-                      <td>
-                        <div class="notif-inline justify-content-center">
-                          <label class="form-check">
-                            <input type="checkbox" class="form-check-input" />
-                            <span style="color:green;">☎</span>
-                          </label>
-                          <label class="form-check">
-                            <input type="checkbox" class="form-check-input" />
-                            <span style="color:orange;">💬</span>
-                          </label>
-                          <label class="form-check">
-                            <input type="checkbox" class="form-check-input" checked />
-                            <span style="color:blue;">✉</span>
-                          </label>
-                        </div>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+            </div>
+
+            <!-- Alert Timing Column (right) -->
+            <div class="col-lg-5 equal-height-col">
+              <div class="card bg-info flex-fill">
+                <div class="card-header">
+                  <h5 class="card-title"><strong>⏱ Alert Timing</strong></h5>
+                </div>
+                <div class="card-body">
+                  <div class="form-group">
+                    <label>Alert Cooldown (seconds)</label>
+                    <input type="number" class="form-control" style="width:100px;" name="alert_cooldown_seconds" value="{{ alert_cooldown_seconds }}">
+                  </div>
+                  <div class="form-group">
+                    <label>Call Refractory Period (seconds)</label>
+                    <input type="number" class="form-control" style="width:100px;" name="call_refractory_period" id="callRefractoryInput" value="{{ call_refractory_period }}">
+                  </div>
+                  <div class="form-group">
+                    <label>Snooze Countdown (seconds)</label>
+                    <input type="number" class="form-control" style="width:100px;" name="snooze_countdown" value="{{ alert_ranges.snooze_countdown if alert_ranges.snooze_countdown is defined else 300 }}" readonly>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- Alert Timing Column (right) -->
-          <div class="col-lg-5 equal-height-col">
-            <div class="card bg-info flex-fill">
-              <div class="card-header">
-                <h5 class="card-title">⏱ Alert Timing</h5>
-              </div>
-              <div class="card-body">
-                <div class="form-group">
-                  <label>Alert Cooldown (seconds)</label>
-                  <input type="number" class="form-control" style="width:100px;" value="900">
+          <!-- Second row: Alert Limits (full width) -->
+          <div class="row card-row">
+            <div class="col-12">
+              <div class="card bg-info">
+                <div class="card-header">
+                  <h5 class="card-title"><strong>⚙️ Alert Limits</strong></h5>
                 </div>
-                <div class="form-group">
-                  <label>Call Refractory Period (seconds)</label>
-                  <input type="number" class="form-control" style="width:100px;" value="1800" id="callRefractoryInput">
+                <div class="card-body">
+                  <table class="table table-bordered text-center">
+                    <thead>
+                      <tr>
+                        <th style="width:18%;">Metric</th>
+                        <th style="width:10%;">Enabled</th>
+                        <th style="width:24%;">Low</th>
+                        <th style="width:24%;">Medium</th>
+                        <th style="width:24%;">High</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <!-- Heat Index -->
+                      <tr>
+                        <td>🔥 Heat Index</td>
+                        <td><input type="checkbox" name="alert_ranges[heat_index_ranges][enabled]" {% if alert_ranges.heat_index_ranges.enabled %}checked{% endif %} /></td>
+                        <td>
+                          <div class="threshold-cell">
+                            <input type="number" class="threshold-input form-control" name="alert_ranges[heat_index_ranges][low]" value="{{ alert_ranges.heat_index_ranges.low }}">
+                          </div>
+                        </td>
+                        <td>
+                          <div class="threshold-cell">
+                            <input type="number" class="threshold-input form-control" name="alert_ranges[heat_index_ranges][medium]" value="{{ alert_ranges.heat_index_ranges.medium }}">
+                          </div>
+                        </td>
+                        <td>
+                          <div class="threshold-cell">
+                            <input type="number" class="threshold-input form-control" name="alert_ranges[heat_index_ranges][high]" value="{{ alert_ranges.heat_index_ranges.high }}">
+                          </div>
+                        </td>
+                      </tr>
+                      <!-- Travel Percent Liquid -->
+                      <tr>
+                        <td>💧 Travel % Liquid</td>
+                        <td><input type="checkbox" name="alert_ranges[travel_percent_liquid_ranges][enabled]" {% if alert_ranges.travel_percent_liquid_ranges.enabled %}checked{% endif %} /></td>
+                        <td>
+                          <div class="threshold-cell">
+                            <input type="number" class="threshold-input form-control" name="alert_ranges[travel_percent_liquid_ranges][low]" value="{{ alert_ranges.travel_percent_liquid_ranges.low }}">
+                          </div>
+                        </td>
+                        <td>
+                          <div class="threshold-cell">
+                            <input type="number" class="threshold-input form-control" name="alert_ranges[travel_percent_liquid_ranges][medium]" value="{{ alert_ranges.travel_percent_liquid_ranges.medium }}">
+                          </div>
+                        </td>
+                        <td>
+                          <div class="threshold-cell">
+                            <input type="number" class="threshold-input form-control" name="alert_ranges[travel_percent_liquid_ranges][high]" value="{{ alert_ranges.travel_percent_liquid_ranges.high }}">
+                          </div>
+                        </td>
+                      </tr>
+                      <!-- Travel Percent Profit -->
+                      <tr>
+                        <td>📈 Travel % Profit</td>
+                        <td><input type="checkbox" name="alert_ranges[travel_percent_profit_ranges][enabled]" {% if alert_ranges.travel_percent_profit_ranges.enabled %}checked{% endif %} /></td>
+                        <td>
+                          <div class="threshold-cell">
+                            <input type="number" class="threshold-input form-control" name="alert_ranges[travel_percent_profit_ranges][low]" value="{{ alert_ranges.travel_percent_profit_ranges.low }}">
+                          </div>
+                        </td>
+                        <td>
+                          <div class="threshold-cell">
+                            <input type="number" class="threshold-input form-control" name="alert_ranges[travel_percent_profit_ranges][medium]" value="{{ alert_ranges.travel_percent_profit_ranges.medium }}">
+                          </div>
+                        </td>
+                        <td>
+                          <div class="threshold-cell">
+                            <input type="number" class="threshold-input form-control" name="alert_ranges[travel_percent_profit_ranges][high]" value="{{ alert_ranges.travel_percent_profit_ranges.high }}">
+                          </div>
+                        </td>
+                      </tr>
+                      <!-- Profit -->
+                      <tr>
+                        <td>💰 Profit</td>
+                        <td><input type="checkbox" name="alert_ranges[profit_ranges][enabled]" {% if alert_ranges.profit_ranges.enabled %}checked{% endif %} /></td>
+                        <td>
+                          <div class="threshold-cell">
+                            <input type="number" class="threshold-input form-control" name="alert_ranges[profit_ranges][low]" value="{{ alert_ranges.profit_ranges.low }}">
+                          </div>
+                        </td>
+                        <td>
+                          <div class="threshold-cell">
+                            <input type="number" class="threshold-input form-control" name="alert_ranges[profit_ranges][medium]" value="{{ alert_ranges.profit_ranges.medium }}">
+                          </div>
+                        </td>
+                        <td>
+                          <div class="threshold-cell">
+                            <input type="number" class="threshold-input form-control" name="alert_ranges[profit_ranges][high]" value="{{ alert_ranges.profit_ranges.high }}">
+                          </div>
+                        </td>
+                      </tr>
+                      <!-- Liquidation Distance -->
+                      <tr>
+                        <td>📏 Liquidation Distance</td>
+                        <td><input type="checkbox" name="alert_ranges[liquidation_distance_ranges][enabled]" {% if alert_ranges.liquidation_distance_ranges.enabled %}checked{% endif %} /></td>
+                        <td>
+                          <div class="threshold-cell">
+                            <input type="number" class="threshold-input form-control" name="alert_ranges[liquidation_distance_ranges][low]" value="{{ alert_ranges.liquidation_distance_ranges.low }}" placeholder="N/A">
+                          </div>
+                        </td>
+                        <td>
+                          <div class="threshold-cell">
+                            <input type="number" class="threshold-input form-control" name="alert_ranges[liquidation_distance_ranges][medium]" value="{{ alert_ranges.liquidation_distance_ranges.medium }}" placeholder="N/A">
+                          </div>
+                        </td>
+                        <td>
+                          <div class="threshold-cell">
+                            <input type="number" class="threshold-input form-control" name="alert_ranges[liquidation_distance_ranges][high]" value="{{ alert_ranges.liquidation_distance_ranges.high }}" placeholder="N/A">
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
-                <div class="form-group">
-                  <label>Snooze Countdown (seconds)</label>
-                  <input type="number" class="form-control" style="width:100px;" value="300" readonly>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Second row: Alert Limits (full width) -->
-        <div class="row card-row">
-          <div class="col-12">
-            <div class="card bg-info">
-              <div class="card-header">
-                <h5 class="card-title">⚙️ Alert Limits</h5>
-              </div>
-              <div class="card-body">
-                <table class="table table-bordered text-center">
-                  <thead>
-                    <tr>
-                      <th style="width:18%;">Metric</th>
-                      <th style="width:10%;">Enabled</th>
-                      <th style="width:24%;">Low</th>
-                      <th style="width:24%;">Medium</th>
-                      <th style="width:24%;">High</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <!-- Heat Index -->
-                    <tr>
-                      <td>🔥 Heat Index</td>
-                      <td><input type="checkbox" checked /></td>
-                      <td>
-                        <div class="threshold-cell">
-                          <input type="number" class="threshold-input form-control" value="25">
-                          <div class="notif-inline">
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input" checked>
-                              <span style="color:green;">☎</span>
-                            </label>
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input">
-                              <span style="color:orange;">💬</span>
-                            </label>
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input">
-                              <span style="color:blue;">✉</span>
-                            </label>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <div class="threshold-cell">
-                          <input type="number" class="threshold-input form-control" value="50">
-                          <div class="notif-inline">
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input">
-                              <span style="color:green;">☎</span>
-                            </label>
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input" checked>
-                              <span style="color:orange;">💬</span>
-                            </label>
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input">
-                              <span style="color:blue;">✉</span>
-                            </label>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <div class="threshold-cell">
-                          <input type="number" class="threshold-input form-control" value="100">
-                          <div class="notif-inline">
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input">
-                              <span style="color:green;">☎</span>
-                            </label>
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input">
-                              <span style="color:orange;">💬</span>
-                            </label>
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input" checked>
-                              <span style="color:blue;">✉</span>
-                            </label>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                    <!-- Travel Percent Liquid -->
-                    <tr>
-                      <td>💧 Travel % Liquid</td>
-                      <td><input type="checkbox" /></td>
-                      <td>
-                        <div class="threshold-cell">
-                          <input type="number" class="threshold-input form-control" value="-50">
-                          <div class="notif-inline">
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input" checked>
-                              <span style="color:green;">☎</span>
-                            </label>
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input">
-                              <span style="color:orange;">💬</span>
-                            </label>
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input">
-                              <span style="color:blue;">✉</span>
-                            </label>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <div class="threshold-cell">
-                          <input type="number" class="threshold-input form-control" value="-60">
-                          <div class="notif-inline">
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input">
-                              <span style="color:green;">☎</span>
-                            </label>
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input" checked>
-                              <span style="color:orange;">💬</span>
-                            </label>
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input">
-                              <span style="color:blue;">✉</span>
-                            </label>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <div class="threshold-cell">
-                          <input type="number" class="threshold-input form-control" value="-75">
-                          <div class="notif-inline">
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input">
-                              <span style="color:green;">☎</span>
-                            </label>
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input">
-                              <span style="color:orange;">💬</span>
-                            </label>
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input" checked>
-                              <span style="color:blue;">✉</span>
-                            </label>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                    <!-- Travel Percent Profit -->
-                    <tr>
-                      <td>📈 Travel % Profit</td>
-                      <td><input type="checkbox" /></td>
-                      <td>
-                        <div class="threshold-cell">
-                          <input type="number" class="threshold-input form-control" value="-5.222">
-                          <div class="notif-inline">
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input">
-                              <span style="color:green;">☎</span>
-                            </label>
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input">
-                              <span style="color:orange;">💬</span>
-                            </label>
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input">
-                              <span style="color:blue;">✉</span>
-                            </label>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <div class="threshold-cell">
-                          <input type="number" class="threshold-input form-control" value="-35">
-                          <div class="notif-inline">
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input" checked>
-                              <span style="color:green;">☎</span>
-                            </label>
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input">
-                              <span style="color:orange;">💬</span>
-                            </label>
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input">
-                              <span style="color:blue;">✉</span>
-                            </label>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <div class="threshold-cell">
-                          <input type="number" class="threshold-input form-control" value="-100">
-                          <div class="notif-inline">
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input">
-                              <span style="color:green;">☎</span>
-                            </label>
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input">
-                              <span style="color:orange;">💬</span>
-                            </label>
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input" checked>
-                              <span style="color:blue;">✉</span>
-                            </label>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                    <!-- Profit -->
-                    <tr>
-                      <td>💰 Profit</td>
-                      <td><input type="checkbox" /></td>
-                      <td>
-                        <div class="threshold-cell">
-                          <input type="number" class="threshold-input form-control" value="25">
-                          <div class="notif-inline">
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input">
-                              <span style="color:green;">☎</span>
-                            </label>
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input">
-                              <span style="color:orange;">💬</span>
-                            </label>
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input">
-                              <span style="color:blue;">✉</span>
-                            </label>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <div class="threshold-cell">
-                          <input type="number" class="threshold-input form-control" value="50">
-                          <div class="notif-inline">
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input">
-                              <span style="color:green;">☎</span>
-                            </label>
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input">
-                              <span style="color:orange;">💬</span>
-                            </label>
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input">
-                              <span style="color:blue;">✉</span>
-                            </label>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <div class="threshold-cell">
-                          <input type="number" class="threshold-input form-control" value="100">
-                          <div class="notif-inline">
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input" checked>
-                              <span style="color:green;">☎</span>
-                            </label>
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input">
-                              <span style="color:orange;">💬</span>
-                            </label>
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input">
-                              <span style="color:blue;">✉</span>
-                            </label>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                    <!-- Liquidation Distance -->
-                    <tr>
-                      <td>📏 Liquidation Distance</td>
-                      <td><input type="checkbox" /></td>
-                      <td>
-                        <div class="threshold-cell">
-                          <input type="number" class="threshold-input form-control" placeholder="N/A">
-                          <div class="notif-inline">
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input">
-                              <span style="color:green;">☎</span>
-                            </label>
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input">
-                              <span style="color:orange;">💬</span>
-                            </label>
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input">
-                              <span style="color:blue;">✉</span>
-                            </label>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <div class="threshold-cell">
-                          <input type="number" class="threshold-input form-control" placeholder="N/A">
-                          <div class="notif-inline">
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input">
-                              <span style="color:green;">☎</span>
-                            </label>
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input">
-                              <span style="color:orange;">💬</span>
-                            </label>
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input">
-                              <span style="color:blue;">✉</span>
-                            </label>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <div class="threshold-cell">
-                          <input type="number" class="threshold-input form-control" placeholder="N/A">
-                          <div class="notif-inline">
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input">
-                              <span style="color:green;">☎</span>
-                            </label>
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input">
-                              <span style="color:orange;">💬</span>
-                            </label>
-                            <label class="form-check">
-                              <input type="checkbox" class="form-check-input">
-                              <span style="color:blue;">✉</span>
-                            </label>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
               </div>
             </div>
           </div>
@@ -594,21 +371,13 @@
         </div>
       </div>
     </section>
+    </form>
   </div>
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
-  let callRefractory = 1800;
-  let snoozeCountdown = 300;
-
-  function updateTimers() {
-    document.getElementById('callTimer').textContent = `☎ Call: ${callRefractory}`;
-    document.getElementById('snoozeTimer').textContent = `⏳ Snooze: ${snoozeCountdown}`;
-    if(callRefractory > 0) callRefractory--;
-    if(snoozeCountdown > 0) snoozeCountdown--;
-  }
-  setInterval(updateTimers, 1000);
+  // Header timers removed as per request.
 </script>
 {% endblock %}

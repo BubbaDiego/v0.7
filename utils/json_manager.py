@@ -62,8 +62,7 @@ class JsonManager:
             if verification_passed:
                 self.logger.log_operation(
                     operation_type="JSON Verified",
-                    primary_text=(
-                        f"Verification passed for {file_path} (JSON Type: {json_type.name}). {verification_message}"),
+                    primary_text=(f"Verification passed for {file_path} (JSON Type: {json_type.name}). {verification_message}"),
                     source="system",
                     file=file_path,
                     extra_data={"json_type": json_type.name}
@@ -71,8 +70,7 @@ class JsonManager:
             else:
                 self.logger.log_operation(
                     operation_type="JSON Verification Failed",
-                    primary_text=(
-                        f"Verification failed for {file_path} (JSON Type: {json_type.name}). {verification_message}"),
+                    primary_text=(f"Verification failed for {file_path} (JSON Type: {json_type.name}). {verification_message}"),
                     source="system",
                     file=file_path,
                     extra_data={"json_type": json_type.name}
@@ -84,8 +82,7 @@ class JsonManager:
             type_info = f" [JSON Type: {json_type.name}]" if json_type else ""
             self.logger.log_operation(
                 operation_type="Load JSON Failed",
-                primary_text=(f"Failed to load {file_path}{type_info} by system at "
-                              f"{caller.filename}:{caller.lineno}: {e}"),
+                primary_text=(f"Failed to load {file_path}{type_info} by system at {caller.filename}:{caller.lineno}: {e}"),
                 source="system",
                 file=f"{file_path} ({caller.filename}:{caller.lineno})",
                 extra_data={"json_type": json_type.name if json_type else ""}
@@ -113,8 +110,7 @@ class JsonManager:
             type_info = f" [JSON Type: {json_type.name}]" if json_type else ""
             self.logger.log_operation(
                 operation_type="JSON Saved",
-                primary_text=(f"Successfully saved {file_path}{type_info} by system at "
-                              f"{caller.filename}:{caller.lineno}. Data: {json_str}"),
+                primary_text=(f"Successfully saved {file_path}{type_info} by system at {caller.filename}:{caller.lineno}. Data: {json_str}"),
                 source="system",
                 file=f"{file_path} ({caller.filename}:{caller.lineno})",
                 extra_data={"json_type": json_type.name if json_type else ""}
@@ -124,10 +120,48 @@ class JsonManager:
             type_info = f" [JSON Type: {json_type.name}]" if json_type else ""
             self.logger.log_operation(
                 operation_type="Save JSON Failed",
-                primary_text=(f"Failed to save {file_path}{type_info} by system at "
-                              f"{caller.filename}:{caller.lineno}: {e}"),
+                primary_text=(f"Failed to save {file_path}{type_info} by system at {caller.filename}:{caller.lineno}: {e}"),
                 source="system",
                 file=f"{file_path} ({caller.filename}:{caller.lineno})",
                 extra_data={"json_type": json_type.name if json_type else ""}
+            )
+            raise
+
+    def deep_merge(self, source: dict, updates: dict) -> dict:
+        """
+        Recursively merges updates into the source dictionary.
+        Logs operations for each key update and overall success or failure.
+        """
+        try:
+            for key, value in updates.items():
+                if key in source and isinstance(source[key], dict) and isinstance(value, dict):
+                    self.logger.log_operation(
+                        operation_type="Deep Merge",
+                        primary_text=f"Deep merging key: {key}",
+                        source="JsonManager",
+                        file="JsonManager.deep_merge"
+                    )
+                    source[key] = self.deep_merge(source[key], value)
+                else:
+                    self.logger.log_operation(
+                        operation_type="Deep Merge",
+                        primary_text=f"Updating key: {key} with value: {value}",
+                        source="JsonManager",
+                        file="JsonManager.deep_merge"
+                    )
+                    source[key] = value
+            self.logger.log_operation(
+                operation_type="Deep Merge Success",
+                primary_text="Deep merge completed successfully.",
+                source="JsonManager",
+                file="JsonManager.deep_merge"
+            )
+            return source
+        except Exception as e:
+            self.logger.log_operation(
+                operation_type="Deep Merge Failure",
+                primary_text=f"Deep merge failed with error: {e}",
+                source="JsonManager",
+                file="JsonManager.deep_merge"
             )
             raise

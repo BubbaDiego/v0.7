@@ -27,6 +27,8 @@ class AlertType(str, Enum):
     DELTA_CHANGE = "DeltaChange"
     TRAVEL_PERCENT_LIQUID = "TravelPercent"
     TIME = "Time"
+    PROFIT = "Profit"         # New alert type for profit alerts
+    HEAT_INDEX = "HeatIndex"  # New alert type for heat index alerts
 
 class AlertClass(str, Enum):
     SYSTEM = "System"

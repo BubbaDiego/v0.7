@@ -27,17 +27,6 @@ if not logger.handlers:
     logger.addHandler(ch)
 
 
-# Deep merge function
-def deep_merge(source: dict, updates: dict) -> dict:
-    for key, value in updates.items():
-        if key in source and isinstance(source[key], dict) and isinstance(value, dict):
-            logger.debug("Deep merging key: %s", key)
-            source[key] = deep_merge(source[key], value)
-        else:
-            logger.debug("Updating key: %s with value: %s", key, value)
-            source[key] = value
-    return source
-
 
 def convert_types_in_dict(d):
     if isinstance(d, dict):
@@ -257,12 +246,13 @@ def alarm_viewer():
                            theme=theme_config,
                            positions=positions)
 
-
 @alerts_bp.route('/config', methods=['GET'], endpoint="alert_config_page")
 def config_page():
     try:
         json_manager = current_app.json_manager
         config_data = json_manager.load("alert_limits.json", json_type=JsonType.ALERT_LIMITS)
+        # Convert values to appropriate types (ensuring numbers come through correctly)
+        config_data = convert_types_in_dict(config_data)
     except Exception as e:
         op_logger = OperationsLogger(log_filename=os.path.join(os.getcwd(), "operations_log.txt"))
         op_logger.log("Alert Configuration Failed", source="System",
@@ -298,7 +288,7 @@ def update_alert_config_route():
         logger.debug("Parsed Nested Form Data (converted):\n%s", json.dumps(nested_update, indent=2))
         json_manager = current_app.json_manager
         current_config = json_manager.load("alert_limits.json", json_type=JsonType.ALERT_LIMITS)
-        merged_config = deep_merge(current_config, nested_update)
+        merged_config = json_manager.deep_merge(current_config, nested_update)
 
         # Patch for empty cooldown/refractory values
         if "alert_cooldown_seconds" in merged_config and (
@@ -318,6 +308,7 @@ def update_alert_config_route():
         op_logger.log("Alert Configuration Failed", source="System",
                       operation_type="Alert Config Failed", file_name=str(ALERT_LIMITS_PATH))
         return jsonify({"success": False, "error": str(e)}), 500
+
 
 @alerts_bp.route('/matrix', methods=['GET'], endpoint="alert_matrix")
 def alert_matrix():

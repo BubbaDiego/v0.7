@@ -53,14 +53,14 @@
   },
   "alert_ranges": {
     "heat_index_ranges": {
-      "enabled": false,
-      "low": 2434.0,
+      "enabled": "on",
+      "low": 12.0,
       "low_notifications": {
         "call": false,
         "sms": false,
         "email": false
       },
-      "medium": 4323.0,
+      "medium": 33.0,
       "medium_notifications": {
         "call": false,
         "sms": false,
@@ -68,97 +68,13 @@
       },
       "high": 66.0,
       "high_notifications": {
-        "call": false,
-        "sms": false,
-        "email": false
-      }
-    },
-    "collateral_ranges": {
-      "enabled": false,
-      "low": "",
-      "medium": "",
-      "high": "",
-      "low_notifications": {
-        "call": false,
-        "sms": false,
-        "email": false
-      },
-      "medium_notifications": {
-        "call": false,
-        "sms": false,
-        "email": false
-      },
-      "high_notifications": {
-        "call": false,
-        "sms": false,
-        "email": false
-      }
-    },
-    "value_ranges": {
-      "enabled": false,
-      "low": "",
-      "medium": "",
-      "high": "",
-      "low_notifications": {
-        "call": false,
-        "sms": false,
-        "email": false
-      },
-      "medium_notifications": {
-        "call": false,
-        "sms": false,
-        "email": false
-      },
-      "high_notifications": {
-        "call": false,
-        "sms": false,
-        "email": false
-      }
-    },
-    "size_ranges": {
-      "enabled": false,
-      "low": "",
-      "medium": "",
-      "high": "",
-      "low_notifications": {
-        "call": false,
-        "sms": false,
-        "email": false
-      },
-      "medium_notifications": {
-        "call": false,
-        "sms": false,
-        "email": false
-      },
-      "high_notifications": {
-        "call": false,
-        "sms": false,
-        "email": false
-      }
-    },
-    "leverage_ranges": {
-      "enabled": false,
-      "low": "",
-      "medium": "",
-      "high": "",
-      "low_notifications": {
-        "call": false,
-        "sms": false,
-        "email": false
-      },
-      "medium_notifications": {
-        "call": false,
-        "sms": false,
-        "email": false
-      },
-      "high_notifications": {
-        "call": false,
+        "call": true,
         "sms": false,
         "email": false
       }
     },
     "liquidation_distance_ranges": {
-      "enabled": false,
+      "enabled": "on",
       "low": "",
       "medium": "",
       "high": "",
@@ -179,14 +95,14 @@
       }
     },
     "travel_percent_liquid_ranges": {
-      "enabled": true,
+      "enabled": "on",
       "low": -50.0,
       "low_notifications": {
         "call": true,
         "sms": false,
         "email": false
       },
-      "medium": -60.0,
+      "medium": -560.0,
       "medium_notifications": {
         "call": true,
         "sms": false,
@@ -200,7 +116,7 @@
       }
     },
     "travel_percent_profit_ranges": {
-      "enabled": false,
+      "enabled": "on",
       "low": -5.222,
       "medium": -35.0,
       "high": -100.0,
@@ -210,18 +126,18 @@
         "email": false
       },
       "medium_notifications": {
-        "call": true,
+        "call": false,
         "sms": false,
         "email": false
       },
       "high_notifications": {
-        "call": true,
+        "call": false,
         "sms": false,
         "email": false
       }
     },
     "profit_ranges": {
-      "enabled": false,
+      "enabled": "on",
       "low": 22.0,
       "low_notifications": {
         "call": false,
@@ -248,9 +164,9 @@
     },
     "price_alerts": {
       "BTC": {
-        "enabled": false,
+        "enabled": true,
         "condition": "ABOVE",
-        "trigger_value": "",
+        "trigger_value": "77667",
         "notifications": {
           "call": false,
           "sms": false,
@@ -280,8 +196,25 @@
     }
   },
   "alert_cooldown_seconds": 900.0,
-  "call_refractory_period": 878.0,
-  "snooze_countdown": 187.0,
-  "call_refractory_start": 1742582810.1610315,
-  "snooze_start": null
+  "call_refractory_period": 873.0,
+  "snooze_countdown": 300.0,
+  "call_refractory_start": 1742594675.1041143,
+  "snooze_start": null,
+  "price_alerts": {
+    "BTC": {
+      "enabled": "on",
+      "trigger_value": 7789667.0
+    },
+    "ETH": {
+      "enabled": "on",
+      "trigger_value": 1926.84
+    },
+    "SOL": {
+      "enabled": "on",
+      "trigger_value": 133.9,
+      "notifications": {
+        "call": "on"
+      }
+    }
+  }
 }
