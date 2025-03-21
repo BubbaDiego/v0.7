@@ -1,18 +1,10 @@
-{# positions_table.html #}
 {% extends "base.html" %}
 
 {% block extra_styles %}
 <style>
-  /* Container for update buttons */
-  .update-info-container {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 1rem;
-  }
-
   /* Increase table font size */
   .table-responsive {
-    font-size: 1rem; /* increased font size */
+    font-size: 1rem;
   }
   .table-responsive table {
     width: 100%;
@@ -24,32 +16,28 @@
     max-width: 80px;
     word-wrap: break-word;
   }
-  /* Add pointer cursor for sortable headers */
+  /* Sortable headers get a pointer cursor */
   th.sortable {
     cursor: pointer;
   }
-
-  /* Smaller asset icon styles */
+  /* Asset icon styling */
   .asset-icon {
     width: 30px;
     height: 30px;
   }
-
-  /* Styling for wallet image */
+  /* Wallet image styling */
   .wallet-img {
     width: 30px;
     height: 30px;
     vertical-align: middle;
   }
-
-  /* Optional: further shrink the card header for smaller screens */
+  /* Responsive adjustments for smaller screens */
   @media (max-width: 576px) {
     .card-header h3 {
       font-size: 0.9rem;
       padding: 0.3rem;
     }
   }
-
   /* Alert cell background colors */
   td.alert-low {
     background-color: #d4edda !important;
@@ -65,18 +53,10 @@
 
 {% block content %}
 <div class="container my-3">
-  <!-- Update Info Container: Two update buttons -->
-  <div class="update-info-container">
-    {% set update_type = "crypto" %}
-    {% include "update_button.html" %}
-    {% set update_type = "jupiter" %}
-    {% include "update_button.html" %}
-  </div>
-
   <!-- Positions Table Card -->
   <div class="card">
-    <div class="card-header {{ theme.sidebar.bg or 'bg-primary' }}">
-      <h3 class="card-title">POSITIONS</h3>
+    <div class="card-header" style="background-color: var(--side-bar-color);">
+      <h3 class="card-title" style="color: var(--text-color);">POSITIONS</h3>
     </div>
     <div class="card-body">
       <div class="table-responsive">
@@ -203,7 +183,7 @@
           </tbody>
           <tfoot>
             {% set total_profit = positions|sum(attribute='pnl_after_fees_usd') %}
-            <tr style="font-weight: bold; background-color: {{ theme.sidebar.bg or 'bg-primary' }}; text-align: center;">
+            <tr style="font-weight: bold; background-color: var(--side-bar-color); text-align: center; color: var(--text-color);">
               <td>TOTALS</td>
               <td></td>
               <td id="footProfit">{{ "{:,.2f}".format(total_profit) }}</td>
@@ -229,14 +209,12 @@
 document.addEventListener("DOMContentLoaded", function () {
   console.log("Positions table extra_scripts loaded");
 
-  // Get the table and all sortable headers
   var table = document.getElementById("positionsTable");
   var headers = table.querySelectorAll("th.sortable");
 
   headers.forEach(function(header) {
     header.addEventListener("click", function () {
       var colIndex = parseInt(header.getAttribute("data-col-index"));
-      // Toggle sort direction: default to "asc" if not set.
       var currentSortDirection = header.getAttribute("data-sort-direction") || "asc";
       var newSortDirection = (currentSortDirection === "asc") ? "desc" : "asc";
       header.setAttribute("data-sort-direction", newSortDirection);
@@ -268,7 +246,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       });
 
-      // Re-append sorted rows to tbody.
       rows.forEach(function (row) {
         tbody.appendChild(row);
       });

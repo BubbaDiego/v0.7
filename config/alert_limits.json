@@ -1,4 +1,56 @@
 {
+  "price_config": {
+    "assets": [
+      "BTC",
+      "ETH",
+      "SOL"
+    ],
+    "currency": "USD",
+    "cmc_api_key": "c51c0c22-1bf3-4674-86bf-36f39a912d1a"
+  },
+  "system_config": {
+    "logging_enabled": true,
+    "log_level": "DEBUG",
+    "console_output": true,
+    "log_file": "./v0.6/price_monitor.log",
+    "db_path": "./v0.6/mother_brain.db",
+    "price_monitor_enabled": true,
+    "alert_monitor_enabled": true,
+    "sonic_monitor_loop_time": 300,
+    "last_price_update_time": null
+  },
+  "api_config": {
+    "coingecko_api_enabled": "ENABLE",
+    "kucoin_api_enabled": "ENABLE",
+    "coinmarketcap_api_enabled": "ENABLE",
+    "coinpaprika_api_enabled": "ENABLE",
+    "binance_api_enabled": "ENABLE",
+    "coinmarketcap_api_key": "c51c0c22-1bf3-4674-86bf-36f39a912d1a"
+  },
+  "notification_config": {
+    "email": {
+      "smtp_server": "smtp.gmail.com",
+      "smtp_port": 587,
+      "smtp_user": "bubba.diego@gmail.com",
+      "smtp_password": "pzix taan afbe igxb",
+      "recipient_email": "bubba.diego@gmail.com"
+    },
+    "sms": {
+      "carrier_gateway": "txt.att.net",
+      "recipient_number": "6199804758"
+    }
+  },
+  "twilio_config": {
+    "account_sid": "ACb606788ada5dccbfeeebed0f440099b3",
+    "auth_token": "86c1d624c7211b47b26cabd7236eff33",
+    "flow_sid": "FW5b3bf49ee04af4d23a118b613bbc0df2",
+    "to_phone": "+16199804758",
+    "from_phone": "+18336913467"
+  },
+  "theme_config": {
+    "selected_profile": "profile4",
+    "profiles": {}
+  },
   "alert_ranges": {
     "heat_index_ranges": {
       "enabled": false,
@@ -229,5 +281,7 @@
   },
   "alert_cooldown_seconds": 900.0,
   "call_refractory_period": 878.0,
-  "snooze_countdown": 187.0
+  "snooze_countdown": 187.0,
+  "call_refractory_start": 1742582810.1610315,
+  "snooze_start": null
 }

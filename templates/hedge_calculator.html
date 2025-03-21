@@ -55,6 +55,13 @@
   .slider-box {
       height: 180px; /* pick a height that accommodates the slider & labels */
   }
+  /* Make all text bold in the first two rows (Positions + Modifiers) */
+  #positionInputRow * {
+      font-weight: bold !important;
+  }
+  #modifierRow * {
+      font-weight: bold !important;
+  }
 </style>
 {% endblock %}
 
@@ -567,6 +574,8 @@
     let pnl = (simPrice - longEntry) * tokenCount;
     let feeCost = (fee / 100) * longSize;
     let netValue = collateral + pnl - feeCost;
+
+    // Liquidation check
     if (longLiquidation && simPrice <= longLiquidation) {
       document.getElementById("longSimPrice").innerHTML =
         "<strong>Simulated Price: $" + simPrice.toFixed(2) + " (Liquidated)</strong>";
@@ -580,26 +589,33 @@
         "<strong>Recommended: Liquidated</strong>";
       document.getElementById("longSafetyMargin").innerHTML =
         "<strong>Safety Margin: 0%</strong>";
+      // Liquidated card style
       document.getElementById("longOutputCard").className =
         "card shadow-sm bg-secondary bg-opacity-25 border border-2 border-secondary reduced-height";
       document.getElementById("longCurrentSize").innerHTML =
         "<strong>Current Size: $0.00</strong>";
       return;
     }
+
+    // Normal updates
     document.getElementById("longSimPrice").innerHTML =
       "<strong>Simulated Price: $" + simPrice.toFixed(2) + "</strong>";
     document.getElementById("longCollateralDisplay").innerHTML =
       "<strong>Collateral: $" + collateral.toFixed(2) + "</strong>";
     document.getElementById("longValue").innerHTML =
       "<strong>Position Value: $" + netValue.toFixed(2) + "</strong>";
-    let pnlColor = (pnl - feeCost) > 0 ? "text-success" : "text-danger";
-    let bgClass = (pnl - feeCost) > 0
+
+    // P&L color
+    let pnlColor = (pnl - feeCost) >= 0 ? "text-success" : "text-danger";
+    let bgClass = (pnl - feeCost) >= 0
       ? "bg-success bg-opacity-10 border border-2 border-success"
       : "bg-danger bg-opacity-10 border border-2 border-danger";
     document.getElementById("longPnL").innerHTML =
       "<strong>P&L: <span class='" + pnlColor + "'>" +
       ((pnl - feeCost) >= 0 ? "▲ " : "▼ ") + "$" +
       (pnl - feeCost).toFixed(2) + "</span></strong>";
+
+    // Recommendation
     let recommendation = "";
     let recIcon = "";
     if (simPrice < longEntry) {
@@ -614,10 +630,16 @@
     }
     document.getElementById("longSLTP").innerHTML =
       "<strong>Recommended: " + recIcon + recommendation + "</strong>";
+
+    // Dynamic background
     document.getElementById("longOutputCard").className =
       "card shadow-sm " + bgClass + " reduced-height";
+
+    // Current size
     document.getElementById("longCurrentSize").innerHTML =
       "<strong>Current Size: $" + longSize.toFixed(2) + "</strong>";
+
+    // Safety margin
     const longLiq = longLiquidation || (longEntry * 0.8);
     const longRange = longEntry - longLiq;
     const longSafety = simPrice - longLiq;
@@ -635,6 +657,8 @@
     let pnl = (shortEntry - simPrice) * tokenCount;
     let feeCost = (fee / 100) * shortSize;
     let netValue = collateral + pnl - feeCost;
+
+    // Liquidation check
     if (shortLiquidation && simPrice >= shortLiquidation) {
       document.getElementById("shortSimPrice").innerHTML =
         "<strong>Simulated Price: $" + simPrice.toFixed(2) + " (Liquidated)</strong>";
@@ -648,26 +672,33 @@
         "<strong>Recommended: Liquidated</strong>";
       document.getElementById("shortSafetyMargin").innerHTML =
         "<strong>Safety Margin: 0%</strong>";
+      // Liquidated card style
       document.getElementById("shortOutputCard").className =
         "card shadow-sm bg-secondary bg-opacity-25 border border-2 border-secondary reduced-height";
       document.getElementById("shortCurrentSize").innerHTML =
         "<strong>Current Size: $0.00</strong>";
       return;
     }
+
+    // Normal updates
     document.getElementById("shortSimPrice").innerHTML =
       "<strong>Simulated Price: $" + simPrice.toFixed(2) + "</strong>";
     document.getElementById("shortCollateralDisplay").innerHTML =
       "<strong>Collateral: $" + collateral.toFixed(2) + "</strong>";
     document.getElementById("shortValue").innerHTML =
       "<strong>Position Value: $" + netValue.toFixed(2) + "</strong>";
-    let pnlColor = (pnl - feeCost) > 0 ? "text-success" : "text-danger";
-    let bgClass = (pnl - feeCost) > 0
+
+    // P&L color
+    let pnlColor = (pnl - feeCost) >= 0 ? "text-success" : "text-danger";
+    let bgClass = (pnl - feeCost) >= 0
       ? "bg-success bg-opacity-10 border border-2 border-success"
       : "bg-danger bg-opacity-10 border border-2 border-danger";
     document.getElementById("shortPnL").innerHTML =
       "<strong>P&L: <span class='" + pnlColor + "'>" +
       ((pnl - feeCost) >= 0 ? "▲ " : "▼ ") + "$" +
       (pnl - feeCost).toFixed(2) + "</span></strong>";
+
+    // Recommendation
     let recommendation = "";
     let recIcon = "";
     if (simPrice > shortEntry) {
@@ -682,10 +713,16 @@
     }
     document.getElementById("shortSLTP").innerHTML =
       "<strong>Recommended: " + recIcon + recommendation + "</strong>";
+
+    // Dynamic background
     document.getElementById("shortOutputCard").className =
       "card shadow-sm " + bgClass + " reduced-height";
+
+    // Current size
     document.getElementById("shortCurrentSize").innerHTML =
       "<strong>Current Size: $" + shortSize.toFixed(2) + "</strong>";
+
+    // Safety margin
     const shortLiq = shortLiquidation || (shortEntry * 1.2);
     const shortRange = shortLiq - shortEntry;
     const shortSafety = shortLiq - simPrice;
@@ -998,6 +1035,7 @@
     document.getElementById("projectedLongHeatIndex").innerText =
       projectedHeatLong.toFixed(2);
 
+    // Dynamic color for projected long
     let projectedLongBgClass = (pnlLongProjected >= 0)
       ? "bg-success bg-opacity-10 border border-2 border-success"
       : "bg-danger bg-opacity-10 border border-2 border-danger";
@@ -1073,6 +1111,7 @@
     document.getElementById("projectedShortHeatIndex").innerText =
       projectedHeatShort.toFixed(2);
 
+    // Dynamic color for projected short
     let projectedShortBgClass = (pnlShortProjected >= 0)
       ? "bg-success bg-opacity-10 border border-2 border-success"
       : "bg-danger bg-opacity-10 border border-2 border-danger";

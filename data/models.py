@@ -25,8 +25,13 @@ class Status(str, Enum):
 class AlertType(str, Enum):
     PRICE_THRESHOLD = "PriceThreshold"
     DELTA_CHANGE = "DeltaChange"
-    TRAVEL_PERCENT = "TravelPercent"
+    TRAVEL_PERCENT_LIQUID = "TravelPercent"
     TIME = "Time"
+
+class AlertClass(str, Enum):
+    SYSTEM = "System"
+    MARKET = "Market"
+    POSITION = "Position"
 
 class NotificationType(str, Enum):
     EMAIL = "Email"
@@ -86,6 +91,7 @@ class Alert:
         self,
         id: str,
         alert_type: AlertType,
+        alert_class: AlertClass,  # New field: indicates if the alert is Market or Position related
         trigger_value: float,
         notification_type: NotificationType,
         last_triggered: Optional[datetime],
@@ -100,6 +106,7 @@ class Alert:
     ):
         self.id = id
         self.alert_type = alert_type
+        self.alert_class = alert_class
         self.trigger_value = trigger_value
         self.notification_type = notification_type
         self.last_triggered = last_triggered
@@ -114,12 +121,12 @@ class Alert:
 
     def __repr__(self):
         return (
-            f"Alert(id={self.id!r}, alert_type={self.alert_type!r}, trigger_value={self.trigger_value}, "
-            f"notification_type={self.notification_type!r}, last_triggered={self.last_triggered}, "
-            f"status={self.status!r}, frequency={self.frequency}, counter={self.counter}, "
-            f"liquidation_distance={self.liquidation_distance}, target_travel_percent={self.target_travel_percent}, "
-            f"liquidation_price={self.liquidation_price}, notes={self.notes!r}, "
-            f"position_reference_id={self.position_reference_id!r})"
+            f"Alert(id={self.id!r}, alert_type={self.alert_type!r}, alert_class={self.alert_class!r}, "
+            f"trigger_value={self.trigger_value}, notification_type={self.notification_type!r}, "
+            f"last_triggered={self.last_triggered}, status={self.status!r}, frequency={self.frequency}, "
+            f"counter={self.counter}, liquidation_distance={self.liquidation_distance}, "
+            f"target_travel_percent={self.target_travel_percent}, liquidation_price={self.liquidation_price}, "
+            f"notes={self.notes!r}, position_reference_id={self.position_reference_id!r})"
         )
 
 

@@ -935,6 +935,22 @@ class DataLocker:
             self.logger.exception(f"Error update_position_size: {ex}")
             raise
 
+    def create_alert_instance(self, alert_obj) -> None:
+        """
+        Creates an alert in the database from an alert object.
+        The alert object is expected to halert_manager.pyave a `to_dict()` method
+        that returns a dictionary compatible with the alerts table.
+        """
+        try:
+            alert_dict = alert_obj.to_dict()
+            # Ensure an ID is present
+            if not alert_dict.get("id"):
+                alert_dict["id"] = str(uuid4())
+            self.create_alert(alert_dict)
+        except Exception as e:
+            self.logger.exception(f"Error creating alert instance: {e}")
+            raise
+
     # ----------------------------------------------------------------
     # PORTFOLIO ENTRIES CRUD
     # ----------------------------------------------------------------

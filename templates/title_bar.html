@@ -1,4 +1,3 @@
-{# title_bar.html #}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,7 +5,6 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>{% block title %}My Website{% endblock %}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
   <!-- Bootstrap 5 (required by AdminLTE 4) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <!-- Font Awesome Icons -->
@@ -14,24 +12,20 @@
   <!-- AdminLTE 4 CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0/dist/css/adminlte.min.css">
 
-  {# Dynamic Theme Styles using theme from context processor #}
-  {% if theme and theme['profiles'] and theme['selected_profile'] and theme['profiles'][theme['selected_profile']] %}
-    {% set selected = theme['profiles'][theme['selected_profile']] %}
+  {% if theme and theme.get('profiles') and theme.get('selected_profile') and theme.get('profiles').get(theme.get('selected_profile')) %}
+    {% set selected = theme.get('profiles').get(theme.get('selected_profile')) %}
     <style>
-      /* Title Bar Background using the theme's title bar color */
       .main-header.navbar {
-        background-color: {{ selected["title bar"]["color"] }};
+        background-color: {{ selected.get("title bar", {}).get("color", "#34495E") }};
       }
-      /* Title Bar text color */
       .main-header.navbar .navbar-brand,
       .main-header.navbar .nav-link {
-        color: {{ selected["text"]["color"] }};
+        color: {{ selected.get("text", {}).get("color", "#FFFFFF") }};
       }
     </style>
   {% endif %}
 
   <style>
-    /* Align asset price panel items in a row */
     .asset-panel {
       display: flex;
       align-items: center;
@@ -44,7 +38,6 @@
       width: 20px;
       height: 20px;
     }
-    /* Update Jupiter button styling */
     .update-jupiter-btn {
       border: none;
       background: none;
@@ -68,22 +61,19 @@
     <!-- Title Bar (Navbar) -->
     <nav class="main-header navbar navbar-expand-md navbar-light navbar-white">
       <div class="container">
-        <!-- Classic Theme Link -->
-        <a href="/base_classic.html" class="nav-link me-2" title="Classic Theme">
-          <i class="fas fa-history"></i>
-        </a>
         <!-- Logo and Site Title -->
         <a href="/" class="navbar-brand">
-          <img src="/path/to/logo.png" alt="Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
+          <img src="{{ url_for('static', filename='images/corner_logo.jpg') }}"
+               alt="Logo"
+               class="brand-image img-circle elevation-3"
+               style="opacity: .8">
           <span class="brand-text font-weight-light">My Website</span>
         </a>
-        <!-- Navbar toggler for small screens -->
         <button class="navbar-toggler order-1" type="button" data-bs-toggle="collapse"
                 data-bs-target="#navbarCollapse" aria-controls="navbarCollapse"
                 aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
-        <!-- Left Navbar Links -->
         <div class="collapse navbar-collapse order-3" id="navbarCollapse">
           <ul class="navbar-nav">
             <li class="nav-item">
@@ -101,26 +91,34 @@
                 <i class="fas fa-sliders-h"></i>
               </a>
             </li>
+            <!-- New Alert Matrix Navigation Item -->
+            <li class="nav-item">
+              <a href="{{ url_for('alerts_bp.alert_matrix') }}" class="nav-link" title="Alert Matrix">
+                <i class="fas fa-th"></i>
+              </a>
+            </li>
           </ul>
         </div>
         <!-- Right Navbar Links -->
         <ul class="order-1 order-md-3 navbar-nav navbar-no-expand ms-auto">
+          <!-- Timers Display -->
+          <li class="nav-item d-none d-md-flex align-items-center me-3">
+            <span id="callTimer" style="margin-right: 10px;">☎ Call: --</span>
+            <span id="snoozeTimer">⏳ Snooze: --</span>
+          </li>
           <!-- Price Panel -->
           <li class="nav-item d-none d-md-flex align-items-center me-3">
             <div class="d-flex gap-2">
-              <!-- BTC Panel -->
               <div class="asset-panel">
                 <img src="https://cryptologos.cc/logos/bitcoin-btc-logo.png?v=023" alt="BTC">
                 <span id="btcPrice">$--.--</span>
                 <small id="btcChange" class="fw-bold">0.00%</small>
               </div>
-              <!-- ETH Panel -->
               <div class="asset-panel">
                 <img src="https://cryptologos.cc/logos/ethereum-eth-logo.png?v=023" alt="ETH">
                 <span id="ethPrice">$--.--</span>
                 <small id="ethChange" class="fw-bold">0.00%</small>
               </div>
-              <!-- SOL Panel -->
               <div class="asset-panel">
                 <img src="https://cryptologos.cc/logos/solana-sol-logo.png?v=023" alt="SOL">
                 <span id="solPrice">$--.--</span>
@@ -136,9 +134,9 @@
           </li>
           <!-- Theme Switcher Dropdown -->
           <li class="nav-item dropdown ms-3">
-            {% if theme and theme['profiles'] and theme['selected_profile'] and theme['profiles'][theme['selected_profile']] %}
-              {% set current = theme['profiles'][theme['selected_profile']] %}
-              {% set current_name = current.get('name', theme['selected_profile']|capitalize) %}
+            {% if theme and theme.get('profiles') and theme.get('selected_profile') and theme.get('profiles').get(theme.get('selected_profile')) %}
+              {% set current = theme.get('profiles').get(theme.get('selected_profile')) %}
+              {% set current_name = current.get('name', theme.get('selected_profile')|capitalize) %}
             {% else %}
               {% set current_name = "Default" %}
             {% endif %}
@@ -146,8 +144,8 @@
               <i class="fas fa-cogs"></i> {{ current_name }}
             </a>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="themeDropdown">
-              {% if theme and theme['profiles'] %}
-                {% for profile_key, profile in theme['profiles'].items() %}
+              {% if theme and theme.get('profiles') %}
+                {% for profile_key, profile in theme.get('profiles').items() %}
                   {% set name = profile.get('name', profile_key|capitalize) %}
                   <li>
                     <a class="dropdown-item theme-profile-option" href="#" data-profile="{{ profile_key }}">
@@ -177,13 +175,12 @@
     </nav>
     <!-- End Title Bar -->
 
-    <!-- Price update script to update the price panel -->
+    <!-- Price update script remains unchanged -->
     <script>
       function updatePrices() {
         fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd&include_24hr_change=true')
           .then(response => response.json())
           .then(data => {
-            // Bitcoin
             const btcPrice = data.bitcoin.usd;
             const btcChange = data.bitcoin.usd_24h_change;
             document.getElementById('btcPrice').textContent = '$' + btcPrice.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
@@ -191,7 +188,6 @@
             btcChangeElem.textContent = btcChange.toFixed(2) + '%';
             btcChangeElem.style.color = btcChange >= 0 ? 'green' : 'red';
 
-            // Ethereum
             const ethPrice = data.ethereum.usd;
             const ethChange = data.ethereum.usd_24h_change;
             document.getElementById('ethPrice').textContent = '$' + ethPrice.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
@@ -199,7 +195,6 @@
             ethChangeElem.textContent = ethChange.toFixed(2) + '%';
             ethChangeElem.style.color = ethChange >= 0 ? 'green' : 'red';
 
-            // Solana
             const solPrice = data.solana.usd;
             const solChange = data.solana.usd_24h_change;
             document.getElementById('solPrice').textContent = '$' + solPrice.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
@@ -213,7 +208,7 @@
       setInterval(updatePrices, 60000);
     </script>
 
-    <!-- Jupiter update script -->
+    <!-- Jupiter update script remains unchanged -->
     <script>
       document.addEventListener("DOMContentLoaded", function() {
         const updateBtn = document.getElementById("updateJupiterBtn");
@@ -231,17 +226,13 @@
             });
         });
 
-        // Fix for not overwriting entire JSON on theme switch:
-        // We'll only send the 'selected_profile' property
         document.querySelectorAll('.theme-profile-option').forEach(option => {
           option.addEventListener('click', e => {
             e.preventDefault();
             const selectedProfile = e.currentTarget.dataset.profile;
-            console.log("Switching theme to:", selectedProfile);
             fetch('{{ url_for("dashboard.save_theme_route") }}', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              // Only send the new selected_profile, do NOT pass empty data
               body: JSON.stringify({ selected_profile: selectedProfile })
             })
             .then(r => r.json())
@@ -259,6 +250,36 @@
           });
         });
       });
+    </script>
+
+    <!-- Timer script that fetches and calculates the dynamic countdown -->
+    <script>
+      // Function to compute remaining time given a start time and period (in seconds)
+      function getRemaining(start, period) {
+        if (!start) return period;
+        const elapsed = Math.floor(Date.now() / 1000) - start;
+        return Math.max(period - elapsed, 0);
+      }
+
+      // Fetch alert limits data from the backend
+      fetch('/alert_limits.json')
+        .then(response => response.json())
+        .then(data => {
+          const callPeriod = data.call_refractory_period;
+          const snoozeCount = data.snooze_countdown;
+          const callStart = data.call_refractory_start; // Unix timestamp or null
+          const snoozeStart = data.snooze_start; // Unix timestamp or null
+
+          function updateTimers() {
+            const callRemaining = getRemaining(callStart, callPeriod);
+            const snoozeRemaining = getRemaining(snoozeStart, snoozeCount);
+            document.getElementById('callTimer').textContent = `☎ Call: ${callRemaining}`;
+            document.getElementById('snoozeTimer').textContent = `⏳ Snooze: ${snoozeRemaining}`;
+          }
+          updateTimers();
+          setInterval(updateTimers, 1000);
+        })
+        .catch(error => console.error('Error fetching alert limits:', error));
     </script>
   </div>
 </body>

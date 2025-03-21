@@ -32,21 +32,18 @@
     <!-- CSS Variables for Theme Colors -->
     <style>
       :root {
-        /* We read from the selected profile in theme_config */
-        --title-bar-color: {{ theme.get('profiles', {}).get(theme.selected_profile, {}).get('title bar', {}).get('color', '#34495E') }};
-        --side-bar-color: {{ theme.get('profiles', {}).get(theme.selected_profile, {}).get('side bar', {}).get('color', '#2C3E50') }};
-        --wallpaper-color: {{ theme.get('profiles', {}).get(theme.selected_profile, {}).get('wallpaper', {}).get('color', '#900C3F') }};
-        --card-title-color: {% if theme.get('profiles', {}).get(theme.selected_profile, {}).get('card title') %}
-            {{ theme.get('profiles', {}).get(theme.selected_profile, {}).get('card title', {}).get('color', '#581845') }}
-          {% else %}
-            {{ theme.get('profiles', {}).get(theme.selected_profile, {}).get('primary', {}).get('color', '#581845') }}
-          {% endif %};
-        --card-background-color: {% if theme.get('profiles', {}).get(theme.selected_profile, {}).get('card background') %}
-            {{ theme.get('profiles', {}).get(theme.selected_profile, {}).get('card background', {}).get('color', '#FFC300') }}
-          {% else %}
-            {{ theme.get('profiles', {}).get(theme.selected_profile, {}).get('secondary', {}).get('color', '#FFC300') }}
-          {% endif %};
-        --text-color: {{ theme.get('profiles', {}).get(theme.selected_profile, {}).get('text', {}).get('color', '#FFFFFF') }};
+        /* Use .get() to safely access theme properties */
+        --title-bar-color: {{ theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('title bar', {}).get('color', '#34495E') }};
+        --side-bar-color: {{ theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('side bar', {}).get('color', '#2C3E50') }};
+        --wallpaper-color: {{ theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('wallpaper', {}).get('color', '#900C3F') }};
+        {% set cardTitle = theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('card title', {}) %}
+        {% set primary = theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('primary', {}) %}
+        --card-title-color: {{ cardTitle.get('color', primary.get('color', '#581845')) }};
+        {% set cardBg = theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('card background', {}) %}
+        {% set secondary = theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('secondary', {}) %}
+        --card-background-color: {{ cardBg.get('color', secondary.get('color', '#FFC300')) }};
+        --text-color: {{ theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('text', {}).get('color', '#FFFFFF') }};
+        --border-color: {{ theme.get('border_color', '#ccc') }};
       }
 
       /* Global application of theme colors */
@@ -74,7 +71,7 @@
         color: #ffffff !important;
       }
 
-      /* (Optional) If you want to override .card-header color, you can do so: */
+      /* Override .card-header and .card background with theme colors */
       .card-header {
         background-color: var(--card-title-color) !important;
         color: var(--text-color) !important;
@@ -83,14 +80,13 @@
         background-color: var(--card-background-color) !important;
         color: var(--text-color) !important;
       }
-
     </style>
   </head>
 
   <body class="layout-fixed sidebar-expand-lg sidebar-mini sidebar-collapse"
         style="
-          {% if theme.get('profiles', {}).get(theme.selected_profile, {}).get('wallpaper', {}).get('image') %}
-            background-image: url('{{ url_for('static', filename=theme.get('profiles', {}).get(theme.selected_profile, {}).get('wallpaper', {}).get('image') ) }}');
+          {% if theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('wallpaper', {}).get('image') %}
+            background-image: url('{{ url_for('static', filename=theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('wallpaper', {}).get('image') ) }}');
           {% else %}
             background-color: var(--wallpaper-color);
           {% endif %}
@@ -103,8 +99,8 @@
       <!-- Sidebar -->
       <aside class="app-sidebar shadow"
         style="
-          {% if theme.get('profiles', {}).get(theme.selected_profile, {}).get('side bar', {}).get('image') %}
-            background-image: url('{{ url_for('static', filename=theme.get('profiles', {}).get(theme.selected_profile, {}).get('side bar', {}).get('image')) }}');
+          {% if theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('side bar', {}).get('image') %}
+            background-image: url('{{ url_for('static', filename=theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('side bar', {}).get('image')) }}');
           {% else %}
             background-color: var(--side-bar-color);
           {% endif %}

@@ -107,6 +107,21 @@ def parse_nested_form(form: dict) -> dict:
     return updated
 
 
+@alerts_bp.route('/create_all_alerts', methods=['POST'], endpoint="create_all_alerts")
+def create_all_alerts():
+    from alert_controller import AlertController
+    controller = AlertController()
+    created_alerts = controller.create_all_alerts()
+    return jsonify({"success": True, "created_alerts": created_alerts})
+
+@alerts_bp.route('/delete_all_alerts', methods=['POST'], endpoint="delete_all_alerts")
+def delete_all_alerts():
+    from alert_controller import AlertController
+    controller = AlertController()
+    deleted_count = controller.delete_all_alerts()
+    return jsonify({"success": True, "deleted_count": deleted_count})
+
+
 def format_alert_config_table(alert_ranges: dict) -> str:
     metrics = [
         "heat_index_ranges", "collateral_ranges", "value_ranges",
@@ -304,6 +319,32 @@ def update_alert_config_route():
                       operation_type="Alert Config Failed", file_name=str(ALERT_LIMITS_PATH))
         return jsonify({"success": False, "error": str(e)}), 500
 
+@alerts_bp.route('/matrix', methods=['GET'], endpoint="alert_matrix")
+def alert_matrix():
+    from data.data_locker import DataLocker
+    from alert_controller import AlertController
+
+    # Ensure theme data is loaded from a default if not present in current_app.config
+    theme_config = current_app.config.get('theme')
+    if not theme_config:
+        # Load default theme from a file or define it inline
+        theme_config = {
+            "border_color": "#ccc",
+            "card_header_color": "#007bff",
+            "card_header_text_color": "#fff",
+            "profiles": {},
+            "selected_profile": ""
+        }
+        current_app.config['theme'] = theme_config
+
+    # Create alerts as needed
+    #controller = AlertController()
+   # created_price_alerts = controller.create_price_alerts()
+   # created_travel_alerts = controller.create_travel_percent_alerts()
+
+    data_locker = DataLocker.get_instance()
+    alerts = data_locker.get_alerts()
+    return render_template("alert_matrix.html", theme=theme_config, alerts=alerts)
 
 # For testing this blueprint independently
 if __name__ == "__main__":

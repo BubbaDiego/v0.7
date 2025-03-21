@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}Alert Matrix{% endblock %}
+
+{% block extra_styles %}
+<style>
+  :root {
+    --card-title-color: {{ theme.get('card_header_color', '#007bff') }};
+    --text-color: {{ theme.get('card_header_text_color', '#fff') }};
+    --card-background-color: {{ theme.get('card_background_color', '#fff') }};
+    --border-color: {{ theme.get('border_color', '#ccc') }};
+  }
+  /* Style for the card tools icons */
+  .card-tools a {
+    color: var(--text-color);
+    font-size: 1.25rem;
+    margin-left: 10px;
+    cursor: pointer;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="card" style="border: 1px solid {{ theme.get('border_color', '#ccc') }};">
+    <div class="card-header" style="background-color: {{ theme.get('card_header_color', '#007bff') }}; color: {{ theme.get('card_header_text_color', '#fff') }}; position: relative;">
+      <h3 class="card-title">Alert Matrix</h3>
+      <div class="card-tools" style="position: absolute; right: 10px; top: 10px;">
+        <a id="createAllAlerts" title="Create All Alerts"><i class="fas fa-plus-circle"></i></a>
+        <a id="deleteAllAlerts" title="Delete All Alerts" style="margin-left: 10px;"><i class="fas fa-trash-alt"></i></a>
+      </div>
+    </div>
+    <div class="card-body" style="background-color: var(--card-background-color); color: var(--text-color);">
+      <div class="row">
+        {% for alert in alerts %}
+          <div class="col-md-3 col-sm-6 col-12">
+            <div class="info-box">
+              <span class="info-box-icon
+                {% if alert.status == "Active" %}
+                  text-bg-danger
+                {% elif alert.status == "Inactive" %}
+                  text-bg-success
+                {% else %}
+                  text-bg-warning
+                {% endif %}
+              shadow-sm">
+                <i class="bi {{ alert.icon|default('bi-bell-fill') }}"></i>
+              </span>
+              <div class="info-box-content">
+                <span class="info-box-text">{{ alert.alert_type }}</span>
+                <span class="info-box-number">
+                  Trigger: {{ alert.trigger_value }}
+                </span>
+                <span class="info-box-text">
+                  Condition: {{ alert.condition }}
+                </span>
+                <span class="info-box-text">
+                  Status: {{ alert.status }}
+                </span>
+              </div>
+              <!-- /.info-box-content -->
+            </div>
+            <!-- /.info-box -->
+          </div>
+          <!-- /.col -->
+        {% endfor %}
+      </div>
+      <!-- /.row -->
+    </div>
+    <!-- /.card-body -->
+  </div>
+  <!-- /.card -->
+</div>
+<!-- /.container-fluid -->
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    // Handler for creating all alerts
+    document.getElementById("createAllAlerts").addEventListener("click", function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      fetch("{{ url_for('alerts_bp.create_all_alerts') }}", {
+        method: "POST"
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert("Created " + data.created_alerts.length + " alerts.");
+          window.location.reload();
+        } else {
+          alert("Error creating alerts.");
+        }
+      })
+      .catch(err => {
+        console.error("Error creating all alerts:", err);
+        alert("Error creating alerts: " + err);
+      });
+    });
+
+    // Handler for deleting all alerts
+    document.getElementById("deleteAllAlerts").addEventListener("click", function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!confirm("Are you sure you want to delete all alerts?")) return;
+      fetch("{{ url_for('alerts_bp.delete_all_alerts') }}", {
+        method: "POST"
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert("Deleted " + data.deleted_count + " alerts.");
+          window.location.reload();
+        } else {
+          alert("Error deleting alerts.");
+        }
+      })
+      .catch(err => {
+        console.error("Error deleting all alerts:", err);
+        alert("Error deleting alerts: " + err);
+      });
+    });
+  });
+</script>
+{% endblock %}

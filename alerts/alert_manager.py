@@ -134,6 +134,13 @@ class AlertManager:
                 alert_limits = json.load(f)
             if "alert_ranges" in alert_limits:
                 self.config["alert_ranges"] = alert_limits["alert_ranges"]
+                # Also load timer values from the alert_limits file
+                self.config["alert_cooldown_seconds"] = alert_limits.get("alert_cooldown_seconds", 900.0)
+                self.config["call_refractory_period"] = alert_limits.get("call_refractory_period", 3600.0)
+                self.config["snooze_countdown"] = alert_limits.get("snooze_countdown", 300.0)
+                # Timer start values (could be None)
+                self.config["call_refractory_start"] = alert_limits.get("call_refractory_start")
+                self.config["snooze_start"] = alert_limits.get("snooze_start")
                 u_logger.log_operation(
                     operation_type="Alerts Configured",
                     primary_text="Alerts Config Successful",
@@ -162,9 +169,9 @@ class AlertManager:
         self.twilio_config = self.config.get("twilio_config", {})
         self.cooldown = self.config.get("alert_cooldown_seconds", 900)
         self.call_refractory_period = self.config.get("call_refractory_period", 3600)
+        self.snooze_countdown = self.config.get("snooze_countdown", 300)
         self.monitor_enabled = self.config.get("system_config", {}).get("alert_monitor_enabled", True)
 
-        # Final initialization log.
         u_logger.log_operation(
             operation_type="Alert Manager Initialized",
             primary_text="Alert Manager 🏃‍♂️",
@@ -196,6 +203,74 @@ class AlertManager:
                 extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
             )
 
+    def update_timer_states(self):
+        """
+        Check the call and snooze start times. If the refractory period or snooze countdown has expired,
+        clear the respective start time.
+        """
+        now = time.time()
+        updated = False
+
+        # Update call refractory timer
+        call_start = self.config.get("call_refractory_start")
+        if call_start is not None:
+            if now - call_start >= self.call_refractory_period:
+                self.config["call_refractory_start"] = None
+                updated = True
+                u_logger.log_operation(
+                    operation_type="Timer Reset",
+                    primary_text="Call refractory timer reset",
+                    source="AlertManager",
+                    file="alert_manager.py",
+                    extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
+                )
+
+        # Update snooze timer
+        snooze_start = self.config.get("snooze_start")
+        if snooze_start is not None:
+            if now - snooze_start >= self.snooze_countdown:
+                self.config["snooze_start"] = None
+                updated = True
+                u_logger.log_operation(
+                    operation_type="Timer Reset",
+                    primary_text="Snooze timer reset",
+                    source="AlertManager",
+                    file="alert_manager.py",
+                    extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
+                )
+
+        if updated:
+            self.save_config(self.config, ALERT_LIMITS_PATH)
+
+    def trigger_snooze(self):
+        """
+        Sets the snooze start time to now and saves the config.
+        """
+        now = time.time()
+        self.config["snooze_start"] = now
+        self.save_config(self.config, ALERT_LIMITS_PATH)
+        u_logger.log_operation(
+            operation_type="Timer Set",
+            primary_text="Snooze timer set",
+            source="AlertManager",
+            file="alert_manager.py",
+            extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
+        )
+
+    def clear_snooze(self):
+        """
+        Clears the snooze start time and saves the config.
+        """
+        self.config["snooze_start"] = None
+        self.save_config(self.config, ALERT_LIMITS_PATH)
+        u_logger.log_operation(
+            operation_type="Timer Reset",
+            primary_text="Snooze timer cleared",
+            source="AlertManager",
+            file="alert_manager.py",
+            extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
+        )
+
     def run(self):
         u_logger.log_operation(
             operation_type="Monitor Loop",
@@ -205,6 +280,8 @@ class AlertManager:
             extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
         )
         while True:
+            # Update timers at the start of each loop
+            self.update_timer_states()
             self.check_alerts()
             time.sleep(self.poll_interval)
 
@@ -553,8 +630,7 @@ class AlertManager:
             except Exception as e:
                 price_alert_logger.error(f"Error parsing current price for {asset}: {e}")
                 result_message = f"Error parsing current price: {e}"
-                self.debug_price_alert_details(asset, asset_config, 0.0, trigger_val, condition, price_info,
-                                               result_message)
+                self.debug_price_alert_details(asset, asset_config, 0.0, trigger_val, condition, price_info, result_message)
                 continue
 
             price_alert_logger.debug(
@@ -576,14 +652,12 @@ class AlertManager:
                 price_alert_logger.debug(result_message)
 
             # Log detailed HTML debug info for this asset check
-            self.debug_price_alert_details(asset, asset_config, current_price, trigger_val, condition, price_info,
-                                           result_message)
+            self.debug_price_alert_details(asset, asset_config, current_price, trigger_val, condition, price_info, result_message)
 
         price_alert_logger.debug(f"Exiting check_price_alerts with {len(messages)} triggered alerts")
         return messages
 
-    def handle_price_alert_trigger_config(self, asset: str, current_price: float, trigger_val: float,
-                                          condition: str) -> str:
+    def handle_price_alert_trigger_config(self, asset: str, current_price: float, trigger_val: float, condition: str) -> str:
         asset_full = self.ASSET_FULL_NAMES.get(asset, asset)
         key = f"price-alert-config-{asset}"
         now = time.time()
@@ -647,6 +721,16 @@ class AlertManager:
         try:
             trigger_twilio_flow(body, self.twilio_config)
             self.last_call_triggered[key] = now
+            # Set the call refractory start time in the config and save it
+            self.config["call_refractory_start"] = now
+            self.save_config(self.config, ALERT_LIMITS_PATH)
+            u_logger.log_operation(
+                operation_type="Timer Set",
+                primary_text="Call refractory timer set",
+                source="AlertManager",
+                file="alert_manager.py",
+                extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
+            )
         except Exception as e:
             u_logger.log_operation(
                 operation_type="Notification Failed",
@@ -680,5 +764,4 @@ manager = AlertManager(
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
-    # Updated startup call to include the filename automatically via __file__
     manager.run()
