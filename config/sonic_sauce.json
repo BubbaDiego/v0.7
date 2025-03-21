@@ -5,8 +5,8 @@
     "adjustmentFactor": 1
   },
   "heat_modifiers": {
-    "distanceWeight": 0.53,
+    "distanceWeight": 0.5,
     "leverageWeight": 0.35,
-    "collateralWeight": 0.2
+    "collateralWeight": 0.15
   }
 }

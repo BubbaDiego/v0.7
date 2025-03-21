@@ -313,32 +313,6 @@ def api_get_config():
         return jsonify({"error": str(e)}), 500
 
 
-@app.route("/save_theme", methods=["POST"])
-def save_theme_route():
-    try:
-        new_theme_data = request.get_json()
-        if not new_theme_data:
-            return jsonify({"success": False, "error": "No data received"}), 400
-        config_path = current_app.config.get("CONFIG_PATH", CONFIG_PATH)
-        with open(config_path, 'r') as f:
-            conf = json.load(f)
-        conf.setdefault("theme_config", {})
-        conf["theme_config"].setdefault("selected_profile", "profile1")
-        conf["theme_config"].setdefault("profiles", {})
-
-        profile_name = new_theme_data.get("profile", "profile1")
-        if "data" in new_theme_data and new_theme_data["data"]:
-            conf["theme_config"]["profiles"][profile_name] = new_theme_data["data"]
-        conf["theme_config"]["selected_profile"] = profile_name
-
-        with open(config_path, 'w') as f:
-            json.dump(conf, f, indent=2)
-        return jsonify({"success": True})
-    except Exception as e:
-        current_app.logger.error("Error saving theme: %s", e, exc_info=True)
-        return jsonify({"success": False, "error": str(e)}), 500
-
-
 @app.route('/api/update_row', methods=['POST'])
 def api_update_row():
     try:

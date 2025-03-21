@@ -160,6 +160,18 @@
               {% endif %}
             </ul>
           </li>
+          <!-- Hedge Calculator Link -->
+          <li class="nav-item ms-3">
+            <a href="{{ url_for('sonic_labs.hedge_calculator') }}" class="nav-link" title="Hedge Calculator">
+              <i class="fas fa-calculator"></i>
+            </a>
+          </li>
+          <!-- Config Icon for Theme Configuration -->
+          <li class="nav-item ms-3">
+            <a href="{{ url_for('dashboard.theme_setup') }}" class="nav-link" title="Theme Setup">
+              <i class="fas fa-gear"></i>
+            </a>
+          </li>
         </ul>
       </div>
     </nav>
@@ -217,6 +229,34 @@
               updateBtn.querySelector("img").classList.remove("spin");
               console.error(err);
             });
+        });
+
+        // Fix for not overwriting entire JSON on theme switch:
+        // We'll only send the 'selected_profile' property
+        document.querySelectorAll('.theme-profile-option').forEach(option => {
+          option.addEventListener('click', e => {
+            e.preventDefault();
+            const selectedProfile = e.currentTarget.dataset.profile;
+            console.log("Switching theme to:", selectedProfile);
+            fetch('{{ url_for("dashboard.save_theme_route") }}', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              // Only send the new selected_profile, do NOT pass empty data
+              body: JSON.stringify({ selected_profile: selectedProfile })
+            })
+            .then(r => r.json())
+            .then(data => {
+              if (data.success) {
+                window.location.reload();
+              } else {
+                alert("Error switching theme: " + data.error);
+              }
+            })
+            .catch(err => {
+              console.error("Theme switch error:", err);
+              alert("Theme switch error: " + err);
+            });
+          });
         });
       });
     </script>

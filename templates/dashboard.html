@@ -133,24 +133,8 @@
     }
   }
 
-  /* -------------------- Update Button Row -------------------- */
-  .update-row {
-    text-align: center;
-    margin-top: 0 !important;
-    margin-bottom: 2px !important;
-    padding-top: 0 !important;
-  }
-  .update-row button {
-    background: none;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-  }
-  .update-row img {
-    width: 70px;
-    height: 70px;
-    border-radius: 50%;
-  }
+  /* -------------------- Update Button Row (Removed) -------------------- */
+  /* .update-row { ... } */
 
   /* -------------------- City Cards for Row 2 -------------------- */
   .city-card {
@@ -230,7 +214,7 @@
     height: 400px;
   }
 
-  /* -------------------- New Strategy Performance Card Styles -------------------- */
+  /* -------------------- Performance Card Styles (unchanged) -------------------- */
   .performance-card {
     border: 1px solid #ccc;
     border-radius: 8px;
@@ -298,47 +282,12 @@
 
 {% block content %}
 <div class="container card-container">
-  <!-- Row 1: Jupiter Update Button -->
-  <div class="row update-row">
-    <button type="button" class="update-button" data-type="jupiter">
-      <img id="update-button-img-jupiter" src="{{ url_for('static', filename='images/jupiter.jpg') }}" alt="Jupiter Update Button">
-    </button>
-  </div>
+  <!-- Row 1: Jupiter Update Button (Removed) -->
 
-  <!-- Row 2: Two Rounded Rectangles with Cityscape BG -->
+  <!-- Row 2: City Card (Status Bar removed, using full width for the remaining card) -->
   <div class="row">
-    <!-- Left City Card -->
-    <div class="col-md-6">
-      <div class="card city-card shadow mb-2">
-        <div class="card-body">
-          <div class="row text-center">
-            <!-- BTC -->
-            <div class="col">
-              <img class="asset-icon" src="{{ url_for('static', filename='images/btc_logo.png') }}" alt="BTC">
-              <h5 class="fw-bold mb-0">${{ btc_price }}</h5>
-            </div>
-            <!-- ETH -->
-            <div class="col">
-              <img class="asset-icon" src="{{ url_for('static', filename='images/eth_logo.png') }}" alt="ETH">
-              <h5 class="fw-bold mb-0">${{ eth_price }}</h5>
-            </div>
-            <!-- SOL -->
-            <div class="col">
-              <img class="asset-icon" src="{{ url_for('static', filename='images/sol_logo.png') }}" alt="SOL">
-              <h5 class="fw-bold mb-0">${{ sol_price }}</h5>
-            </div>
-            <!-- S&P500 -->
-            <div class="col">
-              <img class="asset-icon" src="{{ url_for('static', filename='images/sp500.png') }}" alt="S&P 500">
-              <h5 class="fw-bold mb-0">{{ sp500_value }}</h5>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Right City Card -->
-    <div class="col-md-6">
+    <!-- Right City Card now spans full width -->
+    <div class="col-md-12">
       <div class="card city-card shadow mb-2">
         <div class="card-body">
           <div class="row text-center">
@@ -398,7 +347,7 @@
     </div>
   </div>
 
-  <!-- New Row 3: Liquidation Bar Card, Composition Card, and Operational Log Card -->
+  <!-- Row 3: Liquidation Bar Card, Composition Card, and Operational Log Card -->
   <div class="row">
     <!-- Liquidation Bar Card -->
     <div class="col-md-4 fixed-height">
@@ -474,10 +423,10 @@
     </div>
   </div>
 
-  <!-- New Row 4: Performance (Original), New Strategy Performance Card, and Alert Log Card -->
+  <!-- Row 4: Performance Card and Alert Log Card (Removed Strategy Performance Card) -->
   <div class="row">
     <!-- Performance Card (unchanged) -->
-    <div class="col-md-4 fixed-height">
+    <div class="col-md-6 fixed-height">
       <div class="card" style="min-height: 400px;">
         <div class="card-header d-flex align-items-center">
           <h3 class="card-title mb-0">Performance</h3>
@@ -495,46 +444,8 @@
         </div>
       </div>
     </div>
-    <!-- New Strategy Performance Card -->
-    <div class="col-md-4 fixed-height">
-      <div class="card performance-card h-100">
-        <div class="card-header d-flex align-items-center">
-          <span>Strategy Performance <i class="bi bi-pencil-square" title="Edit" id="editStrategyBtn" style="cursor:pointer;"></i></span>
-        </div>
-        <div class="card-body" id="strategy-card-content">
-          <!-- Details box: description, start date, start value -->
-          <div class="details-box">
-            <div class="data-row">
-              <div class="data-label">Description:</div>
-              <div id="description-display">{{ strategy_performance.description|default("No description available") }}</div>
-            </div>
-            <div class="data-row">
-              <div class="data-label">Start Date:</div>
-              <div id="start-date-display">{{ strategy_performance.start_date|default("N/A") }}</div>
-            </div>
-            <div class="data-row">
-              <div class="data-label">Start Value:</div>
-              <div id="start-value-display">
-                ${{ "{:,.2f}".format(strategy_performance.strategy_start_value|default(0)) if strategy_performance is defined and strategy_performance.strategy_start_value is defined else "0.00" }}
-              </div>
-            </div>
-          </div>
-          <!-- Inline performance display: current value and delta -->
-          <div class="performance-display-inline">
-            <span id="current-value-display">
-              ${{ "{:,.2f}".format(strategy_performance.current_value|default(0)) if strategy_performance is defined and strategy_performance.current_value is defined else "0.00" }}
-            </span>
-            {% set diff = strategy_performance.diff|default(0) %}
-            {% set percent = strategy_performance.percent_change|default(0) %}
-            <span id="delta-display" style="margin-left: 10px;">
-              ({% if diff|float >= 0 %}+{% endif %}${{ "{:,.2f}".format(diff|float) }}, {% if percent|float >= 0 %}+{% endif %}{{ "{:.2f}".format(percent|float) }}%)
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
     <!-- Alert Log Card (unchanged) -->
-    <div class="col-md-4 fixed-height">
+    <div class="col-md-6 fixed-height">
       <div class="card card-outline logs-card h-100">
         <div class="card-header">
           <h3 class="card-title mb-0"><span class="log-icon">⚠️</span> Alert Log</h3>
@@ -547,38 +458,7 @@
   </div>
 </div>
 
-<!-- Modal for Editing Strategy Performance -->
-<div class="modal fade" id="editStrategyModal" tabindex="-1" aria-labelledby="editStrategyModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <form id="strategyPerformanceForm">
-        <div class="modal-header">
-          <h5 class="modal-title" id="editStrategyModalLabel">Edit Strategy Performance</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <div class="mb-3">
-            <label for="strategyDescription" class="form-label">Description</label>
-            <textarea class="form-control" id="strategyDescription" rows="3">{{ strategy_performance.description|default("") }}</textarea>
-          </div>
-          <div class="mb-3">
-            <label for="strategyStartValue" class="form-label">Start Value</label>
-            <input type="number" step="0.01" class="form-control" id="strategyStartValue" value="{{ strategy_performance.strategy_start_value|default(0) }}">
-          </div>
-          <div class="mb-3">
-            <label for="strategyStartDate" class="form-label">Start Date</label>
-            <input type="text" class="form-control" id="strategyStartDate" value="{{ strategy_performance.start_date|default('N/A') }}" readonly>
-          </div>
-          <small class="text-muted">Editing the start value will affect your performance calculation.</small>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary">Save Changes</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
+<!-- Modal for Editing Strategy Performance (Removed as Strategy Performance Card is removed) -->
 {% endblock %}
 
 {% block extra_scripts %}
@@ -886,26 +766,6 @@
         .catch(err => console.error("Error fetching size balance data:", err));
     }
   };
-
-  // Jupiter update button functionality
-  document.addEventListener("DOMContentLoaded", function() {
-    const container = document.querySelector('.update-button[data-type="jupiter"]');
-    if (!container) return;
-    const img = container.querySelector('img');
-    container.addEventListener("click", function() {
-      img.classList.add("spin");
-      fetch("/positions/update_jupiter?source=User", { method: "POST" })
-        .then(response => response.json())
-        .then(() => {
-          img.classList.remove("spin");
-          window.location.reload();
-        })
-        .catch(err => {
-          img.classList.remove("spin");
-          console.error(err);
-        });
-    });
-  });
 </script>
 
 <style>
@@ -928,47 +788,7 @@
 </script>
 
 <script>
-  // Handle Strategy Performance Editing
-  document.addEventListener('DOMContentLoaded', function() {
-    // Initialize Bootstrap modal
-    var editModal = new bootstrap.Modal(document.getElementById('editStrategyModal'), {});
-
-    // Open modal on pencil icon click
-    document.getElementById('editStrategyBtn').addEventListener('click', function() {
-      editModal.show();
-    });
-
-    // Handle form submission
-    document.getElementById('strategyPerformanceForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const description = document.getElementById('strategyDescription').value;
-      const startValue = parseFloat(document.getElementById('strategyStartValue').value);
-
-      fetch("/update_performance_data", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          strategy_start_value: startValue,
-          strategy_description: description
-        })
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          // Optionally update the card dynamically or reload the page
-          location.reload();
-        } else {
-          alert("Error updating performance data: " + data.error);
-        }
-      })
-      .catch(err => {
-        console.error("Error updating performance data:", err);
-      });
-    });
-  });
-
+  // Handle Strategy Performance Editing (Removed as the card is no longer present)
   // Theme Toggle Logic
   document.addEventListener('DOMContentLoaded', function() {
     const currentTheme = localStorage.getItem('theme') || 'light';

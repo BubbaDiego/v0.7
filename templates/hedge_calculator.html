@@ -209,8 +209,8 @@
                 Short Entry: $0.00
               </div>
               <div class="d-flex justify-content-between" style="margin-top: -5px;">
-                <span id="tickLeft" style="font-size: 1.2rem; font-weight: bold; line-height: 1;"></span>
-                <span id="tickRight" style="font-size: 1.2rem; font-weight: bold; line-height: 1;"></span>
+                <span id="tickLeft" style="font-size:1.2rem; font-weight:bold; line-height:1;"></span>
+                <span id="tickRight" style="font-size:1.2rem; font-weight:bold; line-height:1;"></span>
               </div>
             </div>
           </div>
@@ -717,11 +717,15 @@
     let collateralRatio = collateral / size;
     collateralRatio = Math.min(collateralRatio, 1);
     let riskCollateralFactor = 1 - collateralRatio;
-    let composite = Math.pow(distanceFactor, 0.45)
-                  * Math.pow(normalizedLeverage, 0.35)
-                  * Math.pow(riskCollateralFactor, 0.20) * 100;
+    // Retrieve dynamic weights from UI
+    const distanceWeight = parseFloat(document.getElementById("distanceWeightInput").value) || 0.45;
+    const leverageWeight = parseFloat(document.getElementById("leverageWeightInput").value) || 0.35;
+    const collateralWeight = parseFloat(document.getElementById("collateralWeightInput").value) || 0.20;
+    console.debug("Long Heat Weights - Distance:", distanceWeight, "Leverage:", leverageWeight, "Collateral:", collateralWeight);
+    let composite = Math.pow(distanceFactor, distanceWeight)
+                  * Math.pow(normalizedLeverage, leverageWeight)
+                  * Math.pow(riskCollateralFactor, collateralWeight) * 100;
     document.getElementById("longHeatIndex").innerText = composite.toFixed(2);
-
     document.getElementById("longHeatDTL").innerText = distanceFactor.toFixed(2);
     document.getElementById("longHeatLev").innerText = leverage.toFixed(1);
     document.getElementById("longHeatCR").innerText = (collateralRatio * 100).toFixed(0);
@@ -747,16 +751,110 @@
     let collateralRatio = collateral / size;
     collateralRatio = Math.min(collateralRatio, 1);
     let riskCollateralFactor = 1 - collateralRatio;
-    let composite = Math.pow(distanceFactor, 0.45)
-                  * Math.pow(normalizedLeverage, 0.35)
-                  * Math.pow(riskCollateralFactor, 0.20) * 100;
+    // Retrieve dynamic weights from UI
+    const distanceWeight = parseFloat(document.getElementById("distanceWeightInput").value) || 0.45;
+    const leverageWeight = parseFloat(document.getElementById("leverageWeightInput").value) || 0.35;
+    const collateralWeight = parseFloat(document.getElementById("collateralWeightInput").value) || 0.20;
+    console.debug("Short Heat Weights - Distance:", distanceWeight, "Leverage:", leverageWeight, "Collateral:", collateralWeight);
+    let composite = Math.pow(distanceFactor, distanceWeight)
+                  * Math.pow(normalizedLeverage, leverageWeight)
+                  * Math.pow(riskCollateralFactor, collateralWeight) * 100;
     document.getElementById("shortHeatIndex").innerText = composite.toFixed(2);
-
     document.getElementById("shortHeatDTL").innerText = distanceFactor.toFixed(2);
     document.getElementById("shortHeatLev").innerText = leverage.toFixed(1);
     document.getElementById("shortHeatCR").innerText = (collateralRatio * 100).toFixed(0);
   }
 
+  /*************************************
+   * Simulated (Resulting) Heat Index Calculations
+   *************************************/
+  function updateLongSimHeatIndex(simPrice) {
+    const longEntry = parseFloat(document.getElementById("longEntry").value) || 0;
+    const currentLongSize = parseFloat(document.getElementById("longSize").value) || 0;
+    const currentCollateral = parseFloat(document.getElementById("longCollateral").value) || 0;
+    const fee = parseFloat(document.getElementById("feePercentage").value) || 0;
+    if (longEntry <= 0 || currentCollateral <= 0) {
+      document.getElementById("longSimHeatIndex").innerText = "N/A";
+      document.getElementById("longSimHeatDTL").innerText = "N/A";
+      document.getElementById("longSimHeatLev").innerText = "N/A";
+      document.getElementById("longSimHeatCR").innerText = "N/A";
+      document.getElementById("longSimHeatCollateral").innerText = "0.00";
+      return;
+    }
+    const simulatedSize = window.projectedLongSize || currentLongSize;
+    let tokenCount = longEntry > 0 ? simulatedSize / longEntry : 0;
+    let pnl = (simPrice - longEntry) * tokenCount;
+    let feeCost = (fee / 100) * simulatedSize;
+    let netValue = currentCollateral + pnl - feeCost;
+    const longLiq = longLiquidation || (longEntry * 0.8);
+    let ndl = (simPrice - longLiq) / (longEntry - longLiq);
+    ndl = Math.max(0, Math.min(ndl, 1));
+    let distanceFactor = 1 - ndl;
+    let leverageSim = currentCollateral > 0 ? simulatedSize / currentCollateral : 0;
+    let normalizedLeverage = leverageSim / 100;
+    let collateralRatio = currentCollateral / simulatedSize;
+    collateralRatio = Math.min(collateralRatio, 1);
+    let riskCollateralFactor = 1 - collateralRatio;
+    // Retrieve dynamic weights from UI
+    const distanceWeight = parseFloat(document.getElementById("distanceWeightInput").value) || 0.45;
+    const leverageWeight = parseFloat(document.getElementById("leverageWeightInput").value) || 0.35;
+    const collateralWeight = parseFloat(document.getElementById("collateralWeightInput").value) || 0.20;
+    console.debug("Long Sim Heat Weights - Distance:", distanceWeight, "Leverage:", leverageWeight, "Collateral:", collateralWeight);
+    let compositeSim = Math.pow(distanceFactor, distanceWeight) *
+                       Math.pow(normalizedLeverage, leverageWeight) *
+                       Math.pow(riskCollateralFactor, collateralWeight) * 100;
+    document.getElementById("longSimHeatIndex").innerText = compositeSim.toFixed(2);
+    document.getElementById("longSimHeatDTL").innerText = distanceFactor.toFixed(2);
+    document.getElementById("longSimHeatLev").innerText = leverageSim.toFixed(1);
+    document.getElementById("longSimHeatCR").innerText = (collateralRatio * 100).toFixed(0);
+    document.getElementById("longSimHeatCollateral").innerText = currentCollateral.toFixed(2);
+  }
+
+  function updateShortSimHeatIndex(simPrice) {
+    const shortEntry = parseFloat(document.getElementById("shortEntry").value) || 0;
+    const currentShortSize = parseFloat(document.getElementById("shortSize").value) || 0;
+    const currentCollateral = parseFloat(document.getElementById("shortCollateral").value) || 0;
+    const fee = parseFloat(document.getElementById("feePercentage").value) || 0;
+    if (shortEntry <= 0 || currentCollateral <= 0) {
+      document.getElementById("shortSimHeatIndex").innerText = "N/A";
+      document.getElementById("shortSimHeatDTL").innerText = "N/A";
+      document.getElementById("shortSimHeatLev").innerText = "N/A";
+      document.getElementById("shortSimHeatCR").innerText = "N/A";
+      document.getElementById("shortSimHeatCollateral").innerText = "0.00";
+      return;
+    }
+    const simulatedSize = window.projectedShortSize || currentShortSize;
+    let tokenCount = shortEntry > 0 ? simulatedSize / shortEntry : 0;
+    let pnl = (shortEntry - simPrice) * tokenCount;
+    let feeCost = (fee / 100) * simulatedSize;
+    let netValue = currentCollateral + pnl - feeCost;
+    const shortLiq = shortLiquidation || (shortEntry * 1.2);
+    let ndl = (shortLiq - simPrice) / (shortLiq - shortEntry);
+    ndl = Math.max(0, Math.min(ndl, 1));
+    let distanceFactor = 1 - ndl;
+    let leverageSim = currentCollateral > 0 ? simulatedSize / currentCollateral : 0;
+    let normalizedLeverage = leverageSim / 100;
+    let collateralRatio = currentCollateral / simulatedSize;
+    collateralRatio = Math.min(collateralRatio, 1);
+    let riskCollateralFactor = 1 - collateralRatio;
+    // Retrieve dynamic weights from UI
+    const distanceWeight = parseFloat(document.getElementById("distanceWeightInput").value) || 0.45;
+    const leverageWeight = parseFloat(document.getElementById("leverageWeightInput").value) || 0.35;
+    const collateralWeight = parseFloat(document.getElementById("collateralWeightInput").value) || 0.20;
+    console.debug("Short Sim Heat Weights - Distance:", distanceWeight, "Leverage:", leverageWeight, "Collateral:", collateralWeight);
+    let compositeSim = Math.pow(distanceFactor, distanceWeight)
+                     * Math.pow(normalizedLeverage, leverageWeight)
+                     * Math.pow(riskCollateralFactor, collateralWeight) * 100;
+    document.getElementById("shortSimHeatIndex").innerText = compositeSim.toFixed(2);
+    document.getElementById("shortSimHeatDTL").innerText = distanceFactor.toFixed(2);
+    document.getElementById("shortSimHeatLev").innerText = leverageSim.toFixed(1);
+    document.getElementById("shortSimHeatCR").innerText = (collateralRatio * 100).toFixed(0);
+    document.getElementById("shortSimHeatCollateral").innerText = currentCollateral.toFixed(2);
+  }
+
+  /*************************************
+   * Travel Percent Updates
+   *************************************/
   function updateLongTravelPercent(simPrice) {
     const longEntry = parseFloat(document.getElementById("longEntry").value) || 0;
     const longLiq = parseFloat(document.getElementById("longLiqPrice").value) || (longEntry * 0.8);
@@ -784,7 +882,7 @@
   }
 
   /*************************************
-   * Hedge Recommendations (Split into Two Boxes)
+   * Hedge Recommendations
    *************************************/
   function updateHedgeRecommendations(simPrice) {
     const targetMargin = parseFloat(document.getElementById("targetMarginInput").value) / 100;
@@ -830,9 +928,7 @@
    * Projected Positions with Slider Leverage and Approach Toggle
    *************************************/
   function updateProjectedPositions(simPrice) {
-    // Get the approach toggle value
     const approach = document.querySelector('input[name="approach"]:checked').value;
-    // Get the current slider leverage
     const sliderLeverage = parseFloat(document.getElementById("leverageSlider").value);
 
     /***** Projected Long ******/
@@ -1042,11 +1138,15 @@
     let collateralRatio = currentCollateral / simulatedSize;
     collateralRatio = Math.min(collateralRatio, 1);
     let riskCollateralFactor = 1 - collateralRatio;
-    let compositeSim = Math.pow(distanceFactor, 0.45) *
-                       Math.pow(normalizedLeverage, 0.35) *
-                       Math.pow(riskCollateralFactor, 0.20) * 100;
+    // Retrieve dynamic weights from UI
+    const distanceWeight = parseFloat(document.getElementById("distanceWeightInput").value) || 0.45;
+    const leverageWeight = parseFloat(document.getElementById("leverageWeightInput").value) || 0.35;
+    const collateralWeight = parseFloat(document.getElementById("collateralWeightInput").value) || 0.20;
+    console.debug("Long Sim Heat Weights - Distance:", distanceWeight, "Leverage:", leverageWeight, "Collateral:", collateralWeight);
+    let compositeSim = Math.pow(distanceFactor, distanceWeight) *
+                       Math.pow(normalizedLeverage, leverageWeight) *
+                       Math.pow(riskCollateralFactor, collateralWeight) * 100;
     document.getElementById("longSimHeatIndex").innerText = compositeSim.toFixed(2);
-
     document.getElementById("longSimHeatDTL").innerText = distanceFactor.toFixed(2);
     document.getElementById("longSimHeatLev").innerText = leverageSim.toFixed(1);
     document.getElementById("longSimHeatCR").innerText = (collateralRatio * 100).toFixed(0);
@@ -1080,11 +1180,15 @@
     let collateralRatio = currentCollateral / simulatedSize;
     collateralRatio = Math.min(collateralRatio, 1);
     let riskCollateralFactor = 1 - collateralRatio;
-    let compositeSim = Math.pow(distanceFactor, 0.45)
-                     * Math.pow(normalizedLeverage, 0.35)
-                     * Math.pow(riskCollateralFactor, 0.20) * 100;
+    // Retrieve dynamic weights from UI
+    const distanceWeight = parseFloat(document.getElementById("distanceWeightInput").value) || 0.45;
+    const leverageWeight = parseFloat(document.getElementById("leverageWeightInput").value) || 0.35;
+    const collateralWeight = parseFloat(document.getElementById("collateralWeightInput").value) || 0.20;
+    console.debug("Short Sim Heat Weights - Distance:", distanceWeight, "Leverage:", leverageWeight, "Collateral:", collateralWeight);
+    let compositeSim = Math.pow(distanceFactor, distanceWeight)
+                     * Math.pow(normalizedLeverage, leverageWeight)
+                     * Math.pow(riskCollateralFactor, collateralWeight) * 100;
     document.getElementById("shortSimHeatIndex").innerText = compositeSim.toFixed(2);
-
     document.getElementById("shortSimHeatDTL").innerText = distanceFactor.toFixed(2);
     document.getElementById("shortSimHeatLev").innerText = leverageSim.toFixed(1);
     document.getElementById("shortSimHeatCR").innerText = (collateralRatio * 100).toFixed(0);

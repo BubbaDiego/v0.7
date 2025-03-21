@@ -25,6 +25,8 @@ from config.config_constants import DB_PATH, CONFIG_PATH, BASE_DIR, THEME_CONFIG
 from data.data_locker import DataLocker
 from positions.position_service import PositionService
 from utils.calc_services import CalcServices
+from utils.unified_logger import UnifiedLogger
+
 
 # Import UnifiedLogViewer to handle both operational and alert logs.
 from utils.unified_log_viewer import UnifiedLogViewer
@@ -365,47 +367,48 @@ def api_collateral_composition():
 def save_theme_route():
     try:
         data = request.get_json() or {}
-        profile = data.get("profile")
-        if not profile:
-            return jsonify({"success": False, "error": "No profile provided"}), 400
-
+        # read the existing config
         with open(THEME_CONFIG_PATH, "r", encoding="utf-8") as f:
-            theme_config = json.load(f)
+            config = json.load(f)
 
-        theme_config["selected_profile"] = profile
-        logger.debug(f"Updated theme config: {theme_config}")
+        # only update selected_profile
+        if 'selected_profile' in data:
+            config['selected_profile'] = data['selected_profile']
 
+        # now save the updated config
         with open(THEME_CONFIG_PATH, "w", encoding="utf-8") as f:
-            json.dump(theme_config, f, indent=2)
+            json.dump(config, f, indent=2)
 
         return jsonify({"success": True})
     except Exception as e:
-        logger.error("Error saving theme", exc_info=True)
+        current_app.logger.error("Error saving theme: %s", e, exc_info=True)
         return jsonify({"success": False, "error": str(e)}), 500
+
+
+@dashboard_bp.route("/theme_setup", methods=["GET"])
+def theme_setup():
+    try:
+        with open(THEME_CONFIG_PATH, "r", encoding="utf-8") as f:
+            theme_config = json.load(f)
+        return render_template("theme_config.html", theme=theme_config)
+    except Exception as e:
+        logger.error("Error loading theme configuration in theme_setup", exc_info=True)
+        return render_template("theme_config.html", theme={})
+
 
 
 @dashboard_bp.route("/theme_config", methods=["GET"])
 def theme_config_page():
     try:
-        with open(THEME_CONFIG_PATH, "r", encoding="utf-8") as f:
-            theme_config = json.load(f)
+        from utils.json_manager import JsonManager, JsonType
+        json_manager = JsonManager(logger=logger)
+        theme_config = json_manager.load(THEME_CONFIG_PATH, json_type=JsonType.THEME_CONFIG)
         return render_template("theme_config.html", theme=theme_config)
     except Exception as e:
         logger.error("Error loading theme configuration", exc_info=True)
         return render_template("theme_config.html", theme={})
 
 
-@dashboard_bp.route("/save_theme_config", methods=["POST"], endpoint="save_theme_config_route")
-def save_theme_config_route():
-    try:
-        data = request.get_json()
-        from config.config_constants import THEME_CONFIG_PATH
-        with open(THEME_CONFIG_PATH, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2)
-        return jsonify({"success": True})
-    except Exception as e:
-        logger.error("Error saving theme configuration", exc_info=True)
-        return jsonify({"success": False, "error": str(e)}), 500
 
 # -------------------------------
 # NEW: Route for Updating Strategy Performance Data Persistence

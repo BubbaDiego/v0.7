@@ -144,7 +144,11 @@ class CalcServices:
 
             risk_index = (distance_factor ** 0.45) * (normalized_leverage ** 0.35) * (
                         risk_collateral_factor ** 0.20) * 100.0
-            self.logger.debug("Composite risk index before rounding: %f", risk_index)
+            self.logger.debug("Composite risk index before applying risk floor: %f", risk_index)
+
+            # Apply minimum risk floor of 5
+            risk_index = self.apply_minimum_risk_floor(risk_index, 5.0)
+            self.logger.debug("Composite risk index after applying risk floor: %f", risk_index)
 
             return round(risk_index, 2)
         except Exception as e:
@@ -488,6 +492,14 @@ class CalcServices:
             else:
                 profit_target = entry_price - (liquidation_price - entry_price)
                 return ((entry_price - current_price) / (entry_price - profit_target)) * 100
+
+    def apply_minimum_risk_floor(self, risk_index: float, floor: float = 5.0) -> float:
+        """
+        Enforces a minimum risk floor.
+        Even if the computed risk index is very low (e.g., for a fully collateralized position),
+        this function ensures that the risk index never drops below the specified floor.
+        """
+        return max(risk_index, floor)
 
     def get_alert_class(self, value: float, low_thresh: Optional[float], med_thresh: Optional[float],
                         high_thresh: Optional[float], direction: str = "increasing_bad") -> str:

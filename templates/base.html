@@ -192,7 +192,7 @@
             e.preventDefault();
             const selectedProfile = e.currentTarget.dataset.profile;
             console.log("Switching theme to:", selectedProfile);
-            fetch('{{ url_for("save_theme_route") }}', {
+            fetch('{{ url_for("dashboard.save_theme_route") }}', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ profile: selectedProfile, data: {} })
