@@ -192,211 +192,220 @@
         </div>
       </div>
 
-      <!-- New Row: Combined Price Slider and Projected Leverage Slider Side by Side -->
-      <div class="row mb-4">
-        <div class="col-md-6">
-          <!-- Simulated Price Box: now same height as Projected Leverage box -->
-          <div id="priceSliderRow" class="border rounded p-3 slider-box" style="background-color: #f7f7f7;">
-            <div class="d-flex justify-content-center mb-2">
-              <h5 class="text-center"><strong>💵 Simulated Price</strong></h5>
-            </div>
-            <div class="position-relative" style="min-height: 100px;">
-              <input type="range" id="priceSlider" step="0.1" class="form-range" oninput="sliderChanged()">
-              <div id="currentMarker" class="position-absolute" style="top: -35px; left: 0; font-size: 1rem; font-weight: bold; background-color: rgba(0,0,0,0.5); color: #fff; padding: 4px 6px; border-radius: 4px; pointer-events: none;">
-                Price: $0.00
-              </div>
-              <!-- Reset button with Unicode price icon -->
-              <button id="resetPriceButton" onclick="resetPriceToCurrent()" title="Reset to current price" style="position: absolute; top: -35px; right: 10px; background: none; border: none; font-size: 1.2rem; cursor: pointer;">
-                💲
-              </button>
-              <div id="entryMarkerLong" class="position-absolute" style="top: -65px; left: 0; font-size: 0.85rem; font-weight: bold; background-color: rgba(0,0,0,0.5); color: #fff; padding: 3px 5px; border-radius: 4px; pointer-events: none;">
-                Long Entry: $0.00
-              </div>
-              <div id="entryMarkerShort" class="position-absolute" style="top: 30px; left: 0; font-size: 0.85rem; font-weight: bold; background-color: rgba(0,0,0,0.5); color: #fff; padding: 3px 5px; border-radius: 4px; pointer-events: none;">
-                Short Entry: $0.00
-              </div>
-              <div class="d-flex justify-content-between" style="margin-top: -5px;">
-                <span id="tickLeft" style="font-size:1.2rem; font-weight:bold; line-height:1;"></span>
-                <span id="tickRight" style="font-size:1.2rem; font-weight:bold; line-height:1;"></span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-6">
-          <!-- Projected Leverage Slider Box: same slider-box class -->
-          <div id="leverageSliderRow" class="border rounded p-3 slider-box" style="background-color: #f7f7f7;">
-            <div class="d-flex justify-content-center mb-2">
-              <h5 class="text-center"><strong>Projected Leverage</strong></h5>
-            </div>
-            <input type="range" id="leverageSlider" min="1" max="100" step="0.1" value="10" class="form-range" oninput="updateProjectedHeatIndex()">
-            <div class="text-center" style="margin-top: -2px;">
-              <span id="leverageValue">Leverage: 10x</span>
-            </div>
-            <!-- Display collateral and notional additions (moved up a bit) -->
-            <div class="text-center" style="margin-top: -2px;">
-              <span id="longSizeComposition">
-                Long Addition: <span class="collateral-value">Collateral: $0.00</span>, Notional: $0.00
-              </span><br>
-              <span id="shortSizeComposition">
-                Short Addition: <span class="collateral-value">Collateral: $0.00</span>, Notional: $0.00
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
+      <!--
+           START container for the "6 boxes + toggle"
+           (Price Slider, Projected Leverage, Approach Toggle, Recommendations,
+            Current Output Row, Projected Output Row)
+      -->
+      <div class="rounded-3 p-3 mb-4" style="background-color: #eff1f6;">  # I AM THE ONE YOU SEEK
 
-      <!-- Row 3: Approach Toggle -->
-      <div id="approachToggleRow" class="row mb-4">
-        <div class="col-12">
-          <div class="d-flex justify-content-center align-items-center">
-            <label class="me-2"><strong>Approach:</strong></label>
-            <div class="form-check form-check-inline">
-              <input class="form-check-input" type="radio" name="approach" id="approachAverage" value="average" checked>
-              <label class="form-check-label" for="approachAverage">Average Down</label>
+        <!-- New Row: Combined Price Slider and Projected Leverage Slider Side by Side -->
+        <div class="row mb-4">
+          <div class="col-md-6">
+            <!-- Simulated Price Box: now same height as Projected Leverage box -->
+            <div id="priceSliderRow" class="border rounded p-3 slider-box" style="background-color: #f7f7f7;">
+              <div class="d-flex justify-content-center mb-2">
+                <h5 class="text-center"><strong>💵 Simulated Price</strong></h5>
+              </div>
+              <div class="position-relative" style="min-height: 100px;">
+                <input type="range" id="priceSlider" step="0.1" class="form-range" oninput="sliderChanged()">
+                <div id="currentMarker" class="position-absolute" style="top: -35px; left: 0; font-size: 1rem; font-weight: bold; background-color: rgba(0,0,0,0.5); color: #fff; padding: 4px 6px; border-radius: 4px; pointer-events: none;">
+                  Price: $0.00
+                </div>
+                <!-- Reset button with Unicode price icon -->
+                <button id="resetPriceButton" onclick="resetPriceToCurrent()" title="Reset to current price" style="position: absolute; top: -35px; right: 10px; background: none; border: none; font-size: 1.2rem; cursor: pointer;">
+                  💲
+                </button>
+                <div id="entryMarkerLong" class="position-absolute" style="top: -65px; left: 0; font-size: 0.85rem; font-weight: bold; background-color: rgba(0,0,0,0.5); color: #fff; padding: 3px 5px; border-radius: 4px; pointer-events: none;">
+                  Long Entry: $0.00
+                </div>
+                <div id="entryMarkerShort" class="position-absolute" style="top: 30px; left: 0; font-size: 0.85rem; font-weight: bold; background-color: rgba(0,0,0,0.5); color: #fff; padding: 3px 5px; border-radius: 4px; pointer-events: none;">
+                  Short Entry: $0.00
+                </div>
+                <div class="d-flex justify-content-between" style="margin-top: -5px;">
+                  <span id="tickLeft" style="font-size:1.2rem; font-weight:bold; line-height:1;"></span>
+                  <span id="tickRight" style="font-size:1.2rem; font-weight:bold; line-height:1;"></span>
+                </div>
+              </div>
             </div>
-            <div class="form-check form-check-inline">
-              <input class="form-check-input" type="radio" name="approach" id="approachPyramid" value="pyramid">
-              <label class="form-check-label" for="approachPyramid">Pyramid</label>
+          </div>
+          <div class="col-md-6">
+            <!-- Projected Leverage Slider Box: same slider-box class -->
+            <div id="leverageSliderRow" class="border rounded p-3 slider-box" style="background-color: #f7f7f7;">
+              <div class="d-flex justify-content-center mb-2">
+                <h5 class="text-center"><strong>Projected Leverage</strong></h5>
+              </div>
+              <input type="range" id="leverageSlider" min="1" max="100" step="0.1" value="10" class="form-range" oninput="updateProjectedHeatIndex()">
+              <div class="text-center" style="margin-top: -2px;">
+                <span id="leverageValue">Leverage: 10x</span>
+              </div>
+              <!-- Display collateral and notional additions (moved up a bit) -->
+              <div class="text-center" style="margin-top: -2px;">
+                <span id="longSizeComposition">
+                  Long Addition: <span class="collateral-value">Collateral: $0.00</span>, Notional: $0.00
+                </span><br>
+                <span id="shortSizeComposition">
+                  Short Addition: <span class="collateral-value">Collateral: $0.00</span>, Notional: $0.00
+                </span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Row 4: Recommendation Boxes (split into two blue boxes) -->
-      <div id="recommendationRow" class="row mb-4">
-        <div class="col-md-6">
-          <div id="longRecommendationBox" class="recommendation-box text-center">
-            <strong>Long Recommendation:</strong> N/A
+        <!-- Row 4: Approach Toggle -->
+        <div id="approachToggleRow" class="row mb-4">
+          <div class="col-12">
+            <div class="d-flex justify-content-center align-items-center">
+              <label class="me-2"><strong>Approach:</strong></label>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="approach" id="approachAverage" value="average" checked>
+                <label class="form-check-label" for="approachAverage">Average Down</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="approach" id="approachPyramid" value="pyramid">
+                <label class="form-check-label" for="approachPyramid">Pyramid</label>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="col-md-6">
-          <div id="shortRecommendationBox" class="recommendation-box text-center">
-            <strong>Short Recommendation:</strong> N/A
-          </div>
-        </div>
-      </div>
 
-      <!-- Row 5: Output Section for Current Positions -->
-      <div id="outputRow" class="row">
-        <div class="col-md-6">
-          <div id="longOutputCard" class="card shadow-sm position-relative reduced-height">
-            <!-- Heat box at top -->
-            <div id="longHeatBox" style="position:absolute; top:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-size:1.2rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
-              🔥 Heat: <span id="longHeatIndex">0</span>
-              <div id="longHeatDetails" style="font-size: 0.8rem; margin-top: 4px;">
-                DTL: <span id="longHeatDTL">0</span> | Lev: <span id="longHeatLev">0</span>x | CR: <span id="longHeatCR">0</span>%
-              </div>
+        <!-- Row 5: Recommendation Boxes (split into two blue boxes) -->
+        <div id="recommendationRow" class="row mb-4">
+          <div class="col-md-6">
+            <div id="longRecommendationBox" class="recommendation-box text-center">
+              <strong>Long Recommendation:</strong> N/A
             </div>
-            <!-- Sim Heat box: now same style as Heat box but purple, moved to center -->
-            <div id="longSimHeatBox" class="sim-heat-box">
-              🔥 Sim Heat: <span id="longSimHeatIndex">0</span>
-              <div id="longSimHeatDetails" style="font-size: 0.8rem; margin-top: 4px;">
-                DTL: <span id="longSimHeatDTL">0</span> | Lev: <span id="longSimHeatLev">0</span>x | CR: <span id="longSimHeatCR">0</span>% | Collateral: $<span id="longSimHeatCollateral">0.00</span>
-              </div>
-            </div>
-            <!-- Travel box at bottom -->
-            <div id="longTravelBox" style="position:absolute; bottom:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-size:1.2rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
-              Travel: <span id="longTravelPercent">0%</span>
-            </div>
-            <div class="card-body fs-5">
-              <h6 class="text-center fw-bold" style="font-size:1.5rem;">📈 Long Position</h6>
-              <div class="position-details-section">
-                <p id="longSimPrice"><strong>Simulated Price: $-</strong></p>
-                <p id="longCollateralDisplay"><strong>Collateral: $-</strong></p>
-                <p id="longValue"><strong>Position Value: $-</strong></p>
-                <p id="longPnL"><strong>P&L: $-</strong></p>
-                <p id="longSLTP"><strong>Recommended: -</strong></p>
-                <p id="longCurrentSize"><strong>Current Size: $-</strong></p>
-                <p id="longSafetyMargin"><strong>Safety Margin: --</strong></p>
-              </div>
+          </div>
+          <div class="col-md-6">
+            <div id="shortRecommendationBox" class="recommendation-box text-center">
+              <strong>Short Recommendation:</strong> N/A
             </div>
           </div>
         </div>
-        <div class="col-md-6">
-          <div id="shortOutputCard" class="card shadow-sm position-relative reduced-height">
-            <!-- Heat box at top -->
-            <div id="shortHeatBox" style="position:absolute; top:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-size:1.2rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
-              🔥 Heat: <span id="shortHeatIndex">0</span>
-              <div id="shortHeatDetails" style="font-size: 0.8rem; margin-top: 4px;">
-                DTL: <span id="shortHeatDTL">0</span> | Lev: <span id="shortHeatLev">0</span>x | CR: <span id="shortHeatCR">0</span>%
-              </div>
-            </div>
-            <!-- Sim Heat box: now same style as Heat box but purple, moved to center -->
-            <div id="shortSimHeatBox" class="sim-heat-box">
-              🔥 Sim Heat: <span id="shortSimHeatIndex">0</span>
-              <div id="shortSimHeatDetails" style="font-size: 0.8rem; margin-top: 4px;">
-                DTL: <span id="shortSimHeatDTL">0</span> | Lev: <span id="shortSimHeatLev">0</span>x | CR: <span id="shortSimHeatCR">0</span>% | Collateral: $<span id="shortSimHeatCollateral">0.00</span>
-              </div>
-            </div>
-            <!-- Travel box at bottom -->
-            <div id="shortTravelBox" style="position:absolute; bottom:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-size:1.2rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
-              Travel: <span id="shortTravelPercent">0%</span>
-            </div>
-            <div class="card-body fs-5">
-              <h6 class="text-center fw-bold" style="font-size:1.5rem;">📉 Short Position</h6>
-              <div class="position-details-section">
-                <p id="shortSimPrice"><strong>Simulated Price: $-</strong></p>
-                <p id="shortCollateralDisplay"><strong>Collateral: $-</strong></p>
-                <p id="shortValue"><strong>Position Value: $-</strong></p>
-                <p id="shortPnL"><strong>P&L: $-</strong></p>
-                <p id="shortSLTP"><strong>Recommended: -</strong></p>
-                <p id="shortCurrentSize"><strong>Current Size: $-</strong></p>
-                <p id="shortSafetyMargin"><strong>Safety Margin: --</strong></p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <!-- Row 6: Projected Output Section for Positions -->
-      <div id="projectedOutputRow" class="row mt-4">
-        <div class="col-md-6">
-          <div id="projectedLongOutputCard" class="card shadow-sm position-relative reduced-height">
-            <!-- Heat box at top -->
-            <div id="projectedLongHeatBox" style="position:absolute; top:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
-              🔥 Projected Heat: <span id="projectedLongHeatIndex">0</span>
+        <!-- Row 6: Output Section for Current Positions -->
+        <div id="outputRow" class="row">
+          <div class="col-md-6">
+            <div id="longOutputCard" class="card shadow-sm position-relative reduced-height">
+              <!-- Heat box at top -->
+              <div id="longHeatBox" style="position:absolute; top:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-size:1.2rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
+                🔥 Heat: <span id="longHeatIndex">0</span>
+                <div id="longHeatDetails" style="font-size: 0.8rem; margin-top: 4px;">
+                  DTL: <span id="longHeatDTL">0</span> | Lev: <span id="longHeatLev">0</span>x | CR: <span id="longHeatCR">0</span>%
+                </div>
+              </div>
+              <!-- Sim Heat box: now same style as Heat box but purple, moved to center -->
+              <div id="longSimHeatBox" class="sim-heat-box">
+                🔥 Sim Heat: <span id="longSimHeatIndex">0</span>
+                <div id="longSimHeatDetails" style="font-size: 0.8rem; margin-top: 4px;">
+                  DTL: <span id="longSimHeatDTL">0</span> | Lev: <span id="longSimHeatLev">0</span>x | CR: <span id="longSimHeatCR">0</span>% | Collateral: $<span id="longSimHeatCollateral">0.00</span>
+                </div>
+              </div>
+              <!-- Travel box at bottom -->
+              <div id="longTravelBox" style="position:absolute; bottom:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-size:1.2rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
+                Travel: <span id="longTravelPercent">0%</span>
+              </div>
+              <div class="card-body fs-5">
+                <h6 class="text-center fw-bold" style="font-size:1.5rem;">📈 Long Position</h6>
+                <div class="position-details-section">
+                  <p id="longSimPrice"><strong>Simulated Price: $-</strong></p>
+                  <p id="longCollateralDisplay"><strong>Collateral: $-</strong></p>
+                  <p id="longValue"><strong>Position Value: $-</strong></p>
+                  <p id="longPnL"><strong>P&L: $-</strong></p>
+                  <p id="longSLTP"><strong>Recommended: -</strong></p>
+                  <p id="longCurrentSize"><strong>Current Size: $-</strong></p>
+                  <p id="longSafetyMargin"><strong>Safety Margin: --</strong></p>
+                </div>
+              </div>
             </div>
-            <!-- Travel box at bottom -->
-            <div id="projectedLongTravelBox" style="position:absolute; bottom:10px; right:10px; background-color:#fff; border-radius:10px; padding:4px 8px; font-size:0.9rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
-              Projected Travel: <span id="projectedLongTravelPercent">0%</span>
-            </div>
-            <div class="card-body fs-5">
-              <h6 class="text-center fw-bold" style="font-size:1.5rem;">📈 Projected Long Position</h6>
-              <div class="position-details-section">
-                <p id="projectedLongSimPrice"><strong>Simulated Price: $-</strong></p>
-                <p id="projectedLongCollateralDisplay"><strong>Collateral: $-</strong></p>
-                <p id="projectedLongValue"><strong>Position Value: $-</strong></p>
-                <p id="projectedLongPnL"><strong>P&L: $-</strong></p>
-                <p id="projectedLongSLTP"><strong>Proposed New Size: $-</strong></p>
-                <p id="projectedLongSafetyMargin"><strong>Safety Margin: --</strong></p>
+          </div>
+          <div class="col-md-6">
+            <div id="shortOutputCard" class="card shadow-sm position-relative reduced-height">
+              <!-- Heat box at top -->
+              <div id="shortHeatBox" style="position:absolute; top:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-size:1.2rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
+                🔥 Heat: <span id="shortHeatIndex">0</span>
+                <div id="shortHeatDetails" style="font-size: 0.8rem; margin-top: 4px;">
+                  DTL: <span id="shortHeatDTL">0</span> | Lev: <span id="shortHeatLev">0</span>x | CR: <span id="shortHeatCR">0</span>%
+                </div>
+              </div>
+              <!-- Sim Heat box: now same style as Heat box but purple, moved to center -->
+              <div id="shortSimHeatBox" class="sim-heat-box">
+                🔥 Sim Heat: <span id="shortSimHeatIndex">0</span>
+                <div id="shortSimHeatDetails" style="font-size: 0.8rem; margin-top: 4px;">
+                  DTL: <span id="shortSimHeatDTL">0</span> | Lev: <span id="shortSimHeatLev">0</span>x | CR: <span id="shortSimHeatCR">0</span>% | Collateral: $<span id="shortSimHeatCollateral">0.00</span>
+                </div>
+              </div>
+              <!-- Travel box at bottom -->
+              <div id="shortTravelBox" style="position:absolute; bottom:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-size:1.2rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
+                Travel: <span id="shortTravelPercent">0%</span>
+              </div>
+              <div class="card-body fs-5">
+                <h6 class="text-center fw-bold" style="font-size:1.5rem;">📉 Short Position</h6>
+                <div class="position-details-section">
+                  <p id="shortSimPrice"><strong>Simulated Price: $-</strong></p>
+                  <p id="shortCollateralDisplay"><strong>Collateral: $-</strong></p>
+                  <p id="shortValue"><strong>Position Value: $-</strong></p>
+                  <p id="shortPnL"><strong>P&L: $-</strong></p>
+                  <p id="shortSLTP"><strong>Recommended: -</strong></p>
+                  <p id="shortCurrentSize"><strong>Current Size: $-</strong></p>
+                  <p id="shortSafetyMargin"><strong>Safety Margin: --</strong></p>
+                </div>
               </div>
             </div>
           </div>
         </div>
-        <div class="col-md-6">
-          <div id="projectedShortOutputCard" class="card shadow-sm position-relative reduced-height">
-            <!-- Heat box at top -->
-            <div id="projectedShortHeatBox" style="position:absolute; top:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
-              🔥 Projected Heat: <span id="projectedShortHeatIndex">0</span>
+
+        <!-- Row 7: Projected Output Section for Positions -->
+        <div id="projectedOutputRow" class="row mt-4">
+          <div class="col-md-6">
+            <div id="projectedLongOutputCard" class="card shadow-sm position-relative reduced-height">
+              <!-- Heat box at top -->
+              <div id="projectedLongHeatBox" style="position:absolute; top:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
+                🔥 Projected Heat: <span id="projectedLongHeatIndex">0</span>
+              </div>
+              <!-- Travel box at bottom -->
+              <div id="projectedLongTravelBox" style="position:absolute; bottom:10px; right:10px; background-color:#fff; border-radius:10px; padding:4px 8px; font-size:0.9rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
+                Projected Travel: <span id="projectedLongTravelPercent">0%</span>
+              </div>
+              <div class="card-body fs-5">
+                <h6 class="text-center fw-bold" style="font-size:1.5rem;">📈 Projected Long Position</h6>
+                <div class="position-details-section">
+                  <p id="projectedLongSimPrice"><strong>Simulated Price: $-</strong></p>
+                  <p id="projectedLongCollateralDisplay"><strong>Collateral: $-</strong></p>
+                  <p id="projectedLongValue"><strong>Position Value: $-</strong></p>
+                  <p id="projectedLongPnL"><strong>P&L: $-</strong></p>
+                  <p id="projectedLongSLTP"><strong>Proposed New Size: $-</strong></p>
+                  <p id="projectedLongSafetyMargin"><strong>Safety Margin: --</strong></p>
+                </div>
+              </div>
             </div>
-            <!-- Travel box at bottom -->
-            <div id="projectedShortTravelBox" style="position:absolute; bottom:10px; right:10px; background-color:#fff; border-radius:10px; padding:4px 8px; font-size:0.9rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
-              Projected Travel: <span id="projectedShortTravelPercent">0%</span>
-            </div>
-            <div class="card-body fs-5">
-              <h6 class="text-center fw-bold" style="font-size:1.5rem;">📉 Projected Short Position</h6>
-              <div class="position-details-section">
-                <p id="projectedShortSimPrice"><strong>Simulated Price: $-</strong></p>
-                <p id="projectedShortCollateralDisplay"><strong>Collateral: $-</strong></p>
-                <p id="projectedShortValue"><strong>Position Value: $-</strong></p>
-                <p id="projectedShortPnL"><strong>P&L: $-</strong></p>
-                <p id="projectedShortSLTP"><strong>Proposed New Size: $-</strong></p>
-                <p id="projectedShortSafetyMargin"><strong>Safety Margin: --</strong></p>
+          </div>
+          <div class="col-md-6">
+            <div id="projectedShortOutputCard" class="card shadow-sm position-relative reduced-height">
+              <!-- Heat box at top -->
+              <div id="projectedShortHeatBox" style="position:absolute; top:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
+                🔥 Projected Heat: <span id="projectedShortHeatIndex">0</span>
+              </div>
+              <!-- Travel box at bottom -->
+              <div id="projectedShortTravelBox" style="position:absolute; bottom:10px; right:10px; background-color:#fff; border-radius:10px; padding:4px 8px; font-size:0.9rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
+                Projected Travel: <span id="projectedShortTravelPercent">0%</span>
+              </div>
+              <div class="card-body fs-5">
+                <h6 class="text-center fw-bold" style="font-size:1.5rem;">📉 Projected Short Position</h6>
+                <div class="position-details-section">
+                  <p id="projectedShortSimPrice"><strong>Simulated Price: $-</strong></p>
+                  <p id="projectedShortCollateralDisplay"><strong>Collateral: $-</strong></p>
+                  <p id="projectedShortValue"><strong>Position Value: $-</strong></p>
+                  <p id="projectedShortPnL"><strong>P&L: $-</strong></p>
+                  <p id="projectedShortSLTP"><strong>Proposed New Size: $-</strong></p>
+                  <p id="projectedShortSafetyMargin"><strong>Safety Margin: --</strong></p>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+      <!-- END container for the 6 boxes + toggle -->
 
     </div>
   </div>
@@ -443,6 +452,10 @@
   let referencePrice = 100;
   let longLiquidation = null;
   let shortLiquidation = null;
+
+  /* ADDED for reset button fix */
+  let lastComputedCurrentPrice = 0;
+
   const longPositions = {{ long_positions|tojson }};
   const shortPositions = {{ short_positions|tojson }};
 
@@ -498,6 +511,10 @@
       slider.max = currentPrice * 1.25 * 1.05;
     }
     slider.value = currentPrice;
+
+    /* Store in global so the reset button can revert to this price */
+    lastComputedCurrentPrice = currentPrice;
+
     sliderChanged();
     updateEntryMarkers();
   }
@@ -1148,94 +1165,7 @@
   }
 
   /*************************************
-   * New: Simulated (Resulting) Heat Index Calculations
-   *************************************/
-  function updateLongSimHeatIndex(simPrice) {
-    const longEntry = parseFloat(document.getElementById("longEntry").value) || 0;
-    const currentLongSize = parseFloat(document.getElementById("longSize").value) || 0;
-    const currentCollateral = parseFloat(document.getElementById("longCollateral").value) || 0;
-    const fee = parseFloat(document.getElementById("feePercentage").value) || 0;
-    if (longEntry <= 0 || currentCollateral <= 0) {
-      document.getElementById("longSimHeatIndex").innerText = "N/A";
-      document.getElementById("longSimHeatDTL").innerText = "N/A";
-      document.getElementById("longSimHeatLev").innerText = "N/A";
-      document.getElementById("longSimHeatCR").innerText = "N/A";
-      document.getElementById("longSimHeatCollateral").innerText = "0.00";
-      return;
-    }
-    const simulatedSize = window.projectedLongSize || currentLongSize;
-    let tokenCount = longEntry > 0 ? simulatedSize / longEntry : 0;
-    let pnl = (simPrice - longEntry) * tokenCount;
-    let feeCost = (fee / 100) * simulatedSize;
-    let netValue = currentCollateral + pnl - feeCost;
-    const longLiq = longLiquidation || (longEntry * 0.8);
-    let ndl = (simPrice - longLiq) / (longEntry - longLiq);
-    ndl = Math.max(0, Math.min(ndl, 1));
-    let distanceFactor = 1 - ndl;
-    let leverageSim = currentCollateral > 0 ? simulatedSize / currentCollateral : 0;
-    let normalizedLeverage = leverageSim / 100;
-    let collateralRatio = currentCollateral / simulatedSize;
-    collateralRatio = Math.min(collateralRatio, 1);
-    let riskCollateralFactor = 1 - collateralRatio;
-    // Retrieve dynamic weights from UI
-    const distanceWeight = parseFloat(document.getElementById("distanceWeightInput").value) || 0.45;
-    const leverageWeight = parseFloat(document.getElementById("leverageWeightInput").value) || 0.35;
-    const collateralWeight = parseFloat(document.getElementById("collateralWeightInput").value) || 0.20;
-    console.debug("Long Sim Heat Weights - Distance:", distanceWeight, "Leverage:", leverageWeight, "Collateral:", collateralWeight);
-    let compositeSim = Math.pow(distanceFactor, distanceWeight) *
-                       Math.pow(normalizedLeverage, leverageWeight) *
-                       Math.pow(riskCollateralFactor, collateralWeight) * 100;
-    document.getElementById("longSimHeatIndex").innerText = compositeSim.toFixed(2);
-    document.getElementById("longSimHeatDTL").innerText = distanceFactor.toFixed(2);
-    document.getElementById("longSimHeatLev").innerText = leverageSim.toFixed(1);
-    document.getElementById("longSimHeatCR").innerText = (collateralRatio * 100).toFixed(0);
-    document.getElementById("longSimHeatCollateral").innerText = currentCollateral.toFixed(2);
-  }
-
-  function updateShortSimHeatIndex(simPrice) {
-    const shortEntry = parseFloat(document.getElementById("shortEntry").value) || 0;
-    const currentShortSize = parseFloat(document.getElementById("shortSize").value) || 0;
-    const currentCollateral = parseFloat(document.getElementById("shortCollateral").value) || 0;
-    const fee = parseFloat(document.getElementById("feePercentage").value) || 0;
-    if (shortEntry <= 0 || currentCollateral <= 0) {
-      document.getElementById("shortSimHeatIndex").innerText = "N/A";
-      document.getElementById("shortSimHeatDTL").innerText = "N/A";
-      document.getElementById("shortSimHeatLev").innerText = "N/A";
-      document.getElementById("shortSimHeatCR").innerText = "N/A";
-      document.getElementById("shortSimHeatCollateral").innerText = "0.00";
-      return;
-    }
-    const simulatedSize = window.projectedShortSize || currentShortSize;
-    let tokenCount = shortEntry > 0 ? simulatedSize / shortEntry : 0;
-    let pnl = (shortEntry - simPrice) * tokenCount;
-    let feeCost = (fee / 100) * simulatedSize;
-    let netValue = currentCollateral + pnl - feeCost;
-    const shortLiq = shortLiquidation || (shortEntry * 1.2);
-    let ndl = (shortLiq - simPrice) / (shortLiq - shortEntry);
-    ndl = Math.max(0, Math.min(ndl, 1));
-    let distanceFactor = 1 - ndl;
-    let leverageSim = currentCollateral > 0 ? simulatedSize / currentCollateral : 0;
-    let normalizedLeverage = leverageSim / 100;
-    let collateralRatio = currentCollateral / simulatedSize;
-    collateralRatio = Math.min(collateralRatio, 1);
-    let riskCollateralFactor = 1 - collateralRatio;
-    // Retrieve dynamic weights from UI
-    const distanceWeight = parseFloat(document.getElementById("distanceWeightInput").value) || 0.45;
-    const leverageWeight = parseFloat(document.getElementById("leverageWeightInput").value) || 0.35;
-    const collateralWeight = parseFloat(document.getElementById("collateralWeightInput").value) || 0.20;
-    console.debug("Short Sim Heat Weights - Distance:", distanceWeight, "Leverage:", leverageWeight, "Collateral:", collateralWeight);
-    let compositeSim = Math.pow(distanceFactor, distanceWeight)
-                     * Math.pow(normalizedLeverage, leverageWeight)
-                     * Math.pow(riskCollateralFactor, collateralWeight) * 100;
-    document.getElementById("shortSimHeatIndex").innerText = compositeSim.toFixed(2);
-    document.getElementById("shortSimHeatDTL").innerText = distanceFactor.toFixed(2);
-    document.getElementById("shortSimHeatLev").innerText = leverageSim.toFixed(1);
-    document.getElementById("shortSimHeatCR").innerText = (collateralRatio * 100).toFixed(0);
-    document.getElementById("shortSimHeatCollateral").innerText = currentCollateral.toFixed(2);
-  }
-
-  /*************************************
-   * Projected Leverage Slider Update
+   * Update Projected Heat Index (on leverage slider move)
    *************************************/
   function updateProjectedHeatIndex() {
     const leverageSlider = document.getElementById("leverageSlider");
@@ -1286,7 +1216,10 @@
    * Reset Price Functionality
    *************************************/
   function resetPriceToCurrent() {
-    updateReferencePrice();
+    // CHANGED so it resets to the last computed "currentPrice"
+    const slider = document.getElementById("priceSlider");
+    slider.value = lastComputedCurrentPrice;
+    sliderChanged();
   }
 </script>
 {% endblock %}
