@@ -381,6 +381,53 @@ def api_size_balance():
         logger.error(f"Error in api_size_balance: {e}", exc_info=True)
         return jsonify({"error": str(e)}), 500
 
+@dashboard_bp.route("/database_viewer", methods=["GET"])
+def database_viewer():
+    """
+    Route to display the database viewer page.
+    This page lets users switch between different tables (e.g. positions and alerts)
+    via a drop-down menu and supports inline editing and deletion.
+    """
+    try:
+        # Retrieve positions from the PositionService (real data)
+        positions = PositionService.get_all_positions(DB_PATH) or []
+        pos_headers = ["Ref ID", "Name", "Email", "Actions"]
+        pos_rows = []
+        for pos in positions:
+            # Use "ref_id" if available, otherwise fallback to "id"
+            ref_id = pos.get("ref_id") or pos.get("id", "unknown")
+            pos_rows.append({
+                "id": ref_id,  # Full reference ID; UI will trim to 6 characters.
+                "field1": pos.get("name", "N/A"),
+                "field2": pos.get("email", "N/A")
+            })
+
+        # Retrieve alerts (real data) – assuming alerts have a "position_id" field
+        dl = DataLocker.get_instance()
+        alerts = dl.get_alerts() or []
+        alert_headers = ["Ref ID", "Alert Type", "Status", "Actions"]
+        alert_rows = []
+        for alert in alerts:
+            # For alerts, try to get the reference from the related position, or use its own id.
+            ref_id = alert.get("position_id") or alert.get("id", "unknown")
+            alert_rows.append({
+                "id": ref_id,
+                "field1": alert.get("alert_type", "N/A"),
+                "field2": alert.get("status", "N/A")
+            })
+
+        # Create datasets dictionary keyed by table name.
+        datasets = {
+            "positions": {"headers": pos_headers, "rows": pos_rows},
+            "alerts": {"headers": alert_headers, "rows": alert_rows}
+        }
+
+        # Render the database_viewer.html template (which extends base.html)
+        return render_template("database_viewer.html", datasets=datasets)
+    except Exception as e:
+        current_app.logger.exception("Error in database_viewer route:")
+        return render_template("database_viewer.html", datasets={})
+
 
 @dashboard_bp.route("/api/collateral_composition")
 def api_collateral_composition():

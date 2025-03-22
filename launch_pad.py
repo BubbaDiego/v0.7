@@ -360,24 +360,6 @@ def api_delete_row():
         return jsonify({"error": str(e)}), 500
 
 
-@app.route('/database-viewer')
-def database_viewer():
-    dl = DataLocker.get_instance()
-
-    def format_table_data(rows: list) -> dict:
-        columns = list(rows[0].keys()) if rows else []
-        return {"columns": columns, "rows": rows}
-
-    db_data = {
-        'wallets': format_table_data(dl.read_wallets()),
-        'positions': format_table_data(dl.get_positions()),
-        'system_vars': format_table_data([dl.get_last_update_times()]),
-        'prices': format_table_data(dl.get_prices())
-    }
-
-    portfolio_data = []
-    return render_template("database_viewer.html", db_data=db_data, portfolio_data=portfolio_data)
-
 @app.route("/system_config", methods=["GET"])
 def system_config_page():
     dl = DataLocker.get_instance(DB_PATH)

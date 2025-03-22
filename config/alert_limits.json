@@ -198,6 +198,6 @@
   "alert_cooldown_seconds": 900.0,
   "call_refractory_period": 873.0,
   "snooze_countdown": 300.0,
-  "call_refractory_start": 1742662006.8385892,
+  "call_refractory_start": 1742667573.5929675,
   "snooze_start": null
 }

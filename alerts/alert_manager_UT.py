@@ -1,587 +1,127 @@
-#!/usr/bin/env python
-"""
-alert_manager_UT.py
-
-This file contains extensive unit tests for the AlertManager.
-It builds a test setup with dummy dependencies, executes various test cases,
-and then uses HtmlTestRunner to generate a detailed HTML report.
-Additionally, it produces a pie chart showing the success/failure rate.
-
-Dependencies:
-  - unittest (built-in)
-  - HtmlTestRunner (install via pip install html-testRunner)
-  - matplotlib (install via pip install matplotlib)
-
-Run this file directly to execute all tests, generate the HTML report,
-and display a pie chart of test results.
-"""
-
-import os
-import sys
-import time
-import json
 import unittest
-import logging
-import tempfile
-from datetime import datetime
-import matplotlib.pyplot as plt
+from jinja2 import Environment, DictLoader
+from data.data_locker import DataLocker
+from alerts.alert_controller import AlertController
 
-# Import HtmlTestRunner. Note the proper capitalization.
-import HtmlTestRunner
 
-# Ensure the project root is on sys.path.
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+# DummyAlert mimics the structure expected by the DataLocker (and our alert matrix template).
+class DummyAlert:
+    def __init__(self, id_val, position_reference_id, state, alert_type="TestAlert", trigger_value=100.0,
+                 condition="Normal", notification_type="Email", status="Active"):
+        self.data = {
+            "id": id_val,  # if None, DataLocker.create_alert will auto-generate one
+            "alert_type": alert_type,
+            "alert_class": "TestClass",
+            "asset_type": "BTC",
+            "trigger_value": trigger_value,
+            "condition": condition,
+            "notification_type": notification_type,
+            "state": state,
+            "last_triggered": None,
+            "status": status,
+            "frequency": 1,
+            "counter": 0,
+            "liquidation_distance": 0.0,
+            "target_travel_percent": 0.0,
+            "liquidation_price": 0.0,
+            "notes": "Test note",
+            "position_reference_id": position_reference_id
+        }
 
-# Import the AlertManager and trigger_twilio_flow from your module.
-from alerts.alert_manager import AlertManager, trigger_twilio_flow
+    def to_dict(self):
+        return self.data
 
-# --- Dummy Implementations for Testing ---
 
-class DummyDataLocker:
-    """
-    A dummy DataLocker for unit testing.
-    Simulates reading positions, alerts, and latest prices.
-    """
-    def __init__(self):
-        self.positions = []
-        self.alerts = []
-        self.latest_prices = {}
-
-    def read_positions(self):
-        return self.positions
-
-    def get_alerts(self):
-        return self.alerts
-
-    def get_latest_price(self, asset_code):
-        return self.latest_prices.get(asset_code.upper(), {"current_price": "100"})
-
-    def get_db_connection(self):
-        return None
-
-class DummyCalcServices:
-    """Dummy CalcServices that does nothing."""
-    pass
-
-# Override the trigger_twilio_flow for testing so that it doesn't call the real Twilio API.
-def dummy_trigger_twilio_flow(custom_message: str, twilio_config: dict) -> str:
-    return "DUMMY_TWILIO_SID"
-
-# Monkey-patch the trigger_twilio_flow function in the AlertManager module for tests.
-import alert_manager
-alert_manager.trigger_twilio_flow = dummy_trigger_twilio_flow
-
-# --- Unit Test Cases ---
-
-class TestAlertManager(unittest.TestCase):
-    """
-    Extensive unit tests for AlertManager.
-
-    Tests include:
-      - Travel percent liquid alerts (enabled/disabled for overall and each alert level)
-      - Profit alerts (enabled/disabled overall and per alert level)
-      - Swing alerts (enabled/disabled)
-      - Blast alerts (enabled/disabled)
-      - Price alerts
-      - Notification (call) triggering
-      - **Configuration Merge:** Verifies that alert_limits.json is merged correctly.
-      
-    A dummy DataLocker is injected to simulate controlled scenarios.
-    """
+class TestAlertMatrixInjection(unittest.TestCase):
     def setUp(self):
-        # Create a temporary configuration dict simulating alert_limits.json settings.
-        self.dummy_config = {
-            "alert_ranges": {
-                "travel_percent_liquid_ranges": {
-                    "enabled": True,
-                    "low": -5.0,
-                    "medium": -50.0,
-                    "high": -75.0,
-                    "low_notifications": {"call": True, "sms": False, "email": False},
-                    "medium_notifications": {"call": True, "sms": False, "email": False},
-                    "high_notifications": {"call": True, "sms": False, "email": False}
-                },
-                "profit_ranges": {
-                    "enabled": True,
-                    "low": 1.0,
-                    "medium": 2.0,
-                    "high": 3.0,
-                    "low_notifications": {"call": True, "sms": False, "email": False},
-                    "medium_notifications": {"call": True, "sms": False, "email": False},
-                    "high_notifications": {"call": True, "sms": False, "email": False}
-                },
-                "swing_alerts": {
-                    "enabled": True,
-                    "notifications": {"call": True}
-                },
-                "blast_alerts": {
-                    "enabled": True,
-                    "notifications": {"call": True}
-                }
-            },
-            "alert_cooldown_seconds": 0,  # disable cooldown for testing
-            "call_refractory_period": 0,
-            "twilio_config": {
-                "account_sid": "dummy_sid",
-                "auth_token": "dummy_token",
-                "flow_sid": "dummy_flow",
-                "to_phone": "+1234567890",
-                "from_phone": "+0987654321"
-            },
-            "system_config": {
-                "alert_monitor_enabled": True
-            }
-        }
+        # Use an in-memory SQLite DB; reset the DataLocker singleton.
+        self.db_path = ":memory:"
+        DataLocker._instance = None
+        # Create our AlertController using the shared db_path.
+        self.alert_controller = AlertController(db_path=self.db_path)
 
-        # Create a temporary dummy config file.
-        self.temp_config_file = tempfile.NamedTemporaryFile(mode='w+', delete=False)
-        json.dump(self.dummy_config, self.temp_config_file)
-        self.temp_config_file.close()
+        # Inject three alerts:
+        # Alert 1: Has an alert ID and a position reference ID.
+        alert1 = DummyAlert("alert123", "posABC", "Normal", alert_type="PriceThreshold", trigger_value=120.0)
+        # Alert 2: Does NOT have an alert ID (should be auto-generated) but has a position reference ID.
+        alert2 = DummyAlert(None, "posDEF", "High", alert_type="Profit", trigger_value=150.0)
+        # Alert 3: Has an alert ID but NO position reference ID.
+        alert3 = DummyAlert("alert789", None, "Medium", alert_type="TravelPercentLiquid", trigger_value=0.0)
 
-        # Instantiate AlertManager with dummy config and a dummy DB path.
-        self.alert_manager = AlertManager(db_path=":memory:", config_path=self.temp_config_file.name)
+        # Insert alerts into the database.
+        self.alert_controller.create_alert(alert1)
+        self.alert_controller.create_alert(alert2)
+        self.alert_controller.create_alert(alert3)
 
-        # Inject dummy dependencies.
-        self.alert_manager.data_locker = DummyDataLocker()
-        self.alert_manager.calc_services = DummyCalcServices()
+        # Retrieve alerts from the DB.
+        self.alerts = self.alert_controller.get_all_alerts()
 
-    def tearDown(self):
-        os.unlink(self.temp_config_file.name)
-
-    # -------------------------------------------------------------------------
-    # Existing Tests
-    # -------------------------------------------------------------------------
-    def test_travel_percent_liquid_alert_enabled(self):
-        """Test that a travel percent liquid alert is triggered when conditions are met."""
-        position = {
-            "asset_type": "BTC",
-            "position_type": "long",
-            "position_id": "pos1",
-            "current_travel_percent": -80.0,
-            "wallet_name": "TestWallet"
-        }
-        result = self.alert_manager.check_travel_percent_liquid(position)
-        self.assertIn("Travel Percent Liquid ALERT", result)
-
-    def test_travel_percent_liquid_alert_disabled(self):
-        """Test that travel percent liquid alert returns empty when config is disabled."""
-        self.alert_manager.config["alert_ranges"]["travel_percent_liquid_ranges"]["enabled"] = False
-        position = {
-            "asset_type": "BTC",
-            "position_type": "long",
-            "position_id": "pos2",
-            "current_travel_percent": -80.0,
-            "wallet_name": "TestWallet"
-        }
-        result = self.alert_manager.check_travel_percent_liquid(position)
-        self.assertEqual(result, "")
-
-    def test_profit_alert_enabled(self):
-        """Test that a profit alert is triggered when profit conditions are met."""
-        position = {
-            "asset_type": "ETH",
-            "position_type": "short",
-            "position_id": "pos3",
-            "profit": 5.0  # High level
-        }
-        result = self.alert_manager.check_profit(position)
-        self.assertIn("Profit ALERT", result)
-
-    def test_profit_alert_disabled(self):
-        """Test that profit alert returns empty when profit alert config is disabled."""
-        self.alert_manager.config["alert_ranges"]["profit_ranges"]["enabled"] = False
-        position = {
-            "asset_type": "ETH",
-            "position_type": "short",
-            "position_id": "pos4",
-            "profit": 5.0
-        }
-        result = self.alert_manager.check_profit(position)
-        self.assertEqual(result, "")
-
-    def test_swing_alert_enabled(self):
-        """Test that swing alert is triggered when conditions are met."""
-        position = {
-            "asset_type": "SOL",
-            "position_type": "long",
-            "position_id": "pos5",
-            "liquidation_distance": 15.0
-        }
-        result = self.alert_manager.check_swing_alert(position)
-        self.assertIn("Average Daily Swing ALERT", result)
-
-    def test_swing_alert_disabled(self):
-        """Test that swing alert returns empty when swing alerts are disabled."""
-        self.alert_manager.config["alert_ranges"]["swing_alerts"]["enabled"] = False
-        position = {
-            "asset_type": "SOL",
-            "position_type": "long",
-            "position_id": "pos6",
-            "liquidation_distance": 15.0
-        }
-        result = self.alert_manager.check_swing_alert(position)
-        self.assertEqual(result, "")
-
-    def test_blast_alert_enabled(self):
-        """Test that blast alert is triggered when conditions are met."""
-        position = {
-            "asset_type": "BTC",
-            "position_type": "long",
-            "position_id": "pos7",
-            "liquidation_distance": 20.0
-        }
-        result = self.alert_manager.check_blast_alert(position)
-        self.assertIn("One Day Blast Radius ALERT", result)
-
-    def test_blast_alert_disabled(self):
-        """Test that blast alert returns empty when blast alerts are disabled."""
-        self.alert_manager.config["alert_ranges"]["blast_alerts"] = {"enabled": False, "notifications": {"call": True}}
-        position = {
-            "asset_type": "BTC",
-            "position_type": "long",
-            "position_id": "pos8",
-            "liquidation_distance": 20.0
-        }
-        result = self.alert_manager.check_blast_alert(position)
-        self.assertEqual(result, "")
-
-    def test_price_alert(self):
-        """Test that a price alert is triggered given a simulated alert from DataLocker."""
-        dummy_alert = {
-            "alert_type": "PRICE_THRESHOLD",
-            "status": "active",
-            "asset_type": "BTC",
-            "position_id": "pos9",
-            "trigger_value": 90.0,
-            "condition": "ABOVE",
-            "wallet_name": "TestWallet"
-        }
-        self.alert_manager.data_locker.alerts = [dummy_alert]
-        self.alert_manager.data_locker.latest_prices = {"BTC": {"current_price": "100"}}
-        results = self.alert_manager.check_price_alerts()
-        self.assertTrue(any("Price ALERT" in r for r in results))
-
-    def test_send_call(self):
-        """Test that send_call triggers a call notification (dummy) without raising exceptions."""
-        try:
-            self.alert_manager.send_call("Test call message", "test_call")
-        except Exception as e:
-            self.fail(f"send_call raised an exception: {e}")
-
-    # -------------------------------------------------------------------------
-    # Additional Test Cases for Expanded Coverage
-    # -------------------------------------------------------------------------
-
-    def test_profit_alert_low_enabled(self):
-        """Test profit alert at Low level when call notifications are enabled."""
-        position = {
-            "asset_type": "ETH",
-            "position_type": "short",
-            "position_id": "pos_low_enabled",
-            "profit": 1.5
-        }
-        self.alert_manager.config["alert_ranges"]["profit_ranges"]["low_notifications"]["call"] = True
-        result = self.alert_manager.check_profit(position)
-        self.assertIn("Profit ALERT", result, "Low-level profit alert should trigger if call is enabled.")
-
-    def test_profit_alert_low_disabled(self):
-        """Test profit alert at Low level when call notifications are disabled."""
-        position = {
-            "asset_type": "ETH",
-            "position_type": "short",
-            "position_id": "pos_low_disabled",
-            "profit": 1.5
-        }
-        self.alert_manager.config["alert_ranges"]["profit_ranges"]["low_notifications"]["call"] = False
-        self.alert_manager.config["alert_ranges"]["profit_ranges"]["low_notifications"]["sms"] = True
-        self.alert_manager.config["alert_ranges"]["profit_ranges"]["low_notifications"]["email"] = True
-        result = self.alert_manager.check_profit(position)
-        self.assertEqual(result, "", "Low-level profit alert should NOT trigger if call is disabled.")
-
-    def test_profit_alert_medium_enabled(self):
-        """Test profit alert at Medium level when call notifications are enabled."""
-        position = {
-            "asset_type": "ETH",
-            "position_type": "short",
-            "position_id": "pos_medium_enabled",
-            "profit": 2.5
-        }
-        self.alert_manager.config["alert_ranges"]["profit_ranges"]["medium_notifications"]["call"] = True
-        result = self.alert_manager.check_profit(position)
-        self.assertIn("Profit ALERT", result, "Medium-level profit alert should trigger if call is enabled.")
-
-    def test_profit_alert_medium_disabled(self):
-        """Test profit alert at Medium level when call notifications are disabled."""
-        position = {
-            "asset_type": "ETH",
-            "position_type": "short",
-            "position_id": "pos_medium_disabled",
-            "profit": 2.5
-        }
-        self.alert_manager.config["alert_ranges"]["profit_ranges"]["medium_notifications"]["call"] = False
-        result = self.alert_manager.check_profit(position)
-        self.assertEqual(result, "", "Medium-level profit alert should NOT trigger if call is disabled.")
-
-    def test_profit_alert_high_enabled(self):
-        """Test profit alert at High level when call notifications are enabled."""
-        position = {
-            "asset_type": "ETH",
-            "position_type": "short",
-            "position_id": "pos_high_enabled",
-            "profit": 5.0
-        }
-        self.alert_manager.config["alert_ranges"]["profit_ranges"]["high_notifications"]["call"] = True
-        result = self.alert_manager.check_profit(position)
-        self.assertIn("Profit ALERT", result, "High-level profit alert should trigger if call is enabled.")
-
-    def test_profit_alert_high_disabled(self):
-        """Test profit alert at High level when call notifications are disabled."""
-        position = {
-            "asset_type": "ETH",
-            "position_type": "short",
-            "position_id": "pos_high_disabled",
-            "profit": 5.0
-        }
-        self.alert_manager.config["alert_ranges"]["profit_ranges"]["high_notifications"]["call"] = False
-        result = self.alert_manager.check_profit(position)
-        self.assertEqual(result, "", "High-level profit alert should NOT trigger if call is disabled.")
-
-    def test_travel_alert_low_enabled(self):
-        """Test travel percent liquid alert at Low level when call notifications are enabled."""
-        position = {
-            "asset_type": "BTC",
-            "position_type": "long",
-            "position_id": "pos_travel_low_enabled",
-            "current_travel_percent": -10.0,
-            "wallet_name": "TestWallet"
-        }
-        self.alert_manager.config["alert_ranges"]["travel_percent_liquid_ranges"]["low_notifications"]["call"] = True
-        result = self.alert_manager.check_travel_percent_liquid(position)
-        self.assertIn("Travel Percent Liquid ALERT", result,
-                      "Low-level travel alert should trigger if call is enabled.")
-
-    def test_travel_alert_low_disabled(self):
-        """Test travel percent liquid alert at Low level when call notifications are disabled."""
-        position = {
-            "asset_type": "BTC",
-            "position_type": "long",
-            "position_id": "pos_travel_low_disabled",
-            "current_travel_percent": -10.0,
-            "wallet_name": "TestWallet"
-        }
-        self.alert_manager.config["alert_ranges"]["travel_percent_liquid_ranges"]["low_notifications"]["call"] = False
-        result = self.alert_manager.check_travel_percent_liquid(position)
-        self.assertEqual(result, "", "Low-level travel alert should NOT trigger if call is disabled.")
-
-    def test_travel_alert_medium_enabled(self):
-        """Test travel percent liquid alert at Medium level when call notifications are enabled."""
-        position = {
-            "asset_type": "BTC",
-            "position_type": "long",
-            "position_id": "pos_travel_medium_enabled",
-            "current_travel_percent": -55.0,
-            "wallet_name": "TestWallet"
-        }
-        self.alert_manager.config["alert_ranges"]["travel_percent_liquid_ranges"]["medium_notifications"]["call"] = True
-        result = self.alert_manager.check_travel_percent_liquid(position)
-        self.assertIn("Travel Percent Liquid ALERT", result,
-                      "Medium-level travel alert should trigger if call is enabled.")
-
-    def test_travel_alert_medium_disabled(self):
-        """Test travel percent liquid alert at Medium level when call notifications are disabled."""
-        position = {
-            "asset_type": "BTC",
-            "position_type": "long",
-            "position_id": "pos_travel_medium_disabled",
-            "current_travel_percent": -55.0,
-            "wallet_name": "TestWallet"
-        }
-        self.alert_manager.config["alert_ranges"]["travel_percent_liquid_ranges"]["medium_notifications"]["call"] = False
-        result = self.alert_manager.check_travel_percent_liquid(position)
-        self.assertEqual(result, "", "Medium-level travel alert should NOT trigger if call is disabled.")
-
-    def test_travel_alert_high_enabled(self):
-        """Test travel percent liquid alert at High level when call notifications are enabled."""
-        position = {
-            "asset_type": "BTC",
-            "position_type": "long",
-            "position_id": "pos_travel_high_enabled",
-            "current_travel_percent": -80.0,
-            "wallet_name": "TestWallet"
-        }
-        self.alert_manager.config["alert_ranges"]["travel_percent_liquid_ranges"]["high_notifications"]["call"] = True
-        result = self.alert_manager.check_travel_percent_liquid(position)
-        self.assertIn("Travel Percent Liquid ALERT", result,
-                      "High-level travel alert should trigger if call is enabled.")
-
-    def test_travel_alert_high_disabled(self):
-        """Test travel percent liquid alert at High level when call notifications are disabled."""
-        position = {
-            "asset_type": "BTC",
-            "position_type": "long",
-            "position_id": "pos_travel_high_disabled",
-            "current_travel_percent": -80.0,
-            "wallet_name": "TestWallet"
-        }
-        self.alert_manager.config["alert_ranges"]["travel_percent_liquid_ranges"]["high_notifications"]["call"] = False
-        result = self.alert_manager.check_travel_percent_liquid(position)
-        self.assertEqual(result, "", "High-level travel alert should NOT trigger if call is disabled.")
-
-    def test_monitor_disabled(self):
-        """Test that no alerts are triggered at all when the alert monitor is disabled."""
-        self.alert_manager.monitor_enabled = False
-        self.alert_manager.data_locker.positions = [
-            {"asset_type": "BTC", "position_type": "long", "profit": 10.0, "current_travel_percent": -80.0}
-        ]
-        self.alert_manager.suppressed_count = 0
-        self.alert_manager.check_alerts()
-        self.assertEqual(self.alert_manager.suppressed_count, 0, "Should remain 0 because no alerts are triggered.")
-
-    def test_cooldown_suppression(self):
-        """Test that an alert triggered once is suppressed if triggered again within the cooldown period."""
-        self.alert_manager.cooldown = 999999
-        position = {
-            "asset_type": "ETH",
-            "position_type": "short",
-            "position_id": "pos_cooldown",
-            "profit": 5.0
-        }
-        result1 = self.alert_manager.check_profit(position)
-        self.assertIn("Profit ALERT", result1, "First profit check should trigger alert.")
-        result2 = self.alert_manager.check_profit(position)
-        self.assertEqual(result2, "", "Second profit check should be suppressed by cooldown.")
-
-    def test_negative_profit_no_alert(self):
-        """Test that negative or zero profit does not trigger a profit alert."""
-        position_neg = {
-            "asset_type": "ETH",
-            "position_type": "short",
-            "position_id": "pos_neg_profit",
-            "profit": -1.0
-        }
-        result_neg = self.alert_manager.check_profit(position_neg)
-        self.assertEqual(result_neg, "", "Negative profit should not trigger a profit alert.")
-        position_zero = {
-            "asset_type": "ETH",
-            "position_type": "short",
-            "position_id": "pos_zero_profit",
-            "profit": 0.0
-        }
-        result_zero = self.alert_manager.check_profit(position_zero)
-        self.assertEqual(result_zero, "", "Zero profit should not trigger a profit alert.")
-
-    def test_travel_percent_missing(self):
-        """Test that no travel alert is triggered if current_travel_percent is missing or non-numeric."""
-        pos_missing = {
-            "asset_type": "BTC",
-            "position_type": "long",
-            "position_id": "pos_missing_travel"
-        }
-        result_missing = self.alert_manager.check_travel_percent_liquid(pos_missing)
-        self.assertEqual(result_missing, "", "Missing travel percent should not trigger an alert.")
-        pos_non_numeric = {
-            "asset_type": "BTC",
-            "position_type": "long",
-            "position_id": "pos_non_numeric_travel",
-            "current_travel_percent": "bad_value"
-        }
-        result_non_numeric = self.alert_manager.check_travel_percent_liquid(pos_non_numeric)
-        self.assertEqual(result_non_numeric, "", "Non-numeric travel percent should fail gracefully, no alert.")
-
-    def test_partial_invalid_config(self):
+        # Set up a Jinja2 environment with a simplified alert matrix template.
+        self.template_str = """
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Alert Matrix</title>
+          <style>
+            .info-box { border: 1px solid #ccc; padding: 10px; margin: 5px; border-radius: 0.5rem; }
+            .no-alert { background-color: #0d6efd; color: #fff; }
+            .low { background-color: #198754; color: #fff; }
+            .medium { background-color: #ffc107; color: #000; }
+            .high { background-color: #dc3545; color: #fff; }
+            .unknown { background-color: #6c757d; color: #fff; }
+            .info-box-text { display: block; margin: 2px 0; }
+          </style>
+        </head>
+        <body>
+        <div>
+          {% for alert in alerts %}
+            <div class="info-box 
+              {% if alert.state == 'Normal' %} no-alert
+              {% elif alert.state == 'Low' %} low
+              {% elif alert.state == 'Medium' %} medium
+              {% elif alert.state == 'High' %} high
+              {% else %} unknown {% endif %}">
+              <div>
+                <span class="info-box-text">Type: {{ alert.alert_type }}</span>
+                <span class="info-box-text">Trigger: {{ alert.trigger_value }}</span>
+                <span class="info-box-text">State: {{ alert.state }}</span>
+                <span class="info-box-text">Status: {{ alert.status }}</span>
+                <span class="info-box-text">Alert ID: {{ alert.id if alert.id else 'N/A' }}</span>
+                <span class="info-box-text">Pos Ref: {{ alert.position_reference_id if alert.position_reference_id else 'N/A' }}</span>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+        </body>
+        </html>
         """
-        Test partial/invalid config for profit_ranges or travel_percent_liquid_ranges.
-        This ensures that if keys are missing, we fail gracefully or trigger no alerts.
-        """
-        del self.alert_manager.config["alert_ranges"]["profit_ranges"]
-        pos = {"asset_type": "ETH", "position_type": "short", "profit": 5.0}
-        result = self.alert_manager.check_profit(pos)
-        self.assertEqual(result, "", "Missing profit_ranges config => no alert triggered (fails gracefully).")
-        del self.alert_manager.config["alert_ranges"]["travel_percent_liquid_ranges"]
-        pos2 = {"asset_type": "BTC", "position_type": "long", "current_travel_percent": -80.0}
-        result2 = self.alert_manager.check_travel_percent_liquid(pos2)
-        self.assertEqual(result2, "", "Missing travel_percent_liquid_ranges => no alert triggered (fails gracefully).")
+        self.env = Environment(loader=DictLoader({"alert_matrix.html": self.template_str}))
+        self.template = self.env.get_template("alert_matrix.html")
 
-    def test_price_alert_not_triggered(self):
-        """
-        Test that a price alert is not triggered if the condition isn't met.
-        e.g. 'ABOVE' 120 but the price is 100 => no alert
-        """
-        dummy_alert = {
-            "alert_type": "PRICE_THRESHOLD",
-            "status": "active",
-            "asset_type": "BTC",
-            "position_id": "pos_no_trigger",
-            "trigger_value": 120.0,
-            "condition": "ABOVE",
-            "wallet_name": "TestWallet"
-        }
-        self.alert_manager.data_locker.alerts = [dummy_alert]
-        self.alert_manager.data_locker.latest_prices = {"BTC": {"current_price": "100"}}
-        results = self.alert_manager.check_price_alerts()
-        self.assertFalse(results, "No price alert should be triggered if price < trigger_value.")
+    def test_render_alert_matrix(self):
+        rendered_html = self.template.render({"alerts": self.alerts})
+        # Write the rendered HTML to a file so you can manually inspect it.
+        with open("alert_matrix_injection_output.html", "w", encoding="utf-8") as f:
+            f.write(rendered_html)
 
-    def test_alert_config_merge(self):
-        """
-        Test that the alert configuration is merged with alert_limits.json correctly.
-        This ensures that the 'alert_ranges' section is not empty and includes travel_percent_liquid_ranges.
-        """
-        self.assertIn("alert_ranges", self.alert_manager.config,
-                      "Alert ranges should be present after merging.")
-        tpl_config = self.alert_manager.config["alert_ranges"].get("travel_percent_liquid_ranges", {})
-        self.assertNotEqual(tpl_config, {}, "Travel percent liquid ranges config should not be empty after merge.")
-        self.assertEqual(tpl_config.get("enabled"), True, "Travel percent liquid ranges should be enabled per alert_limits.json.")
-        self.assertEqual(tpl_config.get("low"), -5.0, "Low threshold should be -5.0 as per alert_limits.json.")
-        # Also check a profit_ranges value from alert_limits.json override if present.
-        profit_config = self.alert_manager.config.get("alert_ranges", {}).get("profit_ranges", {})
-        # From alert_limits.json, profit_ranges enabled is false.
-        self.assertEqual(profit_config.get("enabled"), False,
-                         "Profit ranges should be disabled as per alert_limits.json.")
+        # Debug print the number of alerts and their details.
+        print("Number of alerts in DB:", len(self.alerts))
+        for alert in self.alerts:
+            print(alert)
 
-    # -------------------------------------------------------------------------
-    # Additional Tests for Extra Coverage
-    # -------------------------------------------------------------------------
-    def test_missing_alert_ranges_in_main_config(self):
-        """
-        Test that if the main config does not have an 'alert_ranges' key,
-        the alert_limits.json values are still merged in.
-        """
-        # Simulate a main config with no alert_ranges.
-        self.alert_manager.config = {}
-        config_manager = self.alert_manager.__class__.__init__.__globals__['UnifiedConfigManager'](self.temp_config_file.name)
-        alert_limits = config_manager.load_alert_limits(ALERT_LIMITS_PATH)
-        if alert_limits and "alert_ranges" in alert_limits:
-            merged_alerts = alert_limits["alert_ranges"]
-            self.alert_manager.config["alert_ranges"] = merged_alerts
-        self.assertIn("alert_ranges", self.alert_manager.config,
-                      "Alert ranges should be merged even if missing in main config.")
-        tpl_config = self.alert_manager.config["alert_ranges"].get("travel_percent_liquid_ranges", {})
-        self.assertNotEqual(tpl_config, {}, "Merged alert_ranges should include travel_percent_liquid_ranges.")
+        # Assert that each alert's ID and position reference are rendered correctly.
+        for alert in self.alerts:
+            if alert.get("id"):
+                self.assertIn(str(alert.get("id")), rendered_html)
+            else:
+                self.assertIn("Alert ID: N/A", rendered_html)
+            if alert.get("position_reference_id"):
+                self.assertIn(str(alert.get("position_reference_id")), rendered_html)
+            else:
+                self.assertIn("Pos Ref: N/A", rendered_html)
+        print("Rendered alert matrix with DB alerts in alert_matrix_injection_output.html.")
 
-# --- Main Test Runner with HTML Report and Pie Chart Generation ---
 
-if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(TestAlertManager)
-    report_dir = os.path.dirname(os.path.abspath(__file__))
-    runner = HtmlTestRunner.HTMLTestRunner(
-        output=report_dir,
-        report_title="AlertManager Unit Test Report",
-        report_name="AlertManager_Test_Report",
-        descriptions="Detailed results for AlertManager unit tests with success/failure metrics.",
-        verbosity=2
-    )
-    result = runner.run(suite)
-    successes = result.testsRun - len(result.failures) - len(result.errors)
-    failures = len(result.failures) + len(result.errors)
-    labels = ['Successes', 'Failures']
-    sizes = [successes, failures]
-    colors = ['green', 'red']
-    plt.figure(figsize=(6, 6))
-    plt.pie(sizes, labels=labels, colors=colors, autopct='%1.1f%%', shadow=True, startangle=90)
-    plt.title("Test Success/Failure Rate")
-    plt.axis('equal')
-    pie_chart_file = os.path.join(report_dir, "test_results_pie.png")
-    plt.savefig(pie_chart_file)
-    plt.close()
-    print(f"HTML test report generated at: {os.path.join(report_dir, 'AlertManager_Test_Report.html')}")
-    print(f"Pie chart image generated at: {pie_chart_file}")
+if __name__ == "__main__":
+    unittest.main(verbosity=2)

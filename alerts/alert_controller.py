@@ -3,8 +3,11 @@ from utils.json_manager import JsonManager, JsonType
 from data.models import AlertType, AlertClass, NotificationType, Status
 
 class AlertController:
-    def __init__(self):
-        self.data_locker = DataLocker.get_instance()
+    def __init__(self, db_path: str = None):
+        if db_path:
+            self.data_locker = DataLocker.get_instance(db_path)
+        else:
+            self.data_locker = DataLocker.get_instance()
 
     def create_alert(self, alert_obj) -> bool:
         """
@@ -165,8 +168,6 @@ class AlertController:
         """
         Iterates through active positions and creates a corresponding travel percent alert
         for each. Travel percent alerts are of type TRAVEL_PERCENT_LIQUID and class POSITION.
-        The alert's position_reference_id is set to the position's id, and upon successful creation,
-        the position is updated with the new alert's id.
         """
         jm = JsonManager()
         alert_limits = jm.load("", JsonType.ALERT_LIMITS)

@@ -295,6 +295,7 @@ def update_alert_config_route():
                       operation_type="Alert Config Failed", file_name=str(ALERT_LIMITS_PATH))
         return jsonify({"success": False, "error": str(e)}), 500
 
+
 @alerts_bp.route('/matrix', methods=['GET'], endpoint="alert_matrix")
 def alert_matrix():
     from data.data_locker import DataLocker
@@ -313,10 +314,23 @@ def alert_matrix():
 
     data_locker = DataLocker.get_instance()
     alerts = data_locker.get_alerts()
+
+    # NEW: Retrieve positions and update alerts missing position_reference_id
+    positions = data_locker.read_positions()
+    for alert in alerts:
+        if not alert.get("position_reference_id"):
+            for pos in positions:
+                # If the position's alert_reference_id matches the alert's id,
+                # then assign the position's id as the position_reference_id.
+                if pos.get("alert_reference_id") == alert.get("id"):
+                    alert["position_reference_id"] = pos.get("id")
+                    break
+
     json_manager = current_app.json_manager
     alert_config = json_manager.load("alert_limits.json", json_type=JsonType.ALERT_LIMITS)
     alert_ranges = alert_config.get("alert_ranges", {})
     return render_template("alert_matrix.html", theme=theme_config, alerts=alerts, alert_ranges=alert_ranges)
+
 
 if __name__ == "__main__":
     from flask import Flask

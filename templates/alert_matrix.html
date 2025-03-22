@@ -16,7 +16,6 @@
     margin-left: 10px;
     cursor: pointer;
   }
-
   /* Info-box styles for alert matrix */
   .info-box {
     border-radius: 0.5rem;
@@ -35,6 +34,37 @@
     flex: 1;
     padding: 0.5rem;
   }
+
+  /* Three-column layout for alert info */
+  .alert-info-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .alert-details-column {
+    flex: 1;
+    padding-right: 10px;
+  }
+  .alert-id-column {
+    flex: 0.7;
+    padding-right: 10px;
+    text-align: center;
+  }
+  .alert-range-column {
+    flex: 0.8;
+    text-align: right;
+  }
+  .alert-info-column div {
+    margin-bottom: 4px;
+  }
+
+  /* No-wrap for the ID lines */
+  .nowrap-line {
+    white-space: nowrap;
+  }
+
+  /* Color-coded boxes based on alert.state */
   .info-box.no-alert {
     background-color: #0d6efd !important; /* Blue */
     color: #fff !important;
@@ -77,7 +107,6 @@
       <div class="row">
         {% for alert in alerts %}
           <div class="col-md-3 col-sm-6 col-12">
-            <!-- Use alert.state for the color-coded box -->
             <div class="info-box
               {% if alert.state == 'Normal' %}
                 no-alert
@@ -102,29 +131,72 @@
                 {% endif %}
               </span>
               <div class="info-box-content">
-                <span class="info-box-text">{{ alert.alert_type }}</span>
-                <span class="info-box-number">Trigger: {{ alert.trigger_value }}</span>
-                <!-- Display State instead of Condition -->
-                <span class="info-box-text">State: {{ alert.state }}</span>
-                <span class="info-box-text">Status: {{ alert.status }}</span>
-                {% if alert_ranges %}
-                  {% if alert.alert_type == 'PriceThreshold' %}
-                    {% set range_config = alert_ranges.price_alerts[alert.asset_type] if alert.asset_type in alert_ranges.price_alerts else None %}
-                  {% elif alert.alert_type in ['TravelPercent', 'TravelPercentLiquid'] %}
-                    {% set range_config = alert_ranges.travel_percent_liquid_ranges %}
-                  {% elif alert.alert_type == 'Profit' %}
-                    {% set range_config = alert_ranges.profit_ranges %}
-                  {% elif alert.alert_type == 'HeatIndex' %}
-                    {% set range_config = alert_ranges.heat_index_ranges %}
-                  {% else %}
-                    {% set range_config = None %}
-                  {% endif %}
-                  {% if range_config %}
-                    <span class="info-box-text">
-                      Range: Low: {{ range_config.low }}, Medium: {{ range_config.medium }}, High: {{ range_config.high }}
-                    </span>
-                  {% endif %}
-                {% endif %}
+                <div class="alert-info-container">
+                  <!-- Left column: Type, Trigger, State, Status -->
+                  <div class="alert-details-column">
+                    <div><strong>Type:</strong>
+                      {% if alert.alert_type == 'PriceThreshold' %}
+                        Price
+                      {% else %}
+                        {{ alert.alert_type }}
+                      {% endif %}
+                    </div>
+                    <div><strong>Trigger:</strong> {{ alert.trigger_value }}</div>
+                    <div><strong>State:</strong> {{ alert.state }}</div>
+                    <div><strong>Status:</strong> {{ alert.status }}</div>
+                  </div>
+
+                  <!-- Middle column: IDs (Alert, Pos Ref, Hedge) -->
+                  <div class="alert-id-column">
+                    <div class="nowrap-line">
+                      <i class="fas fa-id-badge"></i>
+                      {% if alert.id %}
+                        {{ alert.id[:6] }}
+                      {% else %}
+                        N/A
+                      {% endif %}
+                    </div>
+                    <div class="nowrap-line">
+                      <i class="fas fa-link"></i>
+                      {% if alert.position_reference_id %}
+                        {{ alert.position_reference_id[:6] }}
+                      {% else %}
+                        N/A
+                      {% endif %}
+                    </div>
+                    <div class="nowrap-line">
+                      <i class="fas fa-paw"></i>
+                      {% if alert.hedge_id %}
+                        {{ alert.hedge_id[:6] }}
+                      {% else %}
+                        N/A
+                      {% endif %}
+                    </div>
+                  </div>
+
+                  <!-- Right column: Range info -->
+                  <div class="alert-range-column">
+                    {% if alert_ranges %}
+                      {% if alert.alert_type == 'PriceThreshold' %}
+                        {% set range_config = alert_ranges.price_alerts[alert.asset_type] if alert.asset_type in alert_ranges.price_alerts else None %}
+                      {% elif alert.alert_type in ['TravelPercent', 'TravelPercentLiquid'] %}
+                        {% set range_config = alert_ranges.travel_percent_liquid_ranges %}
+                      {% elif alert.alert_type == 'Profit' %}
+                        {% set range_config = alert_ranges.profit_ranges %}
+                      {% elif alert.alert_type == 'HeatIndex' %}
+                        {% set range_config = alert_ranges.heat_index_ranges %}
+                      {% else %}
+                        {% set range_config = None %}
+                      {% endif %}
+                      {% if range_config %}
+                        <div><strong>Range:</strong></div>
+                        <div>Low: {{ range_config.low }}</div>
+                        <div>Med: {{ range_config.medium }}</div>
+                        <div>High: {{ range_config.high }}</div>
+                      {% endif %}
+                    {% endif %}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -133,7 +205,7 @@
     </div>
   </div>
 
-  <!-- Hedge Matrix Card -->
+  <!-- Hedge Matrix Card (unchanged) -->
   <div class="card mt-4" style="border: 1px solid {{ theme.get('border_color', '#ccc') }};">
     <div class="card-header" style="background-color: {{ theme.get('card_header_color', '#007bff') }}; color: {{ theme.get('card_header_text_color', '#fff') }};">
       <h3 class="card-title">Hedge Matrix</h3>
