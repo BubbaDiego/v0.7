@@ -10,8 +10,7 @@ from twilio.rest import Client
 from config.unified_config_manager import UnifiedConfigManager
 from config.config_constants import DB_PATH, CONFIG_PATH, ALERT_LIMITS_PATH, BASE_DIR
 from pathlib import Path
-import inspect  # Added at the top for obtaining caller line numbers
-#from utils.operations_manager import OperationsLogger
+import inspect
 from utils.unified_logger import UnifiedLogger
 
 # Instantiate the unified logger
@@ -203,15 +202,31 @@ class AlertManager:
                 extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
             )
 
+    def create_all_alerts(self):
+        # Chain together creation methods
+        price_alerts = self.create_price_alerts()
+        travel_alerts = self.create_travel_percent_alerts()
+        profit_alerts = self.create_profit_alerts()
+        heat_alerts = self.create_heat_index_alerts()
+        return price_alerts + travel_alerts + profit_alerts + heat_alerts
+
+
+    # New helper method to update alert state in the DB if an alert record exists for the position.
+    # This method also updates the position_reference_id based on pos['id'].
+    def _update_alert_state(self, pos: dict, new_state: str):
+        alert_id = pos.get("alert_reference_id")
+        if alert_id:
+            update_fields = {"state": new_state}
+            if pos.get("id"):
+                update_fields["position_reference_id"] = pos.get("id")
+            try:
+                self.data_locker.update_alert_conditions(alert_id, update_fields)
+            except Exception as e:
+                logging.error(f"Error updating alert state for alert {alert_id}: {e}")
+
     def update_timer_states(self):
-        """
-        Check the call and snooze start times. If the refractory period or snooze countdown has expired,
-        clear the respective start time.
-        """
         now = time.time()
         updated = False
-
-        # Update call refractory timer
         call_start = self.config.get("call_refractory_start")
         if call_start is not None:
             if now - call_start >= self.call_refractory_period:
@@ -224,8 +239,6 @@ class AlertManager:
                     file="alert_manager.py",
                     extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
                 )
-
-        # Update snooze timer
         snooze_start = self.config.get("snooze_start")
         if snooze_start is not None:
             if now - snooze_start >= self.snooze_countdown:
@@ -238,14 +251,10 @@ class AlertManager:
                     file="alert_manager.py",
                     extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
                 )
-
         if updated:
             self.save_config(self.config, ALERT_LIMITS_PATH)
 
     def trigger_snooze(self):
-        """
-        Sets the snooze start time to now and saves the config.
-        """
         now = time.time()
         self.config["snooze_start"] = now
         self.save_config(self.config, ALERT_LIMITS_PATH)
@@ -258,9 +267,6 @@ class AlertManager:
         )
 
     def clear_snooze(self):
-        """
-        Clears the snooze start time and saves the config.
-        """
         self.config["snooze_start"] = None
         self.save_config(self.config, ALERT_LIMITS_PATH)
         u_logger.log_operation(
@@ -280,7 +286,6 @@ class AlertManager:
             extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
         )
         while True:
-            # Update timers at the start of each loop
             self.update_timer_states()
             self.check_alerts()
             time.sleep(self.poll_interval)
@@ -361,26 +366,19 @@ class AlertManager:
             current_val = float(pos.get("current_travel_percent", 0.0))
         except Exception as e:
             logging.error("%s %s (ID: %s): Error converting travel percent.", asset_full, position_type, position_id)
-            travel_logger.error(f"{asset_full} {position_type} (ID: {position_id}): Error converting travel percent: {e}")
             return ""
 
-        travel_logger.debug(f"Checking travel percent for {asset_full} {position_type} (ID: {position_id}): current_travel_percent = {current_val}")
-        travel_logger.debug(f"Position Data: {json.dumps(pos)}")
-
         if current_val >= 0:
-            travel_logger.debug(f"{asset_full} {position_type} (ID: {position_id}): current_val {current_val} is non-negative; skipping liquid alert.")
+            self._update_alert_state(pos, "Normal")
             return ""
 
         neg_config = self.config.get("alert_ranges", {}).get("travel_percent_liquid_ranges", {})
         if not neg_config.get("enabled", False):
-            travel_logger.debug("Travel percent liquid alerts are disabled in config.")
             return ""
 
-        travel_logger.debug(f"Negative config used: {neg_config}")
         low = float(neg_config.get("low", -10.0))
         medium = float(neg_config.get("medium", -60.0))
         high = float(neg_config.get("high", -75.0))
-        travel_logger.debug(f"Using negative thresholds: low={low}, medium={medium}, high={high}")
 
         if current_val <= high:
             alert_level = "High"
@@ -389,41 +387,21 @@ class AlertManager:
         elif current_val <= low:
             alert_level = "Low"
         else:
-            travel_logger.debug(f"{asset_full} {position_type} (ID: {position_id}): Travel percent ({current_val}) does not trigger a negative alert.")
+            self._update_alert_state(pos, "Normal")
             return ""
 
-        travel_logger.debug(f"Determined alert level: {alert_level} for current_val: {current_val}")
-
-        if alert_level == "High" and not neg_config.get("high_notifications", {}).get("call", False):
-            travel_logger.debug("High-level travel percent liquid alert call notification disabled in config.")
-            return ""
-        elif alert_level == "Medium" and not neg_config.get("medium_notifications", {}).get("call", False):
-            travel_logger.debug("Medium-level travel percent liquid alert call notification disabled in config.")
-            return ""
-        elif alert_level == "Low" and not neg_config.get("low_notifications", {}).get("call", False):
-            travel_logger.debug("Low-level travel percent liquid alert call notification disabled in config.")
-            return ""
+        self._update_alert_state(pos, alert_level)
 
         key = f"{asset_full}-{position_type}-{position_id}-travel-{alert_level}"
         now = time.time()
         last_time = self.last_triggered.get(key, 0)
-        time_since_last = now - last_time
-        if time_since_last < self.cooldown:
-            travel_logger.debug(f"{asset_full} {position_type} (ID: {position_id}): Alert for key '{key}' suppressed due to cooldown (time since last: {time_since_last:.2f} seconds).")
+        if now - last_time < self.cooldown:
             self.suppressed_count += 1
             return ""
         self.last_triggered[key] = now
         wallet_name = pos.get("wallet_name", "Unknown")
         msg = (f"Travel Percent Liquid ALERT: {asset_full} {position_type} (Wallet: {wallet_name}) - "
                f"Travel% = {current_val:.2f}%, Level = {alert_level}")
-        alert_details = {
-            "status": alert_level,
-            "type": "Travel Percent Liquid ALERT",
-            "limit": f"{low}%",
-            "current": f"{current_val:.2f}%"
-        }
-        u_logger.logger.info(msg, extra={"source": "System", "operation_type": "Travel Percent Liquid ALERT", "log_type": "alert", "file": "alert_manager.py", "alert_details": alert_details, "log_line": inspect.currentframe().f_back.f_lineno})
-        travel_logger.debug(f"Triggered travel percent alert: {msg}")
         return msg
 
     def check_profit(self, pos: Dict[str, Any]) -> str:
@@ -431,13 +409,12 @@ class AlertManager:
         asset_full = self.ASSET_FULL_NAMES.get(asset_code, asset_code)
         position_type = pos.get("position_type", "").capitalize()
         position_id = pos.get("position_id") or pos.get("id") or "unknown"
-        raw_profit = pos.get("profit")
         try:
-            profit_val = float(raw_profit) if raw_profit is not None else 0.0
+            profit_val = float(pos.get("profit", 0.0))
         except Exception:
-            logging.error("%s %s (ID: %s): Error converting profit.", asset_full, position_type, position_id)
             return ""
         if profit_val <= 0:
+            self._update_alert_state(pos, "Normal")
             return ""
         profit_config = self.config.get("alert_ranges", {}).get("profit_ranges", {})
         if not profit_config.get("enabled", False):
@@ -447,10 +424,9 @@ class AlertManager:
             med_thresh = float(profit_config.get("medium", 101.3))
             high_thresh = float(profit_config.get("high", 202.0))
         except Exception:
-            logging.error("%s %s (ID: %s): Error parsing profit thresholds.", asset_full, position_type, position_id)
             return ""
-        logging.debug(f"[Profit Alert Debug] {asset_full} {position_type} (ID: {position_id}): Profit = {profit_val:.2f}, Thresholds: Low = {low_thresh:.2f}, Medium = {med_thresh:.2f}, High = {high_thresh:.2f}")
         if profit_val < low_thresh:
+            self._update_alert_state(pos, "Normal")
             return ""
         elif profit_val < med_thresh:
             current_level = "Low"
@@ -459,38 +435,16 @@ class AlertManager:
         else:
             current_level = "High"
 
-        if current_level == "High" and not profit_config.get("high_notifications", {}).get("call", False):
-            logging.debug("High-level profit alert call notification disabled in config.")
-            return ""
-        elif current_level == "Medium" and not profit_config.get("medium_notifications", {}).get("call", False):
-            logging.debug("Medium-level profit alert call notification disabled in config.")
-            return ""
-        elif current_level == "Low" and not profit_config.get("low_notifications", {}).get("call", False):
-            logging.debug("Low-level profit alert call notification disabled in config.")
-            return ""
+        self._update_alert_state(pos, current_level)
 
         profit_key = f"profit-{asset_full}-{position_type}-{position_id}"
-        last_level = self.last_profit.get(profit_key, "none")
-        level_order = {"none": 0, "Low": 1, "Medium": 2, "High": 3}
-        if level_order[current_level] <= level_order.get(last_level, 0):
-            self.last_profit[profit_key] = current_level
-            return ""
         now = time.time()
         last_time = self.last_triggered.get(profit_key, 0)
         if now - last_time < self.cooldown:
-            self.last_profit[profit_key] = current_level
             self.suppressed_count += 1
             return ""
         self.last_triggered[profit_key] = now
-        msg = f"Profit ALERT: {asset_full} {position_type} profit of {profit_val:.2f} (Level: {current_level.upper()})"
-        self.last_profit[profit_key] = current_level
-        alert_details = {
-            "status": current_level,
-            "type": "Profit ALERT",
-            "limit": f"{low_thresh} / {med_thresh} / {high_thresh}",
-            "current": f"{profit_val:.2f}"
-        }
-        u_logger.logger.info(msg, extra={"source": "System", "operation_type": "Profit ALERT", "log_type": "alert", "file": "alert_manager.py", "alert_details": alert_details, "log_line": inspect.currentframe().f_back.f_lineno})
+        msg = f"Profit ALERT: {asset_full} {position_type} profit of {profit_val:.2f} (Level: {current_level})"
         return msg
 
     def check_swing_alert(self, pos: Dict[str, Any]) -> str:
@@ -556,9 +510,6 @@ class AlertManager:
 
     def debug_price_alert_details(self, asset: str, asset_config: dict, current_price: float, trigger_val: float,
                                   condition: str, price_info: dict, result_message: str):
-        """
-        Logs detailed information about the price check in pretty HTML format to a debug file.
-        """
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         html_snippet = f"""
         <div style="border:1px solid #ccc; padding:10px; margin:10px; font-family: Arial, sans-serif;">
@@ -576,12 +527,10 @@ class AlertManager:
           <p><strong>Result:</strong> {result_message}</p>
         </div>
         """
-        # Append to the debug HTML file
         with open("price_alert_debug_details.html", "a", encoding="utf-8") as f:
             f.write(html_snippet)
 
     def check_price_alerts(self) -> List[str]:
-        # Set up a dedicated logger for price alerts debug
         price_alert_logger = logging.getLogger("PriceAlertLogger")
         if not price_alert_logger.handlers:
             handler = logging.FileHandler("price_alert_debug.txt")
@@ -593,7 +542,6 @@ class AlertManager:
         price_alert_logger.debug("Entering check_price_alerts method")
 
         messages: List[str] = []
-        # Get price alert config from alert_limits.json within alert_ranges
         price_alert_config = self.config.get("alert_ranges", {}).get("price_alerts", {})
         price_alert_logger.debug(f"Price alert config: {price_alert_config}")
 
@@ -636,8 +584,7 @@ class AlertManager:
             price_alert_logger.debug(
                 f"{asset}: Condition = {condition}, Trigger Value = {trigger_val:.2f}, Current Price = {current_price:.2f}")
 
-            if (condition == "ABOVE" and current_price >= trigger_val) or (
-                    condition == "BELOW" and current_price <= trigger_val):
+            if (condition == "ABOVE" and current_price >= trigger_val) or (condition == "BELOW" and current_price <= trigger_val):
                 price_alert_logger.debug(f"Alert condition met for {asset}, processing trigger")
                 msg = self.handle_price_alert_trigger_config(asset, current_price, trigger_val, condition)
                 if msg:
@@ -651,7 +598,6 @@ class AlertManager:
                 result_message = f"Alert condition not met: current_price {current_price:.2f} vs trigger {trigger_val:.2f}"
                 price_alert_logger.debug(result_message)
 
-            # Log detailed HTML debug info for this asset check
             self.debug_price_alert_details(asset, asset_config, current_price, trigger_val, condition, price_info, result_message)
 
         price_alert_logger.debug(f"Exiting check_price_alerts with {len(messages)} triggered alerts")
@@ -675,10 +621,7 @@ class AlertManager:
             return ""
         self.last_triggered[key] = now
         msg = f"Price ALERT: {asset_full} - Condition: {condition}, Trigger: {trigger_val}, Current: {current_price}"
-
         caller_line = inspect.currentframe().f_back.f_lineno
-
-        # Build detailed alert details including line number (using 'log_line' instead of 'lineno')
         alert_details = {
             "status": "Triggered",
             "type": "Price ALERT",
@@ -687,7 +630,6 @@ class AlertManager:
             "current_price": current_price,
             "log_line": caller_line
         }
-
         extra = {
             "source": "system",
             "operation_type": "Price ALERT",
@@ -696,16 +638,10 @@ class AlertManager:
             "log_line": caller_line,
             "alert_details": alert_details
         }
-
         u_logger.logger.info(msg, extra=extra)
-
         return msg
 
     def send_call(self, body: str, key: str):
-        """
-        Sends a call notification via Twilio if call notifications are enabled.
-        This method checks the refractory period before triggering the call.
-        """
         now = time.time()
         last_call_time = self.last_call_triggered.get(key, 0)
         if now - last_call_time < self.call_refractory_period:
@@ -721,7 +657,6 @@ class AlertManager:
         try:
             trigger_twilio_flow(body, self.twilio_config)
             self.last_call_triggered[key] = now
-            # Set the call refractory start time in the config and save it
             self.config["call_refractory_start"] = now
             self.save_config(self.config, ALERT_LIMITS_PATH)
             u_logger.log_operation(
@@ -763,5 +698,6 @@ manager = AlertManager(
 )
 
 if __name__ == "__main__":
+    import logging
     logging.basicConfig(level=logging.DEBUG)
     manager.run()

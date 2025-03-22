@@ -42,7 +42,7 @@
   },
   "twilio_config": {
     "account_sid": "ACb606788ada5dccbfeeebed0f440099b3",
-    "auth_token": "86c1d624c7211b47b26cabd7236eff33",
+    "auth_token": "3c3f76ae65ed6ed007079f225bbdfd02",
     "flow_sid": "FW5b3bf49ee04af4d23a118b613bbc0df2",
     "to_phone": "+16199804758",
     "from_phone": "+18336913467"
@@ -198,23 +198,6 @@
   "alert_cooldown_seconds": 900.0,
   "call_refractory_period": 873.0,
   "snooze_countdown": 300.0,
-  "call_refractory_start": 1742594675.1041143,
-  "snooze_start": null,
-  "price_alerts": {
-    "BTC": {
-      "enabled": "on",
-      "trigger_value": 7789667.0
-    },
-    "ETH": {
-      "enabled": "on",
-      "trigger_value": 1926.84
-    },
-    "SOL": {
-      "enabled": "on",
-      "trigger_value": 133.9,
-      "notifications": {
-        "call": "on"
-      }
-    }
-  }
+  "call_refractory_start": 1742662006.8385892,
+  "snooze_start": null
 }

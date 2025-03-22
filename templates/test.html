@@ -1,34 +1,23 @@
-#!/usr/bin/env python3
+# add_state_column.py
 import sqlite3
+from config.config_constants import DB_PATH
 
-# Update this path to point to your actual SQLite database file.
-DATABASE = '/path/to/your/database.db'
-
-def column_exists(conn, table, column):
-    """
-    Checks if a given column exists in the specified table.
-    """
-    cursor = conn.execute(f"PRAGMA table_info({table})")
-    columns = [row[1] for row in cursor.fetchall()]
-    return column in columns
-
-def add_pnl_after_fees_usd_column():
-    """
-    Adds the pnl_after_fees_usd column to the positions table if it doesn't already exist.
-    The column is created with a REAL type and a default value of 0.
-    """
-    conn = sqlite3.connect(DATABASE)
+def add_state_column(db_path=DB_PATH):
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
     try:
-        if column_exists(conn, 'positions', 'pnl_after_fees_usd'):
-            print("Column 'pnl_after_fees_usd' already exists in the 'positions' table.")
+        cursor.execute("ALTER TABLE alerts ADD COLUMN state TEXT DEFAULT 'Normal'")
+        conn.commit()
+        print("Column 'state' added successfully.")
+    except sqlite3.OperationalError as e:
+        if "duplicate column name: state" in str(e):
+            print("Column 'state' already exists.")
+            print("")
         else:
-            conn.execute("ALTER TABLE positions ADD COLUMN pnl_after_fees_usd REAL DEFAULT 0")
-            conn.commit()
-            print("Column 'pnl_after_fees_usd' added successfully to the 'positions' table.")
-    except sqlite3.Error as e:
-        print("An error occurred:", e)
+            print("Error adding column:", e)
+            print("")
     finally:
         conn.close()
 
 if __name__ == '__main__':
-    add_pnl_after_fees_usd_column()
+    add_state_column()

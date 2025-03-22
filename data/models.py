@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 from uuid import uuid4
 
@@ -20,7 +20,15 @@ class SourceType(str, Enum):
 
 class Status(str, Enum):
     ACTIVE = "Active"
+    SILENCED = "Silenced"
+    LIQUIDATED = "Liquidated"
     INACTIVE = "Inactive"
+
+class State(str, Enum):
+    NORMAL = "Normal"
+    LOW = "Low"
+    MEDIUM = "Medium"
+    HIGH = "High"
 
 class AlertType(str, Enum):
     PRICE_THRESHOLD = "PriceThreshold"
@@ -84,7 +92,6 @@ class Price:
             f"source={self.source!r})"
         )
 
-
 class Alert:
     """
     Represents alert configuration for monitoring certain thresholds.
@@ -93,7 +100,7 @@ class Alert:
         self,
         id: str,
         alert_type: AlertType,
-        alert_class: AlertClass,  # New field: indicates if the alert is Market or Position related
+        alert_class: AlertClass,  # Indicates if the alert is Market or Position related
         trigger_value: float,
         notification_type: NotificationType,
         last_triggered: Optional[datetime],
@@ -104,7 +111,8 @@ class Alert:
         target_travel_percent: float,
         liquidation_price: float,
         notes: Optional[str],
-        position_reference_id: Optional[str]
+        position_reference_id: Optional[str],
+        state: State = State.NORMAL  # New explicit state field with default Normal
     ):
         self.id = id
         self.alert_type = alert_type
@@ -120,6 +128,7 @@ class Alert:
         self.liquidation_price = liquidation_price
         self.notes = notes
         self.position_reference_id = position_reference_id
+        self.state = state
 
     def __repr__(self):
         return (
@@ -128,9 +137,8 @@ class Alert:
             f"last_triggered={self.last_triggered}, status={self.status!r}, frequency={self.frequency}, "
             f"counter={self.counter}, liquidation_distance={self.liquidation_distance}, "
             f"target_travel_percent={self.target_travel_percent}, liquidation_price={self.liquidation_price}, "
-            f"notes={self.notes!r}, position_reference_id={self.position_reference_id!r})"
+            f"notes={self.notes!r}, position_reference_id={self.position_reference_id!r}, state={self.state!r})"
         )
-
 
 class Position:
     """
@@ -158,17 +166,12 @@ class Position:
         current_heat_index: float = 0.0,
         pnl_after_fees_usd: float = 0.0  # NEW: pnlAfterFeesUsd field
     ):
-        # Autogenerate an 'id' if not provided
         if id is None:
             id = str(uuid4())
-
         if last_updated is None:
             last_updated = datetime.now()
-
-        # Validate current_travel_percent
         if not -11500.0 <= current_travel_percent <= 1000.0:
             raise ValueError("current_travel_percent must be between -11500 and 1000")
-
         self.id = id
         self.asset_type = asset_type
         self.position_type = position_type
@@ -201,42 +204,23 @@ class Position:
             f"current_heat_index={self.current_heat_index}, pnl_after_fees_usd={self.pnl_after_fees_usd})"
         )
 
-
-from typing import Optional, List
-from datetime import datetime
-from uuid import uuid4
-
-
 class Hedge:
     """
     Represents a hedge comprising two or more positions with associated alerts.
     Tracks long and short exposures as well as aggregated heat index values.
-
-    Attributes:
-        id (str): Unique identifier for the hedge.
-        positions (List[str]): List of position IDs included in this hedge.
-        total_long_size (float): Total size of all long positions.
-        total_short_size (float): Total size of all short positions.
-        long_heat_index (float): Aggregated heat index for long positions.
-        short_heat_index (float): Aggregated heat index for short positions.
-        total_heat_index (float): Overall heat index (could be computed as a function of long and short indices).
-        created_at (datetime): Timestamp when the hedge was created.
-        updated_at (datetime): Timestamp when the hedge was last updated.
-        notes (Optional[str]): Optional notes or description about the hedge.
     """
-
     def __init__(
-            self,
-            id: Optional[str] = None,
-            positions: Optional[List[str]] = None,
-            total_long_size: float = 0.0,
-            total_short_size: float = 0.0,
-            long_heat_index: float = 0.0,
-            short_heat_index: float = 0.0,
-            total_heat_index: float = 0.0,
-            created_at: Optional[datetime] = None,
-            updated_at: Optional[datetime] = None,
-            notes: Optional[str] = None
+        self,
+        id: Optional[str] = None,
+        positions: Optional[List[str]] = None,
+        total_long_size: float = 0.0,
+        total_short_size: float = 0.0,
+        long_heat_index: float = 0.0,
+        short_heat_index: float = 0.0,
+        total_heat_index: float = 0.0,
+        created_at: Optional[datetime] = None,
+        updated_at: Optional[datetime] = None,
+        notes: Optional[str] = None
     ):
         if id is None:
             id = str(uuid4())
@@ -246,7 +230,6 @@ class Hedge:
             created_at = datetime.now()
         if updated_at is None:
             updated_at = datetime.now()
-
         self.id = id
         self.positions = positions
         self.total_long_size = total_long_size
@@ -267,7 +250,6 @@ class Hedge:
             f"updated_at={self.updated_at}, notes={self.notes!r})"
         )
 
-
 class CryptoWallet:
     """
     Represents a crypto wallet with:
@@ -278,12 +260,12 @@ class CryptoWallet:
       - balance:        total balance in USD (or any currency you like)
     """
     def __init__(
-            self,
-            name: str,
-            public_address: str,
-            private_address: str,
-            image_path: str = "",
-            balance: float = 0.0
+        self,
+        name: str,
+        public_address: str,
+        private_address: str,
+        image_path: str = "",
+        balance: float = 0.0
     ):
         self.name = name
         self.public_address = public_address
@@ -299,7 +281,6 @@ class CryptoWallet:
             f"image_path={self.image_path!r}, "
             f"balance={self.balance})"
         )
-
 
 class Broker:
     """

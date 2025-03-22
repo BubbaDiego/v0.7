@@ -85,7 +85,8 @@ class DataLocker:
             cursor.execute("PRAGMA table_info(system_vars)")
             existing_cols = [row["name"] for row in cursor.fetchall()]
             for col, sql in [
-                ("total_brokerage_balance", "ALTER TABLE system_vars ADD COLUMN total_brokerage_balance REAL DEFAULT 0.0"),
+                ("total_brokerage_balance",
+                 "ALTER TABLE system_vars ADD COLUMN total_brokerage_balance REAL DEFAULT 0.0"),
                 ("total_wallet_balance", "ALTER TABLE system_vars ADD COLUMN total_wallet_balance REAL DEFAULT 0.0"),
                 ("total_balance", "ALTER TABLE system_vars ADD COLUMN total_balance REAL DEFAULT 0.0")
             ]:
@@ -150,6 +151,7 @@ class DataLocker:
                     trigger_value REAL,
                     condition TEXT,
                     notification_type TEXT,
+                    state TEXT,        -- Must be here
                     last_triggered DATETIME,
                     status TEXT,
                     frequency INTEGER,
@@ -205,7 +207,6 @@ class DataLocker:
                     avg_heat_index REAL
                 )
             """)
-
             self.conn.commit()
             self.logger.debug("Database initialization complete.")
         except sqlite3.Error as e:
@@ -518,6 +519,7 @@ class DataLocker:
                     trigger_value,
                     condition,
                     notification_type,
+                    state,              -- Added state column
                     last_triggered,
                     status,
                     frequency,
@@ -530,7 +532,7 @@ class DataLocker:
                 ) VALUES (
                     :id, :alert_type, :asset_type,
                     :trigger_value, :condition, :notification_type,
-                    :last_triggered, :status, :frequency, :counter,
+                    :state, :last_triggered, :status, :frequency, :counter,
                     :liquidation_distance, :target_travel_percent,
                     :liquidation_price, :notes, :position_reference_id
                 )
@@ -950,6 +952,26 @@ class DataLocker:
         except Exception as e:
             self.logger.exception(f"Error creating alert instance: {e}")
             raise
+
+    def update_alert_conditions(self, alert_id: str, updated_fields: dict):
+        """
+        Updates one or more fields (e.g., state, trigger_value, etc.) of an alert.
+        """
+        try:
+            self._init_sqlite_if_needed()
+            cursor = self.conn.cursor()
+            set_clause = ", ".join([f"{key}=:{key}" for key in updated_fields.keys()])
+            updated_fields["id"] = alert_id
+            cursor.execute(f"UPDATE alerts SET {set_clause} WHERE id=:id", updated_fields)
+            self.conn.commit()
+            self.logger.debug(f"Updated alert conditions for {alert_id} with {updated_fields}")
+        except sqlite3.Error as e:
+            self.logger.error(f"Database error in update_alert_conditions: {e}", exc_info=True)
+            raise
+        except Exception as ex:
+            self.logger.exception(f"Error updating alert conditions: {ex}")
+            raise
+
 
     # ----------------------------------------------------------------
     # PORTFOLIO ENTRIES CRUD

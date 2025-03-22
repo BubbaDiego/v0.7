@@ -323,6 +323,21 @@ def get_hedges():
         current_app.logger.error("Error retrieving hedges: %s", e, exc_info=True)
         return jsonify({"error": str(e)}), 500
 
+@dashboard_bp.route("/alert_limits.json")
+def get_alert_limits():
+    try:
+        # Assumes alert_limits.json is in the BASE_DIR; adjust the path if necessary.
+        alert_limits_path = os.path.join(BASE_DIR, "alert_limits.json")
+        with open(alert_limits_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return current_app.response_class(
+            response=json.dumps(data),
+            status=200,
+            mimetype='application/json'
+        )
+    except Exception as e:
+        current_app.logger.error(f"Error reading alert_limits.json: {e}", exc_info=True)
+        return jsonify({"error": "Unable to load alert limits"}), 500
 
 @dashboard_bp.route("/api/size_balance")
 def api_size_balance():

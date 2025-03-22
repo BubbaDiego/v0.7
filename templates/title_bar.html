@@ -1,30 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>{% block title %}My Website{% endblock %}</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- Bootstrap 5 (required by AdminLTE 4) -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-  <!-- Font Awesome Icons -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.1/css/all.min.css">
-  <!-- AdminLTE 4 CSS -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0/dist/css/adminlte.min.css">
-
-  {% if theme and theme.get('profiles') and theme.get('selected_profile') and theme.get('profiles').get(theme.get('selected_profile')) %}
-    {% set selected = theme.get('profiles').get(theme.get('selected_profile')) %}
-    <style>
-      .main-header.navbar {
-        background-color: {{ selected.get("title bar", {}).get("color", "#34495E") }};
-      }
-      .main-header.navbar .navbar-brand,
-      .main-header.navbar .nav-link {
-        color: {{ selected.get("text", {}).get("color", "#FFFFFF") }};
-      }
-    </style>
-  {% endif %}
-
+<nav class="main-header navbar navbar-expand-md navbar-dark" style="background-color: var(--title-bar-color);">
+  <!-- Inline CSS for small coin icons & spinning Jupiter -->
   <style>
     .asset-panel {
       display: flex;
@@ -33,6 +8,7 @@
       padding: 0.25rem 0.5rem;
       background-color: #f8f9fa;
       border-radius: 999px;
+      color: #000 !important; /* ensures text inside is dark */
     }
     .asset-panel img {
       width: 20px;
@@ -55,232 +31,239 @@
     }
     .spin { animation: spin 1s linear infinite; }
   </style>
-</head>
-<body class="hold-transition layout-top-nav">
-  <div class="wrapper">
-    <!-- Title Bar (Navbar) -->
-    <nav class="main-header navbar navbar-expand-md navbar-light navbar-white">
-      <div class="container">
-        <!-- Logo and Site Title -->
-        <a href="/" class="navbar-brand">
-          <img src="{{ url_for('static', filename='images/corner_logo.jpg') }}"
-               alt="Logo"
-               class="brand-image img-circle elevation-3"
-               style="opacity: .8">
-          <span class="brand-text font-weight-light">My Website</span>
-        </a>
-        <button class="navbar-toggler order-1" type="button" data-bs-toggle="collapse"
-                data-bs-target="#navbarCollapse" aria-controls="navbarCollapse"
-                aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse order-3" id="navbarCollapse">
-          <ul class="navbar-nav">
-            <li class="nav-item">
-              <a href="/" class="nav-link" title="Home">
-                <i class="fas fa-home"></i>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="{{ url_for('alerts_bp.alarm_viewer') }}" class="nav-link" title="Alert Viewer">
-                <i class="fas fa-bell"></i>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="{{ url_for('alerts_bp.alert_config_page') }}" class="nav-link" title="Alert Limits">
-                <i class="fas fa-sliders-h"></i>
-              </a>
-            </li>
-            <!-- New Alert Matrix Navigation Item -->
-            <li class="nav-item">
-              <a href="{{ url_for('alerts_bp.alert_matrix') }}" class="nav-link" title="Alert Matrix">
-                <i class="fas fa-th"></i>
-              </a>
-            </li>
-          </ul>
-        </div>
-        <!-- Right Navbar Links -->
-        <ul class="order-1 order-md-3 navbar-nav navbar-no-expand ms-auto">
-          <!-- Timers Display -->
-          <li class="nav-item d-none d-md-flex align-items-center me-3">
-            <span id="callTimer" style="margin-right: 10px;">☎ Call: --</span>
-            <span id="snoozeTimer">⏳ Snooze: --</span>
-          </li>
-          <!-- Price Panel -->
-          <li class="nav-item d-none d-md-flex align-items-center me-3">
-            <div class="d-flex gap-2">
-              <div class="asset-panel">
-                <img src="https://cryptologos.cc/logos/bitcoin-btc-logo.png?v=023" alt="BTC">
-                <span id="btcPrice">$--.--</span>
-                <small id="btcChange" class="fw-bold">0.00%</small>
-              </div>
-              <div class="asset-panel">
-                <img src="https://cryptologos.cc/logos/ethereum-eth-logo.png?v=023" alt="ETH">
-                <span id="ethPrice">$--.--</span>
-                <small id="ethChange" class="fw-bold">0.00%</small>
-              </div>
-              <div class="asset-panel">
-                <img src="https://cryptologos.cc/logos/solana-sol-logo.png?v=023" alt="SOL">
-                <span id="solPrice">$--.--</span>
-                <small id="solChange" class="fw-bold">0.00%</small>
-              </div>
+
+  <div class="container">
+    <!-- Navbar Toggler (for small screens) -->
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
+            aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Collapsible Nav Items -->
+    <div class="collapse navbar-collapse" id="navbarCollapse">
+      <ul class="navbar-nav">
+        <!-- Dashboard -->
+        <li class="nav-item">
+          <a href="{{ url_for('dashboard.dashboard') }}" class="nav-link">
+            <i class="fas fa-home"></i>
+          </a>
+        </li>
+        <!-- Positions Table -->
+        <li class="nav-item">
+          <a href="{{ url_for('positions.positions_table') }}" class="nav-link">
+            <i class="fas fa-table"></i>
+          </a>
+        </li>
+        <!-- Alerts -->
+        <li class="nav-item">
+          <a href="{{ url_for('alerts_bp.alarm_viewer') }}" class="nav-link">
+            <i class="fas fa-bell"></i>
+          </a>
+        </li>
+        <!-- Alert Limits -->
+        <li class="nav-item">
+          <a href="{{ url_for('alerts_bp.alert_config_page') }}" class="nav-link">
+            <i class="fas fa-sliders-h"></i>
+          </a>
+        </li>
+        <!-- Alert Matrix -->
+        <li class="nav-item">
+          <a href="{{ url_for('alerts_bp.alert_matrix') }}" class="nav-link">
+            <i class="fas fa-th"></i>
+          </a>
+        </li>
+        <!-- Hedge Calculator -->
+        <li class="nav-item">
+          <a href="{{ url_for('sonic_labs.hedge_calculator') }}" class="nav-link">
+            <i class="fas fa-calculator"></i>
+          </a>
+        </li>
+        <!-- Theme Setup -->
+        <li class="nav-item">
+          <a href="{{ url_for('dashboard.theme_setup') }}" class="nav-link">
+            <i class="fas fa-palette"></i>
+          </a>
+        </li>
+        <!-- System Config -->
+        <li class="nav-item">
+          <a href="{{ url_for('system_config_page') }}" class="nav-link">
+            <i class="fas fa-cog"></i>
+          </a>
+        </li>
+      </ul>
+
+      <!-- Right Side Items -->
+      <ul class="navbar-nav ms-auto">
+        <!-- Layout Toggle -->
+        <li class="nav-item">
+          <a href="#" class="nav-link" id="layoutToggle" title="Toggle Layout">
+            <i class="fas fa-arrows-alt-h"></i>
+          </a>
+        </li>
+        <!-- Timers -->
+        <li class="nav-item d-none d-md-flex align-items-center me-3">
+          <span id="callTimer" class="me-2">☎ Call: --</span>
+          <span id="snoozeTimer">⏳ Snooze: --</span>
+        </li>
+        <!-- Price Panel -->
+        <li class="nav-item d-none d-md-flex align-items-center me-3">
+          <div class="d-flex gap-2">
+            <div class="asset-panel">
+              <img src="https://cryptologos.cc/logos/bitcoin-btc-logo.png?v=023" alt="BTC">
+              <span id="btcPrice">$--.--</span>
+              <small id="btcChange" class="fw-bold">0.00%</small>
             </div>
-          </li>
-          <!-- Update Jupiter Button -->
-          <li class="nav-item d-flex align-items-center me-3">
-            <button type="button" class="update-jupiter-btn" title="Update Jupiter" id="updateJupiterBtn">
-              <img src="{{ url_for('static', filename='images/jupiter.jpg') }}" alt="Update Jupiter">
-            </button>
-          </li>
-          <!-- Theme Switcher Dropdown -->
-          <li class="nav-item dropdown ms-3">
-            {% if theme and theme.get('profiles') and theme.get('selected_profile') and theme.get('profiles').get(theme.get('selected_profile')) %}
-              {% set current = theme.get('profiles').get(theme.get('selected_profile')) %}
-              {% set current_name = current.get('name', theme.get('selected_profile')|capitalize) %}
+            <div class="asset-panel">
+              <img src="https://cryptologos.cc/logos/ethereum-eth-logo.png?v=023" alt="ETH">
+              <span id="ethPrice">$--.--</span>
+              <small id="ethChange" class="fw-bold">0.00%</small>
+            </div>
+            <div class="asset-panel">
+              <img src="https://cryptologos.cc/logos/solana-sol-logo.png?v=023" alt="SOL">
+              <span id="solPrice">$--.--</span>
+              <small id="solChange" class="fw-bold">0.00%</small>
+            </div>
+          </div>
+        </li>
+        <!-- Jupiter Update Button -->
+        <li class="nav-item d-flex align-items-center me-3">
+          <button type="button" class="update-jupiter-btn" id="updateJupiterBtn">
+            <img src="{{ url_for('static', filename='images/jupiter.jpg') }}" alt="Update Jupiter">
+          </button>
+        </li>
+        <!-- Theme Switcher -->
+        <li class="nav-item dropdown">
+          {% if theme and theme.get('profiles') and theme.get('selected_profile') and theme.get('profiles').get(theme.get('selected_profile')) %}
+            {% set current = theme.get('profiles').get(theme.get('selected_profile')) %}
+            {% set current_name = current.get('name', theme.get('selected_profile')|capitalize) %}
+          {% else %}
+            {% set current_name = "Default" %}
+          {% endif %}
+          <a class="nav-link dropdown-toggle" href="#" id="themeDropdown" role="button"
+             data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-cogs"></i>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="themeDropdown">
+            {% if theme and theme.get('profiles') %}
+              {% for profile_key, profile in theme.get('profiles').items() %}
+                {% set name = profile.get('name', profile_key|capitalize) %}
+                <li>
+                  <a class="dropdown-item theme-profile-option" href="#" data-profile="{{ profile_key }}">
+                    <i class="fas fa-paint-brush me-1"></i> {{ name }}
+                  </a>
+                </li>
+              {% endfor %}
             {% else %}
-              {% set current_name = "Default" %}
+              <li><a class="dropdown-item" href="#">Default</a></li>
             {% endif %}
-            <a class="nav-link dropdown-toggle" href="#" id="themeDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="Change Theme">
-              <i class="fas fa-cogs"></i> {{ current_name }}
-            </a>
-            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="themeDropdown">
-              {% if theme and theme.get('profiles') %}
-                {% for profile_key, profile in theme.get('profiles').items() %}
-                  {% set name = profile.get('name', profile_key|capitalize) %}
-                  <li>
-                    <a class="dropdown-item theme-profile-option" href="#" data-profile="{{ profile_key }}">
-                      <i class="fas fa-paint-brush me-1"></i> {{ name }}
-                    </a>
-                  </li>
-                {% endfor %}
-              {% else %}
-                <li><a class="dropdown-item" href="#">Default</a></li>
-              {% endif %}
-            </ul>
-          </li>
-          <!-- Hedge Calculator Link -->
-          <li class="nav-item ms-3">
-            <a href="{{ url_for('sonic_labs.hedge_calculator') }}" class="nav-link" title="Hedge Calculator">
-              <i class="fas fa-calculator"></i>
-            </a>
-          </li>
-          <!-- Config Icon for Theme Configuration -->
-          <li class="nav-item ms-3">
-            <a href="{{ url_for('dashboard.theme_setup') }}" class="nav-link" title="Theme Setup">
-              <i class="fas fa-gear"></i>
-            </a>
-          </li>
-        </ul>
-      </div>
-    </nav>
-    <!-- End Title Bar -->
-
-    <!-- Price update script remains unchanged -->
-    <script>
-      function updatePrices() {
-        fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd&include_24hr_change=true')
-          .then(response => response.json())
-          .then(data => {
-            const btcPrice = data.bitcoin.usd;
-            const btcChange = data.bitcoin.usd_24h_change;
-            document.getElementById('btcPrice').textContent = '$' + btcPrice.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
-            const btcChangeElem = document.getElementById('btcChange');
-            btcChangeElem.textContent = btcChange.toFixed(2) + '%';
-            btcChangeElem.style.color = btcChange >= 0 ? 'green' : 'red';
-
-            const ethPrice = data.ethereum.usd;
-            const ethChange = data.ethereum.usd_24h_change;
-            document.getElementById('ethPrice').textContent = '$' + ethPrice.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
-            const ethChangeElem = document.getElementById('ethChange');
-            ethChangeElem.textContent = ethChange.toFixed(2) + '%';
-            ethChangeElem.style.color = ethChange >= 0 ? 'green' : 'red';
-
-            const solPrice = data.solana.usd;
-            const solChange = data.solana.usd_24h_change;
-            document.getElementById('solPrice').textContent = '$' + solPrice.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
-            const solChangeElem = document.getElementById('solChange');
-            solChangeElem.textContent = solChange.toFixed(2) + '%';
-            solChangeElem.style.color = solChange >= 0 ? 'green' : 'red';
-          })
-          .catch(error => console.error('Error fetching prices:', error));
-      }
-      updatePrices();
-      setInterval(updatePrices, 60000);
-    </script>
-
-    <!-- Jupiter update script remains unchanged -->
-    <script>
-      document.addEventListener("DOMContentLoaded", function() {
-        const updateBtn = document.getElementById("updateJupiterBtn");
-        updateBtn.addEventListener("click", function() {
-          updateBtn.querySelector("img").classList.add("spin");
-          fetch("/positions/update_jupiter?source=User", { method: "POST" })
-            .then(response => response.json())
-            .then(() => {
-              updateBtn.querySelector("img").classList.remove("spin");
-              window.location.reload();
-            })
-            .catch(err => {
-              updateBtn.querySelector("img").classList.remove("spin");
-              console.error(err);
-            });
-        });
-
-        document.querySelectorAll('.theme-profile-option').forEach(option => {
-          option.addEventListener('click', e => {
-            e.preventDefault();
-            const selectedProfile = e.currentTarget.dataset.profile;
-            fetch('{{ url_for("dashboard.save_theme_route") }}', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ selected_profile: selectedProfile })
-            })
-            .then(r => r.json())
-            .then(data => {
-              if (data.success) {
-                window.location.reload();
-              } else {
-                alert("Error switching theme: " + data.error);
-              }
-            })
-            .catch(err => {
-              console.error("Theme switch error:", err);
-              alert("Theme switch error: " + err);
-            });
-          });
-        });
-      });
-    </script>
-
-    <!-- Timer script that fetches and calculates the dynamic countdown -->
-    <script>
-      // Function to compute remaining time given a start time and period (in seconds)
-      function getRemaining(start, period) {
-        if (!start) return period;
-        const elapsed = Math.floor(Date.now() / 1000) - start;
-        return Math.max(period - elapsed, 0);
-      }
-
-      // Fetch alert limits data from the backend
-      fetch('/alert_limits.json')
-        .then(response => response.json())
-        .then(data => {
-          const callPeriod = data.call_refractory_period;
-          const snoozeCount = data.snooze_countdown;
-          const callStart = data.call_refractory_start; // Unix timestamp or null
-          const snoozeStart = data.snooze_start; // Unix timestamp or null
-
-          function updateTimers() {
-            const callRemaining = getRemaining(callStart, callPeriod);
-            const snoozeRemaining = getRemaining(snoozeStart, snoozeCount);
-            document.getElementById('callTimer').textContent = `☎ Call: ${callRemaining}`;
-            document.getElementById('snoozeTimer').textContent = `⏳ Snooze: ${snoozeRemaining}`;
-          }
-          updateTimers();
-          setInterval(updateTimers, 1000);
-        })
-        .catch(error => console.error('Error fetching alert limits:', error));
-    </script>
+          </ul>
+        </li>
+      </ul>
+    </div>
   </div>
-</body>
-</html>
+</nav>
+
+<!-- Minimal Inline JS -->
+<script>
+  // 1) Timers
+  function getRemaining(start, period) {
+    if (!start) return period;
+    const elapsed = Math.floor(Date.now() / 1000) - start;
+    return Math.max(period - elapsed, 0);
+  }
+  fetch('{{ url_for("dashboard.get_alert_limits") }}')
+    .then(r => r.json())
+    .then(data => {
+      const callPeriod = data.call_refractory_period;
+      const snoozeCount = data.snooze_countdown;
+      const callStart = data.call_refractory_start;
+      const snoozeStart = data.snooze_start;
+      function updateTimers() {
+        document.getElementById('callTimer').textContent =
+          `☎ Call: ${getRemaining(callStart, callPeriod)}`;
+        document.getElementById('snoozeTimer').textContent =
+          `⏳ Snooze: ${getRemaining(snoozeStart, snoozeCount)}`;
+      }
+      updateTimers();
+      setInterval(updateTimers, 1000);
+    })
+    .catch(err => console.error('Timer error:', err));
+
+  // 2) Price Updates
+  function updatePrices() {
+    fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd&include_24hr_change=true')
+      .then(r => r.json())
+      .then(data => {
+        // BTC
+        document.getElementById('btcPrice').textContent =
+          '$' + data.bitcoin.usd.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+        const btcChange = data.bitcoin.usd_24h_change.toFixed(2);
+        const btcChangeElem = document.getElementById('btcChange');
+        btcChangeElem.textContent = btcChange + '%';
+        btcChangeElem.style.color = btcChange >= 0 ? 'green' : 'red';
+        // ETH
+        document.getElementById('ethPrice').textContent =
+          '$' + data.ethereum.usd.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+        const ethChange = data.ethereum.usd_24h_change.toFixed(2);
+        const ethChangeElem = document.getElementById('ethChange');
+        ethChangeElem.textContent = ethChange + '%';
+        ethChangeElem.style.color = ethChange >= 0 ? 'green' : 'red';
+        // SOL
+        document.getElementById('solPrice').textContent =
+          '$' + data.solana.usd.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+        const solChange = data.solana.usd_24h_change.toFixed(2);
+        const solChangeElem = document.getElementById('solChange');
+        solChangeElem.textContent = solChange + '%';
+        solChangeElem.style.color = solChange >= 0 ? 'green' : 'red';
+      })
+      .catch(err => console.error('Price fetch error:', err));
+  }
+  updatePrices();
+  setInterval(updatePrices, 60000);
+
+  // 3) Jupiter Update
+  const updateBtn = document.getElementById("updateJupiterBtn");
+  if (updateBtn) {
+    updateBtn.addEventListener("click", () => {
+      updateBtn.querySelector("img").classList.add("spin");
+      fetch("/positions/update_jupiter?source=User", { method: "POST" })
+        .then(r => r.json())
+        .then(() => window.location.reload())
+        .catch(err => {
+          updateBtn.querySelector("img").classList.remove("spin");
+          console.error("Jupiter update error:", err);
+        });
+    });
+  }
+
+  // 4) Theme Switcher
+  document.querySelectorAll('.theme-profile-option').forEach(option => {
+    option.addEventListener('click', e => {
+      e.preventDefault();
+      const profileKey = e.currentTarget.dataset.profile;
+      fetch('{{ url_for("dashboard.save_theme_route") }}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ selected_profile: profileKey })
+      })
+      .then(r => r.json())
+      .then(data => data.success ? window.location.reload() : alert("Theme Error: " + data.error))
+      .catch(err => alert("Theme Switch Error: " + err));
+    });
+  });
+
+  // 5) Layout Toggle Switch
+  document.getElementById('layoutToggle').addEventListener('click', function(e) {
+    e.preventDefault();
+    fetch('/toggle_layout', { method: 'POST' })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          window.location.reload();
+        } else {
+          alert("Error toggling layout: " + data.error);
+        }
+      })
+      .catch(err => console.error("Toggle layout error:", err));
+  });
+</script>

@@ -1,14 +1,28 @@
 from data.data_locker import DataLocker
 from utils.json_manager import JsonManager, JsonType
-from data.models import AlertType, AlertClass
+from data.models import AlertType, AlertClass, NotificationType, Status
 
 class AlertController:
     def __init__(self):
         self.data_locker = DataLocker.get_instance()
 
     def create_alert(self, alert_obj) -> bool:
+        """
+        Insert an alert into the DB, including asset_type and state.
+        """
         try:
-            self.data_locker.create_alert_instance(alert_obj)
+            # Convert alert_obj to dict
+            alert_dict = alert_obj.to_dict()
+
+            # If asset_type was missing, default to something:
+            if not alert_dict.get("asset_type"):
+                alert_dict["asset_type"] = "BTC"
+
+            # If state was missing, default to "Normal"
+            if not alert_dict.get("state"):
+                alert_dict["state"] = "Normal"
+
+            self.data_locker.create_alert(alert_dict)
             return True
         except Exception as e:
             print(f"Error creating alert: {e}")
@@ -38,6 +52,35 @@ class AlertController:
             print(f"Error retrieving alerts: {e}")
             return []
 
+    def initialize_alert_data(self, alert_data: dict = None) -> dict:
+        """
+        Initializes alert data with all necessary fields.
+        Any fields provided in alert_data will override the defaults.
+        This ensures that a new alert has a complete set of data before storing in the database.
+        """
+        defaults = {
+            "id": None,
+            "alert_type": None,
+            "alert_class": None,
+            "asset_type": None,
+            "trigger_value": None,
+            "condition": None,
+            "notification_type": None,
+            "state": "Normal",
+            "last_triggered": None,
+            "status": Status.ACTIVE.value,
+            "frequency": 1,
+            "counter": 0,
+            "liquidation_distance": 0.0,
+            "target_travel_percent": 0.0,
+            "liquidation_price": 0.0,
+            "notes": "",
+            "position_reference_id": None
+        }
+        if alert_data:
+            defaults.update(alert_data)
+        return defaults
+
     def create_price_alerts(self):
         """
         Creates price alerts (for BTC, ETH, and SOL) using settings from alert_limits.json.
@@ -52,7 +95,7 @@ class AlertController:
 
         # Dummy alert class for price alerts
         class DummyAlert:
-            def __init__(self, alert_type, alert_class, asset_type, trigger_value, condition, notification_type, status="Active"):
+            def __init__(self, alert_type, alert_class, asset_type, trigger_value, condition, notification_type, state="Normal", position_reference_id=None, status="Active"):
                 self.id = None
                 self.alert_type = alert_type
                 self.alert_class = alert_class
@@ -60,6 +103,7 @@ class AlertController:
                 self.trigger_value = trigger_value
                 self.condition = condition
                 self.notification_type = notification_type
+                self.state = state
                 self.last_triggered = None
                 self.status = status
                 self.frequency = 1
@@ -68,7 +112,7 @@ class AlertController:
                 self.target_travel_percent = 0.0
                 self.liquidation_price = 0.0
                 self.notes = ""
-                self.position_reference_id = None
+                self.position_reference_id = position_reference_id
 
             def to_dict(self):
                 return {
@@ -79,6 +123,7 @@ class AlertController:
                     "trigger_value": self.trigger_value,
                     "condition": self.condition,
                     "notification_type": self.notification_type,
+                    "state": self.state,
                     "last_triggered": self.last_triggered,
                     "status": self.status,
                     "frequency": self.frequency,
@@ -94,7 +139,7 @@ class AlertController:
             config = price_alerts_config.get(asset, {})
             if config.get("enabled", False):
                 condition = config.get("condition", "ABOVE")
-                trigger_value = config.get("trigger_value", 0.0)
+                trigger_value = float(config.get("trigger_value", 0.0))
                 notifications = config.get("notifications", {})
                 notification_type = "Call" if notifications.get("call", False) else "Email"
                 dummy_alert = DummyAlert(
@@ -104,7 +149,8 @@ class AlertController:
                     trigger_value=trigger_value,
                     condition=condition,
                     notification_type=notification_type,
-                    status="Active"
+                    state="Normal",
+                    status=Status.ACTIVE.value
                 )
                 if self.create_alert(dummy_alert):
                     created_alerts.append(dummy_alert.to_dict())
@@ -132,11 +178,10 @@ class AlertController:
 
         created_alerts = []
         data_locker = self.data_locker
-        positions = data_locker.read_positions()  # positions as list of dicts
+        positions = data_locker.read_positions()
 
-        # Dummy alert class for travel percent alerts
         class DummyAlert:
-            def __init__(self, alert_type, alert_class, asset_type, trigger_value, condition, notification_type, position_reference_id, status="Active"):
+            def __init__(self, alert_type, alert_class, asset_type, trigger_value, condition, notification_type, position_reference_id, state="Normal", status="Active"):
                 self.id = None
                 self.alert_type = alert_type
                 self.alert_class = alert_class
@@ -144,6 +189,7 @@ class AlertController:
                 self.trigger_value = trigger_value
                 self.condition = condition
                 self.notification_type = notification_type
+                self.state = state
                 self.last_triggered = None
                 self.status = status
                 self.frequency = 1
@@ -163,6 +209,7 @@ class AlertController:
                     "trigger_value": self.trigger_value,
                     "condition": self.condition,
                     "notification_type": self.notification_type,
+                    "state": self.state,
                     "last_triggered": self.last_triggered,
                     "status": self.status,
                     "frequency": self.frequency,
@@ -174,11 +221,10 @@ class AlertController:
                     "position_reference_id": self.position_reference_id
                 }
 
-        # Iterate through each active position (only positions without an alert_reference_id)
         for pos in positions:
             if not pos.get("alert_reference_id"):
                 asset = pos.get("asset_type", "BTC")
-                trigger_value = travel_config.get("low", 0.0)
+                trigger_value = float(travel_config.get("low", 0.0))
                 condition = "BELOW"
                 notifications = travel_config.get("low_notifications", {})
                 notification_type = "Call" if notifications.get("call", False) else "Email"
@@ -191,7 +237,8 @@ class AlertController:
                     condition=condition,
                     notification_type=notification_type,
                     position_reference_id=position_id,
-                    status="Active"
+                    state="Normal",
+                    status=Status.ACTIVE.value
                 )
                 if self.create_alert(dummy_alert):
                     created_alerts.append(dummy_alert.to_dict())
@@ -215,7 +262,7 @@ class AlertController:
         """
         jm = JsonManager()
         alert_limits = jm.load("", JsonType.ALERT_LIMITS)
-        profit_config = alert_limits.get("alert_ranges", {}).get("profit_alerts", {})
+        profit_config = alert_limits.get("alert_ranges", {}).get("profit_ranges", {})
 
         if not profit_config.get("enabled", False):
             print("Profit alerts are not enabled in configuration.")
@@ -223,10 +270,10 @@ class AlertController:
 
         created_alerts = []
         data_locker = self.data_locker
-        positions = data_locker.read_positions()  # positions as list of dicts
+        positions = data_locker.read_positions()
 
         class DummyAlert:
-            def __init__(self, alert_type, alert_class, asset_type, trigger_value, condition, notification_type, position_reference_id, status="Active"):
+            def __init__(self, alert_type, alert_class, asset_type, trigger_value, condition, notification_type, position_reference_id, state="Normal", status="Active"):
                 self.id = None
                 self.alert_type = alert_type
                 self.alert_class = alert_class
@@ -234,6 +281,7 @@ class AlertController:
                 self.trigger_value = trigger_value
                 self.condition = condition
                 self.notification_type = notification_type
+                self.state = state
                 self.last_triggered = None
                 self.status = status
                 self.frequency = 1
@@ -253,6 +301,7 @@ class AlertController:
                     "trigger_value": self.trigger_value,
                     "condition": self.condition,
                     "notification_type": self.notification_type,
+                    "state": self.state,
                     "last_triggered": self.last_triggered,
                     "status": self.status,
                     "frequency": self.frequency,
@@ -266,7 +315,7 @@ class AlertController:
 
         for pos in positions:
             asset = pos.get("asset_type", "BTC")
-            trigger_value = profit_config.get("trigger_value", 0.0)
+            trigger_value = float(profit_config.get("trigger_value", 0.0))
             condition = profit_config.get("condition", "ABOVE")
             notifications = profit_config.get("notifications", {})
             notification_type = "Call" if notifications.get("call", False) else "Email"
@@ -279,7 +328,8 @@ class AlertController:
                 condition=condition,
                 notification_type=notification_type,
                 position_reference_id=position_id,
-                status="Active"
+                state="Normal",
+                status=Status.ACTIVE.value
             )
             if self.create_alert(dummy_alert):
                 created_alerts.append(dummy_alert.to_dict())
@@ -295,10 +345,7 @@ class AlertController:
         """
         jm = JsonManager()
         alert_limits = jm.load("", JsonType.ALERT_LIMITS)
-
         heat_config = alert_limits.get("alert_ranges", {}).get("heat_index_alerts", {})
-
-
 
         if not heat_config.get("enabled", False):
             print("Heat index alerts are not enabled in configuration.")
@@ -306,10 +353,10 @@ class AlertController:
 
         created_alerts = []
         data_locker = self.data_locker
-        positions = data_locker.read_positions()  # positions as list of dicts
+        positions = data_locker.read_positions()
 
         class DummyAlert:
-            def __init__(self, alert_type, alert_class, asset_type, trigger_value, condition, notification_type, position_reference_id, status="Active"):
+            def __init__(self, alert_type, alert_class, asset_type, trigger_value, condition, notification_type, position_reference_id, state="Normal", status="Active"):
                 self.id = None
                 self.alert_type = alert_type
                 self.alert_class = alert_class
@@ -317,6 +364,7 @@ class AlertController:
                 self.trigger_value = trigger_value
                 self.condition = condition
                 self.notification_type = notification_type
+                self.state = state
                 self.last_triggered = None
                 self.status = status
                 self.frequency = 1
@@ -336,6 +384,7 @@ class AlertController:
                     "trigger_value": self.trigger_value,
                     "condition": self.condition,
                     "notification_type": self.notification_type,
+                    "state": self.state,
                     "last_triggered": self.last_triggered,
                     "status": self.status,
                     "frequency": self.frequency,
@@ -349,7 +398,7 @@ class AlertController:
 
         for pos in positions:
             asset = pos.get("asset_type", "BTC")
-            trigger_value = heat_config.get("trigger_value", 0.0)
+            trigger_value = float(heat_config.get("trigger_value", 0.0))
             condition = heat_config.get("condition", "ABOVE")
             notifications = heat_config.get("notifications", {})
             notification_type = "Call" if notifications.get("call", False) else "Email"
@@ -362,7 +411,8 @@ class AlertController:
                 condition=condition,
                 notification_type=notification_type,
                 position_reference_id=position_id,
-                status="Active"
+                state="Normal",
+                status=Status.ACTIVE.value
             )
             if self.create_alert(dummy_alert):
                 created_alerts.append(dummy_alert.to_dict())

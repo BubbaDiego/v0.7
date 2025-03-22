@@ -65,7 +65,11 @@
     <div class="card-header" style="background-color: {{ theme.get('card_header_color', '#007bff') }}; color: {{ theme.get('card_header_text_color', '#fff') }}; position: relative;">
       <h3 class="card-title">Alert Matrix</h3>
       <div class="card-tools" style="position: absolute; right: 10px; top: 10px;">
+        <!-- Refresh button -->
+        <a id="refreshAlerts" title="Refresh Alerts"><i class="fas fa-sync-alt"></i></a>
+        <!-- Create All Alerts button -->
         <a id="createAllAlerts" title="Create All Alerts"><i class="fas fa-plus-circle"></i></a>
+        <!-- Delete All Alerts button -->
         <a id="deleteAllAlerts" title="Delete All Alerts" style="margin-left: 10px;"><i class="fas fa-trash-alt"></i></a>
       </div>
     </div>
@@ -73,24 +77,25 @@
       <div class="row">
         {% for alert in alerts %}
           <div class="col-md-3 col-sm-6 col-12">
+            <!-- Use alert.state for the color-coded box -->
             <div class="info-box
-              {% if alert.status == "No Alert" %}
+              {% if alert.state == 'Normal' %}
                 no-alert
-              {% elif alert.status == "Low" %}
+              {% elif alert.state == 'Low' %}
                 low
-              {% elif alert.status == "Medium" %}
+              {% elif alert.state == 'Medium' %}
                 medium
-              {% elif alert.status == "High" %}
+              {% elif alert.state == 'High' %}
                 high
               {% else %}
                 unknown
               {% endif %} shadow-sm">
               <span class="info-box-icon">
-                {% if alert.alert_type == "PriceThreshold" %}
+                {% if alert.alert_type == 'PriceThreshold' %}
                   💲
-                {% elif alert.alert_type == "TravelPercent" %}
+                {% elif alert.alert_type in ['TravelPercent', 'TravelPercentLiquid'] %}
                   💧
-                {% elif alert.alert_type == "DeltaChange" %}
+                {% elif alert.alert_type == 'DeltaChange' %}
                   🚀
                 {% else %}
                   🔔
@@ -99,8 +104,27 @@
               <div class="info-box-content">
                 <span class="info-box-text">{{ alert.alert_type }}</span>
                 <span class="info-box-number">Trigger: {{ alert.trigger_value }}</span>
-                <span class="info-box-text">Condition: {{ alert.condition }}</span>
+                <!-- Display State instead of Condition -->
+                <span class="info-box-text">State: {{ alert.state }}</span>
                 <span class="info-box-text">Status: {{ alert.status }}</span>
+                {% if alert_ranges %}
+                  {% if alert.alert_type == 'PriceThreshold' %}
+                    {% set range_config = alert_ranges.price_alerts[alert.asset_type] if alert.asset_type in alert_ranges.price_alerts else None %}
+                  {% elif alert.alert_type in ['TravelPercent', 'TravelPercentLiquid'] %}
+                    {% set range_config = alert_ranges.travel_percent_liquid_ranges %}
+                  {% elif alert.alert_type == 'Profit' %}
+                    {% set range_config = alert_ranges.profit_ranges %}
+                  {% elif alert.alert_type == 'HeatIndex' %}
+                    {% set range_config = alert_ranges.heat_index_ranges %}
+                  {% else %}
+                    {% set range_config = None %}
+                  {% endif %}
+                  {% if range_config %}
+                    <span class="info-box-text">
+                      Range: Low: {{ range_config.low }}, Medium: {{ range_config.medium }}, High: {{ range_config.high }}
+                    </span>
+                  {% endif %}
+                {% endif %}
               </div>
             </div>
           </div>
@@ -155,7 +179,29 @@
 {% block extra_scripts %}
 <script>
   document.addEventListener("DOMContentLoaded", function() {
-    // Handler for creating all alerts
+    // Refresh alerts
+    document.getElementById("refreshAlerts").addEventListener("click", function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      fetch("{{ url_for('alerts_bp.refresh_alerts') }}", {
+        method: "POST"
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert(data.message);
+          window.location.reload();
+        } else {
+          alert("Error refreshing alerts: " + data.error);
+        }
+      })
+      .catch(err => {
+        console.error("Error refreshing alerts:", err);
+        alert("Error refreshing alerts: " + err);
+      });
+    });
+
+    // Create all alerts
     document.getElementById("createAllAlerts").addEventListener("click", function(e) {
       e.preventDefault();
       e.stopPropagation();
@@ -177,7 +223,7 @@
       });
     });
 
-    // Handler for deleting all alerts
+    // Delete all alerts
     document.getElementById("deleteAllAlerts").addEventListener("click", function(e) {
       e.preventDefault();
       e.stopPropagation();

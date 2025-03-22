@@ -3,7 +3,7 @@
     "blueTheme": {
       "name": "Blue Ocean",
       "title bar": {
-        "color": "#007bff",
+        "color": "#1eff00",
         "image": null
       },
       "side bar": {
@@ -23,7 +23,7 @@
         "image": null
       },
       "text": {
-        "color": "#606062",
+        "color": "#ffffff",
         "image": null
       }
     },
