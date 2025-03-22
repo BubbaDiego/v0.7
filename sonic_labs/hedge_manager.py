@@ -39,29 +39,19 @@ class HedgeManager:
         self.build_hedges()
 
     def build_hedges(self):
-        """
-        Build hedge groups by scanning positions for a common hedge_buddy_id.
-        Only groups with two or more positions are turned into Hedge instances.
-        Aggregated metrics such as total long/short sizes and heat indices are computed.
-        Logs an operations entry upon successful hedge checking.
-        """
-        # Group positions by hedge_buddy_id
         hedge_groups = {}
         for pos in self.positions:
-            # Only consider positions with a defined hedge_buddy_id
-            if pos.hedge_buddy_id:
-                key = pos.hedge_buddy_id
-                if key not in hedge_groups:
-                    hedge_groups[key] = []
-                hedge_groups[key].append(pos)
+            hedge_buddy_id = pos.get("hedge_buddy_id")
+            if hedge_buddy_id:
+                if hedge_buddy_id not in hedge_groups:
+                    hedge_groups[hedge_buddy_id] = []
+                hedge_groups[hedge_buddy_id].append(pos)
 
-        # Clear any existing hedges
         self.hedges = []
-        # Create Hedge objects for groups with at least 2 positions
         for key, pos_group in hedge_groups.items():
             if len(pos_group) >= 2:
                 hedge = Hedge(id=str(uuid4()))
-                hedge.positions = [p.id for p in pos_group]
+                hedge.positions = [p.get("id") for p in pos_group]
 
                 total_long = 0.0
                 total_short = 0.0
@@ -69,23 +59,20 @@ class HedgeManager:
                 short_heat = 0.0
 
                 for p in pos_group:
-                    # Determine if position is long or short based on position_type.
-                    # (Assumes position_type is set to "long" or "short" in lowercase.)
-                    if p.position_type.lower() == "long":
-                        total_long += p.size
-                        long_heat += p.heat_index
-                    elif p.position_type.lower() == "short":
-                        total_short += p.size
-                        short_heat += p.heat_index
-                    else:
-                        # If position_type isn't set, ignore or handle differently.
-                        pass
+                    position_type = str(p.get("position_type", "")).lower()
+                    size = float(p.get("size", 0))
+                    heat_index = float(p.get("heat_index", 0))
+                    if position_type == "long":
+                        total_long += size
+                        long_heat += heat_index
+                    elif position_type == "short":
+                        total_short += size
+                        short_heat += heat_index
 
                 hedge.total_long_size = total_long
                 hedge.total_short_size = total_short
                 hedge.long_heat_index = long_heat
                 hedge.short_heat_index = short_heat
-                # For total heat index, we simply sum here (consider weighting if needed).
                 hedge.total_heat_index = long_heat + short_heat
                 hedge.created_at = datetime.now()
                 hedge.updated_at = datetime.now()
@@ -93,7 +80,6 @@ class HedgeManager:
 
                 self.hedges.append(hedge)
 
-        # Log an operations entry for the hedge check
         self.logger.log_operation(
             operation_type="Hedge Check",
             primary_text=f"Hedge check complete: {len(self.hedges)} hedges found.",

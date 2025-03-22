@@ -17,6 +17,8 @@ from datetime import datetime
 from data.data_locker import DataLocker
 from config.config_constants import DB_PATH
 from utils.calc_services import CalcServices
+from utils.unified_logger import UnifiedLogger
+from sonic_labs.hedge_manager import HedgeManager
 from api.dydx_api import DydxAPI
 
 logger = logging.getLogger(__name__)
@@ -170,8 +172,12 @@ class PositionService:
     def update_jupiter_positions(db_path: str = DB_PATH) -> Dict[str, Any]:
         """
         Fetch Jupiter positions for all wallets in the database, update the positions table,
-        and update balance variables. Returns a dictionary with a result message and counts.
+        update balance variables, and update hedges via HedgeManager.
+        Returns a dictionary with a result message and counts.
         """
+        logger.info(f"Jupiter: 💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀")
+
+
         try:
             dl = DataLocker.get_instance(db_path)
             wallets_list = dl.read_wallets()
@@ -181,6 +187,7 @@ class PositionService:
 
             new_positions = []
             for w in wallets_list:
+
                 public_addr = w.get("public_address", "").strip()
                 if not public_addr:
                     logger.info(f"Skipping wallet {w['name']} (no public_address).")
@@ -254,6 +261,33 @@ class PositionService:
             msg = (f"Imported {new_count} new Jupiter position(s); Skipped {duplicate_count} duplicate(s). "
                    f"BrokerageBalance={total_brokerage_value:.2f}, TotalBalance={new_total_balance:.2f}")
             logger.info(msg)
+
+            #logger.info(f"Jupiter:  💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸")
+
+            # --- New Code: Update hedges via HedgeManager ---
+            try:
+                from sonic_labs.hedge_manager import HedgeManager
+                # Get the updated positions again.
+                updated_positions = PositionService.get_all_positions(db_path)
+                hedge_manager = HedgeManager(updated_positions)
+                hedges = hedge_manager.get_hedges()
+                # Log the hedge update operation.
+                from utils.unified_logger import UnifiedLogger
+                op_logger = UnifiedLogger()
+                op_logger.log_operation(
+                    operation_type="Hedge Updated",
+                    primary_text=f"{len(hedges)} hedges updated via Jupiter positions.",
+                    source="System",
+                    file="position_service.py"
+                )
+            except Exception as hedge_err:
+                op_logger = UnifiedLogger()
+                op_logger.log_operation(
+                    operation_type="Hedge Fucked",
+                    primary_text=f"{len(hedges)} hedges updated via Jupiter positions.",
+                    source="System",
+                    file="position_service.py")
+
             return {"message": msg, "imported": new_count, "skipped": duplicate_count}
         except Exception as e:
             logger.error(f"Error in update_jupiter_positions: {e}", exc_info=True)

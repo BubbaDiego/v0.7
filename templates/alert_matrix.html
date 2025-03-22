@@ -9,33 +9,92 @@
     --card-background-color: {{ theme.get('card_background_color', '#fff') }};
     --border-color: {{ theme.get('border_color', '#ccc') }};
   }
-  /* Style for the card tools icons */
+
+  /* Card tools icons (Refresh, Create All, Delete All) */
   .card-tools a {
     color: var(--text-color);
     font-size: 1.25rem;
     margin-left: 10px;
     cursor: pointer;
   }
-  /* Info-box styles for alert matrix */
-  .info-box {
+
+  /* Base info-box styles with collapsible <details> */
+  details.info-box {
+    display: inline-block; /* Let the box be as wide as its summary text */
+    width: auto;
+    vertical-align: top;
     border-radius: 0.5rem;
     margin-bottom: 1rem;
-    display: flex;
-    align-items: stretch;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    overflow: hidden;
+    cursor: pointer;
+    transition: width 0.3s ease, height 0.3s ease;
   }
-  .info-box-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2rem;
-    padding: 0.5rem;
-  }
-  .info-box-content {
-    flex: 1;
-    padding: 0.5rem;
+  /* Expand horizontally on open */
+  details.info-box[open] {
+    width: 350px; /* Adjust to your liking */
   }
 
-  /* Three-column layout for alert info */
+  /* Color-coded states */
+  .info-box.no-alert {
+    background-color: #0d6efd !important; /* Blue */
+    color: #fff !important;
+  }
+  .info-box.low {
+    background-color: #198754 !important; /* Green */
+    color: #fff !important;
+  }
+  .info-box.medium {
+    background-color: #ffc107 !important; /* Yellow */
+    color: #000 !important;
+  }
+  .info-box.high {
+    background-color: #dc3545 !important; /* Red */
+    color: #fff !important;
+  }
+  .info-box.price-high {
+    background-color: purple !important;
+    color: #fff !important;
+  }
+  .info-box.unknown {
+    background-color: #6c757d !important; /* Gray */
+    color: #fff !important;
+  }
+
+  /* Remove default disclosure triangle */
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  /* Summary header styling for collapsed view */
+  summary.info-header {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    list-style: none;
+  }
+  .info-box-icon {
+    font-size: 1.5rem;
+    margin-right: 0.5rem;
+  }
+  .info-basic-container {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.9rem;
+  }
+  .info-basic-container > div {
+    margin: 2px 0;
+  }
+
+  /* Expanded content styling */
+  .info-content {
+    padding: 0 0.75rem 0.75rem;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    border-top: 1px solid rgba(255,255,255,0.3);
+  }
+
+  /* Detailed layout inside expanded content */
   .alert-info-container {
     display: flex;
     flex-direction: row;
@@ -55,35 +114,8 @@
     flex: 0.8;
     text-align: right;
   }
-  .alert-info-column div {
-    margin-bottom: 4px;
-  }
-
-  /* No-wrap for the ID lines */
   .nowrap-line {
     white-space: nowrap;
-  }
-
-  /* Color-coded boxes based on alert.state */
-  .info-box.no-alert {
-    background-color: #0d6efd !important; /* Blue */
-    color: #fff !important;
-  }
-  .info-box.low {
-    background-color: #198754 !important; /* Green */
-    color: #fff !important;
-  }
-  .info-box.medium {
-    background-color: #ffc107 !important; /* Yellow */
-    color: #000 !important;
-  }
-  .info-box.high {
-    background-color: #dc3545 !important; /* Red */
-    color: #fff !important;
-  }
-  .info-box.unknown {
-    background-color: #6c757d !important; /* Gray */
-    color: #fff !important;
   }
 </style>
 {% endblock %}
@@ -95,20 +127,20 @@
     <div class="card-header" style="background-color: {{ theme.get('card_header_color', '#007bff') }}; color: {{ theme.get('card_header_text_color', '#fff') }}; position: relative;">
       <h3 class="card-title">Alert Matrix</h3>
       <div class="card-tools" style="position: absolute; right: 10px; top: 10px;">
-        <!-- Refresh button -->
         <a id="refreshAlerts" title="Refresh Alerts"><i class="fas fa-sync-alt"></i></a>
-        <!-- Create All Alerts button -->
         <a id="createAllAlerts" title="Create All Alerts"><i class="fas fa-plus-circle"></i></a>
-        <!-- Delete All Alerts button -->
         <a id="deleteAllAlerts" title="Delete All Alerts" style="margin-left: 10px;"><i class="fas fa-trash-alt"></i></a>
       </div>
     </div>
+
     <div class="card-body" style="background-color: var(--card-background-color); color: var(--text-color);">
       <div class="row">
         {% for alert in alerts %}
-          <div class="col-md-3 col-sm-6 col-12">
-            <div class="info-box
-              {% if alert.state == 'Normal' %}
+          <div class="col-auto" style="margin-bottom: 1rem;">
+            <details class="info-box
+              {% if alert.alert_type == 'PriceThreshold' and alert.state == 'High' %}
+                price-high
+              {% elif alert.state == 'Normal' %}
                 no-alert
               {% elif alert.state == 'Low' %}
                 low
@@ -119,18 +151,36 @@
               {% else %}
                 unknown
               {% endif %} shadow-sm">
-              <span class="info-box-icon">
-                {% if alert.alert_type == 'PriceThreshold' %}
-                  💲
-                {% elif alert.alert_type in ['TravelPercent', 'TravelPercentLiquid'] %}
-                  💧
-                {% elif alert.alert_type == 'DeltaChange' %}
-                  🚀
-                {% else %}
-                  🔔
-                {% endif %}
-              </span>
-              <div class="info-box-content">
+              <summary class="info-header">
+                <span class="info-box-icon">
+                  {% if alert.alert_type == 'PriceThreshold' %}
+                    💲
+                  {% elif alert.alert_type in ['TravelPercent', 'TravelPercentLiquid'] %}
+                    💧
+                  {% elif alert.alert_type == 'DeltaChange' %}
+                    🚀
+                  {% else %}
+                    🔔
+                  {% endif %}
+                </span>
+                <div class="info-basic-container">
+                  <div class="info-basic-type">
+                    {% if alert.alert_type == 'PriceThreshold' %}
+                      Price
+                    {% else %}
+                      {{ alert.alert_type }}
+                    {% endif %}
+                  </div>
+                  <div class="info-basic-trigger">
+                    Trigger: {{ "%.2f"|format(alert.trigger_value or 0) }}
+                  </div>
+                  <div class="info-basic-state">
+                    State: {{ alert.state }}
+                  </div>
+                </div>
+              </summary>
+
+              <div class="info-content">
                 <div class="alert-info-container">
                   <!-- Left column: Type, Trigger, State, Status -->
                   <div class="alert-details-column">
@@ -141,12 +191,12 @@
                         {{ alert.alert_type }}
                       {% endif %}
                     </div>
-                    <div><strong>Trigger:</strong> {{ alert.trigger_value }}</div>
+                    <div><strong>Trigger:</strong> {{ "%.2f"|format(alert.trigger_value or 0) }}</div>
                     <div><strong>State:</strong> {{ alert.state }}</div>
                     <div><strong>Status:</strong> {{ alert.status }}</div>
                   </div>
 
-                  <!-- Middle column: IDs (Alert, Pos Ref, Hedge) -->
+                  <!-- Middle column: IDs -->
                   <div class="alert-id-column">
                     <div class="nowrap-line">
                       <i class="fas fa-id-badge"></i>
@@ -178,27 +228,35 @@
                   <div class="alert-range-column">
                     {% if alert_ranges %}
                       {% if alert.alert_type == 'PriceThreshold' %}
-                        {% set range_config = alert_ranges.price_alerts[alert.asset_type] if alert.asset_type in alert_ranges.price_alerts else None %}
-                      {% elif alert.alert_type in ['TravelPercent', 'TravelPercentLiquid'] %}
-                        {% set range_config = alert_ranges.travel_percent_liquid_ranges %}
-                      {% elif alert.alert_type == 'Profit' %}
-                        {% set range_config = alert_ranges.profit_ranges %}
-                      {% elif alert.alert_type == 'HeatIndex' %}
-                        {% set range_config = alert_ranges.heat_index_ranges %}
+                        {# For price alerts, derive limits from trigger_value #}
+                        {% set h = alert.trigger_value|float %}
+                        {% set m = h * 0.75 %}
+                        {% set l = h * 0.5 %}
                       {% else %}
-                        {% set range_config = None %}
+                        {% if alert.alert_type in ['TravelPercent','TravelPercentLiquid'] %}
+                          {% set range_config = alert_ranges.travel_percent_liquid_ranges %}
+                        {% elif alert.alert_type == 'Profit' %}
+                          {% set range_config = alert_ranges.profit_ranges %}
+                        {% elif alert.alert_type == 'HeatIndex' %}
+                          {% set range_config = alert_ranges.heat_index_ranges %}
+                        {% else %}
+                          {% set range_config = None %}
+                        {% endif %}
+                        {% if range_config %}
+                          {% set l = range_config.low|float %}
+                          {% set m = range_config.medium|float %}
+                          {% set h = range_config.high|float %}
+                        {% endif %}
                       {% endif %}
-                      {% if range_config %}
-                        <div><strong>Range:</strong></div>
-                        <div>Low: {{ range_config.low }}</div>
-                        <div>Med: {{ range_config.medium }}</div>
-                        <div>High: {{ range_config.high }}</div>
-                      {% endif %}
+                      <div><strong>Range:</strong></div>
+                      <div>Low: {{ "%.2f"|format(l) }}</div>
+                      <div>Med: {{ "%.2f"|format(m) }}</div>
+                      <div>High: {{ "%.2f"|format(h) }}</div>
                     {% endif %}
                   </div>
                 </div>
               </div>
-            </div>
+            </details>
           </div>
         {% endfor %}
       </div>

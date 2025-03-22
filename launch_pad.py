@@ -147,16 +147,9 @@ def index():
     tweaked_compare = []
     leverage = 0.0  # Default leverage value
 
-    return render_template(
-        "base.html",
-        theme=theme,
-        title="Sonic Dashboard",
-        params=params,
-        results=results,
-        baseline_compare=baseline_compare,
-        tweaked_compare=tweaked_compare,
-        leverage=leverage
-    )
+    return redirect(url_for('dashboard.dashboard'))
+
+
 
 
 @app.route("/add_broker", methods=["POST"])
