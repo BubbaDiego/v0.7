@@ -16,14 +16,13 @@
     margin-left: 10px;
     cursor: pointer;
   }
-  /* Toggle switch container in header */
+  /* Toggle switch container in header (two-toggle style, no text) */
   .header-toggle {
     position: absolute;
     left: 50%;
     top: 10px;
     transform: translateX(-50%);
   }
-  /* Style the checkbox to appear as a radio button without text */
   .header-toggle input[type="checkbox"] {
     -webkit-appearance: radio;
        -moz-appearance: radio;
@@ -31,6 +30,14 @@
     width: 20px;
     height: 20px;
     cursor: pointer;
+  }
+  /* Alert icon before the card title */
+  .card-title::before {
+    content: "⚠️ ";
+  }
+  /* Hedge icon for the Hedge Matrix title */
+  .hedge-matrix-title::before {
+    content: "🦔 ";
   }
   /* Base info-box styles with collapsible <details> */
   details.info-box {
@@ -49,14 +56,34 @@
     width: 350px; /* adjust as needed */
   }
   /* Color-coded states */
-  .info-box.no-alert { background-color: #0d6efd !important; color: #fff !important; }
-  .info-box.low { background-color: #198754 !important; color: #fff !important; }
-  .info-box.medium { background-color: #ffc107 !important; color: #000 !important; }
-  .info-box.high { background-color: #dc3545 !important; color: #fff !important; }
-  .info-box.price-high { background-color: purple !important; color: #fff !important; }
-  .info-box.unknown { background-color: #6c757d !important; color: #fff !important; }
+  .info-box.no-alert {
+    background-color: #0d6efd !important;
+    color: #fff !important;
+  }
+  .info-box.low {
+    background-color: #198754 !important;
+    color: #fff !important;
+  }
+  .info-box.medium {
+    background-color: #ffc107 !important;
+    color: #000 !important;
+  }
+  .info-box.high {
+    background-color: #dc3545 !important;
+    color: #fff !important;
+  }
+  .info-box.price-high {
+    background-color: purple !important;
+    color: #fff !important;
+  }
+  .info-box.unknown {
+    background-color: #6c757d !important;
+    color: #fff !important;
+  }
   /* Remove default disclosure marker */
-  summary::-webkit-details-marker { display: none; }
+  summary::-webkit-details-marker {
+    display: none;
+  }
   /* Summary header styling */
   summary.info-header {
     display: flex;
@@ -64,13 +91,18 @@
     padding: 0.75rem;
     list-style: none;
   }
-  .info-box-icon { font-size: 1.5rem; margin-right: 0.5rem; }
+  .info-box-icon {
+    font-size: 1.5rem;
+    margin-right: 0.5rem;
+  }
   .info-basic-container {
     display: flex;
     flex-direction: column;
     font-size: 0.9rem;
   }
-  .info-basic-container > div { margin: 2px 0; }
+  .info-basic-container > div {
+    margin: 2px 0;
+  }
   /* Expanded content styling */
   .info-content {
     padding: 0 0.75rem 0.75rem;
@@ -85,10 +117,22 @@
     justify-content: space-between;
     align-items: flex-start;
   }
-  .alert-details-column { flex: 1; padding-right: 10px; }
-  .alert-id-column { flex: 0.7; padding-right: 10px; text-align: center; }
-  .alert-range-column { flex: 0.8; text-align: right; }
-  .nowrap-line { white-space: nowrap; }
+  .alert-details-column {
+    flex: 1;
+    padding-right: 10px;
+  }
+  .alert-id-column {
+    flex: 0.7;
+    padding-right: 10px;
+    text-align: center;
+  }
+  .alert-range-column {
+    flex: 0.8;
+    text-align: right;
+  }
+  .nowrap-line {
+    white-space: nowrap;
+  }
 </style>
 {% endblock %}
 
@@ -98,7 +142,7 @@
   <div class="card" style="border: 1px solid {{ theme.get('border_color', '#ccc') }};">
     <div class="card-header" style="background-color: {{ theme.get('card_header_color', '#007bff') }}; color: {{ theme.get('card_header_text_color', '#fff') }}; position: relative;">
       <h3 class="card-title">Alert Matrix</h3>
-      <!-- Radio-style toggle (no words) to expand/collapse all alerts -->
+      <!-- Two-toggle switch to expand/collapse all alerts -->
       <div class="header-toggle">
         <input type="checkbox" id="toggleAllAlerts" title="Toggle All Alerts">
       </div>
@@ -130,42 +174,84 @@
                 <span class="info-box-icon">
                   {% if alert.alert_type == 'PriceThreshold' %}
                     💲
-                  {% elif alert.alert_type in ['TravelPercent', 'TravelPercentLiquid'] %}
+                  {% elif alert.alert_type in ['TravelPercent','TravelPercentLiquid'] %}
                     💧
                   {% elif alert.alert_type == 'DeltaChange' %}
                     🚀
+                  {% elif alert.alert_type == 'Profit' %}
+                    💹
                   {% else %}
                     🔔
                   {% endif %}
                 </span>
                 <div class="info-basic-container">
+                  <!-- Alert type display -->
                   <div class="info-basic-type">
-                    {% if alert.alert_type == 'PriceThreshold' %}
-                      Price
-                    {% else %}
-                      {{ alert.alert_type }}
-                    {% endif %}
+                    {{ alert.alert_type }}
                   </div>
+                  <!-- Trigger display (bold, with $ if Price, or .2f if not) -->
                   <div class="info-basic-trigger">
-                    Trigger: <strong>{{ "{:,.2f}".format(alert.trigger_value or 0) }}</strong>
+                    Trigger: <strong>
+                      {% if alert.alert_type == 'PriceThreshold' %}
+                        {% if alert.asset_type in ['BTC','ETH'] %}
+                          ${{ "{:,.0f}".format(alert.trigger_value or 0) }}
+                        {% else %}
+                          ${{ "{:,.2f}".format(alert.trigger_value or 0) }}
+                        {% endif %}
+                      {% elif alert.alert_type in ['TravelPercent','TravelPercentLiquid'] %}
+                        {{ "{:,.2f}".format(alert.trigger_value or 0) }}%
+                      {% elif alert.alert_type == 'Profit' %}
+                        ${{ "{:,.2f}".format(alert.trigger_value or 0) }}
+                      {% else %}
+                        {{ "{:,.2f}".format(alert.trigger_value or 0) }}
+                      {% endif %}
+                    </strong>
+                  </div>
+                  <!-- Current Value line: what is actually used for the alert's logic -->
+                  <div class="info-basic-current-value">
+                    Current Value:
+                    <strong>
+                    {% if alert.alert_type == 'PriceThreshold' %}
+                      {% if alert.asset_type in ['BTC','ETH'] %}
+                        ${{ "{:,.0f}".format(alert.current_price or 0) }}
+                      {% else %}
+                        ${{ "{:,.2f}".format(alert.current_price or 0) }}
+                      {% endif %}
+                    {% elif alert.alert_type in ['TravelPercent','TravelPercentLiquid'] %}
+                      {{ "{:,.2f}".format(alert.current_travel_percent or 0) }}%
+                    {% elif alert.alert_type == 'Profit' %}
+                      ${{ "{:,.2f}".format(alert.current_profit or 0) }}
+                    {% else %}
+                      N/A
+                    {% endif %}
+                    </strong>
                   </div>
                   <div class="info-basic-state">
                     State: {{ alert.state }}
                   </div>
                 </div>
               </summary>
+              <!-- Expanded content -->
               <div class="info-content">
                 <div class="alert-info-container">
                   <!-- Left column: Type, Trigger, State, Status -->
                   <div class="alert-details-column">
-                    <div><strong>Type:</strong>
+                    <div><strong>Type:</strong> {{ alert.alert_type }}</div>
+                    <div><strong>Trigger:</strong> <strong>
                       {% if alert.alert_type == 'PriceThreshold' %}
-                        Price
+                        {% if alert.asset_type in ['BTC','ETH'] %}
+                          ${{ "{:,.0f}".format(alert.trigger_value or 0) }}
+                        {% else %}
+                          ${{ "{:,.2f}".format(alert.trigger_value or 0) }}
+                        {% endif %}
+                      {% elif alert.alert_type in ['TravelPercent','TravelPercentLiquid'] %}
+                        {{ "{:,.2f}".format(alert.trigger_value or 0) }}%
+                      {% elif alert.alert_type == 'Profit' %}
+                        ${{ "{:,.2f}".format(alert.trigger_value or 0) }}
                       {% else %}
-                        {{ alert.alert_type }}
+                        {{ "{:,.2f}".format(alert.trigger_value or 0) }}
                       {% endif %}
-                    </div>
-                    <div><strong>Trigger:</strong> <strong>{{ "{:,.2f}".format(alert.trigger_value or 0) }}</strong></div>
+                    </strong></div>
                     <div><strong>State:</strong> {{ alert.state }}</div>
                     <div><strong>Status:</strong> {{ alert.status }}</div>
                   </div>
@@ -221,9 +307,41 @@
                         {% endif %}
                       {% endif %}
                       <div><strong>Range:</strong></div>
-                      <div>Low: {{ "{:,.2f}".format(l) }}</div>
-                      <div>Med: {{ "{:,.2f}".format(m) }}</div>
-                      <div>High: {{ "{:,.2f}".format(h) }}</div>
+                      {% if alert.alert_type == 'PriceThreshold' %}
+                        <div>
+                          {% if alert.asset_type in ['BTC','ETH'] %}
+                            ${{ "{:,.0f}".format(l) }}
+                          {% else %}
+                            ${{ "{:,.2f}".format(l) }}
+                          {% endif %}
+                        </div>
+                        <div>
+                          {% if alert.asset_type in ['BTC','ETH'] %}
+                            ${{ "{:,.0f}".format(m) }}
+                          {% else %}
+                            ${{ "{:,.2f}".format(m) }}
+                          {% endif %}
+                        </div>
+                        <div>
+                          {% if alert.asset_type in ['BTC','ETH'] %}
+                            ${{ "{:,.0f}".format(h) }}
+                          {% else %}
+                            ${{ "{:,.2f}".format(h) }}
+                          {% endif %}
+                        </div>
+                      {% elif alert.alert_type in ['TravelPercent','TravelPercentLiquid'] %}
+                        <div>{{ "{:,.2f}".format(l) }}%</div>
+                        <div>{{ "{:,.2f}".format(m) }}%</div>
+                        <div>{{ "{:,.2f}".format(h) }}%</div>
+                      {% elif alert.alert_type == 'Profit' %}
+                        <div>${{ "{:,.2f}".format(l) }}</div>
+                        <div>${{ "{:,.2f}".format(m) }}</div>
+                        <div>${{ "{:,.2f}".format(h) }}</div>
+                      {% else %}
+                        <div>{{ "{:,.2f}".format(l) }}</div>
+                        <div>{{ "{:,.2f}".format(m) }}</div>
+                        <div>{{ "{:,.2f}".format(h) }}</div>
+                      {% endif %}
                     {% endif %}
                   </div>
                 </div>
@@ -235,10 +353,10 @@
     </div>
   </div>
 
-  <!-- Hedge Matrix Card (unchanged) -->
+  <!-- Hedge Matrix Card -->
   <div class="card mt-4" style="border: 1px solid {{ theme.get('border_color', '#ccc') }};">
     <div class="card-header" style="background-color: {{ theme.get('card_header_color', '#007bff') }}; color: {{ theme.get('card_header_text_color', '#fff') }};">
-      <h3 class="card-title">Hedge Matrix</h3>
+      <h3 class="card-title hedge-matrix-title">Hedge Matrix</h3>
     </div>
     <div class="card-body" style="background-color: var(--card-background-color); color: var(--text-color);">
       {% if hedges and hedges|length > 0 %}

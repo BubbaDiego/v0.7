@@ -210,19 +210,27 @@ class AlertManager:
         heat_alerts = self.create_heat_index_alerts()
         return price_alerts + travel_alerts + profit_alerts + heat_alerts
 
-
-    # New helper method to update alert state in the DB if an alert record exists for the position.
-    # This method also updates the position_reference_id based on pos['id'].
     def _update_alert_state(self, pos: dict, new_state: str):
-        alert_id = pos.get("alert_reference_id")
+        """
+        Update the alert state in the database.
+        For position-associated alerts, uses pos['alert_reference_id'].
+        For standalone alerts, falls back to pos['id'].
+        Also, for position alerts, sets the position_reference_id field.
+        """
+        # Attempt to use the position's alert_reference_id; if missing, use the alert's own id.
+        alert_id = pos.get("alert_reference_id") or pos.get("id")
         if alert_id:
             update_fields = {"state": new_state}
-            if pos.get("id"):
-                update_fields["position_reference_id"] = pos.get("id")
+            # Only add the position reference if the alert_reference_id is present.
+            if pos.get("alert_reference_id"):
+                if pos.get("id"):
+                    update_fields["position_reference_id"] = pos.get("id")
             try:
                 self.data_locker.update_alert_conditions(alert_id, update_fields)
             except Exception as e:
                 logging.error(f"Error updating alert state for alert {alert_id}: {e}")
+        else:
+            logging.warning("No alert identifier found for updating state; update skipped.")
 
     def update_timer_states(self):
         now = time.time()

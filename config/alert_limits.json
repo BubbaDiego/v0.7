@@ -96,7 +96,7 @@
     },
     "travel_percent_liquid_ranges": {
       "enabled": "on",
-      "low": -50.0,
+      "low": -4.0,
       "low_notifications": {
         "call": true,
         "sms": false,
@@ -198,6 +198,6 @@
   "alert_cooldown_seconds": 900.0,
   "call_refractory_period": 873.0,
   "snooze_countdown": 300.0,
-  "call_refractory_start": 1742667573.5929675,
+  "call_refractory_start": 1742681843.826844,
   "snooze_start": null
 }

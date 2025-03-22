@@ -383,32 +383,26 @@ def api_size_balance():
 
 @dashboard_bp.route("/database_viewer", methods=["GET"])
 def database_viewer():
-    """
-    Route to display the database viewer page.
-    This page lets users switch between different tables (e.g. positions and alerts)
-    via a drop-down menu and supports inline editing and deletion.
-    """
     try:
-        # Retrieve positions from the PositionService (real data)
+        dl = DataLocker.get_instance()
+
+        # Retrieve positions (existing support)
         positions = PositionService.get_all_positions(DB_PATH) or []
         pos_headers = ["Ref ID", "Name", "Email", "Actions"]
         pos_rows = []
         for pos in positions:
-            # Use "ref_id" if available, otherwise fallback to "id"
             ref_id = pos.get("ref_id") or pos.get("id", "unknown")
             pos_rows.append({
-                "id": ref_id,  # Full reference ID; UI will trim to 6 characters.
+                "id": ref_id,
                 "field1": pos.get("name", "N/A"),
                 "field2": pos.get("email", "N/A")
             })
 
-        # Retrieve alerts (real data) – assuming alerts have a "position_id" field
-        dl = DataLocker.get_instance()
+        # Retrieve alerts (existing support)
         alerts = dl.get_alerts() or []
         alert_headers = ["Ref ID", "Alert Type", "Status", "Actions"]
         alert_rows = []
         for alert in alerts:
-            # For alerts, try to get the reference from the related position, or use its own id.
             ref_id = alert.get("position_id") or alert.get("id", "unknown")
             alert_rows.append({
                 "id": ref_id,
@@ -416,18 +410,59 @@ def database_viewer():
                 "field2": alert.get("status", "N/A")
             })
 
-        # Create datasets dictionary keyed by table name.
+        # Retrieve prices data (new support)
+        # Assuming you use get_latest_price for known assets
+        btc_data = dl.get_latest_price("BTC") or {}
+        eth_data = dl.get_latest_price("ETH") or {}
+        sol_data = dl.get_latest_price("SOL") or {}
+        sp500_data = dl.get_latest_price("SP500") or {}
+        prices_headers = ["Asset", "Current Price", "Timestamp", "Actions"]
+        prices_rows = [
+            {
+                "id": "BTC",
+                "field1": btc_data.get("current_price", "N/A"),
+                "field2": btc_data.get("snapshot_time", "N/A")
+            },
+            {
+                "id": "ETH",
+                "field1": eth_data.get("current_price", "N/A"),
+                "field2": eth_data.get("snapshot_time", "N/A")
+            },
+            {
+                "id": "SOL",
+                "field1": sol_data.get("current_price", "N/A"),
+                "field2": sol_data.get("snapshot_time", "N/A")
+            },
+            {
+                "id": "SP500",
+                "field1": sp500_data.get("current_price", "N/A"),
+                "field2": sp500_data.get("snapshot_time", "N/A")
+            }
+        ]
+
+        # Retrieve wallets data (new support)
+        wallets = dl.read_wallets() or []
+        wallet_headers = ["Wallet Name", "Public Address", "Balance", "Actions"]
+        wallet_rows = []
+        for wallet in wallets:
+            wallet_rows.append({
+                "id": wallet.get("name", "N/A"),
+                "field1": wallet.get("public_address", "N/A"),
+                "field2": wallet.get("balance", "N/A")
+            })
+
+        # Create datasets dictionary with all tables
         datasets = {
             "positions": {"headers": pos_headers, "rows": pos_rows},
-            "alerts": {"headers": alert_headers, "rows": alert_rows}
+            "alerts": {"headers": alert_headers, "rows": alert_rows},
+            "prices": {"headers": prices_headers, "rows": prices_rows},
+            "wallets": {"headers": wallet_headers, "rows": wallet_rows}
         }
 
-        # Render the database_viewer.html template (which extends base.html)
         return render_template("database_viewer.html", datasets=datasets)
     except Exception as e:
         current_app.logger.exception("Error in database_viewer route:")
         return render_template("database_viewer.html", datasets={})
-
 
 @dashboard_bp.route("/api/collateral_composition")
 def api_collateral_composition():
