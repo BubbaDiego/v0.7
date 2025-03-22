@@ -90,7 +90,7 @@ class JsonManager:
             raise
 
     def save(self, file_path: str, data, json_type: JsonType = None):
-        """Save the JSON data to the specified file path."""
+        """Save the JSON data to the specified file path and validate the result."""
         if json_type:
             path_map = {
                 JsonType.ALERT_LIMITS: ALERT_LIMITS_PATH,
@@ -103,24 +103,51 @@ class JsonManager:
         try:
             with open(file_path, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2)
+                f.truncate()
+
             caller = inspect.getframeinfo(inspect.stack()[1][0])
             json_str = json.dumps(data)
             if len(json_str) > 200:
                 json_str = json_str[:200] + "..."
             type_info = f" [JSON Type: {json_type.name}]" if json_type else ""
+
             self.logger.log_operation(
                 operation_type="JSON Saved",
-                primary_text=(f"Successfully saved {file_path}{type_info} by system at {caller.filename}:{caller.lineno}. Data: {json_str}"),
+                primary_text=(
+                    f"Successfully saved {file_path}{type_info} by system at {caller.filename}:{caller.lineno}. Data: {json_str}"),
                 source="system",
                 file=f"{file_path} ({caller.filename}:{caller.lineno})",
                 extra_data={"json_type": json_type.name if json_type else ""}
             )
+
+            # ✅ Post-Save Validation
+            try:
+                with open(file_path, "r", encoding="utf-8") as f:
+                    json.load(f)
+                self.logger.log_operation(
+                    operation_type="JSON Validation",
+                    primary_text=f"Post-save validation passed for {file_path}",
+                    source="JsonManager",
+                    file=file_path,
+                    extra_data={"json_type": json_type.name if json_type else ""}
+                )
+            except json.JSONDecodeError as ve:
+                self.logger.log_operation(
+                    operation_type="JSON Validation Failed",
+                    primary_text=f"Post-save validation failed for {file_path}: {ve}",
+                    source="JsonManager",
+                    file=file_path,
+                    extra_data={"json_type": json_type.name if json_type else ""}
+                )
+                raise
+
         except Exception as e:
             caller = inspect.getframeinfo(inspect.stack()[1][0])
             type_info = f" [JSON Type: {json_type.name}]" if json_type else ""
             self.logger.log_operation(
                 operation_type="Save JSON Failed",
-                primary_text=(f"Failed to save {file_path}{type_info} by system at {caller.filename}:{caller.lineno}: {e}"),
+                primary_text=(
+                    f"Failed to save {file_path}{type_info} by system at {caller.filename}:{caller.lineno}: {e}"),
                 source="system",
                 file=f"{file_path} ({caller.filename}:{caller.lineno})",
                 extra_data={"json_type": json_type.name if json_type else ""}

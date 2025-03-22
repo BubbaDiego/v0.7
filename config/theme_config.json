@@ -23,7 +23,7 @@
         "image": null
       },
       "text": {
-        "color": "#00008B",
+        "color": "#FFFFFF",
         "image": null
       }
     },
@@ -104,8 +104,134 @@
         "image": null
       },
       "text": {
-        "color": "#00008B",
+        "color": "#FFFFFF",
         "image": null
+      }
+    },
+    "orangeTheme": {
+      "name": "Sunset Orange",
+      "title bar": {
+        "color": "#FF8C00"
+      },
+      "side bar": {
+        "color": "#CC7000"
+      },
+      "wallpaper": {
+        "color": "#FFF5E6"
+      },
+      "card title": {
+        "color": "#FFFFFF"
+      },
+      "card background": {
+        "color": "#FFDAB9"
+      },
+      "text": {
+        "color": "#FFFFFF"
+      }
+    },
+    "yellowTheme": {
+      "name": "Golden Hour",
+      "title bar": {
+        "color": "#B8860B"
+      },
+      "side bar": {
+        "color": "#A47508"
+      },
+      "wallpaper": {
+        "color": "#FFF8DC"
+      },
+      "card title": {
+        "color": "#FFFFFF"
+      },
+      "card background": {
+        "color": "#FFEBCD"
+      },
+      "text": {
+        "color": "#FFFFFF"
+      }
+    },
+    "tealTheme": {
+      "name": "Teal Breeze",
+      "title bar": {
+        "color": "#008080"
+      },
+      "side bar": {
+        "color": "#006666"
+      },
+      "wallpaper": {
+        "color": "#E0F2F1"
+      },
+      "card title": {
+        "color": "#FFFFFF"
+      },
+      "card background": {
+        "color": "#B2DFDB"
+      },
+      "text": {
+        "color": "#FFFFFF"
+      }
+    },
+    "pinkTheme": {
+      "name": "Rose Garden",
+      "title bar": {
+        "color": "#1430ff"
+      },
+      "side bar": {
+        "color": "#159ac6"
+      },
+      "wallpaper": {
+        "color": "#ffe6f2"
+      },
+      "card title": {
+        "color": "#ffffff"
+      },
+      "card background": {
+        "color": "#ffb6c1"
+      },
+      "text": {
+        "color": "#ffffff"
+      }
+    },
+    "brownTheme": {
+      "name": "Earthy Brown",
+      "title bar": {
+        "color": "#8B4513"
+      },
+      "side bar": {
+        "color": "#7A3A0E"
+      },
+      "wallpaper": {
+        "color": "#F5F5DC"
+      },
+      "card title": {
+        "color": "#FFFFFF"
+      },
+      "card background": {
+        "color": "#DEB887"
+      },
+      "text": {
+        "color": "#FFFFFF"
+      }
+    },
+    "cyanTheme": {
+      "name": "Cool Cyan",
+      "title bar": {
+        "color": "#00CED1"
+      },
+      "side bar": {
+        "color": "#008B8B"
+      },
+      "wallpaper": {
+        "color": "#E0FFFF"
+      },
+      "card title": {
+        "color": "#FFFFFF"
+      },
+      "card background": {
+        "color": "#AFEEEE"
+      },
+      "text": {
+        "color": "#FFFFFF"
       }
     }
   },

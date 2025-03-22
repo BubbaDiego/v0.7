@@ -682,20 +682,19 @@ def update_jupiter():
         print(f"[ERROR] Exception during Jupiter positions update: {e}")
         return jsonify({"error": str(e)}), 500
 
-    # New block: Update dYdX positions similar to Jupiter positions update
     try:
-        logger.debug("Step 2.1: Updating dYdX positions via PositionService...")
-        #update_dydx_result = PositionService.update_dydx_positions(DB_PATH)
-  #      logger.debug(f"Step 2.1 complete: dYdX positions update result: {update_dydx_result}")
-     #    print(f"[DEBUG] dYdX positions update result: {update_dydx_result}")
-      #  if "error" in update_dydx_result:
-     #       logger.error("Error during dYdX positions update: " + str(update_dydx_result))
-      #      print("[ERROR] Error during dYdX positions update:", update_dydx_result)
-       #     return jsonify(update_dydx_result), 500
+        logger.debug("Step 2.2: Building and saving hedges with HedgeManager...")
+        from hedge_manager import HedgeManager  # Import HedgeManager
+
+        all_positions = PositionService.get_all_positions(DB_PATH)
+        hedge_manager = HedgeManager(all_positions)
+        hedge_manager.save_hedges_to_db()
+
+        logger.info(f"Saved {len(hedge_manager.hedges)} hedge(s) to database.")
+        print(f"[DEBUG] Saved {len(hedge_manager.hedges)} hedge(s).")
     except Exception as e:
-        logger.error(f"Exception during dYdX positions update: {e}", exc_info=True)
-        print(f"[ERROR] Exception during dYdX positions update: {e}")
-        return jsonify({"error": str(e)}), 500
+        logger.error(f"Error saving hedges after position update: {e}", exc_info=True)
+        print(f"[ERROR] Error saving hedges: {e}")
 
     try:
         logger.debug("Step 3: Triggering price update...")
@@ -792,7 +791,6 @@ def update_jupiter():
     logger.debug("update_jupiter route completed successfully.")
     print("[DEBUG] update_jupiter route completed successfully.")
     return jsonify(response_data), 200
-
 
 
 @positions_bp.route("/update_alert_config", methods=["POST"])

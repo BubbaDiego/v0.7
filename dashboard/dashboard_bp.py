@@ -27,7 +27,6 @@ from positions.position_service import PositionService
 from utils.calc_services import CalcServices
 from utils.unified_logger import UnifiedLogger
 
-
 # Import UnifiedLogViewer to handle both operational and alert logs.
 from utils.unified_log_viewer import UnifiedLogViewer
 
@@ -367,18 +366,22 @@ def api_collateral_composition():
 def save_theme_route():
     try:
         data = request.get_json() or {}
-        # read the existing config
-        with open(THEME_CONFIG_PATH, "r", encoding="utf-8") as f:
-            config = json.load(f)
+        from utils.json_manager import JsonManager, JsonType
+        from utils.unified_logger import UnifiedLogger
+        # Instantiate JsonManager with a UnifiedLogger instance
+        json_manager = JsonManager(logger=UnifiedLogger())
+        # Load the existing theme configuration using JsonManager
+        config = json_manager.load(THEME_CONFIG_PATH, json_type=JsonType.THEME_CONFIG)
 
-        # only update selected_profile
-        if 'selected_profile' in data:
-            config['selected_profile'] = data['selected_profile']
+        # Only allow updates for the following keys
+        allowed_keys = ["profiles", "selected_profile"]
+        filtered_data = {key: value for key, value in data.items() if key in allowed_keys}
 
-        # now save the updated config
-        with open(THEME_CONFIG_PATH, "w", encoding="utf-8") as f:
-            json.dump(config, f, indent=2)
+        # Deep merge the filtered incoming data into the existing configuration
+        updated_config = json_manager.deep_merge(config, filtered_data)
 
+        # Save the updated configuration using JsonManager
+        json_manager.save(THEME_CONFIG_PATH, updated_config, json_type=JsonType.THEME_CONFIG)
         return jsonify({"success": True})
     except Exception as e:
         current_app.logger.error("Error saving theme: %s", e, exc_info=True)
@@ -396,7 +399,6 @@ def theme_setup():
         return render_template("theme_config.html", theme={})
 
 
-
 @dashboard_bp.route("/theme_config", methods=["GET"])
 def theme_config_page():
     try:
@@ -407,7 +409,6 @@ def theme_config_page():
     except Exception as e:
         logger.error("Error loading theme configuration", exc_info=True)
         return render_template("theme_config.html", theme={})
-
 
 
 # -------------------------------

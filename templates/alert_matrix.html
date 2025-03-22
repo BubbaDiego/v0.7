@@ -17,7 +17,7 @@
     cursor: pointer;
   }
 
-  /* Ensure our custom alert status colors take precedence */
+  /* Info-box styles for alert matrix */
   .info-box {
     border-radius: 0.5rem;
     margin-bottom: 1rem;
@@ -31,7 +31,10 @@
     font-size: 2rem;
     padding: 0.5rem;
   }
-  /* Custom classes for the entire box based on alert status */
+  .info-box-content {
+    flex: 1;
+    padding: 0.5rem;
+  }
   .info-box.no-alert {
     background-color: #0d6efd !important; /* Blue */
     color: #fff !important;
@@ -57,6 +60,7 @@
 
 {% block content %}
 <div class="container-fluid">
+  <!-- Alert Matrix Card -->
   <div class="card" style="border: 1px solid {{ theme.get('border_color', '#ccc') }};">
     <div class="card-header" style="background-color: {{ theme.get('card_header_color', '#007bff') }}; color: {{ theme.get('card_header_text_color', '#fff') }}; position: relative;">
       <h3 class="card-title">Alert Matrix</h3>
@@ -69,21 +73,18 @@
       <div class="row">
         {% for alert in alerts %}
           <div class="col-md-3 col-sm-6 col-12">
-            <div
-              class="info-box
-                {% if alert.status == "No Alert" %}
-                  no-alert
-                {% elif alert.status == "Low" %}
-                  low
-                {% elif alert.status == "Medium" %}
-                  medium
-                {% elif alert.status == "High" %}
-                  high
-                {% else %}
-                  unknown
-                {% endif %}
-              shadow-sm"
-            >
+            <div class="info-box
+              {% if alert.status == "No Alert" %}
+                no-alert
+              {% elif alert.status == "Low" %}
+                low
+              {% elif alert.status == "Medium" %}
+                medium
+              {% elif alert.status == "High" %}
+                high
+              {% else %}
+                unknown
+              {% endif %} shadow-sm">
               <span class="info-box-icon">
                 {% if alert.alert_type == "PriceThreshold" %}
                   💲
@@ -101,20 +102,54 @@
                 <span class="info-box-text">Condition: {{ alert.condition }}</span>
                 <span class="info-box-text">Status: {{ alert.status }}</span>
               </div>
-              <!-- /.info-box-content -->
             </div>
-            <!-- /.info-box -->
           </div>
-          <!-- /.col -->
         {% endfor %}
       </div>
-      <!-- /.row -->
     </div>
-    <!-- /.card-body -->
   </div>
-  <!-- /.card -->
+
+  <!-- Hedge Matrix Card -->
+  <div class="card mt-4" style="border: 1px solid {{ theme.get('border_color', '#ccc') }};">
+    <div class="card-header" style="background-color: {{ theme.get('card_header_color', '#007bff') }}; color: {{ theme.get('card_header_text_color', '#fff') }};">
+      <h3 class="card-title">Hedge Matrix</h3>
+    </div>
+    <div class="card-body" style="background-color: var(--card-background-color); color: var(--text-color);">
+      {% if hedges and hedges|length > 0 %}
+        <table class="table table-bordered table-hover">
+          <thead class="table-light">
+            <tr>
+              <th>Hedge ID</th>
+              <th>Total Long Size</th>
+              <th>Total Short Size</th>
+              <th>Long Heat Index</th>
+              <th>Short Heat Index</th>
+              <th>Total Heat Index</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for hedge in hedges %}
+              <tr>
+                <td>{{ hedge.id }}</td>
+                <td>{{ hedge.total_long_size }}</td>
+                <td>{{ hedge.total_short_size }}</td>
+                <td>{{ hedge.long_heat_index }}</td>
+                <td>{{ hedge.short_heat_index }}</td>
+                <td>{{ hedge.total_heat_index }}</td>
+                <td>{{ hedge.notes }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div class="alert alert-info" role="alert">
+          No hedges found.
+        </div>
+      {% endif %}
+    </div>
+  </div>
 </div>
-<!-- /.container-fluid -->
 {% endblock %}
 
 {% block extra_scripts %}

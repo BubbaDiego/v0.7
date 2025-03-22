@@ -14,7 +14,8 @@
           <h3 class="card-title" id="previewTitle">Page Title</h3>
         </div>
         <div class="card-body" id="previewWallpaper" style="min-height: 250px;">
-          <div class="card">
+          <!-- Added id "previewCard" here for JavaScript reference -->
+          <div class="card" id="previewCard">
             <div class="card-header">
               <h5 class="card-title" id="previewCardTitle">Card Title</h5>
             </div>
@@ -33,6 +34,7 @@
         </div>
         <div class="card-body">
           <form id="themeForm">
+            <!-- Dropdown remains for potential selection, but its value will be updated by the text input -->
             <div class="form-group">
               <label for="profileSelect">Select Theme Profile:</label>
               <select class="form-control" id="profileSelect">
@@ -199,7 +201,7 @@
     var previewCardTitle = document.getElementById("previewCardTitle");
     var previewText = document.getElementById("previewText");
 
-    // Update form inputs based on the selected theme
+    // Function to update form inputs based on the selected theme object
     function updateInputs(theme) {
       themeNameInput.value = theme.name;
       titleColorInput.value = theme["title bar"].color;
@@ -222,10 +224,34 @@
       previewText.style.color = theme.text.color;
     }
 
-    // Event listener for profile selection change
+    // Event listener for profile selection change (to load preset values)
     profileSelect.addEventListener("change", function() {
       var selected = profileSelect.value;
       updateInputs(themes[selected]);
+    });
+
+    // Event listener on themeName input to update the dropdown label dynamically.
+    themeNameInput.addEventListener("input", function() {
+      var customName = themeNameInput.value.trim();
+      if (customName !== "") {
+        // Look for an option that exactly matches the custom name
+        var found = false;
+        for (var i = 0; i < profileSelect.options.length; i++) {
+          if (profileSelect.options[i].value === customName) {
+            profileSelect.selectedIndex = i;
+            found = true;
+            break;
+          }
+        }
+        // If not found, create a new option and select it
+        if (!found) {
+          var newOption = document.createElement("option");
+          newOption.value = customName;
+          newOption.text = customName;
+          profileSelect.appendChild(newOption);
+          profileSelect.value = customName;
+        }
+      }
     });
 
     // Save changes and update the theme object, preview, and send JSON to the server
@@ -236,13 +262,16 @@
       saveButton.addEventListener("click", function() {
         console.log("Save button clicked");
         var selected = profileSelect.value;
-        themes[selected].name = themeNameInput.value;
-        themes[selected]["title bar"].color = titleColorInput.value;
-        themes[selected]["side bar"].color = sideBarColorInput.value;
-        themes[selected].wallpaper.color = wallpaperColorInput.value;
-        themes[selected]["card title"].color = cardTitleColorInput.value;
-        themes[selected]["card background"].color = cardBackgroundColorInput.value;
-        themes[selected].text.color = textColorInput.value;
+        // Update the theme object for the selected profile with the current inputs
+        themes[selected] = {
+          name: themeNameInput.value,
+          "title bar": { color: titleColorInput.value },
+          "side bar": { color: sideBarColorInput.value },
+          wallpaper: { color: wallpaperColorInput.value },
+          "card title": { color: cardTitleColorInput.value },
+          "card background": { color: cardBackgroundColorInput.value },
+          text: { color: textColorInput.value }
+        };
 
         updatePreview(themes[selected]);
 

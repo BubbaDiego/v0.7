@@ -202,6 +202,72 @@ class Position:
         )
 
 
+from typing import Optional, List
+from datetime import datetime
+from uuid import uuid4
+
+
+class Hedge:
+    """
+    Represents a hedge comprising two or more positions with associated alerts.
+    Tracks long and short exposures as well as aggregated heat index values.
+
+    Attributes:
+        id (str): Unique identifier for the hedge.
+        positions (List[str]): List of position IDs included in this hedge.
+        total_long_size (float): Total size of all long positions.
+        total_short_size (float): Total size of all short positions.
+        long_heat_index (float): Aggregated heat index for long positions.
+        short_heat_index (float): Aggregated heat index for short positions.
+        total_heat_index (float): Overall heat index (could be computed as a function of long and short indices).
+        created_at (datetime): Timestamp when the hedge was created.
+        updated_at (datetime): Timestamp when the hedge was last updated.
+        notes (Optional[str]): Optional notes or description about the hedge.
+    """
+
+    def __init__(
+            self,
+            id: Optional[str] = None,
+            positions: Optional[List[str]] = None,
+            total_long_size: float = 0.0,
+            total_short_size: float = 0.0,
+            long_heat_index: float = 0.0,
+            short_heat_index: float = 0.0,
+            total_heat_index: float = 0.0,
+            created_at: Optional[datetime] = None,
+            updated_at: Optional[datetime] = None,
+            notes: Optional[str] = None
+    ):
+        if id is None:
+            id = str(uuid4())
+        if positions is None:
+            positions = []
+        if created_at is None:
+            created_at = datetime.now()
+        if updated_at is None:
+            updated_at = datetime.now()
+
+        self.id = id
+        self.positions = positions
+        self.total_long_size = total_long_size
+        self.total_short_size = total_short_size
+        self.long_heat_index = long_heat_index
+        self.short_heat_index = short_heat_index
+        self.total_heat_index = total_heat_index
+        self.created_at = created_at
+        self.updated_at = updated_at
+        self.notes = notes
+
+    def __repr__(self):
+        return (
+            f"Hedge(id={self.id!r}, positions={self.positions!r}, "
+            f"total_long_size={self.total_long_size}, total_short_size={self.total_short_size}, "
+            f"long_heat_index={self.long_heat_index}, short_heat_index={self.short_heat_index}, "
+            f"total_heat_index={self.total_heat_index}, created_at={self.created_at}, "
+            f"updated_at={self.updated_at}, notes={self.notes!r})"
+        )
+
+
 class CryptoWallet:
     """
     Represents a crypto wallet with:
