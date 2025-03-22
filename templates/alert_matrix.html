@@ -9,19 +9,33 @@
     --card-background-color: {{ theme.get('card_background_color', '#fff') }};
     --border-color: {{ theme.get('border_color', '#ccc') }};
   }
-
-  /* Card tools icons (Refresh, Create All, Delete All) */
+  /* Card tools icons */
   .card-tools a {
     color: var(--text-color);
     font-size: 1.25rem;
     margin-left: 10px;
     cursor: pointer;
   }
-
+  /* Toggle switch container in header */
+  .header-toggle {
+    position: absolute;
+    left: 50%;
+    top: 10px;
+    transform: translateX(-50%);
+  }
+  /* Style the checkbox to appear as a radio button without text */
+  .header-toggle input[type="checkbox"] {
+    -webkit-appearance: radio;
+       -moz-appearance: radio;
+            appearance: radio;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+  }
   /* Base info-box styles with collapsible <details> */
   details.info-box {
-    display: inline-block; /* Let the box be as wide as its summary text */
-    width: auto;
+    display: inline-block;
+    width: auto; /* initial width based on summary content */
     vertical-align: top;
     border-radius: 0.5rem;
     margin-bottom: 1rem;
@@ -30,62 +44,33 @@
     cursor: pointer;
     transition: width 0.3s ease, height 0.3s ease;
   }
-  /* Expand horizontally on open */
+  /* Expand width when open */
   details.info-box[open] {
-    width: 350px; /* Adjust to your liking */
+    width: 350px; /* adjust as needed */
   }
-
   /* Color-coded states */
-  .info-box.no-alert {
-    background-color: #0d6efd !important; /* Blue */
-    color: #fff !important;
-  }
-  .info-box.low {
-    background-color: #198754 !important; /* Green */
-    color: #fff !important;
-  }
-  .info-box.medium {
-    background-color: #ffc107 !important; /* Yellow */
-    color: #000 !important;
-  }
-  .info-box.high {
-    background-color: #dc3545 !important; /* Red */
-    color: #fff !important;
-  }
-  .info-box.price-high {
-    background-color: purple !important;
-    color: #fff !important;
-  }
-  .info-box.unknown {
-    background-color: #6c757d !important; /* Gray */
-    color: #fff !important;
-  }
-
-  /* Remove default disclosure triangle */
-  summary::-webkit-details-marker {
-    display: none;
-  }
-
-  /* Summary header styling for collapsed view */
+  .info-box.no-alert { background-color: #0d6efd !important; color: #fff !important; }
+  .info-box.low { background-color: #198754 !important; color: #fff !important; }
+  .info-box.medium { background-color: #ffc107 !important; color: #000 !important; }
+  .info-box.high { background-color: #dc3545 !important; color: #fff !important; }
+  .info-box.price-high { background-color: purple !important; color: #fff !important; }
+  .info-box.unknown { background-color: #6c757d !important; color: #fff !important; }
+  /* Remove default disclosure marker */
+  summary::-webkit-details-marker { display: none; }
+  /* Summary header styling */
   summary.info-header {
     display: flex;
     align-items: center;
     padding: 0.75rem;
     list-style: none;
   }
-  .info-box-icon {
-    font-size: 1.5rem;
-    margin-right: 0.5rem;
-  }
+  .info-box-icon { font-size: 1.5rem; margin-right: 0.5rem; }
   .info-basic-container {
     display: flex;
     flex-direction: column;
     font-size: 0.9rem;
   }
-  .info-basic-container > div {
-    margin: 2px 0;
-  }
-
+  .info-basic-container > div { margin: 2px 0; }
   /* Expanded content styling */
   .info-content {
     padding: 0 0.75rem 0.75rem;
@@ -93,30 +78,17 @@
     line-height: 1.4;
     border-top: 1px solid rgba(255,255,255,0.3);
   }
-
-  /* Detailed layout inside expanded content */
+  /* Layout for detailed info */
   .alert-info-container {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
     align-items: flex-start;
   }
-  .alert-details-column {
-    flex: 1;
-    padding-right: 10px;
-  }
-  .alert-id-column {
-    flex: 0.7;
-    padding-right: 10px;
-    text-align: center;
-  }
-  .alert-range-column {
-    flex: 0.8;
-    text-align: right;
-  }
-  .nowrap-line {
-    white-space: nowrap;
-  }
+  .alert-details-column { flex: 1; padding-right: 10px; }
+  .alert-id-column { flex: 0.7; padding-right: 10px; text-align: center; }
+  .alert-range-column { flex: 0.8; text-align: right; }
+  .nowrap-line { white-space: nowrap; }
 </style>
 {% endblock %}
 
@@ -126,13 +98,16 @@
   <div class="card" style="border: 1px solid {{ theme.get('border_color', '#ccc') }};">
     <div class="card-header" style="background-color: {{ theme.get('card_header_color', '#007bff') }}; color: {{ theme.get('card_header_text_color', '#fff') }}; position: relative;">
       <h3 class="card-title">Alert Matrix</h3>
+      <!-- Radio-style toggle (no words) to expand/collapse all alerts -->
+      <div class="header-toggle">
+        <input type="checkbox" id="toggleAllAlerts" title="Toggle All Alerts">
+      </div>
       <div class="card-tools" style="position: absolute; right: 10px; top: 10px;">
         <a id="refreshAlerts" title="Refresh Alerts"><i class="fas fa-sync-alt"></i></a>
         <a id="createAllAlerts" title="Create All Alerts"><i class="fas fa-plus-circle"></i></a>
         <a id="deleteAllAlerts" title="Delete All Alerts" style="margin-left: 10px;"><i class="fas fa-trash-alt"></i></a>
       </div>
     </div>
-
     <div class="card-body" style="background-color: var(--card-background-color); color: var(--text-color);">
       <div class="row">
         {% for alert in alerts %}
@@ -172,14 +147,13 @@
                     {% endif %}
                   </div>
                   <div class="info-basic-trigger">
-                    Trigger: {{ "%.2f"|format(alert.trigger_value or 0) }}
+                    Trigger: <strong>{{ "{:,.2f}".format(alert.trigger_value or 0) }}</strong>
                   </div>
                   <div class="info-basic-state">
                     State: {{ alert.state }}
                   </div>
                 </div>
               </summary>
-
               <div class="info-content">
                 <div class="alert-info-container">
                   <!-- Left column: Type, Trigger, State, Status -->
@@ -191,11 +165,10 @@
                         {{ alert.alert_type }}
                       {% endif %}
                     </div>
-                    <div><strong>Trigger:</strong> {{ "%.2f"|format(alert.trigger_value or 0) }}</div>
+                    <div><strong>Trigger:</strong> <strong>{{ "{:,.2f}".format(alert.trigger_value or 0) }}</strong></div>
                     <div><strong>State:</strong> {{ alert.state }}</div>
                     <div><strong>Status:</strong> {{ alert.status }}</div>
                   </div>
-
                   <!-- Middle column: IDs -->
                   <div class="alert-id-column">
                     <div class="nowrap-line">
@@ -223,7 +196,6 @@
                       {% endif %}
                     </div>
                   </div>
-
                   <!-- Right column: Range info -->
                   <div class="alert-range-column">
                     {% if alert_ranges %}
@@ -249,9 +221,9 @@
                         {% endif %}
                       {% endif %}
                       <div><strong>Range:</strong></div>
-                      <div>Low: {{ "%.2f"|format(l) }}</div>
-                      <div>Med: {{ "%.2f"|format(m) }}</div>
-                      <div>High: {{ "%.2f"|format(h) }}</div>
+                      <div>Low: {{ "{:,.2f}".format(l) }}</div>
+                      <div>Med: {{ "{:,.2f}".format(m) }}</div>
+                      <div>High: {{ "{:,.2f}".format(h) }}</div>
                     {% endif %}
                   </div>
                 </div>
@@ -308,14 +280,25 @@
 
 {% block extra_scripts %}
 <script>
+  // Toggle switch to expand/collapse all alert boxes
   document.addEventListener("DOMContentLoaded", function() {
-    // Refresh alerts
+    const toggleSwitch = document.getElementById("toggleAllAlerts");
+    toggleSwitch.addEventListener("change", function() {
+      const detailsBoxes = document.querySelectorAll("details.info-box");
+      detailsBoxes.forEach(box => {
+        if (toggleSwitch.checked) {
+          box.setAttribute("open", "open");
+        } else {
+          box.removeAttribute("open");
+        }
+      });
+    });
+
+    // Refresh alerts functionality
     document.getElementById("refreshAlerts").addEventListener("click", function(e) {
       e.preventDefault();
       e.stopPropagation();
-      fetch("{{ url_for('alerts_bp.refresh_alerts') }}", {
-        method: "POST"
-      })
+      fetch("{{ url_for('alerts_bp.refresh_alerts') }}", { method: "POST" })
       .then(response => response.json())
       .then(data => {
         if (data.success) {
@@ -330,14 +313,11 @@
         alert("Error refreshing alerts: " + err);
       });
     });
-
-    // Create all alerts
+    // Create all alerts functionality
     document.getElementById("createAllAlerts").addEventListener("click", function(e) {
       e.preventDefault();
       e.stopPropagation();
-      fetch("{{ url_for('alerts_bp.create_all_alerts') }}", {
-        method: "POST"
-      })
+      fetch("{{ url_for('alerts_bp.create_all_alerts') }}", { method: "POST" })
       .then(response => response.json())
       .then(data => {
         if (data.success) {
@@ -352,15 +332,12 @@
         alert("Error creating alerts: " + err);
       });
     });
-
-    // Delete all alerts
+    // Delete all alerts functionality
     document.getElementById("deleteAllAlerts").addEventListener("click", function(e) {
       e.preventDefault();
       e.stopPropagation();
       if (!confirm("Are you sure you want to delete all alerts?")) return;
-      fetch("{{ url_for('alerts_bp.delete_all_alerts') }}", {
-        method: "POST"
-      })
+      fetch("{{ url_for('alerts_bp.delete_all_alerts') }}", { method: "POST" })
       .then(response => response.json())
       .then(data => {
         if (data.success) {

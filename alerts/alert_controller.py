@@ -274,7 +274,8 @@ class AlertController:
         positions = data_locker.read_positions()
 
         class DummyAlert:
-            def __init__(self, alert_type, alert_class, asset_type, trigger_value, condition, notification_type, position_reference_id, state="Normal", status="Active"):
+            def __init__(self, alert_type, alert_class, asset_type, trigger_value, condition, notification_type,
+                         position_reference_id, state="Normal", status="Active"):
                 self.id = None
                 self.alert_type = alert_type
                 self.alert_class = alert_class
@@ -316,25 +317,57 @@ class AlertController:
 
         for pos in positions:
             asset = pos.get("asset_type", "BTC")
-            trigger_value = float(profit_config.get("trigger_value", 0.0))
+            try:
+                profit_val = float(pos.get("profit", 0.0))
+            except Exception:
+                continue
+
+            if profit_val <= 0:
+                self._update_alert_state(pos, "Normal")
+                continue
+
+            # Read threshold values from the config
+            try:
+                low_thresh = float(profit_config.get("low", 46.23))
+                med_thresh = float(profit_config.get("medium", 101.3))
+                high_thresh = float(profit_config.get("high", 202.0))
+            except Exception:
+                continue
+
+            # Determine alert level and computed trigger value
+            if profit_val < low_thresh:
+                self._update_alert_state(pos, "Normal")
+                continue
+            elif profit_val < med_thresh:
+                current_level = "Low"
+                computed_trigger = low_thresh
+            elif profit_val < high_thresh:
+                current_level = "Medium"
+                computed_trigger = med_thresh
+            else:
+                current_level = "High"
+                computed_trigger = high_thresh
+
             condition = profit_config.get("condition", "ABOVE")
             notifications = profit_config.get("notifications", {})
             notification_type = "Call" if notifications.get("call", False) else "Email"
             position_id = pos.get("id")
+
             dummy_alert = DummyAlert(
                 alert_type=AlertType.PROFIT.value,
                 alert_class=AlertClass.POSITION.value,
                 asset_type=asset,
-                trigger_value=trigger_value,
+                trigger_value=computed_trigger,
                 condition=condition,
                 notification_type=notification_type,
                 position_reference_id=position_id,
-                state="Normal",
+                state=current_level,
                 status=Status.ACTIVE.value
             )
             if self.create_alert(dummy_alert):
                 created_alerts.append(dummy_alert.to_dict())
-                print(f"Created profit alert for position {position_id} ({asset}): condition {condition}, trigger {trigger_value}, notification {notification_type}.")
+                print(
+                    f"Created profit alert for position {position_id} ({asset}): level {current_level}, computed trigger {computed_trigger}, notification {notification_type}.")
             else:
                 print(f"Failed to create profit alert for position {position_id}.")
         return created_alerts
