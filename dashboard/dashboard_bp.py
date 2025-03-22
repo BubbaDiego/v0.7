@@ -309,6 +309,21 @@ def api_value_composition():
         return jsonify({"error": str(e)}), 500
 
 
+@dashboard_bp.route("/api/hedges", methods=["GET"])
+def get_hedges():
+    try:
+        positions = PositionService.get_all_positions(DB_PATH)
+        from hedge_manager import HedgeManager  # Adjust the import path as needed
+        hedge_manager = HedgeManager(positions)
+        hedges = hedge_manager.get_hedges()
+        # Convert hedges to dicts for JSON serialization
+        hedges_dict = [hedge.__dict__ for hedge in hedges]
+        return jsonify({"hedges": hedges_dict}), 200
+    except Exception as e:
+        current_app.logger.error("Error retrieving hedges: %s", e, exc_info=True)
+        return jsonify({"error": str(e)}), 500
+
+
 @dashboard_bp.route("/api/size_balance")
 def api_size_balance():
     try:

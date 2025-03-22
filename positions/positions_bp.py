@@ -651,12 +651,13 @@ def update_prices_wrapper(source="undefined"):
 
 @positions_bp.route("/update_jupiter", methods=["GET", "POST"])
 def update_jupiter():
-    source = request.args.get("source")
-    if source != "monitor":
-        source = "user"
+    source = request.args.get("source", "user")
     logger.debug(f"Update Jupiter called with source: {source}")
     print(f"[DEBUG] Update Jupiter route triggered with source: {source}")
 
+    hedges = []  # Initialize hedges so that it is defined later
+
+    # Step 1: Delete existing Jupiter positions.
     try:
         logger.debug("Step 1: Deleting existing Jupiter positions...")
         PositionService.delete_all_jupiter_positions(DB_PATH)
@@ -665,7 +666,9 @@ def update_jupiter():
     except Exception as e:
         logger.error(f"Error deleting Jupiter positions: {e}", exc_info=True)
         print(f"[ERROR] Error deleting Jupiter positions: {e}")
+        return jsonify({"error": str(e)}), 500
 
+    # Step 2: Update Jupiter positions.
     try:
         logger.debug("Step 2: Updating Jupiter positions via PositionService...")
         update_result = PositionService.update_jupiter_positions(DB_PATH)
@@ -676,26 +679,31 @@ def update_jupiter():
             print("[ERROR] Error during Jupiter positions update:", update_result)
             return jsonify(update_result), 500
 
-        op_logger.log("Jupiter Updated", source=source, operation_type="Jupiter Updated")
+        op_logger.log("Jupiter Updated", "Jupiter positions updated successfully.", source=source, operation_type="Jupiter Updated")
     except Exception as e:
         logger.error(f"Exception during Jupiter positions update: {e}", exc_info=True)
         print(f"[ERROR] Exception during Jupiter positions update: {e}")
         return jsonify({"error": str(e)}), 500
 
+    # Step 2.5: Update hedges using HedgeManager.
     try:
-        logger.debug("Step 2.2: Building and saving hedges with HedgeManager...")
-        from hedge_manager import HedgeManager  # Import HedgeManager
-
-        all_positions = PositionService.get_all_positions(DB_PATH)
-        hedge_manager = HedgeManager(all_positions)
-        hedge_manager.save_hedges_to_db()
-
-        logger.info(f"Saved {len(hedge_manager.hedges)} hedge(s) to database.")
-        print(f"[DEBUG] Saved {len(hedge_manager.hedges)} hedge(s).")
+        logger.debug("Step 2.5: Updating hedges using HedgeManager...")
+        positions = PositionService.get_all_positions(DB_PATH)
+        logger.debug(f"Fetched {len(positions)} positions for hedge update.")
+        from alerts.hedge_manager import HedgeManager
+        hedge_manager = HedgeManager(positions)
+        hedges = hedge_manager.get_hedges()
+        logger.debug(f"HedgeManager created {len(hedges)} hedges.")
+        for hedge in hedges:
+            logger.debug(f"Hedge ID {hedge.id}: total_long_size={hedge.total_long_size}, total_short_size={hedge.total_short_size}, total_heat_index={hedge.total_heat_index}")
+        print(f"[DEBUG] HedgeManager found {len(hedges)} hedges.")
+        op_logger.log("Hedge Updated", f"Hedge update complete; {len(hedges)} hedges created.", source=source, operation_type="Hedge Updated")
     except Exception as e:
-        logger.error(f"Error saving hedges after position update: {e}", exc_info=True)
-        print(f"[ERROR] Error saving hedges: {e}")
+        logger.error(f"Exception during hedge manager update: {e}", exc_info=True)
+        print(f"[ERROR] Exception during hedge manager update: {e}")
+        # Continue even if hedge update fails.
 
+    # Step 3: Trigger price update.
     try:
         logger.debug("Step 3: Triggering price update...")
         prices_resp = update_prices_wrapper(source)
@@ -710,6 +718,7 @@ def update_jupiter():
         print(f"[ERROR] Exception during price update: {e}")
         return jsonify({"error": str(e)}), 500
 
+    # Step 4: Run manual alert check.
     try:
         logger.debug("Step 4: Performing manual alert check via alert_manager.check_alerts()...")
         print("[DEBUG] About to call alert_manager.check_alerts()")
@@ -720,6 +729,7 @@ def update_jupiter():
         logger.error(f"Exception during alert check: {e}", exc_info=True)
         print(f"[ERROR] Exception during alert check: {e}")
 
+    # Step 5: Update last update timestamps.
     try:
         logger.debug("Step 5: Updating last update timestamps...")
         now = datetime.now()
@@ -737,6 +747,7 @@ def update_jupiter():
         logger.error(f"Exception setting last update timestamps: {e}", exc_info=True)
         print(f"[ERROR] Exception setting last update timestamps: {e}")
 
+    # Step 6: Record positions snapshot.
     try:
         logger.debug("Step 6: Recording positions snapshot...")
         PositionService.record_positions_snapshot(DB_PATH)
@@ -746,12 +757,13 @@ def update_jupiter():
         logger.error(f"Error recording positions snapshot: {snap_err}", exc_info=True)
         print(f"[ERROR] Error recording positions snapshot: {snap_err}")
 
+    # Step 7: Emit SocketIO event for data update.
     try:
         logger.debug("Step 7: Emitting SocketIO event for data update...")
         socketio_inst = get_socketio()
         if socketio_inst:
             socketio_inst.emit('data_updated', {
-                'message': f"Jupiter positions + Prices updated successfully by {source}!",
+                'message': f"Jupiter positions + Prices updated successfully by {source}! Hedge update: {len(hedges)} hedges found.",
                 'last_update_time_positions': now.isoformat(),
                 'last_update_time_prices': now.isoformat()
             })
@@ -764,6 +776,7 @@ def update_jupiter():
         logger.error(f"Exception emitting SocketIO event: {e}", exc_info=True)
         print(f"[ERROR] Exception emitting SocketIO event: {e}")
 
+    # Step 8: Log updated totals.
     try:
         logger.debug("Step 8: Logging updated totals...")
         updated_totals = dl.get_balance_vars()
@@ -774,8 +787,10 @@ def update_jupiter():
         logger.error(f"Exception logging updated totals: {e}", exc_info=True)
         print(f"[ERROR] Exception logging updated totals: {e}")
 
+    # Step 9: Log final operation.
     try:
         logger.debug("Step 9: Logging operation with OperationsLogger...")
+        op_logger.log("Jupiter Update Complete", f"Totals updated; {len(hedges)} hedges found.", source=source, operation_type="Update Complete")
         logger.debug("Operation logged successfully.")
         print("[DEBUG] Operation logged successfully.")
     except Exception as e:
@@ -783,7 +798,7 @@ def update_jupiter():
         print(f"[ERROR] Error logging operation: {e}")
 
     response_data = {
-        "message": f"Jupiter positions + Prices updated successfully by {source}!",
+        "message": f"Jupiter positions + Prices updated successfully by {source}! Hedge update: {len(hedges)} hedges found.",
         "source": source,
         "last_update_time_positions": now.isoformat(),
         "last_update_time_prices": now.isoformat()
@@ -791,6 +806,9 @@ def update_jupiter():
     logger.debug("update_jupiter route completed successfully.")
     print("[DEBUG] update_jupiter route completed successfully.")
     return jsonify(response_data), 200
+
+
+
 
 
 @positions_bp.route("/update_alert_config", methods=["POST"])
