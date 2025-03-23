@@ -679,7 +679,8 @@ def update_jupiter():
             print("[ERROR] Error during Jupiter positions update:", update_result)
             return jsonify(update_result), 500
 
-        op_logger.log("Jupiter Updated", "Jupiter positions updated successfully.", source=source, operation_type="Jupiter Updated")
+        # Updated logger call: pass operation_type as positional argument and source as keyword.
+        op_logger.log("Jupiter Updated", "Jupiter positions updated successfully.", source=source)
     except Exception as e:
         logger.error(f"Exception during Jupiter positions update: {e}", exc_info=True)
         print(f"[ERROR] Exception during Jupiter positions update: {e}")
@@ -697,7 +698,7 @@ def update_jupiter():
         for hedge in hedges:
             logger.debug(f"Hedge ID {hedge.id}: total_long_size={hedge.total_long_size}, total_short_size={hedge.total_short_size}, total_heat_index={hedge.total_heat_index}")
         print(f"[DEBUG] HedgeManager found {len(hedges)} hedges.")
-        op_logger.log("Hedge Updated", f"Hedge update complete; {len(hedges)} hedges created.", source=source, operation_type="Hedge Updated")
+        op_logger.log("Hedge Updated", f"Hedge update complete; {len(hedges)} hedges created.", source=source)
     except Exception as e:
         logger.error(f"Exception during hedge manager update: {e}", exc_info=True)
         print(f"[ERROR] Exception during hedge manager update: {e}")
@@ -790,7 +791,7 @@ def update_jupiter():
     # Step 9: Log final operation.
     try:
         logger.debug("Step 9: Logging operation with OperationsLogger...")
-        op_logger.log("Jupiter Update Complete", f"Totals updated; {len(hedges)} hedges found.", source=source, operation_type="Update Complete")
+        op_logger.log("Jupiter Update Complete", f"Totals updated; {len(hedges)} hedges found.", source=source)
         logger.debug("Operation logged successfully.")
         print("[DEBUG] Operation logged successfully.")
     except Exception as e:
@@ -806,8 +807,6 @@ def update_jupiter():
     logger.debug("update_jupiter route completed successfully.")
     print("[DEBUG] update_jupiter route completed successfully.")
     return jsonify(response_data), 200
-
-
 
 
 

@@ -1,19 +1,11 @@
 {
-  "price_config": {
-    "assets": [
-      "BTC",
-      "ETH",
-      "SOL"
-    ],
-    "currency": "USD",
-    "cmc_api_key": "c51c0c22-1bf3-4674-86bf-36f39a912d1a"
-  },
+  "cmc_api_key": "c51c0c22-1bf3-4674-86bf-36f39a912d1a",
   "system_config": {
     "logging_enabled": true,
     "log_level": "DEBUG",
     "console_output": true,
-    "log_file": "./v0.6/price_monitor.log",
-    "db_path": "./v0.6/mother_brain.db",
+    "log_file": "${ALERT_MONITOR_LOG_PATH}",
+    "db_path": "${DB_PATH}",
     "price_monitor_enabled": true,
     "alert_monitor_enabled": true,
     "sonic_monitor_loop_time": 300,
@@ -46,9 +38,5 @@
     "flow_sid": "FW5b3bf49ee04af4d23a118b613bbc0df2",
     "to_phone": "+16199804758",
     "from_phone": "+18336913467"
-  },
-  "theme_config": {
-    "selected_profile": "profile4",
-    "profiles": {}
   }
 }
