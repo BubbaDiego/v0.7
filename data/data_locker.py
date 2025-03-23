@@ -145,23 +145,25 @@ class DataLocker:
             # Create alerts table if it doesn't exist
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS alerts (
-                    id TEXT PRIMARY KEY,
-                    alert_type TEXT,
-                    asset_type TEXT,
-                    trigger_value REAL,
-                    condition TEXT,
-                    notification_type TEXT,
-                    state TEXT,        -- Must be here
-                    last_triggered DATETIME,
-                    status TEXT,
-                    frequency INTEGER,
-                    counter INTEGER,
-                    liquidation_distance REAL,
-                    target_travel_percent REAL,
-                    liquidation_price REAL,
-                    notes TEXT,
-                    position_reference_id TEXT
-                )
+                id TEXT PRIMARY KEY,
+                alert_type TEXT,
+                asset_type TEXT,
+                trigger_value REAL,
+                condition TEXT,
+                notification_type TEXT,
+                state TEXT,        -- Must be here
+                last_triggered DATETIME,
+                status TEXT,
+                frequency INTEGER,
+                counter INTEGER,
+                liquidation_distance REAL,
+                target_travel_percent REAL,
+                liquidation_price REAL,
+                notes TEXT,
+                position_reference_id TEXT,
+                evaluated_value REAL  -- NEW: Evaluated value used for debugging evaluation
+            )
+    
             """)
 
             # Create brokers table if it doesn't exist
@@ -528,13 +530,13 @@ class DataLocker:
                     target_travel_percent,
                     liquidation_price,
                     notes,
-                    position_reference_id
+                    position_reference_id,
+                    evaluated_value  -- NEW field
                 ) VALUES (
-                    :id, :alert_type, :asset_type,
-                    :trigger_value, :condition, :notification_type,
+                    :id, :alert_type, :asset_type, :trigger_value, :condition, :notification_type,
                     :state, :last_triggered, :status, :frequency, :counter,
                     :liquidation_distance, :target_travel_percent,
-                    :liquidation_price, :notes, :position_reference_id
+                    :liquidation_price, :notes, :position_reference_id, :evaluated_value
                 )
             """, alert_dict)
             self.conn.commit()

@@ -112,7 +112,8 @@ class Alert:
         liquidation_price: float,
         notes: Optional[str],
         position_reference_id: Optional[str],
-        state: State = State.NORMAL  # New explicit state field with default Normal
+        state: State = State.NORMAL,  # New explicit state field with default Normal
+        evaluated_value: float = 0.0   # NEW: The evaluated value used for alert condition checking
     ):
         self.id = id
         self.alert_type = alert_type
@@ -129,6 +130,7 @@ class Alert:
         self.notes = notes
         self.position_reference_id = position_reference_id
         self.state = state
+        self.evaluated_value = evaluated_value
 
     def __repr__(self):
         return (
@@ -137,7 +139,8 @@ class Alert:
             f"last_triggered={self.last_triggered}, status={self.status!r}, frequency={self.frequency}, "
             f"counter={self.counter}, liquidation_distance={self.liquidation_distance}, "
             f"target_travel_percent={self.target_travel_percent}, liquidation_price={self.liquidation_price}, "
-            f"notes={self.notes!r}, position_reference_id={self.position_reference_id!r}, state={self.state!r})"
+            f"notes={self.notes!r}, position_reference_id={self.position_reference_id!r}, state={self.state!r}, "
+            f"evaluated_value={self.evaluated_value})"
         )
 
 class Position:

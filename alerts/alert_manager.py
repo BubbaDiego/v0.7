@@ -1,17 +1,21 @@
 #!/usr/bin/env python
 import os
 import time
+from time import time as current_time
 import json
 import logging
 import sqlite3
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 from twilio.rest import Client
+from twilio.rest import Client
+from twilio.base.exceptions import TwilioRestException
 from config.unified_config_manager import UnifiedConfigManager
 from config.config_constants import DB_PATH, CONFIG_PATH, ALERT_LIMITS_PATH, BASE_DIR
 from pathlib import Path
 import inspect
 from utils.unified_logger import UnifiedLogger
+from alerts.alert_controller import AlertController
 
 # Instantiate the unified logger
 u_logger = UnifiedLogger()
@@ -27,8 +31,8 @@ if not travel_logger.handlers:
 
 def trigger_twilio_flow(custom_message: str, twilio_config: dict) -> str:
     """
-    Trigger a Twilio Studio Flow to send a call notification.
-    This function assumes that the twilio_config contains all required fields.
+    Triggers the Twilio Studio flow to send a notification.
+    Raises a ValueError if required configuration is missing.
     """
     account_sid = twilio_config.get("account_sid")
     auth_token = twilio_config.get("auth_token")
@@ -38,11 +42,15 @@ def trigger_twilio_flow(custom_message: str, twilio_config: dict) -> str:
     if not all([account_sid, auth_token, flow_sid, to_phone, from_phone]):
         raise ValueError("Missing Twilio configuration variables.")
     client = Client(account_sid, auth_token)
-    execution = client.studio.v2.flows(flow_sid).executions.create(
-        to=to_phone,
-        from_=from_phone,
-        parameters={"custom_message": custom_message}
-    )
+    try:
+        execution = client.studio.v2.flows(flow_sid).executions.create(
+            to=to_phone,
+            from_=from_phone,
+            parameters={"custom_message": custom_message}
+        )
+    except TwilioRestException as tre:
+        logging.error("Twilio API call failed: %s", tre, exc_info=True)
+        raise
     u_logger.log_operation(
         operation_type="Twilio Notification",
         primary_text="Twilio alert sent",
@@ -51,6 +59,80 @@ def trigger_twilio_flow(custom_message: str, twilio_config: dict) -> str:
         extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
     )
     return execution.sid
+
+def send_call(self, body: str, key: str):
+    """
+    Sends a call notification via Twilio.
+    Checks for required configuration and handles authentication failures gracefully.
+    """
+    now = current_time()
+    last_call_time = self.last_call_triggered.get(key, 0)
+    if now - last_call_time < self.call_refractory_period:
+        logging.info("Call alert '%s' suppressed.", key)
+        u_logger.log_operation(
+            operation_type="Alert Silenced",
+            primary_text=f"Alert Silenced: {key}",
+            source="AlertManager",
+            file="alert_manager.py",
+            extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
+        )
+        return
+    # Ensure Twilio configuration is complete.
+    if not all([
+        self.twilio_config.get("account_sid"),
+        self.twilio_config.get("auth_token"),
+        self.twilio_config.get("flow_sid"),
+        self.twilio_config.get("to_phone"),
+        self.twilio_config.get("from_phone")
+    ]):
+        logging.error("Twilio configuration is incomplete. Skipping call notification.")
+        u_logger.log_operation(
+            operation_type="Notification Failed",
+            primary_text=f"Incomplete Twilio config for {key}",
+            source="System",
+            file="alert_manager.py",
+            extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
+        )
+        return
+    try:
+        trigger_twilio_flow(body, self.twilio_config)
+        self.last_call_triggered[key] = now
+        self.config["call_refractory_start"] = now
+        self.save_config(self.config, ALERT_LIMITS_PATH)
+        u_logger.log_operation(
+            operation_type="Timer Set",
+            primary_text="Call refractory timer set",
+            source="AlertManager",
+            file="alert_manager.py",
+            extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
+        )
+    except TwilioRestException as tre:
+        if tre.status == 401:
+            u_logger.log_operation(
+                operation_type="Notification Failed",
+                primary_text=f"Authentication failed for call notification: {key}",
+                source="System",
+                file="alert_manager.py",
+                extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
+            )
+        else:
+            u_logger.log_operation(
+                operation_type="Notification Failed",
+                primary_text=f"Notification Failed: {key}",
+                source="System",
+                file="alert_manager.py",
+                extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
+            )
+        logging.error("Error sending call for '%s': %s", key, tre, exc_info=True)
+    except Exception as e:
+        u_logger.log_operation(
+            operation_type="Notification Failed",
+            primary_text=f"Notification Failed: {key}",
+            source="System",
+            file="alert_manager.py",
+            extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
+        )
+        logging.error("Error sending call for '%s': %s", key, e, exc_info=True)
 
 METRIC_DIRECTIONS = {
     "size": "increasing_bad",
@@ -83,7 +165,6 @@ class AlertManager:
     }
 
     def __init__(self, db_path: Optional[str] = None, poll_interval: int = 60, config_path: Optional[str] = None):
-        # Set default paths if not provided.
         if db_path is None:
             db_path = str(DB_PATH)
         if config_path is None:
@@ -92,7 +173,6 @@ class AlertManager:
         self.poll_interval = poll_interval
         self.config_path = config_path
 
-        # Initialize internal state.
         self.last_profit: Dict[str, str] = {}
         self.last_triggered: Dict[str, float] = {}
         self.last_call_triggered: Dict[str, float] = {}
@@ -100,10 +180,8 @@ class AlertManager:
 
         print("Initializing AlertManager...")  # Debug print
 
-        # Initialize dependencies.
         from data.data_locker import DataLocker
         from utils.calc_services import CalcServices
-
         self.data_locker = DataLocker(self.db_path)
         self.calc_services = CalcServices()
 
@@ -111,7 +189,6 @@ class AlertManager:
         from config.unified_config_manager import UnifiedConfigManager
         config_manager = UnifiedConfigManager(self.config_path, db_conn=db_conn)
 
-        # Load the main configuration.
         try:
             self.config = config_manager.load_config()
         except Exception as e:
@@ -124,20 +201,16 @@ class AlertManager:
             )
             self.config = {}
 
-        # Reload configuration to ensure the latest settings.
         self.config = config_manager.load_config()
 
-        # Directly load alert limits from file and merge into configuration.
         try:
             with open(str(ALERT_LIMITS_PATH), "r", encoding="utf-8") as f:
                 alert_limits = json.load(f)
             if "alert_ranges" in alert_limits:
                 self.config["alert_ranges"] = alert_limits["alert_ranges"]
-                # Also load timer values from the alert_limits file
                 self.config["alert_cooldown_seconds"] = alert_limits.get("alert_cooldown_seconds", 900.0)
                 self.config["call_refractory_period"] = alert_limits.get("call_refractory_period", 3600.0)
                 self.config["snooze_countdown"] = alert_limits.get("snooze_countdown", 300.0)
-                # Timer start values (could be None)
                 self.config["call_refractory_start"] = alert_limits.get("call_refractory_start")
                 self.config["snooze_start"] = alert_limits.get("snooze_start")
                 u_logger.log_operation(
@@ -164,7 +237,6 @@ class AlertManager:
                 extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
             )
 
-        # Load communication settings and thresholds.
         self.twilio_config = self.config.get("twilio_config", {})
         self.cooldown = self.config.get("alert_cooldown_seconds", 900)
         self.call_refractory_period = self.config.get("call_refractory_period", 3600)
@@ -178,6 +250,8 @@ class AlertManager:
             file="alert_manager.py",
             extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
         )
+
+        self.alert_controller = AlertController(db_path=self.db_path)
 
     def reload_config(self):
         from config.config_manager import load_config
@@ -203,28 +277,19 @@ class AlertManager:
             )
 
     def create_all_alerts(self):
-        # Chain together creation methods
-        price_alerts = self.create_price_alerts()
-        travel_alerts = self.create_travel_percent_alerts()
-        profit_alerts = self.create_profit_alerts()
-        heat_alerts = self.create_heat_index_alerts()
-        return price_alerts + travel_alerts + profit_alerts + heat_alerts
+        """
+        Delegates the creation of all alerts to the AlertController.
+        """
+        return self.alert_controller.create_all_alerts()
 
-    def _update_alert_state(self, pos: dict, new_state: str):
-        """
-        Update the alert state in the database.
-        For position-associated alerts, uses pos['alert_reference_id'].
-        For standalone alerts, falls back to pos['id'].
-        Also, for position alerts, sets the position_reference_id field.
-        """
-        # Attempt to use the position's alert_reference_id; if missing, use the alert's own id.
+    def _update_alert_state(self, pos: dict, new_state: str, evaluated_value: Optional[float] = None):
         alert_id = pos.get("alert_reference_id") or pos.get("id")
         if alert_id:
             update_fields = {"state": new_state}
-            # Only add the position reference if the alert_reference_id is present.
-            if pos.get("alert_reference_id"):
-                if pos.get("id"):
-                    update_fields["position_reference_id"] = pos.get("id")
+            if evaluated_value is not None:
+                update_fields["evaluated_value"] = evaluated_value
+            if pos.get("alert_reference_id") and pos.get("id"):
+                update_fields["position_reference_id"] = pos.get("id")
             try:
                 self.data_locker.update_alert_conditions(alert_id, update_fields)
             except Exception as e:
@@ -233,7 +298,7 @@ class AlertManager:
             logging.warning("No alert identifier found for updating state; update skipped.")
 
     def update_timer_states(self):
-        now = time.time()
+        now = current_time()
         updated = False
         call_start = self.config.get("call_refractory_start")
         if call_start is not None:
@@ -263,7 +328,7 @@ class AlertManager:
             self.save_config(self.config, ALERT_LIMITS_PATH)
 
     def trigger_snooze(self):
-        now = time.time()
+        now = current_time()
         self.config["snooze_start"] = now
         self.save_config(self.config, ALERT_LIMITS_PATH)
         u_logger.log_operation(
@@ -308,11 +373,9 @@ class AlertManager:
                 extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
             )
             return
-
         self.suppressed_count = 0
         aggregated_alerts: List[str] = []
         positions = self.data_locker.read_positions()
-
         u_logger.log_alert(
             operation_type="Alert Check",
             primary_text=f"Checking {len(positions)} positions for alerts",
@@ -320,7 +383,6 @@ class AlertManager:
             file="alert_manager.py",
             extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
         )
-
         for pos in positions:
             profit_alert = self.check_profit(pos)
             if profit_alert:
@@ -336,7 +398,6 @@ class AlertManager:
                 aggregated_alerts.append(blast_alert)
         price_alerts = self.check_price_alerts()
         aggregated_alerts.extend(price_alerts)
-
         if aggregated_alerts:
             u_logger.log_alert(
                 operation_type="Alert Triggered",
@@ -369,25 +430,20 @@ class AlertManager:
         asset_full = self.ASSET_FULL_NAMES.get(asset_code, asset_code)
         position_type = pos.get("position_type", "").capitalize()
         position_id = pos.get("position_id") or pos.get("id") or "unknown"
-
         try:
             current_val = float(pos.get("current_travel_percent", 0.0))
         except Exception as e:
             logging.error("%s %s (ID: %s): Error converting travel percent.", asset_full, position_type, position_id)
             return ""
-
         if current_val >= 0:
-            self._update_alert_state(pos, "Normal")
+            self._update_alert_state(pos, "Normal", evaluated_value=current_val)
             return ""
-
         neg_config = self.config.get("alert_ranges", {}).get("travel_percent_liquid_ranges", {})
         if not neg_config.get("enabled", False):
             return ""
-
         low = float(neg_config.get("low", -10.0))
         medium = float(neg_config.get("medium", -60.0))
         high = float(neg_config.get("high", -75.0))
-
         if current_val <= high:
             alert_level = "High"
         elif current_val <= medium:
@@ -395,13 +451,11 @@ class AlertManager:
         elif current_val <= low:
             alert_level = "Low"
         else:
-            self._update_alert_state(pos, "Normal")
+            self._update_alert_state(pos, "Normal", evaluated_value=current_val)
             return ""
-
-        self._update_alert_state(pos, alert_level)
-
+        self._update_alert_state(pos, alert_level, evaluated_value=current_val)
         key = f"{asset_full}-{position_type}-{position_id}-travel-{alert_level}"
-        now = time.time()
+        now = current_time()
         last_time = self.last_triggered.get(key, 0)
         if now - last_time < self.cooldown:
             self.suppressed_count += 1
@@ -422,7 +476,7 @@ class AlertManager:
         except Exception:
             return ""
         if profit_val <= 0:
-            self._update_alert_state(pos, "Normal")
+            self._update_alert_state(pos, "Normal", evaluated_value=profit_val)
             return ""
         profit_config = self.config.get("alert_ranges", {}).get("profit_ranges", {})
         if not profit_config.get("enabled", False):
@@ -434,7 +488,7 @@ class AlertManager:
         except Exception:
             return ""
         if profit_val < low_thresh:
-            self._update_alert_state(pos, "Normal")
+            self._update_alert_state(pos, "Normal", evaluated_value=profit_val)
             return ""
         elif profit_val < med_thresh:
             current_level = "Low"
@@ -442,11 +496,9 @@ class AlertManager:
             current_level = "Medium"
         else:
             current_level = "High"
-
-        self._update_alert_state(pos, current_level)
-
+        self._update_alert_state(pos, current_level, evaluated_value=profit_val)
         profit_key = f"profit-{asset_full}-{position_type}-{position_id}"
-        now = time.time()
+        now = current_time()
         last_time = self.last_triggered.get(profit_key, 0)
         if now - last_time < self.cooldown:
             self.suppressed_count += 1
@@ -475,8 +527,9 @@ class AlertManager:
             if not swing_config.get("notifications", {}).get("call", True):
                 logging.debug("Swing alert call notification disabled in config.")
                 return ""
+            self._update_alert_state(pos, "Triggered", evaluated_value=current_value)
             key = f"swing-{asset_full}-{position_type}-{position_id}"
-            now = time.time()
+            now = current_time()
             last_time = self.last_triggered.get(key, 0)
             if now - last_time >= self.cooldown:
                 self.last_triggered[key] = now
@@ -507,8 +560,9 @@ class AlertManager:
             if not blast_config.get("notifications", {}).get("call", True):
                 logging.debug("Blast alert call notification disabled in config.")
                 return ""
+            self._update_alert_state(pos, "Triggered", evaluated_value=current_value)
             key = f"blast-{asset_full}-{position_type}-{position_id}"
-            now = time.time()
+            now = current_time()
             last_time = self.last_triggered.get(key, 0)
             if now - last_time >= self.cooldown:
                 self.last_triggered[key] = now
@@ -546,24 +600,19 @@ class AlertManager:
             formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
             handler.setFormatter(formatter)
             price_alert_logger.addHandler(handler)
-
         price_alert_logger.debug("Entering check_price_alerts method")
-
         messages: List[str] = []
         price_alert_config = self.config.get("alert_ranges", {}).get("price_alerts", {})
         price_alert_logger.debug(f"Price alert config: {price_alert_config}")
-
         for asset in ["BTC", "ETH", "SOL"]:
             asset_config = price_alert_config.get(asset, {})
             result_message = ""
             price_alert_logger.debug(f"Processing asset {asset}: {asset_config}")
-
             if not asset_config.get("enabled", False):
                 result_message = "Price alert disabled"
                 price_alert_logger.debug(f"Price alert disabled for {asset}")
                 self.debug_price_alert_details(asset, asset_config, 0.0, 0.0, "", {}, result_message)
                 continue
-
             condition = asset_config.get("condition", "ABOVE").upper()
             try:
                 trigger_val = float(asset_config.get("trigger_value", 0.0))
@@ -573,14 +622,12 @@ class AlertManager:
                 trigger_val = 0.0
                 self.debug_price_alert_details(asset, asset_config, 0.0, trigger_val, condition, {}, result_message)
                 continue
-
             price_info = self.data_locker.get_latest_price(asset)
             if not price_info:
                 result_message = "No price info available"
                 price_alert_logger.debug(f"No price info available for asset {asset}")
                 self.debug_price_alert_details(asset, asset_config, 0.0, trigger_val, condition, {}, result_message)
                 continue
-
             try:
                 current_price = float(price_info.get("current_price", 0.0))
             except Exception as e:
@@ -588,12 +635,14 @@ class AlertManager:
                 result_message = f"Error parsing current price: {e}"
                 self.debug_price_alert_details(asset, asset_config, 0.0, trigger_val, condition, price_info, result_message)
                 continue
-
-            price_alert_logger.debug(
-                f"{asset}: Condition = {condition}, Trigger Value = {trigger_val:.2f}, Current Price = {current_price:.2f}")
-
+            price_alert_logger.debug(f"{asset}: Condition = {condition}, Trigger Value = {trigger_val:.2f}, Current Price = {current_price:.2f}")
             if (condition == "ABOVE" and current_price >= trigger_val) or (condition == "BELOW" and current_price <= trigger_val):
                 price_alert_logger.debug(f"Alert condition met for {asset}, processing trigger")
+                alerts = self.data_locker.get_alerts()
+                for alert in alerts:
+                    if alert.get("alert_type") == "PriceThreshold" and alert.get("asset_type", "").upper() == asset:
+                        self._update_alert_state(alert, "Triggered", evaluated_value=current_price)
+                        break
                 msg = self.handle_price_alert_trigger_config(asset, current_price, trigger_val, condition)
                 if msg:
                     messages.append(msg)
@@ -605,16 +654,14 @@ class AlertManager:
             else:
                 result_message = f"Alert condition not met: current_price {current_price:.2f} vs trigger {trigger_val:.2f}"
                 price_alert_logger.debug(result_message)
-
             self.debug_price_alert_details(asset, asset_config, current_price, trigger_val, condition, price_info, result_message)
-
         price_alert_logger.debug(f"Exiting check_price_alerts with {len(messages)} triggered alerts")
         return messages
 
     def handle_price_alert_trigger_config(self, asset: str, current_price: float, trigger_val: float, condition: str) -> str:
         asset_full = self.ASSET_FULL_NAMES.get(asset, asset)
         key = f"price-alert-config-{asset}"
-        now = time.time()
+        now = current_time()
         last_time = self.last_triggered.get(key, 0)
         if now - last_time < self.cooldown:
             logging.info(f"{asset_full}: Price alert suppressed due to cooldown")
@@ -650,7 +697,7 @@ class AlertManager:
         return msg
 
     def send_call(self, body: str, key: str):
-        now = time.time()
+        now = current_time()
         last_call_time = self.last_call_triggered.get(key, 0)
         if now - last_call_time < self.call_refractory_period:
             logging.info("Call alert '%s' suppressed.", key)
@@ -658,6 +705,22 @@ class AlertManager:
                 operation_type="Alert Silenced",
                 primary_text=f"Alert Silenced: {key}",
                 source="AlertManager",
+                file="alert_manager.py",
+                extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
+            )
+            return
+        if not all([
+            self.twilio_config.get("account_sid"),
+            self.twilio_config.get("auth_token"),
+            self.twilio_config.get("flow_sid"),
+            self.twilio_config.get("to_phone"),
+            self.twilio_config.get("from_phone")
+        ]):
+            logging.error("Twilio configuration is incomplete. Skipping call notification.")
+            u_logger.log_operation(
+                operation_type="Notification Failed",
+                primary_text=f"Incomplete Twilio config for {key}",
+                source="System",
                 file="alert_manager.py",
                 extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
             )
@@ -682,7 +745,7 @@ class AlertManager:
                 file="alert_manager.py",
                 extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
             )
-            logging.error("Error sending call for '%s'.", key, exc_info=True)
+            logging.error("Error sending call for '%s': %s", key, e, exc_info=True)
 
     def load_json_config(self, json_path: str) -> dict:
         try:

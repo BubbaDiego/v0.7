@@ -421,22 +421,22 @@ def database_viewer():
             {
                 "id": "BTC",
                 "field1": btc_data.get("current_price", "N/A"),
-                "field2": btc_data.get("snapshot_time", "N/A")
+                "field2": btc_data.get("last_update_time", "N/A")
             },
             {
                 "id": "ETH",
                 "field1": eth_data.get("current_price", "N/A"),
-                "field2": eth_data.get("snapshot_time", "N/A")
+                "field2": eth_data.get("last_update_time", "N/A")
             },
             {
                 "id": "SOL",
                 "field1": sol_data.get("current_price", "N/A"),
-                "field2": sol_data.get("snapshot_time", "N/A")
+                "field2": sol_data.get("last_update_time", "N/A")
             },
             {
                 "id": "SP500",
                 "field1": sp500_data.get("current_price", "N/A"),
-                "field2": sp500_data.get("snapshot_time", "N/A")
+                "field2": sp500_data.get("last_update_time", "N/A")
             }
         ]
 

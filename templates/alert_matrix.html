@@ -189,38 +189,38 @@
                   <div class="info-basic-type">
                     {{ alert.alert_type }}
                   </div>
-                  <!-- Trigger display (bold, with $ if Price, or .2f if not) -->
+                  <!-- Trigger display -->
                   <div class="info-basic-trigger">
                     Trigger: <strong>
                       {% if alert.alert_type == 'PriceThreshold' %}
                         {% if alert.asset_type in ['BTC','ETH'] %}
-                          ${{ "{:,.0f}".format(alert.trigger_value or 0) }}
+                          ${{ "{:,.0f}".format(alert.trigger_value|default(0)) }}
                         {% else %}
-                          ${{ "{:,.2f}".format(alert.trigger_value or 0) }}
+                          ${{ "{:,.2f}".format(alert.trigger_value|default(0)) }}
                         {% endif %}
                       {% elif alert.alert_type in ['TravelPercent','TravelPercentLiquid'] %}
-                        {{ "{:,.2f}".format(alert.trigger_value or 0) }}%
+                        {{ "{:,.2f}".format(alert.trigger_value|default(0)) }}%
                       {% elif alert.alert_type == 'Profit' %}
-                        ${{ "{:,.2f}".format(alert.trigger_value or 0) }}
+                        ${{ "{:,.2f}".format(alert.trigger_value|default(0)) }}
                       {% else %}
-                        {{ "{:,.2f}".format(alert.trigger_value or 0) }}
+                        {{ "{:,.2f}".format(alert.trigger_value|default(0)) }}
                       {% endif %}
                     </strong>
                   </div>
-                  <!-- Current Value line: what is actually used for the alert's logic -->
+                  <!-- Current Value display -->
                   <div class="info-basic-current-value">
                     Current Value:
                     <strong>
                     {% if alert.alert_type == 'PriceThreshold' %}
                       {% if alert.asset_type in ['BTC','ETH'] %}
-                        ${{ "{:,.0f}".format(alert.current_price or 0) }}
+                        ${{ "{:,.0f}".format(alert.current_price|default(0)) }}
                       {% else %}
-                        ${{ "{:,.2f}".format(alert.current_price or 0) }}
+                        ${{ "{:,.2f}".format(alert.current_price|default(0)) }}
                       {% endif %}
                     {% elif alert.alert_type in ['TravelPercent','TravelPercentLiquid'] %}
-                      {{ "{:,.2f}".format(alert.current_travel_percent or 0) }}%
+                      {{ "{:,.2f}".format(alert.current_travel_percent|default(0)) }}%
                     {% elif alert.alert_type == 'Profit' %}
-                      ${{ "{:,.2f}".format(alert.current_profit or 0) }}
+                      ${{ "{:,.2f}".format(alert.current_profit|default(0)) }}
                     {% else %}
                       N/A
                     {% endif %}
@@ -240,16 +240,16 @@
                     <div><strong>Trigger:</strong> <strong>
                       {% if alert.alert_type == 'PriceThreshold' %}
                         {% if alert.asset_type in ['BTC','ETH'] %}
-                          ${{ "{:,.0f}".format(alert.trigger_value or 0) }}
+                          ${{ "{:,.0f}".format(alert.trigger_value|default(0)) }}
                         {% else %}
-                          ${{ "{:,.2f}".format(alert.trigger_value or 0) }}
+                          ${{ "{:,.2f}".format(alert.trigger_value|default(0)) }}
                         {% endif %}
                       {% elif alert.alert_type in ['TravelPercent','TravelPercentLiquid'] %}
-                        {{ "{:,.2f}".format(alert.trigger_value or 0) }}%
+                        {{ "{:,.2f}".format(alert.trigger_value|default(0)) }}%
                       {% elif alert.alert_type == 'Profit' %}
-                        ${{ "{:,.2f}".format(alert.trigger_value or 0) }}
+                        ${{ "{:,.2f}".format(alert.trigger_value|default(0)) }}
                       {% else %}
-                        {{ "{:,.2f}".format(alert.trigger_value or 0) }}
+                        {{ "{:,.2f}".format(alert.trigger_value|default(0)) }}
                       {% endif %}
                     </strong></div>
                     <div><strong>State:</strong> {{ alert.state }}</div>
@@ -310,37 +310,37 @@
                       {% if alert.alert_type == 'PriceThreshold' %}
                         <div>
                           {% if alert.asset_type in ['BTC','ETH'] %}
-                            ${{ "{:,.0f}".format(l) }}
+                            ${{ "{:,.0f}".format(l|default(0)) }}
                           {% else %}
-                            ${{ "{:,.2f}".format(l) }}
+                            ${{ "{:,.2f}".format(l|default(0)) }}
                           {% endif %}
                         </div>
                         <div>
                           {% if alert.asset_type in ['BTC','ETH'] %}
-                            ${{ "{:,.0f}".format(m) }}
+                            ${{ "{:,.0f}".format(m|default(0)) }}
                           {% else %}
-                            ${{ "{:,.2f}".format(m) }}
+                            ${{ "{:,.2f}".format(m|default(0)) }}
                           {% endif %}
                         </div>
                         <div>
                           {% if alert.asset_type in ['BTC','ETH'] %}
-                            ${{ "{:,.0f}".format(h) }}
+                            ${{ "{:,.0f}".format(h|default(0)) }}
                           {% else %}
-                            ${{ "{:,.2f}".format(h) }}
+                            ${{ "{:,.2f}".format(h|default(0)) }}
                           {% endif %}
                         </div>
                       {% elif alert.alert_type in ['TravelPercent','TravelPercentLiquid'] %}
-                        <div>{{ "{:,.2f}".format(l) }}%</div>
-                        <div>{{ "{:,.2f}".format(m) }}%</div>
-                        <div>{{ "{:,.2f}".format(h) }}%</div>
+                        <div>{{ "{:,.2f}".format(l|default(0)) }}%</div>
+                        <div>{{ "{:,.2f}".format(m|default(0)) }}%</div>
+                        <div>{{ "{:,.2f}".format(h|default(0)) }}%</div>
                       {% elif alert.alert_type == 'Profit' %}
-                        <div>${{ "{:,.2f}".format(l) }}</div>
-                        <div>${{ "{:,.2f}".format(m) }}</div>
-                        <div>${{ "{:,.2f}".format(h) }}</div>
+                        <div>${{ "{:,.2f}".format(l|default(0)) }}</div>
+                        <div>${{ "{:,.2f}".format(m|default(0)) }}</div>
+                        <div>${{ "{:,.2f}".format(h|default(0)) }}</div>
                       {% else %}
-                        <div>{{ "{:,.2f}".format(l) }}</div>
-                        <div>{{ "{:,.2f}".format(m) }}</div>
-                        <div>{{ "{:,.2f}".format(h) }}</div>
+                        <div>{{ "{:,.2f}".format(l|default(0)) }}</div>
+                        <div>{{ "{:,.2f}".format(m|default(0)) }}</div>
+                        <div>{{ "{:,.2f}".format(h|default(0)) }}</div>
                       {% endif %}
                     {% endif %}
                   </div>
@@ -411,7 +411,6 @@
         }
       });
     });
-
     // Refresh alerts functionality
     document.getElementById("refreshAlerts").addEventListener("click", function(e) {
       e.preventDefault();

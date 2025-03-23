@@ -5,11 +5,12 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 
 import asyncio
 import logging
+import json
 import inspect
 from typing import Dict
 from datetime import datetime
 
-from utils.json_manager import JsonManager  # Changed import
+from utils.json_manager import JsonManager, JsonType  # Changed import
 from data.data_locker import DataLocker
 from prices.coingecko_fetcher import fetch_current_coingecko
 from prices.coinmarketcap_fetcher import fetch_current_cmc, fetch_historical_cmc
@@ -29,9 +30,10 @@ class PriceMonitor:
         self.data_locker = DataLocker(self.db_path)
         self.db_conn = self.data_locker.get_db_connection()
 
-        # Use JsonManager to load the configuration
+
+        # Use JsonManager to load the configuration, specifying the json_type.
         self.json_manager = JsonManager()
-        self.config = self.json_manager.load(self.config_path)
+        self.config = self.json_manager.load(self.config_path, json_type=JsonType.COMM_CONFIG)
 
         # Read API settings.
         api_cfg = self.config.get("api_config", {})
@@ -41,7 +43,6 @@ class PriceMonitor:
         self.cmc_enabled = (api_cfg.get("coinmarketcap_api_enabled") == "ENABLE")
 
         # Parse price configuration.
-        # Use a "price_config" section if available; otherwise, fallback to defaults.
         price_cfg = self.config.get("price_config", {
             "assets": ["BTC", "ETH", "SP500"],
             "currency": "USD",
@@ -58,29 +59,37 @@ class PriceMonitor:
 
     async def update_prices(self, source: str = "API"):
         """
-        Fetches prices from enabled APIs in parallel, averages them for each symbol,
-        stores one row per symbol, and sets the update time for prices.
-        Logs the successful update and any errors via UnifiedLogger.
+        Fetch prices from enabled APIs in parallel, average them per symbol,
+        store them in the database, and set the update time.
+        Extra debug logging has been added to capture significant events and failures.
         """
         u_logger = UnifiedLogger()  # Instantiate unified logger once
+        logger.debug("Starting update_prices with source: %s", source)
         try:
             tasks = []
             if self.coingecko_enabled:
+                logger.debug("Adding CoinGecko fetch task for assets: %s", self.assets)
                 tasks.append(self._fetch_coingecko_prices())
             if self.cmc_enabled:
+                logger.debug("Adding CoinMarketCap fetch task for assets: %s", self.assets)
                 tasks.append(self._fetch_cmc_prices())
             if self.coinpaprika_enabled:
+                logger.debug("Adding CoinPaprika fetch task for assets: %s", self.assets)
                 tasks.append(self._fetch_coinpaprika_prices())
             if self.binance_enabled:
+                logger.debug("Adding Binance fetch task for assets: %s", self.assets)
                 tasks.append(self._fetch_binance_prices())
             if "SP500" in [a.upper() for a in self.assets]:
+                logger.debug("Adding S&P500 fetch task.")
                 tasks.append(self._fetch_sp500_prices())
 
             if not tasks:
                 logger.warning("No API sources enabled for update_prices.")
                 return
 
+            logger.debug("Awaiting completion of %d API tasks.", len(tasks))
             results_list = await asyncio.gather(*tasks)
+            logger.debug("API tasks completed. Aggregating results...")
 
             # Combine results for each symbol.
             aggregated = {}
@@ -92,13 +101,13 @@ class PriceMonitor:
                 if not price_list:
                     continue
                 avg_price = sum(price_list) / len(price_list)
+                logger.debug("Updating %s with average price: %s", sym, avg_price)
                 self.data_locker.insert_or_update_price(sym, avg_price, "Averaged")
 
             # Set update time for prices.
             now = datetime.now()
             self.data_locker.set_last_update_times(prices_dt=now, prices_source=source)
             logger.info("All price updates completed at %s", now.isoformat())
-            line_no = inspect.currentframe().f_lineno
             u_logger.logger.info("Prices Updated", extra={
                 "source": source,
                 "operation_type": "Prices Updated",
@@ -121,6 +130,7 @@ class PriceMonitor:
         slug_map = {"BTC": "bitcoin", "ETH": "ethereum"}
         slugs = [slug_map[sym.upper()] for sym in self.assets if sym.upper() in slug_map]
         if not slugs:
+            logger.debug("No CoinGecko slugs found for assets: %s", self.assets)
             return {}
         logger.info("Fetching CoinGecko for assets: %s", slugs)
         cg_data = await fetch_current_coingecko(slugs, self.currency)
@@ -137,6 +147,7 @@ class PriceMonitor:
         paprika_map = {"BTC": "btc-bitcoin", "ETH": "eth-ethereum", "SOL": "sol-solana"}
         ids = [paprika_map[sym.upper()] for sym in self.assets if sym.upper() in paprika_map]
         if not ids:
+            logger.debug("No CoinPaprika IDs found for assets: %s", self.assets)
             return {}
         data = await fetch_current_coinpaprika(ids)
         logger.info("CoinPaprika fetch successful: fetched %d entries", len(data))

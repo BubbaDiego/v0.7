@@ -1,6 +1,7 @@
 from data.data_locker import DataLocker
 from utils.json_manager import JsonManager, JsonType
 from data.models import AlertType, AlertClass, NotificationType, Status
+from typing import Optional
 
 class AlertController:
     def __init__(self, db_path: str = None):
@@ -10,20 +11,16 @@ class AlertController:
             self.data_locker = DataLocker.get_instance()
 
     def create_alert(self, alert_obj) -> bool:
-        """
-        Insert an alert into the DB, including asset_type and state.
-        """
         try:
-            # Convert alert_obj to dict
             alert_dict = alert_obj.to_dict()
-
-            # If asset_type was missing, default to something:
+            # Ensure default values for required fields.
             if not alert_dict.get("asset_type"):
                 alert_dict["asset_type"] = "BTC"
-
-            # If state was missing, default to "Normal"
             if not alert_dict.get("state"):
                 alert_dict["state"] = "Normal"
+            # <-- Add default evaluated_value if missing:
+            if "evaluated_value" not in alert_dict:
+                alert_dict["evaluated_value"] = 0.0
 
             self.data_locker.create_alert(alert_dict)
             return True
@@ -163,6 +160,21 @@ class AlertController:
             else:
                 print(f"Price alert for {asset} is not enabled in configuration.")
         return created_alerts
+
+    def _update_alert_state(self, pos: dict, new_state: str, evaluated_value: Optional[float] = None):
+        alert_id = pos.get("alert_reference_id") or pos.get("id")
+        if alert_id:
+            update_fields = {"state": new_state}
+            if evaluated_value is not None:
+                update_fields["evaluated_value"] = evaluated_value
+            if pos.get("alert_reference_id") and pos.get("id"):
+                update_fields["position_reference_id"] = pos.get("id")
+            try:
+                self.data_locker.update_alert_conditions(alert_id, update_fields)
+            except Exception as e:
+                logging.error(f"Error updating alert state for alert {alert_id}: {e}")
+        else:
+            logging.warning("No alert identifier found for updating state; update skipped.")
 
     def create_travel_percent_alerts(self):
         """

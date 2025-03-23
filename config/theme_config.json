@@ -3,7 +3,7 @@
     "blueTheme": {
       "name": "Blue Ocean",
       "title bar": {
-        "color": "#007bff",
+        "color": "#007BFF",
         "image": null
       },
       "side bar": {
@@ -11,19 +11,19 @@
         "image": null
       },
       "wallpaper": {
-        "color": "#e7f1ff",
+        "color": "#E7F1FF",
         "image": null
       },
       "card title": {
-        "color": "#ffffff",
+        "color": "#FFFFFF",
         "image": null
       },
       "card background": {
-        "color": "#d0e7ff",
+        "color": "#D0E7FF",
         "image": null
       },
       "text": {
-        "color": "#606062",
+        "color": "#FFFFFF",
         "image": null
       }
     },
@@ -57,7 +57,7 @@
     "greenTheme": {
       "name": "Emerald Forest",
       "title bar": {
-        "color": "#28A745",
+        "color": "#28a745",
         "image": null
       },
       "side bar": {
@@ -65,19 +65,19 @@
         "image": null
       },
       "wallpaper": {
-        "color": "#D4EDDA",
+        "color": "#d4edda",
         "image": null
       },
       "card title": {
-        "color": "#FFFFFF",
+        "color": "#ffffff",
         "image": null
       },
       "card background": {
-        "color": "#C3E6CB",
+        "color": "#c3e6cb",
         "image": null
       },
       "text": {
-        "color": "#FFFFFF",
+        "color": "#615c5c",
         "image": null
       }
     },
@@ -235,5 +235,5 @@
       }
     }
   },
-  "selected_profile": "yellowTheme"
+  "selected_profile": "greenTheme"
 }

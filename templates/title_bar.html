@@ -1,5 +1,5 @@
 <nav class="main-header navbar navbar-expand-md navbar-dark" style="background-color: var(--title-bar-color);">
-  <!-- Inline CSS remains unchanged -->
+  <!-- Inline CSS -->
   <style>
     .asset-panel {
       display: flex;
@@ -18,7 +18,7 @@
   </style>
 
   <div class="container">
-    <!-- Navbar Toggler remains unchanged -->
+    <!-- Navbar Toggler -->
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
             aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
@@ -27,7 +27,7 @@
     <!-- Collapsible Nav Items -->
     <div class="collapse navbar-collapse" id="navbarCollapse">
       <ul class="navbar-nav">
-        <!-- Database Viewer Icon (New) -->
+        <!-- Database Viewer Icon -->
         <li class="nav-item">
           <a href="{{ url_for('dashboard.database_viewer') }}" class="nav-link" title="Database Viewer">
             <i class="fas fa-database"></i>
@@ -77,7 +77,7 @@
         </li>
       </ul>
 
-      <!-- Right Side Items remain unchanged -->
+      <!-- Right Side Items -->
       <ul class="navbar-nav ms-auto">
         <!-- Layout Toggle -->
         <li class="nav-item">
@@ -110,10 +110,16 @@
             </div>
           </div>
         </li>
-        <!-- Jupiter Update Button -->
+        <!-- Jupiter Update Button (for positions) -->
         <li class="nav-item d-flex align-items-center me-3">
-          <button type="button" class="update-jupiter-btn" id="updateJupiterBtn">
+          <button type="button" class="update-jupiter-btn" id="updateJupiterBtn" title="Update Positions">
             <img src="{{ url_for('static', filename='images/jupiter.jpg') }}" alt="Update Jupiter">
+          </button>
+        </li>
+        <!-- Prices Update Button (for prices only) -->
+        <li class="nav-item d-flex align-items-center me-3">
+          <button type="button" class="update-jupiter-btn" id="updatePricesBtn" title="Update Prices">
+            <img src="{{ url_for('static', filename='images/prices.jpg') }}" alt="Update Prices">
           </button>
         </li>
         <!-- Theme Switcher -->
@@ -123,14 +129,12 @@
             <i class="fas fa-palette"></i>
           </a>
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="themeDropdown">
-            <!-- First selection: Theme Configuration -->
             <li>
               <a class="dropdown-item" href="{{ url_for('dashboard.theme_setup') }}">
                 <i class="fas fa-palette me-1"></i> Theme Configuration
               </a>
             </li>
             <li><hr class="dropdown-divider"></li>
-            <!-- Theme Profiles -->
             {% if theme and theme.get('profiles') %}
               {% for profile_key, profile in theme.get('profiles').items() %}
                 <li>
@@ -149,7 +153,7 @@
   </div>
 </nav>
 
-<!-- Inline JS (unchanged) -->
+<!-- Inline JavaScript -->
 <script>
   // 1) Timers
   function getRemaining(start, period) {
@@ -175,7 +179,7 @@
     })
     .catch(err => console.error('Timer error:', err));
 
-  // 2) Price Updates
+  // 2) Price Updates (Client-side display updates)
   function updatePrices() {
     fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd&include_24hr_change=true')
       .then(r => r.json())
@@ -204,22 +208,37 @@
   updatePrices();
   setInterval(updatePrices, 60000);
 
-  // 3) Jupiter Update
-  const updateBtn = document.getElementById("updateJupiterBtn");
-  if (updateBtn) {
-    updateBtn.addEventListener("click", () => {
-      updateBtn.querySelector("img").classList.add("spin");
+  // 3) Jupiter Update (for positions)
+  const updateJupiterBtn = document.getElementById("updateJupiterBtn");
+  if (updateJupiterBtn) {
+    updateJupiterBtn.addEventListener("click", () => {
+      updateJupiterBtn.querySelector("img").classList.add("spin");
       fetch("/positions/update_jupiter?source=User", { method: "POST" })
         .then(r => r.json())
         .then(() => window.location.reload())
         .catch(err => {
-          updateBtn.querySelector("img").classList.remove("spin");
+          updateJupiterBtn.querySelector("img").classList.remove("spin");
           console.error("Jupiter update error:", err);
         });
     });
   }
 
-  // 4) Theme Switcher
+  // 4) Prices Update (for prices only)
+  const updatePricesBtn = document.getElementById("updatePricesBtn");
+  if (updatePricesBtn) {
+    updatePricesBtn.addEventListener("click", () => {
+      updatePricesBtn.querySelector("img").classList.add("spin");
+      fetch("/prices/update?source=User", { method: "POST" })
+        .then(r => r.json())
+        .then(() => window.location.reload())
+        .catch(err => {
+          updatePricesBtn.querySelector("img").classList.remove("spin");
+          console.error("Prices update error:", err);
+        });
+    });
+  }
+
+  // 5) Theme Switcher
   document.querySelectorAll('.theme-profile-option').forEach(option => {
     option.addEventListener('click', e => {
       e.preventDefault();
@@ -235,7 +254,7 @@
     });
   });
 
-  // 5) Layout Toggle Switch (client-side)
+  // 6) Layout Toggle Switch
   document.getElementById('layoutToggle').addEventListener('click', function(e) {
     e.preventDefault();
     var mode = localStorage.getItem("layoutMode") || "fluid";
