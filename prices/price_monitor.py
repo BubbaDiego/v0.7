@@ -139,7 +139,7 @@ class PriceMonitor:
         for slug, price in cg_data.items():
             found_sym = next((s for s, slugval in slug_map.items() if slugval.lower() == slug.lower()), slug)
             results[found_sym.upper()] = price
-        self.data_locker.increment_api_report_counter("CoinGecko")
+
         return results
 
     async def _fetch_coinpaprika_prices(self) -> Dict[str, float]:
@@ -151,7 +151,7 @@ class PriceMonitor:
             return {}
         data = await fetch_current_coinpaprika(ids)
         logger.info("CoinPaprika fetch successful: fetched %d entries", len(data))
-        self.data_locker.increment_api_report_counter("CoinPaprika")
+
         return data
 
     async def _fetch_binance_prices(self) -> Dict[str, float]:
@@ -159,14 +159,14 @@ class PriceMonitor:
         binance_symbols = [sym.upper() + "USDT" for sym in self.assets if sym.upper() != "SP500"]
         bn_data = await fetch_current_binance(binance_symbols)
         logger.info("Binance fetch successful: fetched %d entries", len(bn_data))
-        self.data_locker.increment_api_report_counter("Binance")
+
         return bn_data
 
     async def _fetch_cmc_prices(self) -> Dict[str, float]:
         logger.info("Fetching CoinMarketCap for assets: %s", self.assets)
         cmc_data = await fetch_current_cmc(self.assets, self.currency, self.cmc_api_key)
         logger.info("CoinMarketCap fetch successful: fetched %d entries", len(cmc_data))
-        self.data_locker.increment_api_report_counter("CoinMarketCap")
+
         return cmc_data
 
     async def _fetch_sp500_prices(self) -> Dict[str, float]:
@@ -187,7 +187,7 @@ class PriceMonitor:
             else:
                 price = 4000.0
                 logger.info("No last known S&P500 price available; using default price: %s", price)
-        self.data_locker.increment_api_report_counter("SP500")
+
         logger.info("Fetched S&P500 price: %s", price)
         return {"SP500": price}
 

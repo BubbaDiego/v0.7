@@ -8,7 +8,6 @@ import sqlite3
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 from twilio.rest import Client
-from twilio.rest import Client
 from twilio.base.exceptions import TwilioRestException
 from config.unified_config_manager import UnifiedConfigManager
 from config.config_constants import DB_PATH, CONFIG_PATH, ALERT_LIMITS_PATH, BASE_DIR
@@ -28,6 +27,7 @@ if not travel_logger.handlers:
     travel_formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
     travel_handler.setFormatter(travel_formatter)
     travel_logger.addHandler(travel_handler)
+
 
 def trigger_twilio_flow(custom_message: str, twilio_config: dict) -> str:
     """
@@ -60,102 +60,6 @@ def trigger_twilio_flow(custom_message: str, twilio_config: dict) -> str:
     )
     return execution.sid
 
-def send_call(self, body: str, key: str):
-    """
-    Sends a call notification via Twilio.
-    Checks for required configuration and handles authentication failures gracefully.
-    """
-    now = current_time()
-    last_call_time = self.last_call_triggered.get(key, 0)
-    if now - last_call_time < self.call_refractory_period:
-        logging.info("Call alert '%s' suppressed.", key)
-        u_logger.log_operation(
-            operation_type="Alert Silenced",
-            primary_text=f"Alert Silenced: {key}",
-            source="AlertManager",
-            file="alert_manager.py",
-            extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
-        )
-        return
-    # Ensure Twilio configuration is complete.
-    if not all([
-        self.twilio_config.get("account_sid"),
-        self.twilio_config.get("auth_token"),
-        self.twilio_config.get("flow_sid"),
-        self.twilio_config.get("to_phone"),
-        self.twilio_config.get("from_phone")
-    ]):
-        logging.error("Twilio configuration is incomplete. Skipping call notification.")
-        u_logger.log_operation(
-            operation_type="Notification Failed",
-            primary_text=f"Incomplete Twilio config for {key}",
-            source="System",
-            file="alert_manager.py",
-            extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
-        )
-        return
-    try:
-        trigger_twilio_flow(body, self.twilio_config)
-        self.last_call_triggered[key] = now
-        self.config["call_refractory_start"] = now
-        self.save_config(self.config, ALERT_LIMITS_PATH)
-        u_logger.log_operation(
-            operation_type="Timer Set",
-            primary_text="Call refractory timer set",
-            source="AlertManager",
-            file="alert_manager.py",
-            extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
-        )
-    except TwilioRestException as tre:
-        if tre.status == 401:
-            u_logger.log_operation(
-                operation_type="Notification Failed",
-                primary_text=f"Authentication failed for call notification: {key}",
-                source="System",
-                file="alert_manager.py",
-                extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
-            )
-        else:
-            u_logger.log_operation(
-                operation_type="Notification Failed",
-                primary_text=f"Notification Failed: {key}",
-                source="System",
-                file="alert_manager.py",
-                extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
-            )
-        logging.error("Error sending call for '%s': %s", key, tre, exc_info=True)
-    except Exception as e:
-        u_logger.log_operation(
-            operation_type="Notification Failed",
-            primary_text=f"Notification Failed: {key}",
-            source="System",
-            file="alert_manager.py",
-            extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
-        )
-        logging.error("Error sending call for '%s': %s", key, e, exc_info=True)
-
-METRIC_DIRECTIONS = {
-    "size": "increasing_bad",
-}
-
-def get_alert_class(value: float, low_thresh: float, med_thresh: float, high_thresh: float, metric: str) -> str:
-    direction = METRIC_DIRECTIONS.get(metric, "increasing_bad")
-    if direction == "increasing_bad":
-        if value < low_thresh:
-            return "alert-low"
-        elif value < med_thresh:
-            return "alert-medium"
-        else:
-            return "alert-high"
-    elif direction == "decreasing_bad":
-        if value > low_thresh:
-            return "alert-low"
-        elif value > med_thresh:
-            return "alert-medium"
-        else:
-            return "alert-high"
-    else:
-        return "alert-low"
 
 class AlertManager:
     ASSET_FULL_NAMES = {
@@ -188,6 +92,8 @@ class AlertManager:
         db_conn = self.data_locker.get_db_connection()
         from config.unified_config_manager import UnifiedConfigManager
         config_manager = UnifiedConfigManager(self.config_path, db_conn=db_conn)
+
+        self.logger = logging.getLogger("AlertManagerLogger")
 
         try:
             self.config = config_manager.load_config()
@@ -283,19 +189,107 @@ class AlertManager:
         return self.alert_controller.create_all_alerts()
 
     def _update_alert_state(self, pos: dict, new_state: str, evaluated_value: Optional[float] = None):
+        """
+        Update the state of the matching alert record in the DB (if found).
+        We use `alert_reference_id` if present, else `pos["id"]`.
+        """
         alert_id = pos.get("alert_reference_id") or pos.get("id")
-        if alert_id:
-            update_fields = {"state": new_state}
-            if evaluated_value is not None:
-                update_fields["evaluated_value"] = evaluated_value
-            if pos.get("alert_reference_id") and pos.get("id"):
-                update_fields["position_reference_id"] = pos.get("id")
-            try:
-                self.data_locker.update_alert_conditions(alert_id, update_fields)
-            except Exception as e:
-                logging.error(f"Error updating alert state for alert {alert_id}: {e}")
+        if not alert_id:
+            self.logger.warning("[_update_alert_state] No alert identifier found; update skipped.")
+            return
+
+        update_fields = {"state": new_state}
+        if evaluated_value is not None:
+            update_fields["evaluated_value"] = evaluated_value
+
+        # Optionally store the position reference if both are available.
+        if pos.get("alert_reference_id") and pos.get("id"):
+            update_fields["position_reference_id"] = pos.get("id")
+
+        self.logger.debug(f"[_update_alert_state] Attempting to update alert '{alert_id}' with fields: {update_fields}")
+        try:
+            num_updated = self.data_locker.update_alert_conditions(alert_id, update_fields)
+            if num_updated == 0:
+                self.logger.warning(f"[_update_alert_state] No alert record found for id '{alert_id}'.")
+                # Optionally, you might create the alert record here if needed.
+            else:
+                self.logger.info(
+                    f"[_update_alert_state] Successfully updated alert '{alert_id}' to state '{new_state}' with evaluated value '{evaluated_value}'."
+                )
+        except Exception as e:
+            self.logger.error(f"[_update_alert_state] Error updating alert state for id '{alert_id}': {e}", exc_info=True)
+
+    def reevaluate_alerts(self):
+        """
+        Reevaluate all alert conditions by iterating over current positions.
+        This method updates the persistent alert records (via _update_alert_state)
+        based on the latest position data.
+        """
+        positions = self.data_locker.read_positions()
+        for pos in positions:
+            # Evaluate the various alert checks (profit, travel, etc.).
+            self.check_profit(pos)
+            self.check_travel_percent_liquid(pos)
+            self.check_swing_alert(pos)
+            self.check_blast_alert(pos)
+
+        # Also run price alerts evaluation (updates states for price-threshold alerts).
+        self.check_price_alerts()
+
+    def check_alerts(self, source: Optional[str] = None):
+        """
+        Called typically by the 'Refresh' route or the background loop.
+        1. Reevaluate conditions for each position/alert (update DB).
+        2. Retrieve updated alerts from DB and see which are triggered.
+        3. If any triggered, call Twilio, else do nothing or log.
+        """
+        if not self.monitor_enabled:
+            u_logger.log_operation(
+                operation_type="Monitor Loop",
+                primary_text="Alert monitoring disabled",
+                source="System",
+                file="alert_manager.py",
+                extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
+            )
+            return
+
+        # Re-check all alert conditions, storing results in DB
+        self.reevaluate_alerts()
+
+        # Now fetch the persistent alerts from DB
+        alerts = self.data_locker.get_alerts()
+        triggered_alerts = [a for a in alerts if a.get("state", "Normal") != "Normal"]
+
+        if triggered_alerts:
+            combined_message = "\n".join(
+                f"{a.get('alert_type', 'Alert')} ALERT for {a.get('asset_type', 'Asset')} - "
+                f"State: {a.get('state')}, Value: {a.get('evaluated_value')}"
+                for a in triggered_alerts
+            )
+            u_logger.log_alert(
+                operation_type="Alert Triggered",
+                primary_text=f"{len(triggered_alerts)} alerts triggered",
+                source=source or "",
+                file="alert_manager.py",
+                extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
+            )
+            self.send_call(combined_message, "all_alerts")
+        elif self.suppressed_count > 0:
+            u_logger.log_alert(
+                operation_type="Alert Silenced",
+                primary_text=f"{self.suppressed_count} alerts suppressed",
+                source=source or "",
+                file="alert_manager.py",
+                extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
+            )
         else:
-            logging.warning("No alert identifier found for updating state; update skipped.")
+            u_logger.log_alert(
+                operation_type="No Alerts Found",
+                primary_text="No alerts found in DB",
+                source=source or "",
+                file="alert_manager.py",
+                extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
+            )
 
     def update_timer_states(self):
         now = current_time()
@@ -351,6 +345,10 @@ class AlertManager:
         )
 
     def run(self):
+        """
+        Background loop if run as a main script. Typically, you'll rely on
+        manual or scheduled refresh calls, but this is still available.
+        """
         u_logger.log_operation(
             operation_type="Monitor Loop",
             primary_text="Starting alert monitoring loop",
@@ -363,107 +361,81 @@ class AlertManager:
             self.check_alerts()
             time.sleep(self.poll_interval)
 
-    def check_alerts(self, source: Optional[str] = None):
-        if not self.monitor_enabled:
-            u_logger.log_operation(
-                operation_type="Monitor Loop",
-                primary_text="Alert monitoring disabled",
-                source="System",
-                file="alert_manager.py",
-                extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
-            )
-            return
-        self.suppressed_count = 0
-        aggregated_alerts: List[str] = []
-        positions = self.data_locker.read_positions()
-        u_logger.log_alert(
-            operation_type="Alert Check",
-            primary_text=f"Checking {len(positions)} positions for alerts",
-            source="System",
-            file="alert_manager.py",
-            extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
-        )
-        for pos in positions:
-            profit_alert = self.check_profit(pos)
-            if profit_alert:
-                aggregated_alerts.append(profit_alert)
-            travel_alert = self.check_travel_percent_liquid(pos)
-            if travel_alert:
-                aggregated_alerts.append(travel_alert)
-            swing_alert = self.check_swing_alert(pos)
-            if swing_alert:
-                aggregated_alerts.append(swing_alert)
-            blast_alert = self.check_blast_alert(pos)
-            if blast_alert:
-                aggregated_alerts.append(blast_alert)
-        price_alerts = self.check_price_alerts()
-        aggregated_alerts.extend(price_alerts)
-        if aggregated_alerts:
-            u_logger.log_alert(
-                operation_type="Alert Triggered",
-                primary_text=f"{len(aggregated_alerts)} alerts triggered",
-                source=source or "",
-                file="alert_manager.py",
-                extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
-            )
-            combined_message = "\n".join(aggregated_alerts)
-            self.send_call(combined_message, "all_alerts")
-        elif self.suppressed_count > 0:
-            u_logger.log_alert(
-                operation_type="Alert Silenced",
-                primary_text=f"{self.suppressed_count} alerts suppressed",
-                source=source or "",
-                file="alert_manager.py",
-                extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
-            )
-        else:
-            u_logger.log_alert(
-                operation_type="No Alerts Found",
-                primary_text="No Alerts Found",
-                source=source or "",
-                file="alert_manager.py",
-                extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
-            )
-
     def check_travel_percent_liquid(self, pos: Dict[str, Any]) -> str:
+        """
+        Evaluates the current travel percent for a position.
+        Returns an alert message string if conditions are met, otherwise returns an empty string.
+        """
         asset_code = pos.get("asset_type", "???").upper()
         asset_full = self.ASSET_FULL_NAMES.get(asset_code, asset_code)
-        position_type = pos.get("position_type", "").capitalize()
-        position_id = pos.get("position_id") or pos.get("id") or "unknown"
+        position_type = pos.get("position_type", "Unknown")
+        pos_id = pos.get("position_id") or pos.get("id") or "unknown"
+
         try:
-            current_val = float(pos.get("current_travel_percent", 0.0))
+            raw_val = pos.get("current_travel_percent", 0.0)
+            current_val = float(raw_val)
         except Exception as e:
-            logging.error("%s %s (ID: %s): Error converting travel percent.", asset_full, position_type, position_id)
+            self.logger.error(
+                f"{asset_full} {position_type} (ID: {pos_id}): Error converting travel percent. Raw value: {raw_val}",
+                exc_info=True
+            )
             return ""
+
+        self.logger.debug(
+            f"[check_travel_percent_liquid] Asset: {asset_full}, Position ID: {pos_id}, "
+            f"raw current_travel_percent: {raw_val}, converted: {current_val}, "
+            f"enriched travel_percent: {pos.get('travel_percent')}"
+        )
+
+        # If travel percent is >= 0, no negative alert needed.
         if current_val >= 0:
             self._update_alert_state(pos, "Normal", evaluated_value=current_val)
             return ""
-        neg_config = self.config.get("alert_ranges", {}).get("travel_percent_liquid_ranges", {})
-        if not neg_config.get("enabled", False):
+
+        tp_config = self.config.get("alert_ranges", {}).get("travel_percent_liquid_ranges", {})
+        if not tp_config.get("enabled", False):
+            self.logger.debug("Travel percent liquid alerts are disabled in configuration.")
             return ""
-        low = float(neg_config.get("low", -10.0))
-        medium = float(neg_config.get("medium", -60.0))
-        high = float(neg_config.get("high", -75.0))
-        if current_val <= high:
+
+        try:
+            low_threshold = float(tp_config.get("low", -4.0))
+            medium_threshold = float(tp_config.get("medium", -7.0))
+            high_threshold = float(tp_config.get("high", -10.0))
+        except Exception as e:
+            self.logger.error("Error parsing travel percent thresholds from config.", exc_info=True)
+            return ""
+
+        # Determine alert level
+        if current_val <= high_threshold:
             alert_level = "High"
-        elif current_val <= medium:
+        elif current_val <= medium_threshold:
             alert_level = "Medium"
-        elif current_val <= low:
+        elif current_val <= low_threshold:
             alert_level = "Low"
         else:
             self._update_alert_state(pos, "Normal", evaluated_value=current_val)
             return ""
+
         self._update_alert_state(pos, alert_level, evaluated_value=current_val)
-        key = f"{asset_full}-{position_type}-{position_id}-travel-{alert_level}"
+
+        # Handle suppression cooldown
+        key = f"{asset_full}-{position_type}-{pos_id}-travel-{alert_level}"
         now = current_time()
         last_time = self.last_triggered.get(key, 0)
         if now - last_time < self.cooldown:
             self.suppressed_count += 1
+            self.logger.debug(
+                f"Alert for key {key} suppressed due to cooldown. Time since last trigger: {now - last_time:.2f} sec"
+            )
             return ""
+
         self.last_triggered[key] = now
         wallet_name = pos.get("wallet_name", "Unknown")
-        msg = (f"Travel Percent Liquid ALERT: {asset_full} {position_type} (Wallet: {wallet_name}) - "
-               f"Travel% = {current_val:.2f}%, Level = {alert_level}")
+        msg = (
+            f"Travel Percent Liquid ALERT: {asset_full} {position_type} (Wallet: {wallet_name}) - "
+            f"Travel% = {current_val:.2f}%, Level = {alert_level}"
+        )
+        self.logger.info(f"Triggering travel percent alert: {msg}")
         return msg
 
     def check_profit(self, pos: Dict[str, Any]) -> str:
@@ -471,22 +443,27 @@ class AlertManager:
         asset_full = self.ASSET_FULL_NAMES.get(asset_code, asset_code)
         position_type = pos.get("position_type", "").capitalize()
         position_id = pos.get("position_id") or pos.get("id") or "unknown"
+
         try:
             profit_val = float(pos.get("profit", 0.0))
         except Exception:
             return ""
+
         if profit_val <= 0:
             self._update_alert_state(pos, "Normal", evaluated_value=profit_val)
             return ""
+
         profit_config = self.config.get("alert_ranges", {}).get("profit_ranges", {})
         if not profit_config.get("enabled", False):
             return ""
+
         try:
             low_thresh = float(profit_config.get("low", 46.23))
             med_thresh = float(profit_config.get("medium", 101.3))
             high_thresh = float(profit_config.get("high", 202.0))
         except Exception:
             return ""
+
         if profit_val < low_thresh:
             self._update_alert_state(pos, "Normal", evaluated_value=profit_val)
             return ""
@@ -496,13 +473,16 @@ class AlertManager:
             current_level = "Medium"
         else:
             current_level = "High"
+
         self._update_alert_state(pos, current_level, evaluated_value=profit_val)
+
         profit_key = f"profit-{asset_full}-{position_type}-{position_id}"
         now = current_time()
         last_time = self.last_triggered.get(profit_key, 0)
         if now - last_time < self.cooldown:
             self.suppressed_count += 1
             return ""
+
         self.last_triggered[profit_key] = now
         msg = f"Profit ALERT: {asset_full} {position_type} profit of {profit_val:.2f} (Level: {current_level})"
         return msg
@@ -511,63 +491,81 @@ class AlertManager:
         swing_config = self.config.get("alert_ranges", {}).get("swing_alerts", {"enabled": True, "notifications": {"call": True}})
         if not swing_config.get("enabled", True):
             return ""
+
         asset = pos.get("asset_type", "???").upper()
         asset_full = self.ASSET_FULL_NAMES.get(asset, asset)
         position_type = pos.get("position_type", "").capitalize()
         position_id = pos.get("position_id") or pos.get("id") or "unknown"
+
         try:
             current_value = float(pos.get("liquidation_distance", 0.0))
         except Exception:
-            logging.error("%s %s (ID: %s): Error converting liquidation distance.", asset_full, position_type, position_id)
+            self.logger.error("%s %s (ID: %s): Error converting liquidation distance.", asset_full, position_type, position_id)
             return ""
+
         hardcoded_swing_thresholds = {"BTC": 6.24, "ETH": 8.0, "SOL": 13.0}
         swing_threshold = hardcoded_swing_thresholds.get(asset, 0)
-        logging.debug(f"[Swing Alert Debug] {asset_full} {position_type} (ID: {position_id}): Actual Value = {current_value:.2f} vs Hardcoded Swing Threshold = {swing_threshold:.2f}")
+        self.logger.debug(
+            f"[Swing Alert Debug] {asset_full} {position_type} (ID: {position_id}): "
+            f"Actual Value = {current_value:.2f} vs Hardcoded Swing Threshold = {swing_threshold:.2f}"
+        )
+
         if current_value >= swing_threshold:
             if not swing_config.get("notifications", {}).get("call", True):
-                logging.debug("Swing alert call notification disabled in config.")
+                self.logger.debug("Swing alert call notification disabled in config.")
                 return ""
             self._update_alert_state(pos, "Triggered", evaluated_value=current_value)
+
             key = f"swing-{asset_full}-{position_type}-{position_id}"
             now = current_time()
             last_time = self.last_triggered.get(key, 0)
             if now - last_time >= self.cooldown:
                 self.last_triggered[key] = now
-                return (f"Average Daily Swing ALERT: {asset_full} {position_type} (ID: {position_id}) - "
-                        f"Actual Value = {current_value:.2f} exceeds Hardcoded Swing Threshold of {swing_threshold:.2f}")
+                return (
+                    f"Average Daily Swing ALERT: {asset_full} {position_type} (ID: {position_id}) - "
+                    f"Actual Value = {current_value:.2f} exceeds Hardcoded Swing Threshold of {swing_threshold:.2f}"
+                )
         return ""
 
     def check_blast_alert(self, pos: Dict[str, Any]) -> str:
         blast_config = self.config.get("alert_ranges", {}).get("blast_alerts", {"enabled": True, "notifications": {"call": True}})
         if not blast_config.get("enabled", True):
             return ""
+
         asset = pos.get("asset_type", "???").upper()
         asset_full = self.ASSET_FULL_NAMES.get(asset, asset)
         position_type = pos.get("position_type", "").capitalize()
         position_id = pos.get("position_id") or pos.get("id") or "unknown"
+
         try:
             current_value = float(pos.get("liquidation_distance", 0.0))
         except Exception:
-            logging.error("%s %s (ID: %s): Error converting liquidation distance.", asset_full, position_type, position_id)
+            self.logger.error("%s %s (ID: %s): Error converting liquidation distance.", asset_full, position_type, position_id)
             return ""
-        try:
-            blast_threshold = 11.2
-        except Exception as e:
-            logging.error("Error parsing blast threshold for %s: %s", asset_full, e)
-            return ""
-        logging.debug(f"[Blast Alert Debug] {asset_full} {position_type} (ID: {position_id}): Actual Value = {current_value:.2f} vs Blast Threshold = {blast_threshold:.2f}")
+
+        # Hard-coded for demonstration
+        blast_threshold = 11.2
+
+        self.logger.debug(
+            f"[Blast Alert Debug] {asset_full} {position_type} (ID: {position_id}): "
+            f"Actual Value = {current_value:.2f} vs Blast Threshold = {blast_threshold:.2f}"
+        )
+
         if current_value >= blast_threshold:
             if not blast_config.get("notifications", {}).get("call", True):
-                logging.debug("Blast alert call notification disabled in config.")
+                self.logger.debug("Blast alert call notification disabled in config.")
                 return ""
             self._update_alert_state(pos, "Triggered", evaluated_value=current_value)
+
             key = f"blast-{asset_full}-{position_type}-{position_id}"
             now = current_time()
             last_time = self.last_triggered.get(key, 0)
             if now - last_time >= self.cooldown:
                 self.last_triggered[key] = now
-                return (f"One Day Blast Radius ALERT: {asset_full} {position_type} (ID: {position_id}) - "
-                        f"Actual Value = {current_value:.2f} exceeds Blast Threshold of {blast_threshold:.2f}")
+                return (
+                    f"One Day Blast Radius ALERT: {asset_full} {position_type} (ID: {position_id}) - "
+                    f"Actual Value = {current_value:.2f} exceeds Blast Threshold of {blast_threshold:.2f}"
+                )
         return ""
 
     def debug_price_alert_details(self, asset: str, asset_config: dict, current_price: float, trigger_val: float,
@@ -593,6 +591,10 @@ class AlertManager:
             f.write(html_snippet)
 
     def check_price_alerts(self) -> List[str]:
+        """
+        Evaluate the price-threshold alerts for each of BTC, ETH, SOL, updating
+        their states as necessary. Return any triggered messages for logging.
+        """
         price_alert_logger = logging.getLogger("PriceAlertLogger")
         if not price_alert_logger.handlers:
             handler = logging.FileHandler("price_alert_debug.txt")
@@ -600,19 +602,23 @@ class AlertManager:
             formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
             handler.setFormatter(formatter)
             price_alert_logger.addHandler(handler)
+
         price_alert_logger.debug("Entering check_price_alerts method")
         messages: List[str] = []
         price_alert_config = self.config.get("alert_ranges", {}).get("price_alerts", {})
         price_alert_logger.debug(f"Price alert config: {price_alert_config}")
+
         for asset in ["BTC", "ETH", "SOL"]:
             asset_config = price_alert_config.get(asset, {})
             result_message = ""
             price_alert_logger.debug(f"Processing asset {asset}: {asset_config}")
+
             if not asset_config.get("enabled", False):
                 result_message = "Price alert disabled"
                 price_alert_logger.debug(f"Price alert disabled for {asset}")
                 self.debug_price_alert_details(asset, asset_config, 0.0, 0.0, "", {}, result_message)
                 continue
+
             condition = asset_config.get("condition", "ABOVE").upper()
             try:
                 trigger_val = float(asset_config.get("trigger_value", 0.0))
@@ -622,12 +628,14 @@ class AlertManager:
                 trigger_val = 0.0
                 self.debug_price_alert_details(asset, asset_config, 0.0, trigger_val, condition, {}, result_message)
                 continue
+
             price_info = self.data_locker.get_latest_price(asset)
             if not price_info:
                 result_message = "No price info available"
                 price_alert_logger.debug(f"No price info available for asset {asset}")
                 self.debug_price_alert_details(asset, asset_config, 0.0, trigger_val, condition, {}, result_message)
                 continue
+
             try:
                 current_price = float(price_info.get("current_price", 0.0))
             except Exception as e:
@@ -635,26 +643,36 @@ class AlertManager:
                 result_message = f"Error parsing current price: {e}"
                 self.debug_price_alert_details(asset, asset_config, 0.0, trigger_val, condition, price_info, result_message)
                 continue
+
             price_alert_logger.debug(f"{asset}: Condition = {condition}, Trigger Value = {trigger_val:.2f}, Current Price = {current_price:.2f}")
+
+            # Evaluate the condition
             if (condition == "ABOVE" and current_price >= trigger_val) or (condition == "BELOW" and current_price <= trigger_val):
                 price_alert_logger.debug(f"Alert condition met for {asset}, processing trigger")
+
+                # Update the matching alert in DB to "Triggered"
                 alerts = self.data_locker.get_alerts()
                 for alert in alerts:
                     if alert.get("alert_type") == "PriceThreshold" and alert.get("asset_type", "").upper() == asset:
                         self._update_alert_state(alert, "Triggered", evaluated_value=current_price)
                         break
+
                 msg = self.handle_price_alert_trigger_config(asset, current_price, trigger_val, condition)
                 if msg:
                     messages.append(msg)
                     result_message = f"Alert triggered: {msg}"
                     price_alert_logger.debug(result_message)
                 else:
-                    result_message = f"Alert suppressed due to cooldown or other conditions"
+                    result_message = "Alert suppressed due to cooldown"
                     price_alert_logger.debug(result_message)
             else:
-                result_message = f"Alert condition not met: current_price {current_price:.2f} vs trigger {trigger_val:.2f}"
+                result_message = (
+                    f"Alert condition not met: current_price {current_price:.2f} vs trigger {trigger_val:.2f}"
+                )
                 price_alert_logger.debug(result_message)
+
             self.debug_price_alert_details(asset, asset_config, current_price, trigger_val, condition, price_info, result_message)
+
         price_alert_logger.debug(f"Exiting check_price_alerts with {len(messages)} triggered alerts")
         return messages
 
@@ -664,7 +682,7 @@ class AlertManager:
         now = current_time()
         last_time = self.last_triggered.get(key, 0)
         if now - last_time < self.cooldown:
-            logging.info(f"{asset_full}: Price alert suppressed due to cooldown")
+            self.logger.info(f"{asset_full}: Price alert suppressed due to cooldown")
             u_logger.log_alert(
                 operation_type="Price ALERT Suppressed",
                 primary_text=f"{asset_full}: Price alert suppressed due to cooldown",
@@ -674,6 +692,7 @@ class AlertManager:
             )
             self.suppressed_count += 1
             return ""
+
         self.last_triggered[key] = now
         msg = f"Price ALERT: {asset_full} - Condition: {condition}, Trigger: {trigger_val}, Current: {current_price}"
         caller_line = inspect.currentframe().f_back.f_lineno
@@ -697,10 +716,14 @@ class AlertManager:
         return msg
 
     def send_call(self, body: str, key: str):
+        """
+        Actually triggers Twilio phone call if not in refractory period.
+        If we are in refractory period, logs a suppression. Otherwise calls trigger_twilio_flow.
+        """
         now = current_time()
         last_call_time = self.last_call_triggered.get(key, 0)
         if now - last_call_time < self.call_refractory_period:
-            logging.info("Call alert '%s' suppressed.", key)
+            self.logger.info("Call alert '%s' suppressed.", key)
             u_logger.log_operation(
                 operation_type="Alert Silenced",
                 primary_text=f"Alert Silenced: {key}",
@@ -709,6 +732,7 @@ class AlertManager:
                 extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
             )
             return
+
         if not all([
             self.twilio_config.get("account_sid"),
             self.twilio_config.get("auth_token"),
@@ -716,7 +740,7 @@ class AlertManager:
             self.twilio_config.get("to_phone"),
             self.twilio_config.get("from_phone")
         ]):
-            logging.error("Twilio configuration is incomplete. Skipping call notification.")
+            self.logger.error("Twilio configuration is incomplete. Skipping call notification.")
             u_logger.log_operation(
                 operation_type="Notification Failed",
                 primary_text=f"Incomplete Twilio config for {key}",
@@ -725,6 +749,7 @@ class AlertManager:
                 extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
             )
             return
+
         try:
             trigger_twilio_flow(body, self.twilio_config)
             self.last_call_triggered[key] = now
@@ -745,7 +770,7 @@ class AlertManager:
                 file="alert_manager.py",
                 extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
             )
-            logging.error("Error sending call for '%s': %s", key, e, exc_info=True)
+            self.logger.error("Error sending call for '%s': %s", key, e, exc_info=True)
 
     def load_json_config(self, json_path: str) -> dict:
         try:
@@ -760,6 +785,7 @@ class AlertManager:
                 json.dump(config, f, indent=2)
         except Exception:
             pass
+
 
 # Create a global AlertManager instance for use in other modules.
 manager = AlertManager(

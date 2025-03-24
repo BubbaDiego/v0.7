@@ -17,6 +17,7 @@ from datetime import datetime
 from data.data_locker import DataLocker
 from config.config_constants import DB_PATH
 from utils.calc_services import CalcServices
+from alerts.alert_evaluator import AlertEvaluator
 from utils.unified_logger import UnifiedLogger
 from sonic_labs.hedge_manager import HedgeManager
 from api.dydx_api import DydxAPI
@@ -38,6 +39,22 @@ class PositionService:
         "7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs": "ETH",
         "So11111111111111111111111111111111111111112": "SOL"
     }
+
+    def update_position_and_alert(pos: dict, data_locker):
+        """
+        After updating a position, re-evaluate its alert state and update the alert record.
+        """
+        # (Your code here to update the position in the DB using data_locker)
+        # For example:
+        data_locker.create_position(pos)  # Or update_position() as appropriate
+
+        # Now load configuration (this could be cached or passed in)
+        config_manager = UnifiedConfigManager(CONFIG_PATH)
+        config = config_manager.load_config()
+
+        # Create an AlertEvaluator instance and update the alert for this position
+        evaluator = AlertEvaluator(config, data_locker)
+        evaluator.update_alert_for_position(pos)
 
     @staticmethod
     def get_all_positions(db_path: str = DB_PATH) -> List[Dict[str, Any]]:
@@ -251,16 +268,16 @@ class PositionService:
             # Update balance variables
             all_positions = dl.get_positions()
             total_brokerage_value = sum(float(pos.get("value", 0)) for pos in all_positions)
-            balance_vars = dl.get_balance_vars()
-            old_wallet_balance = balance_vars.get("total_wallet_balance", 0.0)
-            new_total_balance = old_wallet_balance + total_brokerage_value
-            dl.set_balance_vars(
-                brokerage_balance=total_brokerage_value,
-                total_balance=new_total_balance
-            )
-            msg = (f"Imported {new_count} new Jupiter position(s); Skipped {duplicate_count} duplicate(s). "
-                   f"BrokerageBalance={total_brokerage_value:.2f}, TotalBalance={new_total_balance:.2f}")
-            logger.info(msg)
+           # balance_vars = dl.get_balance_vars()
+           # old_wallet_balance = balance_vars.get("total_wallet_balance", 0.0)
+          #  new_total_balance = old_wallet_balance + total_brokerage_value
+           # dl.set_balance_vars(
+          #      brokerage_balance=total_brokerage_value,
+           #     total_balance=new_total_balance
+          #  )
+          #  msg = (f"Imported {new_count} new Jupiter position(s); Skipped {duplicate_count} duplicate(s). "
+         #          f"BrokerageBalance={total_brokerage_value:.2f}, TotalBalance={new_total_balance:.2f}")
+         #   logger.info(msg)
 
             #logger.info(f"Jupiter:  💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸")
 
@@ -284,10 +301,11 @@ class PositionService:
                 op_logger = UnifiedLogger()
                 op_logger.log_operation(
                     operation_type="Hedge Fucked",
-                    primary_text=f"{len(hedges)} hedges updated via Jupiter positions.",
+                    primary_text=f"{len(hedges)} hedges fucked",
                     source="System",
                     file="position_service.py")
 
+            msg = "Jupiter positions updated successfully."
             return {"message": msg, "imported": new_count, "skipped": duplicate_count}
         except Exception as e:
             logger.error(f"Error in update_jupiter_positions: {e}", exc_info=True)

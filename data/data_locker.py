@@ -273,97 +273,6 @@ class DataLocker:
     # PRICES
     # ----------------------------------------------------------------
 
-    def read_api_counters(self) -> List[dict]:
-        self._init_sqlite_if_needed()
-        cursor = self.conn.cursor()
-        cursor.execute("""
-            SELECT api_name, total_reports, last_updated
-              FROM api_status_counters
-             ORDER BY api_name
-        """)
-        rows = cursor.fetchall()
-        results = []
-        for r in rows:
-            results.append({
-                "api_name": r["api_name"],
-                "total_reports": r["total_reports"],
-                "last_updated": r["last_updated"]
-            })
-        return results
-
-    def reset_api_counters(self):
-        self._init_sqlite_if_needed()
-        cursor = self.conn.cursor()
-        cursor.execute("UPDATE api_status_counters SET total_reports = 0")
-        self.conn.commit()
-
-    def increment_api_report_counter(self, api_name: str) -> None:
-        self._init_sqlite_if_needed()
-        cursor = self.conn.cursor()
-        cursor.execute(
-            "SELECT total_reports FROM api_status_counters WHERE api_name = ?",
-            (api_name,)
-        )
-        row = cursor.fetchone()
-        now_str = datetime.now().isoformat()
-        old_count = row["total_reports"] if row else 0
-        self.logger.debug(f"Previous total_reports for {api_name}={old_count}")
-        if row is None:
-            cursor.execute("""
-                INSERT INTO api_status_counters (api_name, total_reports, last_updated)
-                VALUES (?, 1, ?)
-            """, (api_name, now_str))
-        else:
-            cursor.execute("""
-                UPDATE api_status_counters
-                   SET total_reports = total_reports + 1,
-                       last_updated = ?
-                 WHERE api_name = ?
-            """, (now_str, api_name))
-        self.conn.commit()
-        self.logger.debug(f"Incremented API report counter for {api_name}, last_updated={now_str}.")
-
-    def get_balance_vars(self) -> dict:
-        self._init_sqlite_if_needed()
-        cursor = self.conn.cursor()
-        cursor.execute("""
-            SELECT
-              total_brokerage_balance,
-              total_wallet_balance,
-              total_balance
-            FROM system_vars
-            WHERE id=1
-        """)
-        row = cursor.fetchone()
-        if not row:
-            return {
-                "total_brokerage_balance": 0.0,
-                "total_wallet_balance": 0.0,
-                "total_balance": 0.0
-            }
-        return {
-            "total_brokerage_balance": row["total_brokerage_balance"] or 0.0,
-            "total_wallet_balance": row["total_wallet_balance"] or 0.0,
-            "total_balance": row["total_balance"] or 0.0
-        }
-
-    def set_balance_vars(self, brokerage_balance: float = None, wallet_balance: float = None, total_balance: float = None):
-        self._init_sqlite_if_needed()
-        current = self.get_balance_vars()
-        new_brokerage = brokerage_balance if brokerage_balance is not None else current["total_brokerage_balance"]
-        new_wallet = wallet_balance if wallet_balance is not None else current["total_wallet_balance"]
-        new_total = total_balance if total_balance is not None else current["total_balance"]
-        cursor = self.conn.cursor()
-        cursor.execute("""
-            UPDATE system_vars
-               SET total_brokerage_balance=?,
-                   total_wallet_balance=?,
-                   total_balance=?
-             WHERE id=1
-        """, (new_brokerage, new_wallet, new_total))
-        self.conn.commit()
-        self.logger.debug(f"Updated system_vars => total_brokerage_balance={new_brokerage}, total_wallet_balance={new_wallet}, total_balance={new_total}")
-
     def insert_price(self, price_dict: dict):
         try:
             self._init_sqlite_if_needed()
@@ -507,11 +416,10 @@ class DataLocker:
     # ALERTS
     # ----------------------------------------------------------------
 
-    def create_alert(self, alert_dict: dict):
+    def create_alert(self, alert_dict: dict) -> bool:
         try:
-            if not alert_dict.get("id"):
+            if "id" not in alert_dict or not alert_dict["id"]:
                 alert_dict["id"] = str(uuid4())
-            self._init_sqlite_if_needed()
             cursor = self.conn.cursor()
             cursor.execute("""
                 INSERT INTO alerts (
@@ -521,7 +429,7 @@ class DataLocker:
                     trigger_value,
                     condition,
                     notification_type,
-                    state,              -- Added state column
+                    state,
                     last_triggered,
                     status,
                     frequency,
@@ -531,23 +439,53 @@ class DataLocker:
                     liquidation_price,
                     notes,
                     position_reference_id,
-                    evaluated_value  -- NEW field
+                    evaluated_value
                 ) VALUES (
                     :id, :alert_type, :asset_type, :trigger_value, :condition, :notification_type,
                     :state, :last_triggered, :status, :frequency, :counter,
-                    :liquidation_distance, :target_travel_percent,
-                    :liquidation_price, :notes, :position_reference_id, :evaluated_value
+                    :liquidation_distance, :target_travel_percent, :liquidation_price, :notes,
+                    :position_reference_id, :evaluated_value
                 )
             """, alert_dict)
             self.conn.commit()
-            self.logger.debug(f"Created alert ID={alert_dict['id']}")
+            logger.debug(f"Created alert with ID={alert_dict['id']}")
+            return True
         except sqlite3.IntegrityError as ie:
-            self.logger.error(f"IntegrityError creating alert: {ie}", exc_info=True)
-        except sqlite3.Error as e:
-            self.logger.error(f"Database error in create_alert: {e}", exc_info=True)
-            raise
+            logger.error(f"IntegrityError creating alert: {ie}", exc_info=True)
+            return False
         except Exception as ex:
-            self.logger.exception(f"Unexpected error in create_alert: {ex}")
+            logger.exception(f"Unexpected error in create_alert: {ex}")
+            raise
+
+    from utils.unified_logger import UnifiedLogger
+    u_logger = UnifiedLogger()
+
+    def update_alert_conditions(self, alert_id: str, update_fields: dict) -> int:
+        try:
+            cursor = self.conn.cursor()
+            set_clause = ", ".join(f"{key}=?" for key in update_fields.keys())
+            values = list(update_fields.values())
+            values.append(alert_id)
+            sql = f"UPDATE alerts SET {set_clause} WHERE id=?"
+            cursor.execute(sql, values)
+            self.conn.commit()
+            num_updated = cursor.rowcount
+            self.u_logger.log_operation(
+                operation_type="Alert Update",
+                primary_text=f"Alert {alert_id} updated, rows affected: {num_updated}",
+                source="System",
+                file="data_locker.py",
+                extra_data={}
+            )
+            return num_updated
+        except Exception as ex:
+            self.u_logger.log_operation(
+                operation_type="Alert Update Failed",
+                primary_text=f"Error updating alert conditions for {alert_id}: {ex}",
+                source="System",
+                file="data_locker.py",
+                extra_data={}
+            )
             raise
 
     def get_alerts(self) -> List[dict]:
@@ -587,15 +525,16 @@ class DataLocker:
     def delete_alert(self, alert_id: str):
         try:
             self._init_sqlite_if_needed()
+            self.logger.debug(f"Preparing to delete alert with id: {alert_id}")
             cursor = self.conn.cursor()
             cursor.execute("DELETE FROM alerts WHERE id=?", (alert_id,))
             self.conn.commit()
-            self.logger.debug(f"Deleted alert ID={alert_id}")
+            self.logger.debug(f"Deleted alert with id: {alert_id} successfully.")
         except sqlite3.Error as e:
-            self.logger.error(f"DB error in delete_alert: {e}", exc_info=True)
+            self.logger.error(f"SQLite error while deleting alert {alert_id}: {e}", exc_info=True)
             raise
         except Exception as ex:
-            self.logger.exception(f"Error deleting alert: {ex}")
+            self.logger.exception(f"Unexpected error while deleting alert {alert_id}: {ex}")
             raise
 
     # ----------------------------------------------------------------
@@ -953,25 +892,6 @@ class DataLocker:
             self.create_alert(alert_dict)
         except Exception as e:
             self.logger.exception(f"Error creating alert instance: {e}")
-            raise
-
-    def update_alert_conditions(self, alert_id: str, updated_fields: dict):
-        """
-        Updates one or more fields (e.g., state, trigger_value, etc.) of an alert.
-        """
-        try:
-            self._init_sqlite_if_needed()
-            cursor = self.conn.cursor()
-            set_clause = ", ".join([f"{key}=:{key}" for key in updated_fields.keys()])
-            updated_fields["id"] = alert_id
-            cursor.execute(f"UPDATE alerts SET {set_clause} WHERE id=:id", updated_fields)
-            self.conn.commit()
-            self.logger.debug(f"Updated alert conditions for {alert_id} with {updated_fields}")
-        except sqlite3.Error as e:
-            self.logger.error(f"Database error in update_alert_conditions: {e}", exc_info=True)
-            raise
-        except Exception as ex:
-            self.logger.exception(f"Error updating alert conditions: {ex}")
             raise
 
 

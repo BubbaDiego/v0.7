@@ -92,11 +92,15 @@ def parse_nested_form(form: dict) -> dict:
                 current = current[key]
     return updated
 
+
 @alerts_bp.route('/create_all_alerts', methods=['POST'], endpoint="create_all_alerts")
 def create_all_alerts():
-    from alert_controller import AlertController
-    controller = AlertController()
-    created_alerts = controller.create_all_alerts()
+    from alert_manager import manager  # <--- import the global manager
+    print("DEBUG: create_all_alerts route was called!")  # or use logger.debug
+
+    # Now call the manager's create_all_alerts, which internally calls the controller
+    created_alerts = manager.create_all_alerts()
+
     return jsonify({"success": True, "created_alerts": created_alerts})
 
 @alerts_bp.route('/delete_all_alerts', methods=['POST'], endpoint="delete_all_alerts")

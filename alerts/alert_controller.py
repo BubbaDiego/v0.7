@@ -2,9 +2,11 @@ from data.data_locker import DataLocker
 from utils.json_manager import JsonManager, JsonType
 from data.models import AlertType, AlertClass, NotificationType, Status
 from typing import Optional
+from utils.unified_logger import UnifiedLogger
 
 class AlertController:
     def __init__(self, db_path: str = None):
+        self.u_logger = UnifiedLogger()
         if db_path:
             self.data_locker = DataLocker.get_instance(db_path)
         else:
@@ -13,27 +15,28 @@ class AlertController:
     def create_alert(self, alert_obj) -> bool:
         try:
             alert_dict = alert_obj.to_dict()
-            # Ensure default values for required fields.
+            # Set default values if needed
             if not alert_dict.get("asset_type"):
                 alert_dict["asset_type"] = "BTC"
             if not alert_dict.get("state"):
                 alert_dict["state"] = "Normal"
-            # <-- Add default evaluated_value if missing:
             if "evaluated_value" not in alert_dict:
                 alert_dict["evaluated_value"] = 0.0
-
-            self.data_locker.create_alert(alert_dict)
-            return True
+            return self.data_locker.create_alert(alert_dict)
         except Exception as e:
-            print(f"Error creating alert: {e}")
+            UnifiedLogger().log_operation(operation_type="Alert Creation Failed", primary_text=f"Error creating alert: {e}", source="AlertController", file="alert_controller.py")
+
+
             return False
 
     def delete_alert(self, alert_id: str) -> bool:
         try:
+            logging.debug(f"Attempting to delete alert with id: {alert_id}")
             self.data_locker.delete_alert(alert_id)
+            logging.debug(f"Successfully deleted alert with id: {alert_id}")
             return True
         except Exception as e:
-            print(f"Error deleting alert: {e}")
+            logging.error(f"Error deleting alert {alert_id}: {e}", exc_info=True)
             return False
 
     def update_alert(self, alert_id: str, updated_fields: dict) -> bool:
@@ -177,96 +180,81 @@ class AlertController:
             logging.warning("No alert identifier found for updating state; update skipped.")
 
     def create_travel_percent_alerts(self):
-        """
-        Iterates through active positions and creates a corresponding travel percent alert
-        for each. Travel percent alerts are of type TRAVEL_PERCENT_LIQUID and class POSITION.
-        """
-        jm = JsonManager()
-        alert_limits = jm.load("", JsonType.ALERT_LIMITS)
-        travel_config = alert_limits.get("alert_ranges", {}).get("travel_percent_liquid_ranges", {})
-
-        if not travel_config.get("enabled", False):
-            print("Travel percent alerts are not enabled in configuration.")
-            return []
-
+        # In this method, we iterate through positions and create a travel alert for positions lacking one.
         created_alerts = []
-        data_locker = self.data_locker
-        positions = data_locker.read_positions()
+        positions = self.data_locker.conn.execute("SELECT * FROM positions").fetchall()
+        for pos in positions:
+            pos_dict = dict(pos)
+            if not pos_dict.get("alert_reference_id"):
+                asset = pos_dict.get("asset_type", "BTC")
+                try:
+                    trigger_value = float(-4.0)  # example threshold for travel percent
+                except Exception:
+                    trigger_value = -4.0
+                condition = "BELOW"
+                notification_type = "Call"  # or "Email", based on your configuration
+                position_id = pos_dict.get("id")
+                # Create a dummy alert object (you could also create a proper Alert class)
+                alert_obj = type("DummyAlert", (), {})()  # a simple object
+                alert_obj.id = str(uuid4())
+                alert_obj.alert_type = AlertType.TRAVEL_PERCENT_LIQUID.value
+                alert_obj.alert_class = AlertClass.POSITION.value
+                alert_obj.asset_type = asset
+                alert_obj.trigger_value = trigger_value
+                alert_obj.condition = condition
+                alert_obj.notification_type = notification_type
+                alert_obj.state = "Normal"
+                alert_obj.last_triggered = None
+                alert_obj.status = Status.ACTIVE.value
+                alert_obj.frequency = 1
+                alert_obj.counter = 0
+                alert_obj.liquidation_distance = 0.0
+                alert_obj.target_travel_percent = 0.0
+                alert_obj.liquidation_price = 0.0
+                alert_obj.notes = ""
+                alert_obj.position_reference_id = position_id
+                alert_obj.evaluated_value = 0.0
 
-        class DummyAlert:
-            def __init__(self, alert_type, alert_class, asset_type, trigger_value, condition, notification_type, position_reference_id, state="Normal", status="Active"):
-                self.id = None
-                self.alert_type = alert_type
-                self.alert_class = alert_class
-                self.asset_type = asset_type
-                self.trigger_value = trigger_value
-                self.condition = condition
-                self.notification_type = notification_type
-                self.state = state
-                self.last_triggered = None
-                self.status = status
-                self.frequency = 1
-                self.counter = 0
-                self.liquidation_distance = 0.0
-                self.target_travel_percent = 0.0
-                self.liquidation_price = 0.0
-                self.notes = ""
-                self.position_reference_id = position_reference_id
-
-            def to_dict(self):
-                return {
-                    "id": self.id,
-                    "alert_type": self.alert_type,
-                    "alert_class": self.alert_class,
-                    "asset_type": self.asset_type,
-                    "trigger_value": self.trigger_value,
-                    "condition": self.condition,
-                    "notification_type": self.notification_type,
-                    "state": self.state,
-                    "last_triggered": self.last_triggered,
-                    "status": self.status,
-                    "frequency": self.frequency,
-                    "counter": self.counter,
-                    "liquidation_distance": self.liquidation_distance,
-                    "target_travel_percent": self.target_travel_percent,
-                    "liquidation_price": self.liquidation_price,
-                    "notes": self.notes,
-                    "position_reference_id": self.position_reference_id
+                # Provide a simple to_dict() method
+                alert_obj.to_dict = lambda: {
+                    "id": alert_obj.id,
+                    "alert_type": alert_obj.alert_type,
+                    "alert_class": alert_obj.alert_class,
+                    "asset_type": alert_obj.asset_type,
+                    "trigger_value": alert_obj.trigger_value,
+                    "condition": alert_obj.condition,
+                    "notification_type": alert_obj.notification_type,
+                    "state": alert_obj.state,
+                    "last_triggered": alert_obj.last_triggered,
+                    "status": alert_obj.status,
+                    "frequency": alert_obj.frequency,
+                    "counter": alert_obj.counter,
+                    "liquidation_distance": alert_obj.liquidation_distance,
+                    "target_travel_percent": alert_obj.target_travel_percent,
+                    "liquidation_price": alert_obj.liquidation_price,
+                    "notes": alert_obj.notes,
+                    "position_reference_id": alert_obj.position_reference_id,
+                    "evaluated_value": alert_obj.evaluated_value
                 }
 
-        for pos in positions:
-            if not pos.get("alert_reference_id"):
-                asset = pos.get("asset_type", "BTC")
-                trigger_value = float(travel_config.get("low", 0.0))
-                condition = "BELOW"
-                notifications = travel_config.get("low_notifications", {})
-                notification_type = "Call" if notifications.get("call", False) else "Email"
-                position_id = pos.get("id")
-                dummy_alert = DummyAlert(
-                    alert_type=AlertType.TRAVEL_PERCENT_LIQUID.value,
-                    alert_class=AlertClass.POSITION.value,
-                    asset_type=asset,
-                    trigger_value=trigger_value,
-                    condition=condition,
-                    notification_type=notification_type,
-                    position_reference_id=position_id,
-                    state="Normal",
-                    status=Status.ACTIVE.value
-                )
-                if self.create_alert(dummy_alert):
-                    created_alerts.append(dummy_alert.to_dict())
-                    print(f"Created travel percent alert for position {position_id} ({asset}): condition {condition}, trigger {trigger_value}, notification {notification_type}.")
-                    try:
-                        conn = data_locker.get_db_connection()
-                        cursor = conn.cursor()
-                        cursor.execute("UPDATE positions SET alert_reference_id=? WHERE id=?", (dummy_alert.id, position_id))
-                        conn.commit()
-                        print(f"Updated position {position_id} with alert_reference_id {dummy_alert.id}.")
-                    except Exception as e:
-                        print(f"Error updating position {position_id} with alert reference: {e}")
+                if self.create_alert(alert_obj):
+                    created_alerts.append(alert_obj.to_dict())
+                    logger.info(f"Created travel percent alert for position {position_id} ({asset}).")
+                    # Now update the position record with the alert id:
+                    conn = self.data_locker.get_db_connection()
+                    cursor = conn.cursor()
+                    cursor.execute("UPDATE positions SET alert_reference_id=? WHERE id=?", (alert_obj.id, position_id))
+                    conn.commit()
                 else:
-                    print(f"Failed to create travel percent alert for position {position_id}.")
+                    logger.error(f"Failed to create travel percent alert for position {position_id}.")
         return created_alerts
+
+    def create_all_alerts(self):
+        alerts_created = []
+        travel_alerts = self.create_travel_percent_alerts()
+        alerts_created.extend(travel_alerts)
+        # Add additional alert creation methods here (e.g., profit alerts, price alerts, etc.)
+        return alerts_created
 
     def create_profit_alerts(self):
         """
@@ -468,6 +456,16 @@ class AlertController:
         return created_alerts
 
     def create_all_alerts(self):
+
+        print("DEBUG: create_all_alerts method called")
+        # or using the unified logger:
+        self.u_logger.log_operation(
+            operation_type="Create Alerts",
+            primary_text="create_all_alerts method called",
+            source="AlertController",
+            file="alert_controller.py"
+        )
+
         """
         Calls create_price_alerts(), create_travel_percent_alerts(), create_profit_alerts(), and create_heat_index_alerts()
         and returns the combined results.

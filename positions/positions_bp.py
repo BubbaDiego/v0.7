@@ -38,13 +38,14 @@ from alerts.alert_manager import manager as alert_manager
 from prices.price_monitor import PriceMonitor
 from alerts.alert_manager import AlertManager #manual_check_alerts, manager
 from utils.operations_manager import OperationsLogger
+from utils.unified_logger import UnifiedLogger
 
 # Assume that socketio is initialized in your main app and imported here.
 #from your_app import socketio  # Replace with the actual import if different
 
 logger = logging.getLogger("PositionsBlueprint")
 logger.setLevel(logging.DEBUG)
-op_logger = OperationsLogger()
+u_logger = UnifiedLogger()
 
 
 from config.config_constants import CONFIG_PATH
@@ -680,7 +681,8 @@ def update_jupiter():
             return jsonify(update_result), 500
 
         # Updated logger call: pass operation_type as positional argument and source as keyword.
-        op_logger.log("Jupiter Updated", "Jupiter positions updated successfully.", source=source)
+        u_logger.log_operation("Jupiter Updated", "Jupiter positions updated successfully.", source=source)
+
     except Exception as e:
         logger.error(f"Exception during Jupiter positions update: {e}", exc_info=True)
         print(f"[ERROR] Exception during Jupiter positions update: {e}")
@@ -691,14 +693,14 @@ def update_jupiter():
         logger.debug("Step 2.5: Updating hedges using HedgeManager...")
         positions = PositionService.get_all_positions(DB_PATH)
         logger.debug(f"Fetched {len(positions)} positions for hedge update.")
-        from alerts.hedge_manager import HedgeManager
+        from sonic_labs.hedge_manager import HedgeManager
         hedge_manager = HedgeManager(positions)
         hedges = hedge_manager.get_hedges()
         logger.debug(f"HedgeManager created {len(hedges)} hedges.")
         for hedge in hedges:
             logger.debug(f"Hedge ID {hedge.id}: total_long_size={hedge.total_long_size}, total_short_size={hedge.total_short_size}, total_heat_index={hedge.total_heat_index}")
         print(f"[DEBUG] HedgeManager found {len(hedges)} hedges.")
-        op_logger.log("Hedge Updated", f"Hedge update complete; {len(hedges)} hedges created.", source=source)
+        u_logger.log("Hedge Updated", f"Hedge update complete; {len(hedges)} hedges created.", source=source)
     except Exception as e:
         logger.error(f"Exception during hedge manager update: {e}", exc_info=True)
         print(f"[ERROR] Exception during hedge manager update: {e}")
@@ -791,7 +793,9 @@ def update_jupiter():
     # Step 9: Log final operation.
     try:
         logger.debug("Step 9: Logging operation with OperationsLogger...")
-        op_logger.log("Jupiter Update Complete", f"Totals updated; {len(hedges)} hedges found.", source=source)
+        u_logger.log_operation("Jupiter Update Complete", f"Totals updated; {len(hedges)} hedges found.",
+                               source="system")
+
         logger.debug("Operation logged successfully.")
         print("[DEBUG] Operation logged successfully.")
     except Exception as e:

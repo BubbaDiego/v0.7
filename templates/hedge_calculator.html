@@ -84,7 +84,6 @@
     <!-- Overall Card Header with Save Button -->
     <div class="card-header position-relative" style="background-color: var(--card-title-color);">
       <h4 class="mb-0 text-center" style="color: var(--text-color);">🦔 Hedge Calculator</h4>
-      <!-- Better save icon added -->
       <button id="saveModifiers" class="btn btn-sm btn-outline-secondary position-absolute" style="top: 10px; right: 10px;" title="Save Modifiers">
         <i class="fa-solid fa-floppy-disk"></i>
       </button>
@@ -192,17 +191,13 @@
         </div>
       </div>
 
-      <!--
-           START container for the "6 boxes + toggle"
-           (Price Slider, Projected Leverage, Approach Toggle, Recommendations,
-            Current Output Row, Projected Output Row)
-      -->
-      <div class="rounded-3 p-3 mb-4" style="background-color: #eff1f6;">  # I AM THE ONE YOU SEEK
+      <!-- START container for the "6 boxes + toggle" -->
+      <div class="rounded-3 p-3 mb-4" style="background-color: #eff1f6;">  <!-- I AM THE ONE YOU SEEK -->
 
-        <!-- New Row: Combined Price Slider and Projected Leverage Slider Side by Side -->
+        <!-- Row: Price Slider and Projected Leverage Slider Side by Side -->
         <div class="row mb-4">
           <div class="col-md-6">
-            <!-- Simulated Price Box: now same height as Projected Leverage box -->
+            <!-- Simulated Price Box -->
             <div id="priceSliderRow" class="border rounded p-3 slider-box" style="background-color: #f7f7f7;">
               <div class="d-flex justify-content-center mb-2">
                 <h5 class="text-center"><strong>💵 Simulated Price</strong></h5>
@@ -212,7 +207,6 @@
                 <div id="currentMarker" class="position-absolute" style="top: -35px; left: 0; font-size: 1rem; font-weight: bold; background-color: rgba(0,0,0,0.5); color: #fff; padding: 4px 6px; border-radius: 4px; pointer-events: none;">
                   Price: $0.00
                 </div>
-                <!-- Reset button with Unicode price icon -->
                 <button id="resetPriceButton" onclick="resetPriceToCurrent()" title="Reset to current price" style="position: absolute; top: -35px; right: 10px; background: none; border: none; font-size: 1.2rem; cursor: pointer;">
                   💲
                 </button>
@@ -230,7 +224,7 @@
             </div>
           </div>
           <div class="col-md-6">
-            <!-- Projected Leverage Slider Box: same slider-box class -->
+            <!-- Projected Leverage Slider Box -->
             <div id="leverageSliderRow" class="border rounded p-3 slider-box" style="background-color: #f7f7f7;">
               <div class="d-flex justify-content-center mb-2">
                 <h5 class="text-center"><strong>Projected Leverage</strong></h5>
@@ -239,7 +233,6 @@
               <div class="text-center" style="margin-top: -2px;">
                 <span id="leverageValue">Leverage: 10x</span>
               </div>
-              <!-- Display collateral and notional additions (moved up a bit) -->
               <div class="text-center" style="margin-top: -2px;">
                 <span id="longSizeComposition">
                   Long Addition: <span class="collateral-value">Collateral: $0.00</span>, Notional: $0.00
@@ -252,7 +245,7 @@
           </div>
         </div>
 
-        <!-- Row 4: Approach Toggle -->
+        <!-- Row: Approach Toggle -->
         <div id="approachToggleRow" class="row mb-4">
           <div class="col-12">
             <div class="d-flex justify-content-center align-items-center">
@@ -265,11 +258,16 @@
                 <input class="form-check-input" type="radio" name="approach" id="approachPyramid" value="pyramid">
                 <label class="form-check-label" for="approachPyramid">Pyramid</label>
               </div>
+              <!-- New Equilibrium Option -->
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="approach" id="approachEquilibrium" value="equilibrium">
+                <label class="form-check-label" for="approachEquilibrium">Equilibrium</label>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Row 5: Recommendation Boxes (split into two blue boxes) -->
+        <!-- Row: Recommendation Boxes -->
         <div id="recommendationRow" class="row mb-4">
           <div class="col-md-6">
             <div id="longRecommendationBox" class="recommendation-box text-center">
@@ -283,25 +281,22 @@
           </div>
         </div>
 
-        <!-- Row 6: Output Section for Current Positions -->
+        <!-- Row: Output Section for Current Positions -->
         <div id="outputRow" class="row">
           <div class="col-md-6">
             <div id="longOutputCard" class="card shadow-sm position-relative reduced-height">
-              <!-- Heat box at top -->
               <div id="longHeatBox" style="position:absolute; top:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-size:1.2rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
                 🔥 Heat: <span id="longHeatIndex">0</span>
                 <div id="longHeatDetails" style="font-size: 0.8rem; margin-top: 4px;">
                   DTL: <span id="longHeatDTL">0</span> | Lev: <span id="longHeatLev">0</span>x | CR: <span id="longHeatCR">0</span>%
                 </div>
               </div>
-              <!-- Sim Heat box: now same style as Heat box but purple, moved to center -->
               <div id="longSimHeatBox" class="sim-heat-box">
                 🔥 Sim Heat: <span id="longSimHeatIndex">0</span>
                 <div id="longSimHeatDetails" style="font-size: 0.8rem; margin-top: 4px;">
                   DTL: <span id="longSimHeatDTL">0</span> | Lev: <span id="longSimHeatLev">0</span>x | CR: <span id="longSimHeatCR">0</span>% | Collateral: $<span id="longSimHeatCollateral">0.00</span>
                 </div>
               </div>
-              <!-- Travel box at bottom -->
               <div id="longTravelBox" style="position:absolute; bottom:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-size:1.2rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
                 Travel: <span id="longTravelPercent">0%</span>
               </div>
@@ -321,21 +316,18 @@
           </div>
           <div class="col-md-6">
             <div id="shortOutputCard" class="card shadow-sm position-relative reduced-height">
-              <!-- Heat box at top -->
               <div id="shortHeatBox" style="position:absolute; top:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-size:1.2rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
                 🔥 Heat: <span id="shortHeatIndex">0</span>
                 <div id="shortHeatDetails" style="font-size: 0.8rem; margin-top: 4px;">
                   DTL: <span id="shortHeatDTL">0</span> | Lev: <span id="shortHeatLev">0</span>x | CR: <span id="shortHeatCR">0</span>%
                 </div>
               </div>
-              <!-- Sim Heat box: now same style as Heat box but purple, moved to center -->
               <div id="shortSimHeatBox" class="sim-heat-box">
                 🔥 Sim Heat: <span id="shortSimHeatIndex">0</span>
                 <div id="shortSimHeatDetails" style="font-size: 0.8rem; margin-top: 4px;">
                   DTL: <span id="shortSimHeatDTL">0</span> | Lev: <span id="shortSimHeatLev">0</span>x | CR: <span id="shortSimHeatCR">0</span>% | Collateral: $<span id="shortSimHeatCollateral">0.00</span>
                 </div>
               </div>
-              <!-- Travel box at bottom -->
               <div id="shortTravelBox" style="position:absolute; bottom:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-size:1.2rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
                 Travel: <span id="shortTravelPercent">0%</span>
               </div>
@@ -355,15 +347,13 @@
           </div>
         </div>
 
-        <!-- Row 7: Projected Output Section for Positions -->
+        <!-- Row: Projected Output Section for Positions -->
         <div id="projectedOutputRow" class="row mt-4">
           <div class="col-md-6">
             <div id="projectedLongOutputCard" class="card shadow-sm position-relative reduced-height">
-              <!-- Heat box at top -->
               <div id="projectedLongHeatBox" style="position:absolute; top:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
                 🔥 Projected Heat: <span id="projectedLongHeatIndex">0</span>
               </div>
-              <!-- Travel box at bottom -->
               <div id="projectedLongTravelBox" style="position:absolute; bottom:10px; right:10px; background-color:#fff; border-radius:10px; padding:4px 8px; font-size:0.9rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
                 Projected Travel: <span id="projectedLongTravelPercent">0%</span>
               </div>
@@ -382,11 +372,9 @@
           </div>
           <div class="col-md-6">
             <div id="projectedShortOutputCard" class="card shadow-sm position-relative reduced-height">
-              <!-- Heat box at top -->
               <div id="projectedShortHeatBox" style="position:absolute; top:10px; right:10px; background-color:#fff; border-radius:10px; padding:8px 12px; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
                 🔥 Projected Heat: <span id="projectedShortHeatIndex">0</span>
               </div>
-              <!-- Travel box at bottom -->
               <div id="projectedShortTravelBox" style="position:absolute; bottom:10px; right:10px; background-color:#fff; border-radius:10px; padding:4px 8px; font-size:0.9rem; font-weight:bold; color:#333; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
                 Projected Travel: <span id="projectedShortTravelPercent">0%</span>
               </div>
@@ -404,6 +392,7 @@
             </div>
           </div>
         </div>
+
       </div>
       <!-- END container for the 6 boxes + toggle -->
 
@@ -452,10 +441,7 @@
   let referencePrice = 100;
   let longLiquidation = null;
   let shortLiquidation = null;
-
-  /* ADDED for reset button fix */
   let lastComputedCurrentPrice = 0;
-
   const longPositions = {{ long_positions|tojson }};
   const shortPositions = {{ short_positions|tojson }};
 
@@ -511,17 +497,13 @@
       slider.max = currentPrice * 1.25 * 1.05;
     }
     slider.value = currentPrice;
-
-    /* Store in global so the reset button can revert to this price */
     lastComputedCurrentPrice = currentPrice;
-
     sliderChanged();
     updateEntryMarkers();
   }
 
   function sliderChanged() {
-    const slider = document.getElementById("priceSlider");
-    const simPrice = parseFloat(slider.value);
+    const simPrice = parseFloat(document.getElementById("priceSlider").value);
     updatePriceTicks();
     updateMarker();
     updateLong(simPrice);
@@ -532,7 +514,6 @@
     updateLongTravelPercent(simPrice);
     updateShortTravelPercent(simPrice);
     updateProjectedPositions(simPrice);
-    // Update simulated (resulting) heat index displays
     updateLongSimHeatIndex(simPrice);
     updateShortSimHeatIndex(simPrice);
   }
@@ -551,9 +532,7 @@
   function updateMarker() {
     const slider = document.getElementById("priceSlider");
     const simPrice = parseFloat(slider.value);
-    const sliderRect = slider.getBoundingClientRect();
-    const sliderWidth = sliderRect.width;
-    const markerLeft = ((simPrice - parseFloat(slider.min)) / (parseFloat(slider.max) - parseFloat(slider.min))) * sliderWidth;
+    const markerLeft = ((simPrice - parseFloat(slider.min)) / (parseFloat(slider.max) - parseFloat(slider.min))) * slider.getBoundingClientRect().width;
     const marker = document.getElementById("currentMarker");
     marker.style.left = markerLeft + "px";
     marker.innerHTML = "Price: $" + simPrice.toFixed(2);
@@ -561,8 +540,7 @@
 
   function updateEntryMarkers() {
     const slider = document.getElementById("priceSlider");
-    const sliderRect = slider.getBoundingClientRect();
-    const sliderWidth = sliderRect.width;
+    const sliderWidth = slider.getBoundingClientRect().width;
     const longEntry = parseFloat(document.getElementById("longEntry").value) || 0;
     const shortEntry = parseFloat(document.getElementById("shortEntry").value) || 0;
     if (longEntry) {
@@ -592,7 +570,6 @@
     let feeCost = (fee / 100) * longSize;
     let netValue = collateral + pnl - feeCost;
 
-    // Liquidation check
     if (longLiquidation && simPrice <= longLiquidation) {
       document.getElementById("longSimPrice").innerHTML =
         "<strong>Simulated Price: $" + simPrice.toFixed(2) + " (Liquidated)</strong>";
@@ -606,7 +583,6 @@
         "<strong>Recommended: Liquidated</strong>";
       document.getElementById("longSafetyMargin").innerHTML =
         "<strong>Safety Margin: 0%</strong>";
-      // Liquidated card style
       document.getElementById("longOutputCard").className =
         "card shadow-sm bg-secondary bg-opacity-25 border border-2 border-secondary reduced-height";
       document.getElementById("longCurrentSize").innerHTML =
@@ -614,15 +590,12 @@
       return;
     }
 
-    // Normal updates
     document.getElementById("longSimPrice").innerHTML =
       "<strong>Simulated Price: $" + simPrice.toFixed(2) + "</strong>";
     document.getElementById("longCollateralDisplay").innerHTML =
       "<strong>Collateral: $" + collateral.toFixed(2) + "</strong>";
     document.getElementById("longValue").innerHTML =
       "<strong>Position Value: $" + netValue.toFixed(2) + "</strong>";
-
-    // P&L color
     let pnlColor = (pnl - feeCost) >= 0 ? "text-success" : "text-danger";
     let bgClass = (pnl - feeCost) >= 0
       ? "bg-success bg-opacity-10 border border-2 border-success"
@@ -631,8 +604,6 @@
       "<strong>P&L: <span class='" + pnlColor + "'>" +
       ((pnl - feeCost) >= 0 ? "▲ " : "▼ ") + "$" +
       (pnl - feeCost).toFixed(2) + "</span></strong>";
-
-    // Recommendation
     let recommendation = "";
     let recIcon = "";
     if (simPrice < longEntry) {
@@ -647,16 +618,10 @@
     }
     document.getElementById("longSLTP").innerHTML =
       "<strong>Recommended: " + recIcon + recommendation + "</strong>";
-
-    // Dynamic background
     document.getElementById("longOutputCard").className =
       "card shadow-sm " + bgClass + " reduced-height";
-
-    // Current size
     document.getElementById("longCurrentSize").innerHTML =
       "<strong>Current Size: $" + longSize.toFixed(2) + "</strong>";
-
-    // Safety margin
     const longLiq = longLiquidation || (longEntry * 0.8);
     const longRange = longEntry - longLiq;
     const longSafety = simPrice - longLiq;
@@ -675,7 +640,6 @@
     let feeCost = (fee / 100) * shortSize;
     let netValue = collateral + pnl - feeCost;
 
-    // Liquidation check
     if (shortLiquidation && simPrice >= shortLiquidation) {
       document.getElementById("shortSimPrice").innerHTML =
         "<strong>Simulated Price: $" + simPrice.toFixed(2) + " (Liquidated)</strong>";
@@ -689,7 +653,6 @@
         "<strong>Recommended: Liquidated</strong>";
       document.getElementById("shortSafetyMargin").innerHTML =
         "<strong>Safety Margin: 0%</strong>";
-      // Liquidated card style
       document.getElementById("shortOutputCard").className =
         "card shadow-sm bg-secondary bg-opacity-25 border border-2 border-secondary reduced-height";
       document.getElementById("shortCurrentSize").innerHTML =
@@ -697,15 +660,12 @@
       return;
     }
 
-    // Normal updates
     document.getElementById("shortSimPrice").innerHTML =
       "<strong>Simulated Price: $" + simPrice.toFixed(2) + "</strong>";
     document.getElementById("shortCollateralDisplay").innerHTML =
       "<strong>Collateral: $" + collateral.toFixed(2) + "</strong>";
     document.getElementById("shortValue").innerHTML =
       "<strong>Position Value: $" + netValue.toFixed(2) + "</strong>";
-
-    // P&L color
     let pnlColor = (pnl - feeCost) >= 0 ? "text-success" : "text-danger";
     let bgClass = (pnl - feeCost) >= 0
       ? "bg-success bg-opacity-10 border border-2 border-success"
@@ -714,8 +674,6 @@
       "<strong>P&L: <span class='" + pnlColor + "'>" +
       ((pnl - feeCost) >= 0 ? "▲ " : "▼ ") + "$" +
       (pnl - feeCost).toFixed(2) + "</span></strong>";
-
-    // Recommendation
     let recommendation = "";
     let recIcon = "";
     if (simPrice > shortEntry) {
@@ -730,16 +688,10 @@
     }
     document.getElementById("shortSLTP").innerHTML =
       "<strong>Recommended: " + recIcon + recommendation + "</strong>";
-
-    // Dynamic background
     document.getElementById("shortOutputCard").className =
       "card shadow-sm " + bgClass + " reduced-height";
-
-    // Current size
     document.getElementById("shortCurrentSize").innerHTML =
       "<strong>Current Size: $" + shortSize.toFixed(2) + "</strong>";
-
-    // Safety margin
     const shortLiq = shortLiquidation || (shortEntry * 1.2);
     const shortRange = shortLiq - shortEntry;
     const shortSafety = shortLiq - simPrice;
@@ -771,7 +723,6 @@
     let collateralRatio = collateral / size;
     collateralRatio = Math.min(collateralRatio, 1);
     let riskCollateralFactor = 1 - collateralRatio;
-    // Retrieve dynamic weights from UI
     const distanceWeight = parseFloat(document.getElementById("distanceWeightInput").value) || 0.45;
     const leverageWeight = parseFloat(document.getElementById("leverageWeightInput").value) || 0.35;
     const collateralWeight = parseFloat(document.getElementById("collateralWeightInput").value) || 0.20;
@@ -805,7 +756,6 @@
     let collateralRatio = collateral / size;
     collateralRatio = Math.min(collateralRatio, 1);
     let riskCollateralFactor = 1 - collateralRatio;
-    // Retrieve dynamic weights from UI
     const distanceWeight = parseFloat(document.getElementById("distanceWeightInput").value) || 0.45;
     const leverageWeight = parseFloat(document.getElementById("leverageWeightInput").value) || 0.35;
     const collateralWeight = parseFloat(document.getElementById("collateralWeightInput").value) || 0.20;
@@ -849,7 +799,6 @@
     let collateralRatio = currentCollateral / simulatedSize;
     collateralRatio = Math.min(collateralRatio, 1);
     let riskCollateralFactor = 1 - collateralRatio;
-    // Retrieve dynamic weights from UI
     const distanceWeight = parseFloat(document.getElementById("distanceWeightInput").value) || 0.45;
     const leverageWeight = parseFloat(document.getElementById("leverageWeightInput").value) || 0.35;
     const collateralWeight = parseFloat(document.getElementById("collateralWeightInput").value) || 0.20;
@@ -891,7 +840,6 @@
     let collateralRatio = currentCollateral / simulatedSize;
     collateralRatio = Math.min(collateralRatio, 1);
     let riskCollateralFactor = 1 - collateralRatio;
-    // Retrieve dynamic weights from UI
     const distanceWeight = parseFloat(document.getElementById("distanceWeightInput").value) || 0.45;
     const leverageWeight = parseFloat(document.getElementById("leverageWeightInput").value) || 0.35;
     const collateralWeight = parseFloat(document.getElementById("collateralWeightInput").value) || 0.20;
@@ -937,6 +885,16 @@
 
   /*************************************
    * Hedge Recommendations
+   *
+   * This function now supports three approaches:
+   *  1. "average": The basic average down recommendation.
+   *  2. "pyramid": The pyramid approach.
+   *  3. "equilibrium": A new option that dampens the raw recommendation so that if positions have been adjusted,
+   *     the recommended adjustment comes closer to zero—approaching equilibrium.
+   *
+   * The equilibrium branch computes a raw recommendation (like average) and then applies a dampening factor (here 0.3)
+   * so that when you update your position, further recommended adjustments are smaller.
+   *
    *************************************/
   function updateHedgeRecommendations(simPrice) {
     const targetMargin = parseFloat(document.getElementById("targetMarginInput").value) / 100;
@@ -955,21 +913,49 @@
     const shortMarginCalc = shortRange > 0 ? shortSafety / shortRange : 0;
     let longRec = "No long side adjustment recommended.";
     let shortRec = "No short side adjustment recommended.";
+    const approach = document.querySelector('input[name="approach"]:checked').value;
 
-    if (longMarginCalc < targetMargin) {
-      longRec = "Long side is at risk. Consider opening an additional long position of ~<strong>$" +
-                (longSize * (targetMargin - longMarginCalc) * adjustmentFactor).toFixed(2) + "</strong>";
-    } else if (longMarginCalc > targetMargin) {
-      longRec = "Long side is in profit. To offset potential loss on the short side, consider increasing long exposure by ~<strong>$" +
-                (longSize * (longMarginCalc - targetMargin) * adjustmentFactor).toFixed(2) + "</strong>";
-    }
-
-    if (shortMarginCalc < targetMargin) {
-      shortRec = "Short side is at risk. Consider opening an additional short position of ~<strong>$" +
-                 (shortSize * (targetMargin - shortMarginCalc) * adjustmentFactor).toFixed(2) + "</strong>";
-    } else if (shortMarginCalc > targetMargin) {
-      shortRec = "Short side is in profit. To offset potential loss on the long side, consider increasing short exposure by ~<strong>$" +
-                 (shortSize * (shortMarginCalc - targetMargin) * adjustmentFactor).toFixed(2) + "</strong>";
+    if (approach === "average") {
+      if (longMarginCalc < targetMargin) {
+        longRec = "Long side is at risk. Consider opening an additional long position of ~<strong>$" +
+                  (longSize * (targetMargin - longMarginCalc) * adjustmentFactor).toFixed(2) + "</strong>";
+      } else if (longMarginCalc > targetMargin) {
+        longRec = "Long side is in profit. To offset potential loss on the short side, consider increasing long exposure by ~<strong>$" +
+                  (longSize * (longMarginCalc - targetMargin) * adjustmentFactor).toFixed(2) + "</strong>";
+      }
+      if (shortMarginCalc < targetMargin) {
+        shortRec = "Short side is at risk. Consider opening an additional short position of ~<strong>$" +
+                   (shortSize * (targetMargin - shortMarginCalc) * adjustmentFactor).toFixed(2) + "</strong>";
+      } else if (shortMarginCalc > targetMargin) {
+        shortRec = "Short side is in profit. To offset potential loss on the long side, consider increasing short exposure by ~<strong>$" +
+                   (shortSize * (shortMarginCalc - targetMargin) * adjustmentFactor).toFixed(2) + "</strong>";
+      }
+    } else if (approach === "pyramid") {
+      // Pyramid approach (same as average for now; you can modify if needed)
+      if (longMarginCalc < targetMargin) {
+        longRec = "Long side is at risk. Consider adding a pyramid long position of ~<strong>$" +
+                  (longSize * (targetMargin - longMarginCalc) * adjustmentFactor).toFixed(2) + "</strong>";
+      } else if (longMarginCalc > targetMargin) {
+        longRec = "Long side is in profit. Consider adding a pyramid long position of ~<strong>$" +
+                  (longSize * (longMarginCalc - targetMargin) * adjustmentFactor).toFixed(2) + "</strong>";
+      }
+      if (shortMarginCalc < targetMargin) {
+        shortRec = "Short side is at risk. Consider adding a pyramid short position of ~<strong>$" +
+                   (shortSize * (targetMargin - shortMarginCalc) * adjustmentFactor).toFixed(2) + "</strong>";
+      } else if (shortMarginCalc > targetMargin) {
+        shortRec = "Short side is in profit. Consider adding a pyramid short position of ~<strong>$" +
+                   (shortSize * (shortMarginCalc - targetMargin) * adjustmentFactor).toFixed(2) + "</strong>";
+      }
+    } else if (approach === "equilibrium") {
+      // New equilibrium approach:
+      // First, compute the raw recommendation as in average approach.
+      let rawLongRec = longSize * (targetMargin - longMarginCalc) * adjustmentFactor;
+      let rawShortRec = shortSize * (targetMargin - shortMarginCalc) * adjustmentFactor;
+      // Apply a dampening factor so that if positions have been adjusted already,
+      // the further recommendation is smaller (closer to equilibrium).
+      let dampening = 0.3; // Adjust this factor as needed.
+      longRec = "Equilibrium adjustment: ~<strong>$" + (rawLongRec * dampening).toFixed(2) + "</strong>";
+      shortRec = "Equilibrium adjustment: ~<strong>$" + (rawShortRec * dampening).toFixed(2) + "</strong>";
     }
 
     document.getElementById("longRecommendationBox").innerHTML =
@@ -1001,15 +987,25 @@
       if (longMarginCalc < targetMargin) {
         recommendedLongExtra = longSize * (targetMargin - longMarginCalc) * adjustmentFactor;
       }
-    } else if (approach === "pyramid") {
-      if (longMarginCalc > targetMargin) {
+      else if (longMarginCalc > targetMargin) {
         recommendedLongExtra = longSize * (longMarginCalc - targetMargin) * adjustmentFactor;
       }
+    } else if (approach === "pyramid") {
+      if (longMarginCalc < targetMargin) {
+        recommendedLongExtra = longSize * (targetMargin - longMarginCalc) * adjustmentFactor;
+      }
+      else if (longMarginCalc > targetMargin) {
+        recommendedLongExtra = longSize * (longMarginCalc - targetMargin) * adjustmentFactor;
+      }
+    } else if (approach === "equilibrium") {
+      // Use the raw recommendation from average then dampen it.
+      let rawRec = longSize * (targetMargin - longMarginCalc) * adjustmentFactor;
+      let dampening = 0.3;
+      recommendedLongExtra = rawRec * dampening;
     }
     const projectedLongSize = longSize + recommendedLongExtra;
     window.projectedLongSize = projectedLongSize;
     const projectedLongCollateral = projectedLongSize / sliderLeverage;
-
     let ndlLong = (simPrice - longLiq) / (longEntry - longLiq);
     ndlLong = Math.max(0, Math.min(ndlLong, 1));
     let distanceFactorLong = 1 - ndlLong;
@@ -1019,15 +1015,12 @@
     let projectedHeatLong = Math.pow(distanceFactorLong, 0.45) *
                             Math.pow(normalizedLeverageLong, 0.35) *
                             Math.pow(1 - collateralRatioLong, 0.20) * 100;
-
     let tokenCountLongProjected = longEntry > 0 ? projectedLongSize / longEntry : 0;
     let pnlLongProjected = (simPrice - longEntry) * tokenCountLongProjected;
     let feeCostLongProjected = (fee / 100) * projectedLongSize;
     let netValueLongProjected = projectedLongCollateral + pnlLongProjected - feeCostLongProjected;
-
     document.getElementById("projectedLongSLTP").innerHTML =
       "<strong>Proposed New Size: $" + projectedLongSize.toFixed(2) + "</strong>";
-
     let longRangeProjected = longEntry - longLiq;
     let longSafetyProjected = simPrice - longLiq;
     let longMarginProjected = (longRangeProjected > 0) ? (longSafetyProjected / longRangeProjected) : 0;
@@ -1037,7 +1030,6 @@
       const numer = simPrice - longEntry;
       projectedLongTravelPercent = (numer / denom) * 100;
     }
-
     document.getElementById("projectedLongSimPrice").innerHTML =
       "<strong>Simulated Price: $" + simPrice.toFixed(2) + "</strong>";
     document.getElementById("projectedLongCollateralDisplay").innerHTML =
@@ -1051,14 +1043,11 @@
       "<strong>Safety Margin: " + (longMarginProjected * 100).toFixed(1) + "%</strong>";
     document.getElementById("projectedLongHeatIndex").innerText =
       projectedHeatLong.toFixed(2);
-
-    // Dynamic color for projected long
     let projectedLongBgClass = (pnlLongProjected >= 0)
       ? "bg-success bg-opacity-10 border border-2 border-success"
       : "bg-danger bg-opacity-10 border border-2 border-danger";
     document.getElementById("projectedLongOutputCard").className =
       "card shadow-sm " + projectedLongBgClass + " reduced-height";
-
     document.getElementById("projectedLongTravelPercent").innerText =
       (typeof projectedLongTravelPercent === "number")
         ? projectedLongTravelPercent.toFixed(2) + "%"
@@ -1068,7 +1057,6 @@
     const shortEntry = parseFloat(document.getElementById("shortEntry").value) || 0;
     const shortSize = parseFloat(document.getElementById("shortSize").value) || 0;
     const shortLiq = parseFloat(document.getElementById("shortLiqPrice").value) || (shortEntry * 1.2);
-
     let shortRange = shortLiq - shortEntry;
     let shortSafety = shortLiq - simPrice;
     let shortMarginCalc = (shortRange > 0) ? (shortSafety / shortRange) : 0;
@@ -1076,16 +1064,23 @@
     if (approach === "average") {
       if (shortMarginCalc < targetMargin) {
         recommendedShortExtra = shortSize * (targetMargin - shortMarginCalc) * adjustmentFactor;
-      }
-    } else if (approach === "pyramid") {
-      if (shortMarginCalc > targetMargin) {
+      } else if (shortMarginCalc > targetMargin) {
         recommendedShortExtra = shortSize * (shortMarginCalc - targetMargin) * adjustmentFactor;
       }
+    } else if (approach === "pyramid") {
+      if (shortMarginCalc < targetMargin) {
+        recommendedShortExtra = shortSize * (targetMargin - shortMarginCalc) * adjustmentFactor;
+      } else if (shortMarginCalc > targetMargin) {
+        recommendedShortExtra = shortSize * (shortMarginCalc - targetMargin) * adjustmentFactor;
+      }
+    } else if (approach === "equilibrium") {
+      let rawShortRec = shortSize * (targetMargin - shortMarginCalc) * adjustmentFactor;
+      let dampening = 0.3;
+      recommendedShortExtra = rawShortRec * dampening;
     }
     const projectedShortSize = shortSize + recommendedShortExtra;
     window.projectedShortSize = projectedShortSize;
     const projectedShortCollateral = projectedShortSize / sliderLeverage;
-
     let ndlShort = (shortLiq - simPrice) / (shortLiq - shortEntry);
     ndlShort = Math.max(0, Math.min(ndlShort, 1));
     let distanceFactorShort = 1 - ndlShort;
@@ -1095,15 +1090,12 @@
     let projectedHeatShort = Math.pow(distanceFactorShort, 0.45)
                            * Math.pow(normalizedLeverageShort, 0.35)
                            * Math.pow(1 - collateralRatioShort, 0.20) * 100;
-
     let tokenCountShortProjected = shortEntry > 0 ? projectedShortSize / shortEntry : 0;
     let pnlShortProjected = (shortEntry - simPrice) * tokenCountShortProjected;
     let feeCostShortProjected = (fee / 100) * projectedShortSize;
     let netValueShortProjected = projectedShortCollateral + pnlShortProjected - feeCostShortProjected;
-
     document.getElementById("projectedShortSLTP").innerHTML =
       "<strong>Proposed New Size: $" + projectedShortSize.toFixed(2) + "</strong>";
-
     let shortRangeProjected = shortLiq - shortEntry;
     let shortSafetyProjected = shortLiq - simPrice;
     let shortMarginProjected = (shortRangeProjected > 0) ? (shortSafetyProjected / shortRangeProjected) : 0;
@@ -1113,7 +1105,6 @@
       const numer = shortEntry - simPrice;
       projectedShortTravelPercent = (numer / denom) * 100;
     }
-
     document.getElementById("projectedShortSimPrice").innerHTML =
       "<strong>Simulated Price: $" + simPrice.toFixed(2) + "</strong>";
     document.getElementById("projectedShortCollateralDisplay").innerHTML =
@@ -1127,37 +1118,31 @@
       "<strong>Safety Margin: " + (shortMarginProjected * 100).toFixed(1) + "%</strong>";
     document.getElementById("projectedShortHeatIndex").innerText =
       projectedHeatShort.toFixed(2);
-
-    // Dynamic color for projected short
     let projectedShortBgClass = (pnlShortProjected >= 0)
       ? "bg-success bg-opacity-10 border border-2 border-success"
       : "bg-danger bg-opacity-10 border border-2 border-danger";
     document.getElementById("projectedShortOutputCard").className =
       "card shadow-sm " + projectedShortBgClass + " reduced-height";
-
     document.getElementById("projectedShortTravelPercent").innerText =
       (typeof projectedShortTravelPercent === "number")
         ? projectedShortTravelPercent.toFixed(2) + "%"
         : projectedShortTravelPercent;
-
-    /***** Update Size Composition in Leverage Slider Box *****/
     let currentLongSize = parseFloat(document.getElementById("longSize").value) || 0;
     let currentLongCollateral = parseFloat(document.getElementById("longCollateral").value) || 0;
     let longAddition = projectedLongSize - currentLongSize;
     let additionalCollateralLong = projectedLongCollateral - currentLongCollateral;
     let notionalAdditionLong = longAddition - additionalCollateralLong;
-    let totalLongAddition = longAddition; // so we can display total
+    let totalLongAddition = longAddition;
     document.getElementById("longSizeComposition").innerHTML =
       "Long Addition: <span class='collateral-value'>Collateral: $" + additionalCollateralLong.toFixed(2) + "</span>, " +
       "Notional: $" + notionalAdditionLong.toFixed(2) + ", " +
       "Total: $" + totalLongAddition.toFixed(2);
-
     let currentShortSize = parseFloat(document.getElementById("shortSize").value) || 0;
     let currentShortCollateral = parseFloat(document.getElementById("shortCollateral").value) || 0;
     let shortAddition = projectedShortSize - currentShortSize;
     let additionalCollateralShort = projectedShortCollateral - currentShortCollateral;
     let notionalAdditionShort = shortAddition - additionalCollateralShort;
-    let totalShortAddition = shortAddition; // so we can display total
+    let totalShortAddition = shortAddition;
     document.getElementById("shortSizeComposition").innerHTML =
       "Short Addition: <span class='collateral-value'>Collateral: $" + additionalCollateralShort.toFixed(2) + "</span>, " +
       "Notional: $" + notionalAdditionShort.toFixed(2) + ", " +
@@ -1172,8 +1157,7 @@
     const leverageValueDisplay = document.getElementById("leverageValue");
     let currentLeverage = parseFloat(leverageSlider.value);
     leverageValueDisplay.innerText = "Leverage: " + currentLeverage.toFixed(1) + "x";
-    const priceSlider = document.getElementById("priceSlider");
-    let simPrice = parseFloat(priceSlider.value);
+    const simPrice = parseFloat(document.getElementById("priceSlider").value);
     updateProjectedPositions(simPrice);
   }
 
@@ -1216,7 +1200,6 @@
    * Reset Price Functionality
    *************************************/
   function resetPriceToCurrent() {
-    // CHANGED so it resets to the last computed "currentPrice"
     const slider = document.getElementById("priceSlider");
     slider.value = lastComputedCurrentPrice;
     sliderChanged();

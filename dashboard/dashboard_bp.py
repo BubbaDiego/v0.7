@@ -323,6 +323,7 @@ def get_hedges():
         current_app.logger.error("Error retrieving hedges: %s", e, exc_info=True)
         return jsonify({"error": str(e)}), 500
 
+
 @dashboard_bp.route("/alert_limits.json")
 def get_alert_limits():
     try:
@@ -338,6 +339,7 @@ def get_alert_limits():
     except Exception as e:
         current_app.logger.error(f"Error reading alert_limits.json: {e}", exc_info=True)
         return jsonify({"error": "Unable to load alert limits"}), 500
+
 
 @dashboard_bp.route("/api/size_balance")
 def api_size_balance():
@@ -381,7 +383,8 @@ def api_size_balance():
         logger.error(f"Error in api_size_balance: {e}", exc_info=True)
         return jsonify({"error": str(e)}), 500
 
-@dashboard_bp.route("/database_viewer", methods=["GET"])
+
+@dashboard_bp.route("/database_viewer", methods=["GET"], endpoint="database_viewer")
 def database_viewer():
     try:
         dl = DataLocker.get_instance()
@@ -411,7 +414,6 @@ def database_viewer():
             })
 
         # Retrieve prices data (new support)
-        # Assuming you use get_latest_price for known assets
         btc_data = dl.get_latest_price("BTC") or {}
         eth_data = dl.get_latest_price("ETH") or {}
         sol_data = dl.get_latest_price("SOL") or {}
@@ -451,18 +453,38 @@ def database_viewer():
                 "field2": wallet.get("balance", "N/A")
             })
 
+        # Retrieve hedges data (new support)
+        from sonic_labs.hedge_manager import HedgeManager  # adjust import if needed
+        positions_for_hedges = PositionService.get_all_positions(DB_PATH) or []
+        hedge_manager = HedgeManager(positions_for_hedges)
+        hedges = hedge_manager.get_hedges() or []
+        hedge_headers = ["Hedge ID", "Total Long Size", "Total Short Size", "Long Heat Index", "Short Heat Index", "Total Heat Index", "Notes", "Actions"]
+        hedge_rows = []
+        for hedge in hedges:
+            hedge_rows.append({
+                "id": hedge.id if hasattr(hedge, "id") else "N/A",
+                "field1": hedge.total_long_size if hasattr(hedge, "total_long_size") else "N/A",
+                "field2": hedge.total_short_size if hasattr(hedge, "total_short_size") else "N/A",
+                "field3": hedge.long_heat_index if hasattr(hedge, "long_heat_index") else "N/A",
+                "field4": hedge.short_heat_index if hasattr(hedge, "short_heat_index") else "N/A",
+                "field5": hedge.total_heat_index if hasattr(hedge, "total_heat_index") else "N/A",
+                "field6": hedge.notes if hasattr(hedge, "notes") else "N/A"
+            })
+
         # Create datasets dictionary with all tables
         datasets = {
             "positions": {"headers": pos_headers, "rows": pos_rows},
             "alerts": {"headers": alert_headers, "rows": alert_rows},
             "prices": {"headers": prices_headers, "rows": prices_rows},
-            "wallets": {"headers": wallet_headers, "rows": wallet_rows}
+            "wallets": {"headers": wallet_headers, "rows": wallet_rows},
+            "hedges": {"headers": hedge_headers, "rows": hedge_rows}
         }
 
         return render_template("database_viewer.html", datasets=datasets)
     except Exception as e:
         current_app.logger.exception("Error in database_viewer route:")
         return render_template("database_viewer.html", datasets={})
+
 
 @dashboard_bp.route("/api/collateral_composition")
 def api_collateral_composition():
