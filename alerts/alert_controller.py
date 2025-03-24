@@ -1,7 +1,10 @@
 from data.data_locker import DataLocker
 from utils.json_manager import JsonManager, JsonType
 from data.models import AlertType, AlertClass, NotificationType, Status
+from uuid import uuid4
+from data.models import Alert, AlertType, AlertClass, NotificationType, Status
 from typing import Optional
+import logging
 from utils.unified_logger import UnifiedLogger
 
 class AlertController:
@@ -88,6 +91,7 @@ class AlertController:
         """
         Creates price alerts (for BTC, ETH, and SOL) using settings from alert_limits.json.
         Price alerts are of type PRICE_THRESHOLD and class MARKET.
+        Ensures only one alert exists per asset per direction (ABOVE or BELOW).
         """
         jm = JsonManager()
         alert_limits = jm.load("", JsonType.ALERT_LIMITS)
@@ -98,7 +102,8 @@ class AlertController:
 
         # Dummy alert class for price alerts
         class DummyAlert:
-            def __init__(self, alert_type, alert_class, asset_type, trigger_value, condition, notification_type, state="Normal", position_reference_id=None, status="Active"):
+            def __init__(self, alert_type, alert_class, asset_type, trigger_value, condition, notification_type,
+                         state="Normal", position_reference_id=None, status="Active"):
                 self.id = None
                 self.alert_type = alert_type
                 self.alert_class = alert_class
@@ -138,13 +143,28 @@ class AlertController:
                     "position_reference_id": self.position_reference_id
                 }
 
+        # Retrieve current alerts to check for duplicates.
+        existing_alerts = self.get_all_alerts()
+
         for asset in assets:
             config = price_alerts_config.get(asset, {})
             if config.get("enabled", False):
-                condition = config.get("condition", "ABOVE")
+                condition = config.get("condition", "ABOVE").upper()
                 trigger_value = float(config.get("trigger_value", 0.0))
                 notifications = config.get("notifications", {})
                 notification_type = "Call" if notifications.get("call", False) else "Email"
+
+                # Check if an alert already exists for this asset and condition.
+                alert_exists = any(
+                    alert.get("alert_type") == AlertType.PRICE_THRESHOLD.value and
+                    alert.get("asset_type") == asset and
+                    alert.get("condition", "").upper() == condition
+                    for alert in existing_alerts
+                )
+                if alert_exists:
+                    print(f"Price alert for {asset} with condition {condition} already exists; skipping creation.")
+                    continue
+
                 dummy_alert = DummyAlert(
                     alert_type=AlertType.PRICE_THRESHOLD.value,
                     alert_class=AlertClass.MARKET.value,
@@ -157,18 +177,15 @@ class AlertController:
                 )
                 if self.create_alert(dummy_alert):
                     created_alerts.append(dummy_alert.to_dict())
-                    print(f"Created price alert for {asset}: condition {condition}, trigger {trigger_value}, notification {notification_type}.")
+                    print(
+                        f"Created price alert for {asset}: condition {condition}, trigger {trigger_value}, notification {notification_type}.")
                 else:
                     print(f"Failed to create price alert for {asset}.")
             else:
                 print(f"Price alert for {asset} is not enabled in configuration.")
         return created_alerts
 
-    from uuid import uuid4
-    from data.models import Alert, AlertType, AlertClass, NotificationType, Status
 
-    from uuid import uuid4
-    from data.models import Alert, AlertType, AlertClass, NotificationType, Status
 
     def _update_alert_state(self, pos: dict, new_state: str, evaluated_value: Optional[float] = None):
         # Use alert_reference_id if available; otherwise use the position's own id.
@@ -284,14 +301,14 @@ class AlertController:
 
                 if self.create_alert(alert_obj):
                     created_alerts.append(alert_obj.to_dict())
-                    logger.info(f"Created travel percent alert for position {position_id} ({asset}).")
+                    self.logger.info(f"Created travel percent alert for position {position_id} ({asset}).")
                     # Now update the position record with the alert id:
                     conn = self.data_locker.get_db_connection()
                     cursor = conn.cursor()
                     cursor.execute("UPDATE positions SET alert_reference_id=? WHERE id=?", (alert_obj.id, position_id))
                     conn.commit()
                 else:
-                    logger.error(f"Failed to create travel percent alert for position {position_id}.")
+                    self.logger.error(f"Failed to create travel percent alert for position {position_id}.")
         return created_alerts
 
     def create_all_alerts(self):

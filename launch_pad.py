@@ -54,6 +54,7 @@ from portfolio.portfolio_bp import portfolio_bp
 # *** NEW: Import the Simulator Dashboard blueprint ***
 from simulator.simulator_bp import simulator_bp as simulator_bp
 from jupiter.jupiter_bp import jupiter_bp
+from cyclone.cyclone_bp import cyclone_bp
 
 # *** NEW: Import the UnifiedLogger and remove the old OperationsLogger ***
 from utils.unified_logger import UnifiedLogger
@@ -87,8 +88,14 @@ app.register_blueprint(alerts_bp, url_prefix="/alerts")
 app.register_blueprint(prices_bp, url_prefix="/prices")
 app.register_blueprint(dashboard_bp)  # Dashboard-specific routes and API endpoints
 
-
 app.register_blueprint(sonic_labs_bp, url_prefix="/sonic_labs")
+# *** NEW: Import the Cyclone blueprint ***
+
+# launch_pad.py
+app.register_blueprint(cyclone_bp, url_prefix="/cyclone")
+
+# *** NEW: Register the Cyclone blueprint with a URL prefix ***
+
 
 
 app.register_blueprint(jupiter_bp, url_prefix="/jupiter")

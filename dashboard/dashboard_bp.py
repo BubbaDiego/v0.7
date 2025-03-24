@@ -26,14 +26,12 @@ from data.data_locker import DataLocker
 from positions.position_service import PositionService
 from utils.calc_services import CalcServices
 from utils.unified_logger import UnifiedLogger
-
-# Import UnifiedLogViewer to handle both operational and alert logs.
+from config.config_constants import ALERT_LIMITS_PATH
 from utils.unified_log_viewer import UnifiedLogViewer
 
 logger = logging.getLogger("DashboardBlueprint")
 logger.setLevel(logging.CRITICAL)
-
-dashboard_bp = Blueprint("dashboard", __name__, template_folder="templates")
+dashboard_bp = Blueprint("dashboard", __name__, template_folder=".")
 
 
 def get_strategy_performance():
@@ -210,7 +208,7 @@ def dashboard():
                     dt_obj = datetime.strptime(converted_last_update, "%m/%d/%Y %I:%M:%S %p %Z")
                     last_update_time_only = dt_obj.strftime("%I:%M %p %Z").lstrip("0")
                     last_update_date_only = f"{dt_obj.month}/{dt_obj.day}/{dt_obj.strftime('%y')}"
-                except Exception as ex:
+                except Exception:
                     last_update_time_only = "N/A"
                     last_update_date_only = "N/A"
             else:
@@ -220,7 +218,7 @@ def dashboard():
             last_update_time_only = "N/A"
             last_update_date_only = "N/A"
 
-        # Read log files using UnifiedLogViewer for both operational and alert logs.
+        # Read log files using UnifiedLogViewer.
         operations_log_file = os.path.join(str(BASE_DIR), "operations_log.txt")
         alert_log_file = os.path.join(str(BASE_DIR), "alert_monitor_log.txt")
         ops_viewer = UnifiedLogViewer([operations_log_file])
@@ -228,14 +226,17 @@ def dashboard():
         alert_viewer = UnifiedLogViewer([alert_log_file])
         alert_entries = alert_viewer.get_all_display_strings()
 
-        # Load the theme configuration freshly from file
-        with open(THEME_CONFIG_PATH, "r", encoding="utf-8") as f:
-            theme_config = json.load(f)
-        logger.debug(f"Loaded theme config: {theme_config}")
+        # Load the theme configuration.
+        try:
+            with open(THEME_CONFIG_PATH, "r", encoding="utf-8") as f:
+                theme_config = json.load(f)
+        except Exception as ex:
+            logger.error("Error loading theme config: %s", ex)
+            theme_config = {}
 
         return render_template(
-            "dashboard.html",
-            theme=theme_config,  # Pass the theme config here!
+            "dashboard.html",  # Note: since blueprint's template_folder is "dashboard", this loads templates/dashboard/dashboard.html
+            theme=theme_config,
             top_positions=top_positions,
             bottom_positions=bottom_positions,
             liquidation_positions=liquidation_positions,
@@ -259,7 +260,7 @@ def dashboard():
         logger.exception("Error rendering dashboard:")
         return render_template(
             "dashboard.html",
-            theme={},  # Ensure theme is at least an empty dict to avoid template errors
+            theme={},
             top_positions=[],
             bottom_positions=[],
             liquidation_positions=[],
@@ -278,7 +279,6 @@ def dashboard():
             system_feed_entries='<div class="alert alert-secondary p-1 mb-1" role="alert">No feed data available</div>',
             alert_entries='<div class="alert alert-secondary p-1 mb-1" role="alert">No alert data available</div>'
         )
-
 
 @dashboard_bp.route("/dash_performance")
 def dash_performance():
@@ -327,9 +327,8 @@ def get_hedges():
 @dashboard_bp.route("/alert_limits.json")
 def get_alert_limits():
     try:
-        # Assumes alert_limits.json is in the BASE_DIR; adjust the path if necessary.
-        alert_limits_path = os.path.join(BASE_DIR, "alert_limits.json")
-        with open(alert_limits_path, "r", encoding="utf-8") as f:
+        from config.config_constants import ALERT_LIMITS_PATH
+        with open(str(ALERT_LIMITS_PATH), "r", encoding="utf-8") as f:
             data = json.load(f)
         return current_app.response_class(
             response=json.dumps(data),
@@ -389,7 +388,7 @@ def database_viewer():
     try:
         dl = DataLocker.get_instance()
 
-        # Retrieve positions (existing support)
+        # Retrieve positions.
         positions = PositionService.get_all_positions(DB_PATH) or []
         pos_headers = ["Ref ID", "Name", "Email", "Actions"]
         pos_rows = []
@@ -401,7 +400,7 @@ def database_viewer():
                 "field2": pos.get("email", "N/A")
             })
 
-        # Retrieve alerts (existing support)
+        # Retrieve alerts.
         alerts = dl.get_alerts() or []
         alert_headers = ["Ref ID", "Alert Type", "Status", "Actions"]
         alert_rows = []
@@ -413,7 +412,7 @@ def database_viewer():
                 "field2": alert.get("status", "N/A")
             })
 
-        # Retrieve prices data (new support)
+        # Retrieve prices data.
         btc_data = dl.get_latest_price("BTC") or {}
         eth_data = dl.get_latest_price("ETH") or {}
         sol_data = dl.get_latest_price("SOL") or {}
@@ -442,7 +441,7 @@ def database_viewer():
             }
         ]
 
-        # Retrieve wallets data (new support)
+        # Retrieve wallets data.
         wallets = dl.read_wallets() or []
         wallet_headers = ["Wallet Name", "Public Address", "Balance", "Actions"]
         wallet_rows = []
@@ -453,7 +452,7 @@ def database_viewer():
                 "field2": wallet.get("balance", "N/A")
             })
 
-        # Retrieve hedges data (new support)
+        # Retrieve hedges data.
         from sonic_labs.hedge_manager import HedgeManager  # adjust import if needed
         positions_for_hedges = PositionService.get_all_positions(DB_PATH) or []
         hedge_manager = HedgeManager(positions_for_hedges)
@@ -471,7 +470,7 @@ def database_viewer():
                 "field6": hedge.notes if hasattr(hedge, "notes") else "N/A"
             })
 
-        # Create datasets dictionary with all tables
+        # Create datasets dictionary with all tables.
         datasets = {
             "positions": {"headers": pos_headers, "rows": pos_rows},
             "alerts": {"headers": alert_headers, "rows": alert_rows},
@@ -485,6 +484,55 @@ def database_viewer():
         current_app.logger.exception("Error in database_viewer route:")
         return render_template("database_viewer.html", datasets={})
 
+# -------------------------------
+# New Deletion API Endpoint
+# -------------------------------
+@dashboard_bp.route("/api/delete_entry", methods=["POST"])
+def api_delete_entry():
+    data = request.get_json() or {}
+    table = data.get("table")
+    record_id = data.get("id")
+    if not table or not record_id:
+        return jsonify({"success": False, "error": "Missing table or id parameter."}), 400
+    try:
+        if table == "positions":
+            conn = sqlite3.connect(DB_PATH)
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM positions WHERE id = ?", (record_id,))
+            conn.commit()
+            conn.close()
+            return jsonify({"success": True})
+        elif table == "alerts":
+            dl = DataLocker.get_instance()
+            # Assuming DataLocker.delete_alert(record_id) exists.
+            result = dl.delete_alert(record_id)
+            if result:
+                return jsonify({"success": True})
+            else:
+                return jsonify({"success": False, "error": "Alert deletion failed."}), 500
+        elif table == "wallets":
+            dl = DataLocker.get_instance()
+            # Assuming DataLocker.delete_wallet(record_id) exists.
+            result = dl.delete_wallet(record_id)
+            if result:
+                return jsonify({"success": True})
+            else:
+                return jsonify({"success": False, "error": "Wallet deletion failed."}), 500
+        elif table == "hedges":
+            from sonic_labs.hedge_manager import HedgeManager
+            positions = PositionService.get_all_positions(DB_PATH) or []
+            hedge_manager = HedgeManager(positions)
+            # Assuming HedgeManager.delete_hedge(record_id) exists.
+            result = hedge_manager.delete_hedge(record_id)
+            if result:
+                return jsonify({"success": True})
+            else:
+                return jsonify({"success": False, "error": "Hedge deletion failed."}), 500
+        else:
+            return jsonify({"success": False, "error": "Deletion not supported for this table."}), 400
+    except Exception as e:
+        logger.exception("Error deleting entry:")
+        return jsonify({"success": False, "error": str(e)}), 500
 
 @dashboard_bp.route("/api/collateral_composition")
 def api_collateral_composition():
@@ -546,7 +594,7 @@ def theme_config_page():
 
 
 # -------------------------------
-# NEW: Route for Updating Strategy Performance Data Persistence
+# Route for Updating Strategy Performance Data Persistence
 # -------------------------------
 @dashboard_bp.route("/update_performance_data", methods=["POST"])
 def update_performance_data():

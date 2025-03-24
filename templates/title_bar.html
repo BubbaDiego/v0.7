@@ -10,11 +10,43 @@
       border-radius: 999px;
       color: #000 !important;
     }
-    .asset-panel img { width: 20px; height: 20px; }
-    .update-jupiter-btn { border: none; background: none; cursor: pointer; padding: 0.25rem; }
-    .update-jupiter-btn img { width: 30px; height: 30px; border-radius: 50%; }
-    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-    .spin { animation: spin 1s linear infinite; }
+    .asset-panel img {
+      width: 20px;
+      height: 20px;
+    }
+    .update-jupiter-btn {
+      border: none;
+      background: none;
+      cursor: pointer;
+      padding: 0.25rem;
+    }
+    .update-jupiter-btn img {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+    }
+    .price-icon {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      font-size: 16px;
+      font-weight: bold;
+      background-color: #f8f9fa;
+    }
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+      }
+    }
+    .spin {
+      animation: spin 1s linear infinite;
+    }
   </style>
 
   <div class="container">
@@ -27,12 +59,6 @@
     <!-- Collapsible Nav Items -->
     <div class="collapse navbar-collapse" id="navbarCollapse">
       <ul class="navbar-nav">
-        <!-- Database Viewer Icon -->
-        <li class="nav-item">
-          <a href="{{ url_for('dashboard.database_viewer') }}" class="nav-link" title="Database Viewer">
-            <i class="fas fa-database"></i>
-          </a>
-        </li>
         <!-- Dashboard -->
         <li class="nav-item">
           <a href="{{ url_for('dashboard.dashboard') }}" class="nav-link">
@@ -61,18 +87,6 @@
         <li class="nav-item">
           <a href="{{ url_for('sonic_labs.hedge_calculator') }}" class="nav-link">
             <span style="font-size:1.2em;">🦔</span>
-          </a>
-        </li>
-        <!-- Theme Setup -->
-        <li class="nav-item">
-          <a href="{{ url_for('dashboard.theme_setup') }}" class="nav-link">
-            <i class="fas fa-palette"></i>
-          </a>
-        </li>
-        <!-- System Config -->
-        <li class="nav-item">
-          <a href="{{ url_for('system_config_page') }}" class="nav-link">
-            <i class="fas fa-cog"></i>
           </a>
         </li>
       </ul>
@@ -119,33 +133,37 @@
         <!-- Prices Update Button (for prices only) -->
         <li class="nav-item d-flex align-items-center me-3">
           <button type="button" class="update-jupiter-btn" id="updatePricesBtn" title="Update Prices">
-            <img src="{{ url_for('static', filename='images/prices.jpg') }}" alt="Update Prices">
+            <span class="price-icon">$</span>
           </button>
         </li>
-        <!-- Theme Switcher -->
+        <!-- Gear Dropdown -->
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="themeDropdown" role="button"
-             data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="fas fa-palette"></i>
+          <a class="nav-link dropdown-toggle" href="#" id="gearDropdown" role="button"
+             data-bs-toggle="dropdown" aria-expanded="false" title="Navigation">
+            <i class="fas fa-cog"></i>
           </a>
-          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="themeDropdown">
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="gearDropdown">
             <li>
-              <a class="dropdown-item" href="{{ url_for('dashboard.theme_setup') }}">
-                <i class="fas fa-palette me-1"></i> Theme Configuration
+              <a class="dropdown-item" href="../cyclone/cyclone.html">
+                <i class="fas fa-cyclone me-1"></i> Cyclone Dashboard
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="{{ url_for('dashboard.database_viewer') }}">
+                <i class="fas fa-database me-1"></i> Database Viewer
               </a>
             </li>
             <li><hr class="dropdown-divider"></li>
-            {% if theme and theme.get('profiles') %}
-              {% for profile_key, profile in theme.get('profiles').items() %}
-                <li>
-                  <a class="dropdown-item theme-profile-option" href="#" data-profile="{{ profile_key }}">
-                    <i class="fas fa-paint-brush me-1"></i> {{ profile.get('name', profile_key|capitalize) }}
-                  </a>
-                </li>
-              {% endfor %}
-            {% else %}
-              <li><a class="dropdown-item" href="#">Default</a></li>
-            {% endif %}
+            <li>
+              <a class="dropdown-item" href="{{ url_for('system_config_page') }}">
+                <i class="fas fa-cog me-1"></i> System Config
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="{{ url_for('dashboard.theme_setup') }}">
+                <i class="fas fa-palette me-1"></i> Theme Config
+              </a>
+            </li>
           </ul>
         </li>
       </ul>
@@ -185,19 +203,19 @@
       .then(r => r.json())
       .then(data => {
         document.getElementById('btcPrice').textContent =
-          '$' + data.bitcoin.usd.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+          '$' + data.bitcoin.usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         const btcChange = data.bitcoin.usd_24h_change.toFixed(2);
         const btcChangeElem = document.getElementById('btcChange');
         btcChangeElem.textContent = btcChange + '%';
         btcChangeElem.style.color = btcChange >= 0 ? 'green' : 'red';
         document.getElementById('ethPrice').textContent =
-          '$' + data.ethereum.usd.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+          '$' + data.ethereum.usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         const ethChange = data.ethereum.usd_24h_change.toFixed(2);
         const ethChangeElem = document.getElementById('ethChange');
         ethChangeElem.textContent = ethChange + '%';
         ethChangeElem.style.color = ethChange >= 0 ? 'green' : 'red';
         document.getElementById('solPrice').textContent =
-          '$' + data.solana.usd.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+          '$' + data.solana.usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         const solChange = data.solana.usd_24h_change.toFixed(2);
         const solChangeElem = document.getElementById('solChange');
         solChangeElem.textContent = solChange + '%';
@@ -227,18 +245,18 @@
   const updatePricesBtn = document.getElementById("updatePricesBtn");
   if (updatePricesBtn) {
     updatePricesBtn.addEventListener("click", () => {
-      updatePricesBtn.querySelector("img").classList.add("spin");
+      updatePricesBtn.querySelector(".price-icon").classList.add("spin");
       fetch("/prices/update?source=User", { method: "POST" })
         .then(r => r.json())
         .then(() => window.location.reload())
         .catch(err => {
-          updatePricesBtn.querySelector("img").classList.remove("spin");
+          updatePricesBtn.querySelector(".price-icon").classList.remove("spin");
           console.error("Prices update error:", err);
         });
     });
   }
 
-  // 5) Theme Switcher
+  // 5) Theme Switcher (if applicable in dropdown)
   document.querySelectorAll('.theme-profile-option').forEach(option => {
     option.addEventListener('click', e => {
       e.preventDefault();
@@ -264,6 +282,15 @@
   });
 </script>
 <style>
-  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-  .spin { animation: spin 1s linear infinite; }
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  .spin {
+    animation: spin 1s linear infinite;
+  }
 </style>

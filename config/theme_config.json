@@ -30,42 +30,15 @@
     "redTheme": {
       "name": "Crimson Night",
       "title bar": {
-        "color": "#DC3545",
+        "color": "#dc3545",
         "image": null
       },
       "side bar": {
-        "color": "#C82333",
+        "color": "#c82333",
         "image": null
       },
       "wallpaper": {
-        "color": "#F8D7DA",
-        "image": null
-      },
-      "card title": {
-        "color": "#FFFFFF",
-        "image": null
-      },
-      "card background": {
-        "color": "#F5C6CB",
-        "image": null
-      },
-      "text": {
-        "color": "#FFFFFF",
-        "image": null
-      }
-    },
-    "greenTheme": {
-      "name": "Emerald Forest",
-      "title bar": {
-        "color": "#28a745",
-        "image": null
-      },
-      "side bar": {
-        "color": "#218838",
-        "image": null
-      },
-      "wallpaper": {
-        "color": "#d4edda",
+        "color": "#f8d7da",
         "image": null
       },
       "card title": {
@@ -73,11 +46,38 @@
         "image": null
       },
       "card background": {
-        "color": "#c3e6cb",
+        "color": "#f5c6cb",
         "image": null
       },
       "text": {
-        "color": "#615c5c",
+        "color": "#ffffff",
+        "image": null
+      }
+    },
+    "greenTheme": {
+      "name": "Emerald Forest",
+      "title bar": {
+        "color": "#28A745",
+        "image": null
+      },
+      "side bar": {
+        "color": "#218838",
+        "image": null
+      },
+      "wallpaper": {
+        "color": "#D4EDDA",
+        "image": null
+      },
+      "card title": {
+        "color": "#FFFFFF",
+        "image": null
+      },
+      "card background": {
+        "color": "#C3E6CB",
+        "image": null
+      },
+      "text": {
+        "color": "#FFFFFF",
         "image": null
       }
     },
@@ -235,5 +235,5 @@
       }
     }
   },
-  "selected_profile": "greenTheme"
+  "selected_profile": "redTheme"
 }

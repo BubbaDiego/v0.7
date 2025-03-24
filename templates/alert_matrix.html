@@ -185,11 +185,9 @@
                   {% endif %}
                 </span>
                 <div class="info-basic-container">
-                  <!-- Alert type display -->
                   <div class="info-basic-type">
                     {{ alert.alert_type }}
                   </div>
-                  <!-- Trigger display -->
                   <div class="info-basic-trigger">
                     Trigger: <strong>
                       {% if alert.alert_type == 'PriceThreshold' %}
@@ -207,7 +205,6 @@
                       {% endif %}
                     </strong>
                   </div>
-                  <!-- Current Value display -->
                   <div class="info-basic-current-value">
                     Current Value:
                     <strong>
@@ -231,10 +228,8 @@
                   </div>
                 </div>
               </summary>
-              <!-- Expanded content -->
               <div class="info-content">
                 <div class="alert-info-container">
-                  <!-- Left column: Type, Trigger, State, Status -->
                   <div class="alert-details-column">
                     <div><strong>Type:</strong> {{ alert.alert_type }}</div>
                     <div><strong>Trigger:</strong> <strong>
@@ -255,7 +250,6 @@
                     <div><strong>State:</strong> {{ alert.state }}</div>
                     <div><strong>Status:</strong> {{ alert.status }}</div>
                   </div>
-                  <!-- Middle column: IDs -->
                   <div class="alert-id-column">
                     <div class="nowrap-line">
                       <i class="fas fa-id-badge"></i>
@@ -282,11 +276,9 @@
                       {% endif %}
                     </div>
                   </div>
-                  <!-- Right column: Range info -->
                   <div class="alert-range-column">
                     {% if alert_ranges %}
                       {% if alert.alert_type == 'PriceThreshold' %}
-                        {# For price alerts, derive limits from trigger_value #}
                         {% set h = alert.trigger_value|float %}
                         {% set m = h * 0.75 %}
                         {% set l = h * 0.5 %}
@@ -449,26 +441,27 @@
         alert("Error creating alerts: " + err);
       });
     });
-    // Delete all alerts functionality
+    // Delete all alerts functionality with debug output
     document.getElementById("deleteAllAlerts").addEventListener("click", function(e) {
       e.preventDefault();
       e.stopPropagation();
       if (!confirm("Are you sure you want to delete all alerts?")) return;
       fetch("{{ url_for('alerts_bp.delete_all_alerts') }}", { method: "POST" })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          alert("Deleted " + data.deleted_count + " alerts.");
-          window.location.reload();
-        } else {
-          alert("Error deleting alerts.");
-        }
+      .then(response => {
+          console.log("HTTP status:", response.status);
+          return response.text();
+      })
+      .then(text => {
+          console.log("Response text:", text);
       })
       .catch(err => {
-        console.error("Error deleting all alerts:", err);
-        alert("Error deleting alerts: " + err);
+          console.error("Error deleting all alerts:", err);
       });
     });
   });
 </script>
+<style>
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .spin { animation: spin 1s linear infinite; }
+</style>
 {% endblock %}
