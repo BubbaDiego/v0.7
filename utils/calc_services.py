@@ -82,6 +82,21 @@ class CalcServices:
             ]
         }
 
+
+    def update_calcs_for_cyclone(self, data_locker) -> (list, dict):
+        """
+        Refreshes all calculation data for positions.
+        Reads all positions from DataLocker, updates their aggregated metrics,
+        and computes totals.
+        Returns a tuple: (updated_positions, totals)
+        """
+        positions = data_locker.read_positions()
+        updated_positions = self.aggregator_positions(positions, data_locker.db_path)
+        totals = self.calculate_totals(updated_positions)
+        self.logger.info("CalcServices: Updated calculations for cyclone.")
+        return updated_positions, totals
+
+
     def calculate_composite_risk_index(self, position: dict) -> Optional[float]:
         """
         Calculates the composite risk index (heat index) for a given position using the multiplicative model.

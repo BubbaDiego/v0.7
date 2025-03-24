@@ -49,6 +49,7 @@ ALERT_VIEW_CONFIG = {
 SOURCE_ICONS = {
     "system": "⚙️",
     "user": "👤",
+    "console" "👤"
     "monitor": "📺"
 }
 DEFAULT_SOURCE_ICON = "❓"

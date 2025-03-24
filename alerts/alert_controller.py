@@ -500,6 +500,64 @@ class AlertController:
                 print(f"Failed to create heat index alert for position {position_id}.")
         return created_alerts
 
+    def populate_current_value_for_alert(self, alert: dict) -> float:
+        """
+        Populates the 'evaluated_value' field in an alert.
+        For price alerts, it uses the current market price of the asset.
+        For liquid travel percent alerts, it uses the position's 'current_travel_percent'.
+        For profit alerts, it uses the position's profit (PNL).
+        Returns the evaluated value.
+        """
+        evaluated_value = 0.0
+        alert_type = alert.get("alert_type")
+
+        # For price alerts
+        if alert_type == AlertType.PRICE_THRESHOLD.value:
+            asset = alert.get("asset_type", "BTC")
+            price_record = self.data_locker.get_latest_price(asset)
+            if price_record:
+                try:
+                    evaluated_value = float(price_record.get("current_price", 0.0))
+                except Exception:
+                    evaluated_value = 0.0
+            else:
+                evaluated_value = 0.0
+
+        # For liquid travel percent alerts
+        elif alert_type == AlertType.TRAVEL_PERCENT_LIQUID.value:
+            pos_id = alert.get("position_reference_id") or alert.get("id")
+            positions = self.data_locker.read_positions()
+            position = next((p for p in positions if p.get("id") == pos_id), None)
+            if position:
+                try:
+                    evaluated_value = float(position.get("current_travel_percent", 0.0))
+                except Exception:
+                    evaluated_value = 0.0
+            else:
+                evaluated_value = 0.0
+
+        # For profit alerts
+        elif alert_type == AlertType.PROFIT.value:
+            pos_id = alert.get("position_reference_id") or alert.get("id")
+            positions = self.data_locker.read_positions()
+            position = next((p for p in positions if p.get("id") == pos_id), None)
+            if position:
+                try:
+                    evaluated_value = float(position.get("profit", 0.0))
+                except Exception:
+                    evaluated_value = 0.0
+            else:
+                evaluated_value = 0.0
+
+        # Log the populated value.
+        self.u_logger.log_operation(
+            operation_type="Populate Evaluated Value",
+            primary_text=f"Alert {alert.get('id')} populated with evaluated_value {evaluated_value}",
+            source="AlertController",
+            file="alert_controller.py"
+        )
+        return evaluated_value
+
     def create_all_alerts(self):
 
         print("DEBUG: create_all_alerts method called")
