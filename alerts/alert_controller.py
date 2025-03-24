@@ -164,20 +164,65 @@ class AlertController:
                 print(f"Price alert for {asset} is not enabled in configuration.")
         return created_alerts
 
+    from uuid import uuid4
+    from data.models import Alert, AlertType, AlertClass, NotificationType, Status
+
+    from uuid import uuid4
+    from data.models import Alert, AlertType, AlertClass, NotificationType, Status
+
     def _update_alert_state(self, pos: dict, new_state: str, evaluated_value: Optional[float] = None):
+        # Use alert_reference_id if available; otherwise use the position's own id.
         alert_id = pos.get("alert_reference_id") or pos.get("id")
-        if alert_id:
-            update_fields = {"state": new_state}
-            if evaluated_value is not None:
-                update_fields["evaluated_value"] = evaluated_value
-            if pos.get("alert_reference_id") and pos.get("id"):
-                update_fields["position_reference_id"] = pos.get("id")
-            try:
-                self.data_locker.update_alert_conditions(alert_id, update_fields)
-            except Exception as e:
-                logging.error(f"Error updating alert state for alert {alert_id}: {e}")
-        else:
-            logging.warning("No alert identifier found for updating state; update skipped.")
+        if not alert_id:
+            self.logger.warning("No alert identifier found for updating state; update skipped.")
+            return
+
+        update_fields = {"state": new_state}
+        if evaluated_value is not None:
+            update_fields["evaluated_value"] = evaluated_value
+
+        if pos.get("alert_reference_id") and pos.get("id"):
+            update_fields["position_reference_id"] = pos.get("id")
+
+        self.logger.debug(f"[_update_alert_state] Attempting to update alert '{alert_id}' with fields: {update_fields}")
+        try:
+            num_updated = self.data_locker.update_alert_conditions(alert_id, update_fields)
+            if num_updated == 0:
+                self.logger.warning(
+                    f"[_update_alert_state] No alert record found for id '{alert_id}'. Creating new alert record.")
+                # Create a new alert record for this position:
+                new_alert = Alert(
+                    id=str(uuid4()),
+                    alert_type=AlertType.TRAVEL_PERCENT_LIQUID.value,
+                    # or adjust based on the alert type you are evaluating
+                    alert_class=AlertClass.POSITION.value,
+                    trigger_value=pos.get("travel_percent", 0.0),  # use the appropriate field
+                    notification_type=NotificationType.ACTION.value,  # adjust as needed
+                    last_triggered=None,
+                    status=Status.ACTIVE.value,
+                    frequency=1,
+                    counter=0,
+                    liquidation_distance=pos.get("liquidation_distance", 0.0),
+                    target_travel_percent=pos.get("travel_percent", 0.0),
+                    liquidation_price=pos.get("liquidation_price", 0.0),
+                    notes="Auto-created alert record",
+                    position_reference_id=pos.get("id"),
+                    state=new_state,
+                    evaluated_value=evaluated_value or 0.0
+                )
+                created = self.alert_controller.create_alert(new_alert)
+                if created:
+                    self.logger.info(f"[_update_alert_state] Created new alert record for position {pos.get('id')}")
+                    # Update the position record with the new alert id if needed:
+                    pos["alert_reference_id"] = new_alert.id
+                else:
+                    self.logger.error(
+                        f"[_update_alert_state] Failed to create new alert record for position {pos.get('id')}")
+            else:
+                self.logger.info(
+                    f"Successfully updated alert '{alert_id}' to state '{new_state}' with evaluated value '{evaluated_value}'.")
+        except Exception as e:
+            self.logger.error(f"Error updating alert state for id '{alert_id}': {e}", exc_info=True)
 
     def create_travel_percent_alerts(self):
         # In this method, we iterate through positions and create a travel alert for positions lacking one.
