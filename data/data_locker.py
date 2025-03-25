@@ -151,7 +151,7 @@ class DataLocker:
                 trigger_value REAL,
                 condition TEXT,
                 notification_type TEXT,
-                state TEXT,        -- Must be here
+                state TEXT,
                 last_triggered DATETIME,
                 status TEXT,
                 frequency INTEGER,
@@ -162,8 +162,7 @@ class DataLocker:
                 notes TEXT,
                 position_reference_id TEXT,
                 evaluated_value REAL  -- NEW: Evaluated value used for debugging evaluation
-            )
-    
+            )    
             """)
 
             # Create brokers table if it doesn't exist

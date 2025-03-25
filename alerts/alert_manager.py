@@ -286,6 +286,65 @@ class AlertManager:
                 extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
             )
 
+    def update_alerts_evaluated_value(self):
+        """
+        Updates the evaluated_value for each alert based on its alert type.
+
+        - For PriceThreshold (or Price*) alerts, sets evaluated_value to the latest asset price.
+        - For TravelPercent (or TravelPercent*) alerts, sets evaluated_value to the position's current travel percent.
+        - For Profit (or Profit*) alerts, sets evaluated_value to the position's pnl_after_fees_usd.
+        - For HeatIndex (or HeatIndex*) alerts, sets evaluated_value to the position's current_heat_index.
+        """
+        alerts = self.data_locker.get_alerts()
+        positions = self.data_locker.read_positions()
+        pos_lookup = {pos.get("id"): pos for pos in positions}
+
+        for alert in alerts:
+            evaluated_val = None
+            alert_type = alert.get("alert_type", "")
+
+            if alert_type.startswith("Price"):
+                asset_type = alert.get("asset_type", "BTC")
+                price_data = self.data_locker.get_latest_price(asset_type)
+                if price_data and "current_price" in price_data:
+                    try:
+                        evaluated_val = float(price_data["current_price"])
+                    except Exception as e:
+                        self.logger.error(f"Error converting latest price for asset {asset_type}: {e}", exc_info=True)
+
+            elif alert_type.startswith("TravelPercent"):
+                pos_id = alert.get("position_reference_id")
+                if pos_id and pos_id in pos_lookup:
+                    try:
+                        evaluated_val = float(pos_lookup[pos_id].get("current_travel_percent", 0))
+                    except Exception as e:
+                        self.logger.error(f"Error retrieving travel percent for position {pos_id}: {e}", exc_info=True)
+
+            elif alert_type.startswith("Profit"):
+                pos_id = alert.get("position_reference_id")
+                if pos_id and pos_id in pos_lookup:
+                    try:
+                        evaluated_val = float(pos_lookup[pos_id].get("pnl_after_fees_usd", 0))
+                    except Exception as e:
+                        self.logger.error(f"Error retrieving pnl for position {pos_id}: {e}", exc_info=True)
+
+            elif alert_type.startswith("HeatIndex"):
+                pos_id = alert.get("position_reference_id")
+                if pos_id and pos_id in pos_lookup:
+                    try:
+                        evaluated_val = float(pos_lookup[pos_id].get("current_heat_index", 0))
+                    except Exception as e:
+                        self.logger.error(f"Error retrieving heat index for position {pos_id}: {e}", exc_info=True)
+
+            if evaluated_val is not None:
+                alert_id = alert.get("id")
+                try:
+                    self.data_locker.update_alert_conditions(alert_id, {"evaluated_value": evaluated_val})
+                    self.logger.info(f"Updated alert {alert_id} evaluated_value to {evaluated_val}")
+                except Exception as update_ex:
+                    self.logger.error(f"Failed to update evaluated_value for alert {alert_id}: {update_ex}",
+                                      exc_info=True)
+
     def update_timer_states(self):
         now = current_time()
         updated = False

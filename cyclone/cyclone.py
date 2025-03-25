@@ -154,6 +154,29 @@ class Cyclone:
         except Exception as e:
             print(f"Error creating system alerts: {e}")
 
+    async def run_update_evaluated_value(self):
+        """
+        Calls the AlertManager's method to update evaluated_value for all alerts.
+        """
+        self.logger.info("Updating Evaluated Values for Alerts...")
+        try:
+            self.alert_manager.update_alerts_evaluated_value()
+            self.u_logger.log_operation(
+                operation_type="Update Evaluated Value",
+                primary_text="Alert evaluated values updated successfully",
+                source="Cyclone",
+                file="cyclone.py"
+            )
+            print("Alert evaluated values updated.")
+        except Exception as e:
+            self.logger.error(f"Updating evaluated values failed: {e}")
+            self.u_logger.log_operation(
+                operation_type="Update Evaluated Value",
+                primary_text=f"Failed: {e}",
+                source="Cyclone",
+                file="cyclone.py"
+            )
+
     async def run_alert_updates(self):
         self.logger.info("Starting Alert Evaluations")
         try:
@@ -227,7 +250,6 @@ class Cyclone:
             if choice == "1":
                 print("Finding Hedges...")
                 try:
-                    # Use HedgeManager's methods directly.
                     hedges = HedgeManager.find_hedges()
                     print(f"Found {len(hedges)} hedge group(s).")
                 except Exception as e:
@@ -252,6 +274,7 @@ class Cyclone:
             "create_market_alerts": self.run_create_market_alerts,
             "create_position_alerts": self.run_create_position_alerts,
             "create_system_alerts": self.run_create_system_alerts,
+            "update_evaluated_value": self.run_update_evaluated_value,
             "alert": self.run_alert_updates,
             "system": self.run_system_updates
         }
@@ -262,7 +285,7 @@ class Cyclone:
                 else:
                     self.logger.warning(f"Unknown step requested: {step}")
         else:
-            for step in ["market", "position", "enrichment", "create_market_alerts", "create_position_alerts", "create_system_alerts", "alert", "system"]:
+            for step in ["market", "position", "enrichment", "create_market_alerts", "create_position_alerts", "create_system_alerts", "update_evaluated_value", "alert", "system"]:
                 await available_steps[step]()
 
     async def run(self):
@@ -329,10 +352,11 @@ class Cyclone:
             print("2) Create Market Alerts")
             print("3) Create Position Alerts")
             print("4) Create System Alerts")
-            print("5) Alert Evaluations")
-            print("6) Clear Alerts")
-            print("7) Back to Main Menu")
-            choice = input("Enter your choice (1-7): ").strip()
+            print("5) Update Evaluated Value")
+            print("6) Alert Evaluations")
+            print("7) Clear Alerts")
+            print("8) Back to Main Menu")
+            choice = input("Enter your choice (1-8): ").strip()
             if choice == "1":
                 print("Viewing Alerts...")
                 self.view_alerts_backend()
@@ -346,13 +370,16 @@ class Cyclone:
                 print("Creating System Alerts...")
                 asyncio.run(self.run_cycle(steps=["create_system_alerts"]))
             elif choice == "5":
+                print("Updating Evaluated Values for Alerts...")
+                asyncio.run(self.run_cycle(steps=["update_evaluated_value"]))
+            elif choice == "6":
                 print("Running Alert Evaluations...")
                 asyncio.run(self.run_cycle(steps=["alert"]))
                 print("Alert Evaluations completed.")
-            elif choice == "6":
+            elif choice == "7":
                 print("Clearing Alerts...")
                 self.clear_alerts_backend()
-            elif choice == "7":
+            elif choice == "8":
                 break
             else:
                 print("Invalid choice, please try again.")
@@ -375,32 +402,6 @@ class Cyclone:
                 print("Clearing Wallets...")
                 self.clear_wallets_backend()
             elif choice == "4":
-                break
-            else:
-                print("Invalid choice, please try again.")
-
-    def run_hedges_menu(self):
-        while True:
-            print("\n--- Hedge Menu ---")
-            print("1) Find Hedges")
-            print("2) Clear Hedges")
-            print("3) Back to Previous Menu")
-            choice = input("Enter your choice (1-3): ").strip()
-            if choice == "1":
-                print("Finding Hedges...")
-                try:
-                    hedges = HedgeManager.find_hedges()
-                    print(f"Found {len(hedges)} hedge group(s).")
-                except Exception as e:
-                    print(f"Error finding hedges: {e}")
-            elif choice == "2":
-                print("Clearing Hedge Data...")
-                try:
-                    HedgeManager.clear_hedge_data()
-                    print("Hedge associations cleared.")
-                except Exception as e:
-                    print(f"Error clearing hedge data: {e}")
-            elif choice == "3":
                 break
             else:
                 print("Invalid choice, please try again.")
@@ -527,7 +528,11 @@ class Cyclone:
             print("----- Alerts -----")
             print(f"Found {len(alerts)} alert record(s).")
             for row in alerts:
-                pprint(dict(row))
+                alert_dict = dict(row)
+                # Ensure evaluated_value is explicitly shown
+                if "evaluated_value" not in alert_dict:
+                    alert_dict["evaluated_value"] = None
+                pprint(alert_dict)
         except Exception as e:
             print(f"Error viewing alerts: {e}")
 
