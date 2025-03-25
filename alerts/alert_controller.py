@@ -305,6 +305,7 @@ class AlertController:
                 file="alert_controller.py"
             )
 
+
     def create_travel_percent_alerts(self):
         created_alerts = []
         cursor = self.data_locker.conn.cursor()
@@ -312,6 +313,7 @@ class AlertController:
         cursor.close()
         for pos in positions:
             pos_dict = dict(pos)
+            # Only create an alert if one doesn't already exist for this position
             if not pos_dict.get("alert_reference_id"):
                 asset = pos_dict.get("asset_type", "BTC")
                 try:
@@ -321,25 +323,25 @@ class AlertController:
                 condition = "BELOW"
                 notification_type = "Call"
                 position_id = pos_dict.get("id")
-                # Create a simple dummy alert object
+                # DummyAlert for TravelPercent alerts
                 class DummyAlert:
                     def __init__(self):
                         self.id = str(uuid4())
-                        self.alert_type = AlertType.TRAVEL_PERCENT_LIQUID.value
-                        self.alert_class = AlertClass.POSITION.value
+                        self.alert_type = "TravelPercentAlert"  # Alternatively, use AlertType.TRAVEL_PERCENT_LIQUID.value
+                        self.alert_class = "Position"           # Alternatively, use AlertClass.POSITION.value
                         self.asset_type = asset
                         self.trigger_value = trigger_value
                         self.condition = condition
                         self.notification_type = notification_type
                         self.state = "Normal"
                         self.last_triggered = None
-                        self.status = Status.ACTIVE.value
+                        self.status = "Active"  # Alternatively, use Status.ACTIVE.value
                         self.frequency = 1
                         self.counter = 0
                         self.liquidation_distance = 0.0
                         self.target_travel_percent = 0.0
                         self.liquidation_price = 0.0
-                        self.notes = ""
+                        self.notes = "Auto-created alert record"
                         self.position_reference_id = position_id
                         self.evaluated_value = 0.0
                     def to_dict(self):
@@ -555,6 +557,7 @@ class AlertController:
             else:
                 print(f"Failed to create heat index alert for position {position_id}.")
         return created_alerts
+
 
     def populate_current_value_for_alert(self, alert: dict) -> float:
         evaluated_value = 0.0

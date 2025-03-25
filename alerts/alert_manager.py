@@ -290,13 +290,14 @@ class AlertManager:
         """
         Updates the evaluated_value for each alert based on its alert type.
 
-        - For PriceThreshold (or Price*) alerts, sets evaluated_value to the latest asset price.
-        - For TravelPercent (or TravelPercent*) alerts, sets evaluated_value to the position's current travel percent.
-        - For Profit (or Profit*) alerts, sets evaluated_value to the position's pnl_after_fees_usd.
-        - For HeatIndex (or HeatIndex*) alerts, sets evaluated_value to the position's current_heat_index.
+        - For Price* alerts, sets evaluated_value to the latest asset price.
+        - For TravelPercent* alerts, sets evaluated_value to the position's current travel percent.
+        - For Profit* alerts, sets evaluated_value to the position's pnl_after_fees_usd.
+        - For HeatIndex* alerts, sets evaluated_value to the position's current_heat_index.
         """
         alerts = self.data_locker.get_alerts()
         positions = self.data_locker.read_positions()
+        # Build lookup using the position id from positions
         pos_lookup = {pos.get("id"): pos for pos in positions}
 
         for alert in alerts:
@@ -313,7 +314,8 @@ class AlertManager:
                         self.logger.error(f"Error converting latest price for asset {asset_type}: {e}", exc_info=True)
 
             elif alert_type.startswith("TravelPercent"):
-                pos_id = alert.get("position_reference_id")
+                # Check both 'position_reference_id' and 'position_id'
+                pos_id = alert.get("position_reference_id") or alert.get("position_id")
                 if pos_id and pos_id in pos_lookup:
                     try:
                         evaluated_val = float(pos_lookup[pos_id].get("current_travel_percent", 0))
@@ -321,7 +323,7 @@ class AlertManager:
                         self.logger.error(f"Error retrieving travel percent for position {pos_id}: {e}", exc_info=True)
 
             elif alert_type.startswith("Profit"):
-                pos_id = alert.get("position_reference_id")
+                pos_id = alert.get("position_reference_id") or alert.get("position_id")
                 if pos_id and pos_id in pos_lookup:
                     try:
                         evaluated_val = float(pos_lookup[pos_id].get("pnl_after_fees_usd", 0))
@@ -329,7 +331,7 @@ class AlertManager:
                         self.logger.error(f"Error retrieving pnl for position {pos_id}: {e}", exc_info=True)
 
             elif alert_type.startswith("HeatIndex"):
-                pos_id = alert.get("position_reference_id")
+                pos_id = alert.get("position_reference_id") or alert.get("position_id")
                 if pos_id and pos_id in pos_lookup:
                     try:
                         evaluated_val = float(pos_lookup[pos_id].get("current_heat_index", 0))

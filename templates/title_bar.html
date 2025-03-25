@@ -37,16 +37,10 @@
       background-color: #f8f9fa;
     }
     @keyframes spin {
-      from {
-        transform: rotate(0deg);
-      }
-      to {
-        transform: rotate(360deg);
-      }
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
     }
-    .spin {
-      animation: spin 1s linear infinite;
-    }
+    .spin { animation: spin 1s linear infinite; }
   </style>
 
   <div class="container">
@@ -136,6 +130,12 @@
             <span class="price-icon">$</span>
           </button>
         </li>
+        <!-- Full Cycle Update Button -->
+        <li class="nav-item d-flex align-items-center me-3">
+          <button type="button" class="update-jupiter-btn" id="updateFullCycleBtn" title="Full Cycle Update">
+            <img src="{{ url_for('static', filename='images/full_cycle.png') }}" alt="Full Cycle Update">
+          </button>
+        </li>
         <!-- Gear Dropdown -->
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="gearDropdown" role="button"
@@ -173,7 +173,7 @@
 
 <!-- Inline JavaScript -->
 <script>
-  // 1) Timers
+  // Timers
   function getRemaining(start, period) {
     if (!start) return period;
     const elapsed = Math.floor(Date.now() / 1000) - start;
@@ -197,7 +197,7 @@
     })
     .catch(err => console.error('Timer error:', err));
 
-  // 2) Price Updates (Client-side display updates)
+  // Price Updates
   function updatePrices() {
     fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd&include_24hr_change=true')
       .then(r => r.json())
@@ -226,7 +226,7 @@
   updatePrices();
   setInterval(updatePrices, 60000);
 
-  // 3) Jupiter Update (for positions)
+  // Jupiter Update Button
   const updateJupiterBtn = document.getElementById("updateJupiterBtn");
   if (updateJupiterBtn) {
     updateJupiterBtn.addEventListener("click", () => {
@@ -241,7 +241,7 @@
     });
   }
 
-  // 4) Prices Update (for prices only)
+  // Prices Update Button
   const updatePricesBtn = document.getElementById("updatePricesBtn");
   if (updatePricesBtn) {
     updatePricesBtn.addEventListener("click", () => {
@@ -256,23 +256,25 @@
     });
   }
 
-  // 5) Theme Switcher (if applicable in dropdown)
-  document.querySelectorAll('.theme-profile-option').forEach(option => {
-    option.addEventListener('click', e => {
-      e.preventDefault();
-      const profileKey = e.currentTarget.dataset.profile;
-      fetch('{{ url_for("dashboard.save_theme_route") }}', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ selected_profile: profileKey })
-      })
-      .then(r => r.json())
-      .then(data => data.success ? window.location.reload() : alert("Theme Error: " + data.error))
-      .catch(err => alert("Theme Switch Error: " + err));
+  // Full Cycle Update Button
+  const updateFullCycleBtn = document.getElementById("updateFullCycleBtn");
+  if (updateFullCycleBtn) {
+    updateFullCycleBtn.addEventListener("click", () => {
+      updateFullCycleBtn.querySelector("img").classList.add("spin");
+      fetch("/api/run_full_cycle", { method: "POST" })
+        .then(response => response.json())
+        .then(data => {
+          updateFullCycleBtn.querySelector("img").classList.remove("spin");
+          window.location.reload();
+        })
+        .catch(err => {
+          updateFullCycleBtn.querySelector("img").classList.remove("spin");
+          console.error("Full cycle update error:", err);
+        });
     });
-  });
+  }
 
-  // 6) Layout Toggle Switch
+  // Layout Toggle Switch
   document.getElementById('layoutToggle').addEventListener('click', function(e) {
     e.preventDefault();
     var mode = localStorage.getItem("layoutMode") || "fluid";
@@ -282,15 +284,6 @@
   });
 </script>
 <style>
-  @keyframes spin {
-    from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(360deg);
-    }
-  }
-  .spin {
-    animation: spin 1s linear infinite;
-  }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .spin { animation: spin 1s linear infinite; }
 </style>
