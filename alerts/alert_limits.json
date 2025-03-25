@@ -1,0 +1,90 @@
+{
+  "cmc_api_key": "c51c0c22-1bf3-4674-86bf-36f39a912d1a",
+  "system_config": {
+    "logging_enabled": true,
+    "log_level": "DEBUG",
+    "console_output": true,
+    "log_file": "${ALERT_MONITOR_LOG_PATH}",
+    "db_path": "${DB_PATH}",
+    "price_monitor_enabled": true,
+    "alert_monitor_enabled": true,
+    "sonic_monitor_loop_time": 300,
+    "last_price_update_time": null
+  },
+  "api_config": {
+    "coingecko_api_enabled": "ENABLE",
+    "kucoin_api_enabled": "ENABLE",
+    "coinmarketcap_api_enabled": "ENABLE",
+    "coinpaprika_api_enabled": "ENABLE",
+    "binance_api_enabled": "ENABLE",
+    "coinmarketcap_api_key": "c51c0c22-1bf3-4674-86bf-36f39a912d1a"
+  },
+  "notification_config": {
+    "email": {
+      "smtp_server": "smtp.gmail.com",
+      "smtp_port": 587,
+      "smtp_user": "bubba.diego@gmail.com",
+      "smtp_password": "pzix taan afbe igxb",
+      "recipient_email": "bubba.diego@gmail.com"
+    },
+    "sms": {
+      "carrier_gateway": "txt.att.net",
+      "recipient_number": "6199804758"
+    }
+  },
+  "twilio_config": {
+    "account_sid": "ACb606788ada5dccbfeeebed0f440099b3",
+    "auth_token": "c09b639f1627bd76401525534a75e41b",
+    "flow_sid": "FW5b3bf49ee04af4d23a118b613bbc0df2",
+    "to_phone": "+16199804758",
+    "from_phone": "+18336913467"
+  },
+  "alert_ranges": {
+    "heat_index_ranges": {
+      "enabled": true,
+      "low": 12.0,
+      "medium": 33.0,
+      "high": 66.0
+    },
+    "liquidation_distance_ranges": {
+      "enabled": true,
+      "low": 10.0,
+      "medium": 25.0,
+      "high": 50.0
+    },
+    "travel_percent_liquid_ranges": {
+      "enabled": true,
+      "low": -4.0,
+      "medium": -7.0,
+      "high": -10.0
+    },
+    "profit_ranges": {
+      "enabled": true,
+      "low": 22.0,
+      "medium": 51.0,
+      "high": 99.0
+    },
+    "price_alerts": {
+      "BTC": {
+        "enabled": true,
+        "condition": "ABOVE",
+        "trigger_value": 77667
+      },
+      "ETH": {
+        "enabled": true,
+        "condition": "ABOVE",
+        "trigger_value": 1926.84
+      },
+      "SOL": {
+        "enabled": true,
+        "condition": "BELOW",
+        "trigger_value": 133.9
+      }
+    }
+  },
+  "alert_cooldown_seconds": 888.0,
+  "call_refractory_period": 873.0,
+  "snooze_countdown": 300.0,
+  "call_refractory_start": 1742823013.4932268,
+  "snooze_start": null
+}

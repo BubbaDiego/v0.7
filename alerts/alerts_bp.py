@@ -7,6 +7,7 @@ from config.config_constants import BASE_DIR, ALERT_LIMITS_PATH
 from pathlib import Path
 from utils.operations_manager import OperationsLogger
 from utils.json_manager import JsonManager, JsonType
+from sonic_labs.hedge_manager import HedgeManager
 from time import time
 
 # Ensure the current directory is in sys.path so we can import alert_manager.py
@@ -303,8 +304,10 @@ def update_alert_config_route():
 @alerts_bp.route('/matrix', methods=['GET'], endpoint="alert_matrix")
 def alert_matrix():
     from data.data_locker import DataLocker
-    from alert_controller import AlertController
+    from alerts.alert_controller import AlertController
+    from sonic_labs.hedge_manager import HedgeManager  # Import HedgeManager to retrieve hedges
 
+    # Set up theme configuration if not already set
     theme_config = current_app.config.get('theme')
     if not theme_config:
         theme_config = {
@@ -316,24 +319,34 @@ def alert_matrix():
         }
         current_app.config['theme'] = theme_config
 
+    # Retrieve alerts and positions
     data_locker = DataLocker.get_instance()
     alerts = data_locker.get_alerts()
-
-    # NEW: Retrieve positions and update alerts missing position_reference_id
     positions = data_locker.read_positions()
+
+    # Update alerts with missing position_reference_id using positions data
     for alert in alerts:
         if not alert.get("position_reference_id"):
             for pos in positions:
-                # If the position's alert_reference_id matches the alert's id,
-                # then assign the position's id as the position_reference_id.
                 if pos.get("alert_reference_id") == alert.get("id"):
                     alert["position_reference_id"] = pos.get("id")
                     break
 
+    # Retrieve hedges using HedgeManager
+    hedge_manager = HedgeManager(positions)
+    hedges = hedge_manager.get_hedges()
+
+    # Load alert configuration ranges
     json_manager = current_app.json_manager
     alert_config = json_manager.load("alert_limits.json", json_type=JsonType.ALERT_LIMITS)
     alert_ranges = alert_config.get("alert_ranges", {})
-    return render_template("alert_matrix.html", theme=theme_config, alerts=alerts, alert_ranges=alert_ranges)
+
+    # Pass alerts, alert_ranges, and hedges to the template
+    return render_template("alert_matrix.html",
+                           theme=theme_config,
+                           alerts=alerts,
+                           alert_ranges=alert_ranges,
+                           hedges=hedges)
 
 
 if __name__ == "__main__":

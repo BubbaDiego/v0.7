@@ -8,6 +8,7 @@ This module defines the HedgeManager class which is responsible for:
     and total heat index.
   - Providing access to hedge data via methods like get_hedges().
   - Logging an operations entry when hedges are checked.
+  - New: Finding and clearing hedge associations based on raw positions.
 
 Assumptions:
   - The Position objects include a 'hedge_buddy_id' field to denote grouping.
@@ -25,6 +26,12 @@ from data.models import Position, Hedge  # Assuming Hedge is defined in models.p
 
 # Import the UnifiedLogger for operations logging.
 from utils.unified_logger import UnifiedLogger
+from config.config_constants import DB_PATH
+from data.data_locker import DataLocker
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class HedgeManager:
@@ -101,51 +108,55 @@ class HedgeManager:
         """
         return self.hedges
 
+    @staticmethod
+    def find_hedges(db_path: str = DB_PATH) -> List[list]:
+        """
+        Finds hedges by retrieving raw positions from the database and grouping them by wallet and asset.
+        For groups that contain positions with opposing stances (one long and one short), a unique hedge_buddy_id is assigned.
+        Returns a list of hedge groups (each group is a list of positions that have been assigned the same hedge_buddy_id).
+        """
+        try:
+            from uuid import uuid4
+            dl = DataLocker.get_instance(db_path)
+            raw_positions = dl.read_positions()
+            positions = [dict(pos) for pos in raw_positions]
+            groups = {}
+            for pos in positions:
+                wallet = pos.get("wallet_name")
+                asset = pos.get("asset_type")
+                if wallet and asset:
+                    key = (wallet, asset)
+                    groups.setdefault(key, []).append(pos)
+            hedged_groups = []
+            for key, pos_list in groups.items():
+                has_long = any(pos.get("position_type", "").lower() == "long" for pos in pos_list)
+                has_short = any(pos.get("position_type", "").lower() == "short" for pos in pos_list)
+                if has_long and has_short:
+                    hedge_id = str(uuid4())
+                    for pos in pos_list:
+                        pos["hedge_buddy_id"] = hedge_id
+                        cursor = dl.conn.cursor()
+                        cursor.execute("UPDATE positions SET hedge_buddy_id = ? WHERE id = ?", (hedge_id, pos["id"]))
+                        dl.conn.commit()
+                        cursor.close()
+                    hedged_groups.append(pos_list)
+            logger.info(f"Found {len(hedged_groups)} hedge group(s).")
+            return hedged_groups
+        except Exception as e:
+            logger.error(f"Error in find_hedges: {e}", exc_info=True)
+            return []
 
-# Example usage:
-if __name__ == "__main__":
-    # Dummy positions for testing
-    from data.models import Position
-
-    # Create some test Position instances with hedge_buddy_id set.
-    pos1 = Position(
-        asset_type="BTC",
-        position_type="long",
-        size=1.5,
-        heat_index=10.0,
-        hedge_buddy_id="group1"
-    )
-    pos2 = Position(
-        asset_type="BTC",
-        position_type="short",
-        size=0.5,
-        heat_index=5.0,
-        hedge_buddy_id="group1"
-    )
-    pos3 = Position(
-        asset_type="ETH",
-        position_type="long",
-        size=2.0,
-        heat_index=8.0,
-        hedge_buddy_id="group2"
-    )
-    pos4 = Position(
-        asset_type="ETH",
-        position_type="long",
-        size=1.0,
-        heat_index=6.0,
-        hedge_buddy_id="group2"
-    )
-    pos5 = Position(
-        asset_type="SOL",
-        position_type="long",
-        size=3.0,
-        heat_index=4.0,
-        hedge_buddy_id=None  # This one will not be grouped
-    )
-
-    positions = [pos1, pos2, pos3, pos4, pos5]
-    manager = HedgeManager(positions)
-    hedges = manager.get_hedges()
-    for hedge in hedges:
-        print(hedge)
+    @staticmethod
+    def clear_hedge_data(db_path: str = DB_PATH) -> None:
+        """
+        Clears hedge association data by setting the hedge_buddy_id field to NULL for all positions in the database.
+        """
+        try:
+            dl = DataLocker.get_instance(db_path)
+            cursor = dl.conn.cursor()
+            cursor.execute("UPDATE positions SET hedge_buddy_id = NULL WHERE hedge_buddy_id IS NOT NULL")
+            dl.conn.commit()
+            cursor.close()
+            logger.info("Hedge association data cleared.")
+        except Exception as e:
+            logger.error(f"Error in clear_hedge_data: {e}", exc_info=True)

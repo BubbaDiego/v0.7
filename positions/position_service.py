@@ -44,16 +44,9 @@ class PositionService:
         """
         After updating a position, re-evaluate its alert state and update the alert record.
         """
-        # (Your code here to update the position in the DB using data_locker)
-        # For example:
         data_locker.create_position(pos)  # Or update_position() as appropriate
 
-        # Now load configuration (this could be cached or passed in)
-        config_manager = UnifiedConfigManager(CONFIG_PATH)
-        config = config_manager.load_config()
-
-        # Create an AlertEvaluator instance and update the alert for this position
-        evaluator = AlertEvaluator(config, data_locker)
+        evaluator = AlertEvaluator({}, data_locker)  # Pass an empty config or load one as needed
         evaluator.update_alert_for_position(pos)
 
     @staticmethod
@@ -66,12 +59,6 @@ class PositionService:
             dl = DataLocker.get_instance(db_path)
             raw_positions = dl.read_positions()
             positions = []
-          #  for pos in raw_positions:
-                # Explicitly convert sqlite3.Row to a dict using its keys.
-           #     pos_dict = { key: pos[key] for key in pos.keys() }
-                # Optionally, you can enrich each position here.
-             #   positions.append(pos_dict)
-
             for pos in raw_positions:
                 pos_dict = {key: pos[key] for key in pos.keys()}
                 enriched = PositionService.enrich_position(pos_dict)
@@ -86,7 +73,7 @@ class PositionService:
         try:
             logger.debug(f"Enriching position: {position}")
             calc = CalcServices()
-            # List of required numeric fields and their fallbacks
+            # Ensure required numeric fields have a default value
             required_fields = ['entry_price', 'current_price', 'liquidation_price', 'collateral', 'size']
             for field in required_fields:
                 if position.get(field) is None:
@@ -147,10 +134,12 @@ class PositionService:
             position['liquidation_distance'] = liq_distance
             logger.debug(f"Calculated liquidation_distance: {liq_distance}")
 
-            # Compute composite risk index using the multiplicative model (our new composite risk index)
+            # Compute composite risk index using the multiplicative model.
             composite_risk = calc.calculate_composite_risk_index(position)
             position["heat_index"] = composite_risk
-            logger.debug(f"Computed composite risk index (heat_index): {composite_risk}")
+            # *** FIX: Also update current_heat_index ***
+            position["current_heat_index"] = composite_risk
+            logger.debug(f"Computed composite risk index: {composite_risk} and set current_heat_index accordingly.")
 
             logger.debug(f"Enriched position: {position}")
             return position
@@ -163,7 +152,6 @@ class PositionService:
         try:
             dl = DataLocker.get_instance()
             for i, pos in enumerate(positions):
-                # Convert sqlite3.Row to a dict if necessary.
                 if not isinstance(pos, dict):
                     pos = dict(pos)
                     positions[i] = pos
@@ -187,14 +175,7 @@ class PositionService:
 
     @staticmethod
     def update_jupiter_positions(db_path: str = DB_PATH) -> Dict[str, Any]:
-        """
-        Fetch Jupiter positions for all wallets in the database, update the positions table,
-        update balance variables, and update hedges via HedgeManager.
-        Returns a dictionary with a result message and counts.
-        """
-        logger.info(f"Jupiter: 💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀")
-
-
+        logger.info("Jupiter: Updating positions from Jupiter API...")
         try:
             dl = DataLocker.get_instance(db_path)
             wallets_list = dl.read_wallets()
@@ -204,7 +185,6 @@ class PositionService:
 
             new_positions = []
             for w in wallets_list:
-
                 public_addr = w.get("public_address", "").strip()
                 if not public_addr:
                     logger.info(f"Skipping wallet {w['name']} (no public_address).")
@@ -265,46 +245,7 @@ class PositionService:
                     duplicate_count += 1
                     logger.info(f"Skipping duplicate Jupiter position: {p['id']}")
 
-            # Update balance variables
-            all_positions = dl.get_positions()
-            total_brokerage_value = sum(float(pos.get("value", 0)) for pos in all_positions)
-           # balance_vars = dl.get_balance_vars()
-           # old_wallet_balance = balance_vars.get("total_wallet_balance", 0.0)
-          #  new_total_balance = old_wallet_balance + total_brokerage_value
-           # dl.set_balance_vars(
-          #      brokerage_balance=total_brokerage_value,
-           #     total_balance=new_total_balance
-          #  )
-          #  msg = (f"Imported {new_count} new Jupiter position(s); Skipped {duplicate_count} duplicate(s). "
-         #          f"BrokerageBalance={total_brokerage_value:.2f}, TotalBalance={new_total_balance:.2f}")
-         #   logger.info(msg)
-
-            #logger.info(f"Jupiter:  💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸 💸")
-
-            # --- New Code: Update hedges via HedgeManager ---
-            try:
-                from sonic_labs.hedge_manager import HedgeManager
-                # Get the updated positions again.
-                updated_positions = PositionService.get_all_positions(db_path)
-                hedge_manager = HedgeManager(updated_positions)
-                hedges = hedge_manager.get_hedges()
-                # Log the hedge update operation.
-                from utils.unified_logger import UnifiedLogger
-                op_logger = UnifiedLogger()
-                op_logger.log_operation(
-                    operation_type="Hedge Updated",
-                    primary_text=f"{len(hedges)} hedges updated via Jupiter positions.",
-                    source="System",
-                    file="position_service.py"
-                )
-            except Exception as hedge_err:
-                op_logger = UnifiedLogger()
-                op_logger.log_operation(
-                    operation_type="Hedge Fucked",
-                    primary_text=f"{len(hedges)} hedges fucked",
-                    source="System",
-                    file="position_service.py")
-
+            hedges = PositionService.find_hedges(db_path)
             msg = "Jupiter positions updated successfully."
             return {"message": msg, "imported": new_count, "skipped": duplicate_count}
         except Exception as e:
@@ -313,15 +254,12 @@ class PositionService:
 
     @staticmethod
     def delete_all_jupiter_positions(db_path: str = DB_PATH):
-        """
-        Delete all Jupiter positions from the database.
-        """
         try:
             dl = DataLocker.get_instance(db_path)
-            cursor = dl.conn.cursor()  # Create a new cursor
+            cursor = dl.conn.cursor()
             cursor.execute("DELETE FROM positions WHERE wallet_name IS NOT NULL")
             dl.conn.commit()
-            cursor.close()  # Close the cursor after use
+            cursor.close()
             logger.info("All Jupiter positions deleted.")
         except Exception as e:
             logger.error(f"Error deleting Jupiter positions: {e}", exc_info=True)
@@ -329,15 +267,11 @@ class PositionService:
 
     @staticmethod
     def update_dydx_positions(db_path: str = DB_PATH) -> dict:
-        """
-        Fetches perpetual positions from dYdX via the DydxAPI client,
-        maps them to our Position model, and inserts new positions into the database.
-        """
         try:
-            from uuid import uuid4  # Needed for generating IDs if absent
+            from uuid import uuid4
             client = DydxAPI()
             wallet_address = "dydx1unfl20nw9xep6vyl78jktjgrywvr5m7z7ru9e8"
-            subaccount_number = 0  # Or get from config as needed
+            subaccount_number = 0
 
             dydx_positions = client.get_perpetual_positions(wallet_address, subaccount_number)
             dl = DataLocker.get_instance(db_path)
@@ -355,7 +289,6 @@ class PositionService:
                     "collateral": 0.0,
                     "size": float(pos.get("size", 0.0)),
                     "leverage": 0.0,
-                    # Set wallet_name so that create_position sets a proper value (default "Default" otherwise)
                     "wallet_name": wallet_address,
                     "last_updated": pos.get("createdAt", datetime.now().isoformat()),
                     "current_price": float(pos.get("entryPrice", 0.0)),
@@ -381,10 +314,6 @@ class PositionService:
 
     @staticmethod
     def record_positions_snapshot(db_path: str = DB_PATH):
-        """
-        Retrieve all enriched positions, calculate aggregated totals, and store a snapshot
-        in the positions_totals_history table.
-        """
         try:
             positions = PositionService.get_all_positions(db_path)
             calc_services = CalcServices()
@@ -396,13 +325,49 @@ class PositionService:
             logger.error(f"Error recording positions snapshot: {e}", exc_info=True)
             raise
 
-if __name__ == "__main__":
-    try:
-        positions = PositionService.get_all_positions()
-        updated_positions = PositionService.fill_positions_with_latest_price(positions)
-        for pos in updated_positions:
-            asset = pos.get('asset_type', 'Unknown')
-            current_price = pos.get('current_price', 'N/A')
-            print(f"Position for asset {asset} updated with current_price: {current_price}")
-    except Exception as e:
-        logger.error(f"Error during testing: {e}", exc_info=True)
+    @staticmethod
+    def find_hedges(db_path: str = DB_PATH) -> list:
+        try:
+            dl = DataLocker.get_instance(db_path)
+            raw_positions = dl.read_positions()
+            positions = [dict(pos) for pos in raw_positions]
+            from sonic_labs.hedge_manager import HedgeManager
+            hedge_manager = HedgeManager(positions)
+            hedges = hedge_manager.get_hedges()
+            UnifiedLogger().log_operation(
+                operation_type="Hedge Updated",
+                primary_text=f"{len(hedges)} hedges updated using raw positions.",
+                source="System",
+                file="position_service.py"
+            )
+            return hedges
+        except Exception as e:
+            UnifiedLogger().log_operation(
+                operation_type="Hedge Error",
+                primary_text=f"Error finding hedges: {e}",
+                source="System",
+                file="position_service.py"
+            )
+            return []
+
+    @staticmethod
+    def clear_hedge_data(db_path: str = DB_PATH) -> None:
+        try:
+            dl = DataLocker.get_instance(db_path)
+            cursor = dl.conn.cursor()
+            cursor.execute("UPDATE positions SET hedge_buddy_id = NULL WHERE hedge_buddy_id IS NOT NULL")
+            dl.conn.commit()
+            cursor.close()
+            UnifiedLogger().log_operation(
+                operation_type="Clear Hedge Data",
+                primary_text="Cleared hedge association data from positions.",
+                source="System",
+                file="position_service.py"
+            )
+        except Exception as e:
+            UnifiedLogger().log_operation(
+                operation_type="Clear Hedge Data Error",
+                primary_text=f"Error clearing hedge data: {e}",
+                source="System",
+                file="position_service.py"
+            )

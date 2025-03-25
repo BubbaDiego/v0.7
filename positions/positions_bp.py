@@ -707,30 +707,30 @@ def update_jupiter():
         # Continue even if hedge update fails.
 
     # Step 3: Trigger price update.
-    try:
-        logger.debug("Step 3: Triggering price update...")
-        prices_resp = update_prices_wrapper(source)
-        logger.debug(f"Prices update response: {prices_resp.status_code} - {prices_resp.get_json()}")
-        print(f"[DEBUG] Prices update response: {prices_resp.status_code} - {prices_resp.get_json()}")
-        if prices_resp.status_code != 200:
-            logger.error(f"Price update failed with status code: {prices_resp.status_code}")
-            print(f"[ERROR] Price update failed with status code: {prices_resp.status_code}")
-            return prices_resp
-    except Exception as e:
-        logger.error(f"Exception during price update: {e}", exc_info=True)
-        print(f"[ERROR] Exception during price update: {e}")
-        return jsonify({"error": str(e)}), 500
+ #   try:
+ #       logger.debug("Step 3: Triggering price update...")
+   #     prices_resp = update_prices_wrapper(source)
+   #     logger.debug(f"Prices update response: {prices_resp.status_code} - {prices_resp.get_json()}")
+   #     print(f"[DEBUG] Prices update response: {prices_resp.status_code} - {prices_resp.get_json()}")
+   #     if prices_resp.status_code != 200:
+     #       logger.error(f"Price update failed with status code: {prices_resp.status_code}")
+    #        print(f"[ERROR] Price update failed with status code: {prices_resp.status_code}")
+  #          return prices_resp
+#    except Exception as e:
+ #       logger.error(f"Exception during price update: {e}", exc_info=True)
+  #      print(f"[ERROR] Exception during price update: {e}")
+  #      return jsonify({"error": str(e)}), 500
 
     # Step 4: Run manual alert check.
-    try:
-        logger.debug("Step 4: Performing manual alert check via alert_manager.check_alerts()...")
-        print("[DEBUG] About to call alert_manager.check_alerts()")
-        alert_manager.check_alerts(source)
-        logger.debug("Manual alert check completed.")
-        print("[DEBUG] Manual alert check completed.")
-    except Exception as e:
-        logger.error(f"Exception during alert check: {e}", exc_info=True)
-        print(f"[ERROR] Exception during alert check: {e}")
+  #  try:
+  #      logger.debug("Step 4: Performing manual alert check via alert_manager.check_alerts()...")
+  #      print("[DEBUG] About to call alert_manager.check_alerts()")
+  #      alert_manager.check_alerts(source)
+  #      logger.debug("Manual alert check completed.")
+  #      print("[DEBUG] Manual alert check completed.")
+  #  except Exception as e:
+   #     logger.error(f"Exception during alert check: {e}", exc_info=True)
+   #     print(f"[ERROR] Exception during alert check: {e}")
 
     # Step 5: Update last update timestamps.
     try:

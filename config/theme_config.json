@@ -30,27 +30,27 @@
     "redTheme": {
       "name": "Crimson Night",
       "title bar": {
-        "color": "#dc3545",
+        "color": "#DC3545",
         "image": null
       },
       "side bar": {
-        "color": "#c82333",
+        "color": "#C82333",
         "image": null
       },
       "wallpaper": {
-        "color": "#f8d7da",
+        "color": "#F8D7DA",
         "image": null
       },
       "card title": {
-        "color": "#ffffff",
+        "color": "#FFFFFF",
         "image": null
       },
       "card background": {
-        "color": "#f5c6cb",
+        "color": "#F5C6CB",
         "image": null
       },
       "text": {
-        "color": "#ffffff",
+        "color": "#FFFFFF",
         "image": null
       }
     },
@@ -111,22 +111,22 @@
     "orangeTheme": {
       "name": "Sunset Orange",
       "title bar": {
-        "color": "#FF8C00"
+        "color": "#ff8c00"
       },
       "side bar": {
-        "color": "#CC7000"
+        "color": "#cc7000"
       },
       "wallpaper": {
-        "color": "#FFF5E6"
+        "color": "#fff5e6"
       },
       "card title": {
-        "color": "#FFFFFF"
+        "color": "#ffffff"
       },
       "card background": {
-        "color": "#FFDAB9"
+        "color": "#ffdab9"
       },
       "text": {
-        "color": "#FFFFFF"
+        "color": "#ffffff"
       }
     },
     "yellowTheme": {
@@ -235,5 +235,5 @@
       }
     }
   },
-  "selected_profile": "redTheme"
+  "selected_profile": "orangeTheme"
 }

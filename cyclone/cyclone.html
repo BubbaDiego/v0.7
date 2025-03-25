@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+{% block title %}Cyclone Dashboard{% endblock %}
+
+{% block extra_styles %}
+<style>
+  /* Styles for the console output and control panel */
+  .console-window {
+    background-color: #000;
+    color: #0f0;
+    height: 400px;
+    overflow-y: scroll;
+    padding: 10px;
+    font-family: monospace;
+  }
+  .control-panel {
+    margin-bottom: 20px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+  <!-- Left column: Control Panel -->
+  <div class="col-md-4">
+    <div class="card control-panel">
+      <div class="card-header">
+        <h3 class="card-title"><i class="fas fa-cogs"></i> Controls</h3>
+      </div>
+      <div class="card-body">
+        <ul class="list-group">
+          <li class="list-group-item">
+            <button id="fullCycleBtn" class="btn btn-primary btn-block">
+              1. <i class="fas fa-rocket"></i> Run Full Cycle
+            </button>
+          </li>
+          <li class="list-group-item">
+            <button id="marketUpdatesBtn" class="btn btn-secondary btn-block">
+              2. <i class="fas fa-chart-line"></i> Market Updates
+            </button>
+          </li>
+          <li class="list-group-item">
+            <button id="positionUpdatesBtn" class="btn btn-secondary btn-block">
+              3. <i class="fas fa-user-edit"></i> Position Updates
+            </button>
+          </li>
+          <li class="list-group-item">
+            <button id="dependentUpdatesBtn" class="btn btn-secondary btn-block">
+              4. <i class="fas fa-sliders-h"></i> Dependent Updates
+            </button>
+          </li>
+          <li class="list-group-item">
+            <button id="alertUpdatesBtn" class="btn btn-secondary btn-block">
+              5. <i class="fas fa-bell"></i> Alert Evaluations
+            </button>
+          </li>
+          <li class="list-group-item">
+            <button id="systemUpdatesBtn" class="btn btn-secondary btn-block">
+              6. <i class="fas fa-desktop"></i> System Updates
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right column: Console Output -->
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title"><i class="fas fa-terminal"></i> Console Output</h3>
+      </div>
+      <div class="card-body">
+        <div id="consoleWindow" class="console-window">
+          <!-- Real-time logs will appear here -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // Function to append text to the console window.
+  function appendToConsole(text) {
+    const consoleWindow = document.getElementById("consoleWindow");
+    consoleWindow.innerHTML += text + "<br/>";
+    consoleWindow.scrollTop = consoleWindow.scrollHeight;
+  }
+
+  // Polling function to fetch the latest logs
+  function pollCycloneLogs() {
+    fetch("/cyclone/api/cyclone_logs")
+      .then(response => response.json())
+      .then(data => {
+        const consoleWindow = document.getElementById("consoleWindow");
+        if (data.logs) {
+          // Overwrite the console with the last 50 lines
+          consoleWindow.innerHTML = data.logs.join("<br/>");
+          consoleWindow.scrollTop = consoleWindow.scrollHeight;
+        } else if (data.error) {
+          appendToConsole("Error: " + data.error);
+        }
+      })
+      .catch(err => {
+        appendToConsole("Error: " + err);
+      });
+  }
+
+  // Start polling every 5 seconds and immediately on page load
+  setInterval(pollCycloneLogs, 5000);
+  pollCycloneLogs();
+
+  // Real AJAX call for Full Cycle
+  document.getElementById("fullCycleBtn").addEventListener("click", function() {
+    appendToConsole("Running Full Cycle...");
+    fetch("/cyclone/api/run_full_cycle", { method: "POST" })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message) {
+          appendToConsole(data.message);
+        } else {
+          appendToConsole("No message returned.");
+        }
+      })
+      .catch(err => {
+        appendToConsole("Error: " + err);
+      });
+  });
+
+  // Real AJAX call for Market Updates
+  document.getElementById("marketUpdatesBtn").addEventListener("click", function() {
+    appendToConsole("Running Market Updates...");
+    fetch("/cyclone/api/run_market_updates", { method: "POST" })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message) {
+          appendToConsole(data.message);
+        } else {
+          appendToConsole("No message returned.");
+        }
+      })
+      .catch(err => {
+        appendToConsole("Error: " + err);
+      });
+  });
+
+  // Real AJAX call for Position Updates
+  document.getElementById("positionUpdatesBtn").addEventListener("click", function() {
+    appendToConsole("Running Position Updates...");
+    fetch("/cyclone/api/run_position_updates", { method: "POST" })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message) {
+          appendToConsole(data.message);
+        } else {
+          appendToConsole("No message returned.");
+        }
+      })
+      .catch(err => {
+        appendToConsole("Error: " + err);
+      });
+  });
+
+  // Real AJAX call for Dependent Updates
+  document.getElementById("dependentUpdatesBtn").addEventListener("click", function() {
+    appendToConsole("Running Dependent Updates...");
+    fetch("/cyclone/api/run_dependent_updates", { method: "POST" })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message) {
+          appendToConsole(data.message);
+        } else {
+          appendToConsole("No message returned.");
+        }
+      })
+      .catch(err => {
+        appendToConsole("Error: " + err);
+      });
+  });
+
+  // Real AJAX call for Alert Evaluations
+  document.getElementById("alertUpdatesBtn").addEventListener("click", function() {
+    appendToConsole("Running Alert Evaluations...");
+    fetch("/cyclone/api/run_alert_evaluations", { method: "POST" })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message) {
+          appendToConsole(data.message);
+        } else {
+          appendToConsole("No message returned.");
+        }
+      })
+      .catch(err => {
+        appendToConsole("Error: " + err);
+      });
+  });
+
+  // Real AJAX call for System Updates
+  document.getElementById("systemUpdatesBtn").addEventListener("click", function() {
+    appendToConsole("Running System Updates...");
+    fetch("/cyclone/api/run_system_updates", { method: "POST" })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message) {
+          appendToConsole(data.message);
+        } else {
+          appendToConsole("No message returned.");
+        }
+      })
+      .catch(err => {
+        appendToConsole("Error: " + err);
+      });
+  });
+</script>
+{% endblock %}

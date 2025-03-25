@@ -254,7 +254,7 @@
                     <div class="nowrap-line">
                       <i class="fas fa-id-badge"></i>
                       {% if alert.id %}
-                        {{ alert.id[:6] }}
+                        {{ alert.id|string|slice(0,6) }}
                       {% else %}
                         N/A
                       {% endif %}
@@ -262,7 +262,7 @@
                     <div class="nowrap-line">
                       <i class="fas fa-link"></i>
                       {% if alert.position_reference_id %}
-                        {{ alert.position_reference_id[:6] }}
+                        {{ alert.position_reference_id|string|slice(0,6) }}
                       {% else %}
                         N/A
                       {% endif %}
@@ -270,7 +270,7 @@
                     <div class="nowrap-line">
                       <i class="fas fa-paw"></i>
                       {% if alert.hedge_id %}
-                        {{ alert.hedge_id[:6] }}
+                        {{ alert.hedge_id|string|slice(0,6) }}
                       {% else %}
                         N/A
                       {% endif %}
@@ -367,7 +367,7 @@
           <tbody>
             {% for hedge in hedges %}
               <tr>
-                <td>{{ hedge.id }}</td>
+                <td>{{ hedge.id|string }}</td>
                 <td>{{ hedge.total_long_size }}</td>
                 <td>{{ hedge.total_short_size }}</td>
                 <td>{{ hedge.long_heat_index }}</td>
