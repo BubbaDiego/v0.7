@@ -6,6 +6,55 @@ from typing import Optional
 import logging
 from utils.unified_logger import UnifiedLogger
 
+
+from uuid import uuid4
+from data.models import Status  # Ensure Status is imported
+
+class DummyPositionAlert:
+    def __init__(self, alert_type, asset_type, trigger_value, condition, notification_type, position_reference_id):
+        self.id = str(uuid4())
+        self.alert_type = alert_type                     # e.g., "TravelPercentAlert"
+        self.alert_class = "Position"                    # default for position alerts
+        self.asset_type = asset_type                     # e.g., "SOL"
+        self.trigger_value = trigger_value               # e.g., a numeric threshold
+        self.condition = condition                       # e.g., "BELOW"
+        self.notification_type = notification_type       # e.g., "Call"
+        self.state = "Normal"
+        self.last_triggered = None
+        self.status = Status.ACTIVE.value                # e.g., "Active"
+        self.frequency = 1
+        self.counter = 0
+        self.liquidation_distance = 0.0
+        self.target_travel_percent = 0.0
+        self.liquidation_price = 0.0
+        self.notes = f"Position {alert_type} alert created by Cyclone"
+        self.position_reference_id = position_reference_id
+        self.evaluated_value = 0.0
+
+    def to_dict(self):
+        # Only return keys that have been explicitly set
+        return {
+            "id": self.id,
+            "alert_type": self.alert_type,
+            "alert_class": self.alert_class,
+            "asset_type": self.asset_type,
+            "trigger_value": self.trigger_value,
+            "condition": self.condition,
+            "notification_type": self.notification_type,
+            "state": self.state,
+            "last_triggered": self.last_triggered,
+            "status": self.status,
+            "frequency": self.frequency,
+            "counter": self.counter,
+            "liquidation_distance": self.liquidation_distance,
+            "target_travel_percent": self.target_travel_percent,
+            "liquidation_price": self.liquidation_price,
+            "notes": self.notes,
+            "description": f"Position {self.alert_type} alert created by Cyclone",
+            "position_reference_id": self.position_reference_id,
+            "evaluated_value": self.evaluated_value
+        }
+
 class AlertController:
     def __init__(self, db_path: str = None):
         self.u_logger = UnifiedLogger()
@@ -17,60 +66,72 @@ class AlertController:
 
     def create_alert(self, alert_obj) -> bool:
         try:
-            alert_dict = alert_obj.to_dict()
-            logging.debug(f"[create_alert] Initial alert_dict: {alert_dict}")
+            # Convert alert_obj to a dictionary if it isn't one already.
+            if not isinstance(alert_obj, dict):
+                alert_dict = alert_obj.to_dict()
+            else:
+                alert_dict = alert_obj
 
-            # Set default asset_type if missing
-            if not alert_dict.get("asset_type"):
-                alert_dict["asset_type"] = "BTC"
-                logging.debug("[create_alert] asset_type missing; set to 'BTC'")
+            # Initialize default values (force override if value is None or empty)
+            alert_dict = self.initialize_alert_data(alert_dict)
+            self.logger.debug("CREATE ALERT: Final alert_dict to insert: %s", alert_dict)
 
-            # Set default state if missing
-            if not alert_dict.get("state"):
-                alert_dict["state"] = "Normal"
-                logging.debug("[create_alert] state missing; set to 'Normal'")
-
-            # Set evaluated_value if not provided
-            if "evaluated_value" not in alert_dict:
-                alert_dict["evaluated_value"] = 0.0
-                logging.debug("[create_alert] evaluated_value missing; set to 0.0")
-
-            # Infer alert_class if missing based on alert_type
-            if not alert_dict.get("alert_class"):
-                if alert_dict.get("alert_type") == AlertType.PRICE_THRESHOLD.value:
-                    alert_dict["alert_class"] = AlertClass.MARKET.value
-                    logging.debug(
-                        "[create_alert] alert_class missing and alert_type is PRICE_THRESHOLD; set alert_class to 'MARKET'")
-                else:
-                    alert_dict["alert_class"] = AlertClass.POSITION.value
-                    logging.debug("[create_alert] alert_class missing; defaulted alert_class to 'POSITION'")
-
-            # Set notification_type from alert_limits if missing
-            if not alert_dict.get("notification_type"):
-                alert_limits = self.json_manager.load("", JsonType.ALERT_LIMITS)
-                alert_dict["notification_type"] = alert_limits.get("default_notification_type", "Undefined")
-                logging.debug(
-                    f"[create_alert] notification_type missing; set to '{alert_dict['notification_type']}' from alert limits")
-
-            # Ensure status is set to active
-            if not alert_dict.get("status"):
-                alert_dict["status"] = Status.ACTIVE.value
-                logging.debug(f"[create_alert] status missing; set to '{Status.ACTIVE.value}'")
-
-            logging.debug(f"[create_alert] Final alert_dict before DB insert: {alert_dict}")
-
-            result = self.data_locker.create_alert(alert_dict)
-            logging.debug(f"[create_alert] DataLocker.create_alert returned: {result}")
-            return result
-        except Exception as e:
-            UnifiedLogger().log_operation(
-                operation_type="Alert Creation Failed",
-                primary_text=f"Error creating alert: {e}",
-                source="AlertController",
-                file="alert_controller.py"
-            )
-            logging.exception("[create_alert] Exception occurred:")
+            # Use the DataLocker connection
+            cursor = self.data_locker.conn.cursor()
+            sql = """
+                INSERT INTO alerts (
+                    id,
+                    created_at,
+                    alert_type,
+                    asset_type,
+                    trigger_value,
+                    condition,
+                    notification_type,
+                    state,
+                    last_triggered,
+                    status,
+                    frequency,
+                    counter,
+                    liquidation_distance,
+                    target_travel_percent,
+                    liquidation_price,
+                    notes,
+                    description,
+                    position_reference_id,
+                    evaluated_value
+                ) VALUES (
+                    :id,
+                    :created_at,
+                    :alert_type,
+                    :asset_type,
+                    :trigger_value,
+                    :condition,
+                    :notification_type,
+                    :state,
+                    :last_triggered,
+                    :status,
+                    :frequency,
+                    :counter,
+                    :liquidation_distance,
+                    :target_travel_percent,
+                    :liquidation_price,
+                    :notes,
+                    :description,
+                    :position_reference_id,
+                    :evaluated_value
+                )
+            """
+            self.logger.debug("CREATE ALERT: Executing SQL:\n%s", sql)
+            cursor.execute(sql, alert_dict)
+            self.data_locker.conn.commit()
+            self.logger.debug("CREATE ALERT: Alert inserted successfully with ID=%s", alert_dict["id"])
+            return True
+        except sqlite3.IntegrityError as ie:
+            self.logger.error("CREATE ALERT: IntegrityError creating alert: %s", ie, exc_info=True)
             return False
+        except Exception as ex:
+            self.logger.exception("CREATE ALERT: Unexpected error in create_alert: %s", ex)
+            raise
 
     def delete_alert(self, alert_id: str) -> bool:
         try:
@@ -99,19 +160,18 @@ class AlertController:
             return []
 
     def initialize_alert_data(self, alert_data: dict = None) -> dict:
-        """
-        Initializes alert data with all necessary fields.
-        Any fields provided in alert_data will override the defaults.
-        This ensures that a new alert has a complete set of data before storing in the database.
-        """
+        from data.models import Status
+        from uuid import uuid4
+        from datetime import datetime
         defaults = {
-            "id": None,
-            "alert_type": None,
-            "alert_class": None,
-            "asset_type": None,
-            "trigger_value": None,
-            "condition": None,
-            "notification_type": None,
+            "id": str(uuid4()),
+            "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "alert_type": "",
+            "alert_class": "",
+            "asset_type": "BTC",
+            "trigger_value": 0.0,
+            "condition": "ABOVE",
+            "notification_type": "Email",
             "state": "Normal",
             "last_triggered": None,
             "status": Status.ACTIVE.value,
@@ -121,12 +181,17 @@ class AlertController:
             "target_travel_percent": 0.0,
             "liquidation_price": 0.0,
             "notes": "",
-            "position_reference_id": None,
+            "description": "",
+            "position_reference_id": "",
             "evaluated_value": 0.0
         }
-        if alert_data:
-            defaults.update(alert_data)
-        return defaults
+        if alert_data is None:
+            alert_data = {}
+        for key, default_val in defaults.items():
+            # Force override if value is None or empty string (if you consider empty string as invalid)
+            if alert_data.get(key) in [None, ""]:
+                alert_data[key] = default_val
+        return alert_data
 
     def create_price_alerts(self):
         """

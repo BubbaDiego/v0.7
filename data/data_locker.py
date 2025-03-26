@@ -145,6 +145,29 @@ class DataLocker:
             # Create alerts table if it doesn't exist
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS alerts (
+                    id TEXT PRIMARY KEY,
+                    alert_type TEXT,
+                    asset_type TEXT,
+                    trigger_value REAL,
+                    condition TEXT,
+                    notification_type TEXT,
+                    state TEXT,
+                    last_triggered DATETIME,
+                    status TEXT,
+                    frequency INTEGER,
+                    counter INTEGER,
+                    liquidation_distance REAL,
+                    target_travel_percent REAL,
+                    liquidation_price REAL,
+                    notes TEXT,
+                    position_reference_id TEXT,
+                    evaluated_value REAL
+                )
+            """)
+
+            # Create alerts table if it doesn't exist
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS alerts (
                 id TEXT PRIMARY KEY,
                 alert_type TEXT,
                 asset_type TEXT,

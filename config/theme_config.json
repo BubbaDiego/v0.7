@@ -111,22 +111,22 @@
     "orangeTheme": {
       "name": "Sunset Orange",
       "title bar": {
-        "color": "#ff8c00"
+        "color": "#FF8C00"
       },
       "side bar": {
-        "color": "#cc7000"
+        "color": "#CC7000"
       },
       "wallpaper": {
-        "color": "#fff5e6"
+        "color": "#FFF5E6"
       },
       "card title": {
-        "color": "#ffffff"
+        "color": "#FFFFFF"
       },
       "card background": {
-        "color": "#ffdab9"
+        "color": "#FFDAB9"
       },
       "text": {
-        "color": "#ffffff"
+        "color": "#FFFFFF"
       }
     },
     "yellowTheme": {
@@ -159,16 +159,16 @@
         "color": "#006666"
       },
       "wallpaper": {
-        "color": "#E0F2F1"
+        "color": "#e0f2f1"
       },
       "card title": {
-        "color": "#FFFFFF"
+        "color": "#ffffff"
       },
       "card background": {
-        "color": "#B2DFDB"
+        "color": "#b2dfdb"
       },
       "text": {
-        "color": "#FFFFFF"
+        "color": "#ffffff"
       }
     },
     "pinkTheme": {
@@ -235,5 +235,5 @@
       }
     }
   },
-  "selected_profile": "orangeTheme"
+  "selected_profile": "tealTheme"
 }
