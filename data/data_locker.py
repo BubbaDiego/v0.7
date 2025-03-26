@@ -447,13 +447,13 @@ class DataLocker:
                 )
             """, alert_dict)
             self.conn.commit()
-            logger.debug(f"Created alert with ID={alert_dict['id']}")
+            self.logger.debug(f"Created alert with ID={alert_dict['id']}")
             return True
         except sqlite3.IntegrityError as ie:
-            logger.error(f"IntegrityError creating alert: {ie}", exc_info=True)
+            self.logger.error(f"IntegrityError creating alert: {ie}", exc_info=True)
             return False
         except Exception as ex:
-            logger.exception(f"Unexpected error in create_alert: {ex}")
+            self.logger.exception(f"Unexpected error in create_alert: {ex}")
             raise
 
     from utils.unified_logger import UnifiedLogger

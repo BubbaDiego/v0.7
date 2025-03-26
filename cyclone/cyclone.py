@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import sys
+from uuid import uuid4
 from prices.price_monitor import PriceMonitor
 from alerts.alert_manager import AlertManager
 from data.data_locker import DataLocker
@@ -81,27 +82,88 @@ class Cyclone:
                 file="cyclone.py"
             )
 
+    from uuid import uuid4
+    from alerts.alert_controller import AlertController
+    from data.models import AlertType, AlertClass, Status
+
     async def run_create_market_alerts(self):
-        self.logger.info("Creating Market Alerts")
+        self.logger.info("Creating Market Alerts via AlertController")
         try:
-            dl = DataLocker.get_instance()
-            cursor = dl.conn.cursor()
-            cursor.execute(
-                "INSERT INTO alerts (alert_type, description, created_at) VALUES (?, ?, datetime('now'))",
-                ("PriceAlert", "Market price alert created by Cyclone")
-            )
-            dl.conn.commit()
-            inserted = cursor.rowcount
-            cursor.close()
-            self.u_logger.log_operation(
-                operation_type="Create Market Alerts",
-                primary_text=f"Created {inserted} market alert(s)",
-                source="Cyclone",
-                file="cyclone.py"
-            )
-            print(f"Created {inserted} market alert(s).")
+            # Instantiate AlertController using the current DB connection.
+            ac = self.AlertController()
+
+            # Define a dummy alert object to represent a market alert.
+            class DummyPriceAlert:
+                def __init__(self):
+                    # Import required constants locally.
+                    from data.models import AlertType, AlertClass, Status
+                    from uuid import uuid4
+                    self.id = str(uuid4())
+                    self.alert_type = AlertType.PRICE_THRESHOLD.value  # e.g., "PriceAlert"2
+                    self.alert_class = None  # Will be defaulted in create_alert
+                    self.asset_type = "BTC"  # Change this to desired asset if needed
+                    self.trigger_value = 0.0  # Set your desired trigger value here
+                    self.condition = "ABOVE"  # For example
+                    self.notification_type = None  # Will be set from alert limits
+                    self.state = "Normal"
+                    self.last_triggered = None
+                    self.status = None  # Will be defaulted to Active
+                    self.frequency = 1
+                    self.counter = 0
+                    self.liquidation_distance = 0.0
+                    self.target_travel_percent = 0.0
+                    self.liquidation_price = 0.0
+                    self.notes = "Market price alert created by Cyclone"
+                    self.position_reference_id = None
+                    self.evaluated_value = 0.0
+
+                def to_dict(self):
+                    return {
+                        "id": self.id,
+                        "alert_type": self.alert_type,
+                        "alert_class": self.alert_class,
+                        "asset_type": self.asset_type,
+                        "trigger_value": self.trigger_value,
+                        "condition": self.condition,
+                        "notification_type": self.notification_type,
+                        "state": self.state,
+                        "last_triggered": self.last_triggered,
+                        "status": self.status,
+                        "frequency": self.frequency,
+                        "counter": self.counter,
+                        "liquidation_distance": self.liquidation_distance,
+                        "target_travel_percent": self.target_travel_percent,
+                        "liquidation_price": self.liquidation_price,
+                        "notes": self.notes,
+                        "position_reference_id": self.position_reference_id,
+                        "evaluated_value": self.evaluated_value
+                    }
+
+            dummy_alert = DummyPriceAlert()
+
+            # Create the alert via the AlertController.
+            if ac.create_alert(dummy_alert):
+                self.u_logger.log_operation(
+                    operation_type="Create Market Alerts",
+                    primary_text="Market alert created successfully via AlertController",
+                    source="Cyclone",
+                    file="cyclone.py"
+                )
+                print("Created market alert successfully.")
+            else:
+                self.u_logger.log_operation(
+                    operation_type="Create Market Alerts Failed",
+                    primary_text="Failed to create market alert via AlertController",
+                    source="Cyclone",
+                    file="cyclone.py"
+                )
+                print("Failed to create market alert.")
         except Exception as e:
+            self.logger.error(f"Error creating market alerts: {e}", exc_info=True)
             print(f"Error creating market alerts: {e}")
+
+        # Return a dummy value so that await works without error.
+        return
 
     async def run_create_position_alerts(self):
         self.logger.info("Creating Position Alerts")

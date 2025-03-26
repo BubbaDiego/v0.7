@@ -1,48 +1,56 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+"""
+Migration Script for the Alerts Table
+
+This script checks if the 'description' and 'created_at' columns exist in the alerts table.
+If they are missing, it adds them with the appropriate datatype.
+
+WARNING: This script will only add columns and will not modify existing data.
+"""
+
 import sqlite3
-import os
 import logging
-from config.config_constants import DB_PATH  # Adjust import as needed
+import sys
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-def column_exists(conn, table_name, column_name):
-    """
-    Checks if a given column exists in a table.
-    """
+try:
+    from config.config_constants import DB_PATH
+except ImportError:
+    logging.error("Cannot import DB_PATH from config.config_constants. Please check your configuration.")
+    sys.exit(1)
+
+
+def add_missing_columns_to_alerts(db_path):
+    logging.info("Connecting to database: %s", db_path)
+    conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-    cursor.execute(f"PRAGMA table_info({table_name})")
-    columns = [row["name"] for row in cursor.fetchall()]
-    cursor.close()
-    return column_name in columns
 
-def add_evaluated_value_column(conn):
-    """
-    Adds the evaluated_value column to the alerts table.
-    """
-    cursor = conn.cursor()
-    try:
-        cursor.execute("ALTER TABLE alerts ADD COLUMN evaluated_value REAL DEFAULT 0.0")
-        conn.commit()
-        logger.info("Column 'evaluated_value' added successfully to the 'alerts' table.")
-    except sqlite3.OperationalError as e:
-        logger.error("Error adding column 'evaluated_value': %s", e)
-    finally:
-        cursor.close()
+    # Get the current columns in the alerts table.
+    cursor.execute("PRAGMA table_info(alerts)")
+    columns = [row[1] for row in cursor.fetchall()]
+    logging.info("Existing columns in alerts: %s", columns)
 
-def main():
-    if not os.path.exists(DB_PATH):
-        logger.error("Database file does not exist: %s", DB_PATH)
-        return
+    # Define the missing columns with their definitions.
+    missing_columns = {
+        "description": "TEXT",
+        "created_at": "DATETIME"
+    }
 
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row  # To access rows as dictionaries
-    if column_exists(conn, "alerts", "evaluated_value"):
-        logger.info("Column 'evaluated_value' already exists in the 'alerts' table.")
-    else:
-        add_evaluated_value_column(conn)
+    for col, definition in missing_columns.items():
+        if col not in columns:
+            try:
+                logging.info("Adding column '%s' with definition '%s' to alerts table...", col, definition)
+                cursor.execute(f"ALTER TABLE alerts ADD COLUMN {col} {definition}")
+                conn.commit()
+                logging.info("Column '%s' added successfully.", col)
+            except Exception as e:
+                logging.error("Error adding column '%s': %s", col, e, exc_info=True)
+        else:
+            logging.info("Column '%s' already exists.", col)
+
     conn.close()
 
+
 if __name__ == "__main__":
-    main()
+    add_missing_columns_to_alerts(DB_PATH)
