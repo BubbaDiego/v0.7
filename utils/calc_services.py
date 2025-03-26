@@ -82,20 +82,27 @@ class CalcServices:
             ]
         }
 
-
     def update_calcs_for_cyclone(self, data_locker) -> (list, dict):
         """
         Refreshes all calculation data for positions.
         Reads all positions from DataLocker, updates their aggregated metrics,
         and computes totals.
-        Returns a tuple: (updated_positions, totals)
+        Then, immediately reads from the database to confirm the updates.
+        Returns a tuple: (confirmed_positions, totals)
         """
+        # Read the current positions from the database.
         positions = data_locker.read_positions()
+        self.logger.debug(f"Read {len(positions)} positions from DB for update.")
+
+        # Update positions (this calls aggregator_positions which runs UPDATE queries).
         updated_positions = self.aggregator_positions(positions, data_locker.db_path)
         totals = self.calculate_totals(updated_positions)
-        self.logger.info("CalcServices: Updated calculations for cyclone.")
-        return updated_positions, totals
 
+        # Immediately re-read positions from the database using the same DataLocker connection.
+        confirmed_positions = data_locker.read_positions()
+        self.logger.info("CalcServices: Updated calculations for cyclone and confirmed DB updates.")
+
+        return confirmed_positions, totals
 
     def calculate_composite_risk_index(self, position: dict) -> Optional[float]:
         """
@@ -224,9 +231,13 @@ class CalcServices:
         """
         For each position in `positions`, compute travel percent,
         liquidation distance, value, leverage, and heat index.
-        Also updates the DB with the new travel_percent and liquidation_distance.
+        Also updates the DB with the new current_travel_percent, liquidation_distance,
+        heat_index, current_heat_index, and current_price.
+        After the update, it performs a read to confirm the updated values.
         """
-        conn = sqlite3.connect(db_path)
+        import sqlite3
+        conn = DataLocker.get_instance(db_path).conn
+
         cursor = conn.cursor()
 
         for pos in positions:
@@ -247,11 +258,13 @@ class CalcServices:
             pos["current_travel_percent"] = travel_percent
 
             # Calculate liquidation distance
-            pos["liquidation_distance"] = self.calculate_liquid_distance(
+            liq_distance = self.calculate_liquid_distance(
                 current_price=current_price,
                 liquidation_price=liquidation_price
             )
+            pos["liquidation_distance"] = liq_distance
 
+            # Update travel percent in DB
             try:
                 cursor.execute(
                     "UPDATE positions SET current_travel_percent = ? WHERE id = ?",
@@ -260,14 +273,16 @@ class CalcServices:
             except Exception as e:
                 print(f"Error updating travel_percent for position {pos['id']}: {e}")
 
+            # Update liquidation distance in DB
             try:
                 cursor.execute(
                     "UPDATE positions SET liquidation_distance = ? WHERE id = ?",
-                    (pos["liquidation_distance"], pos["id"])
+                    (liq_distance, pos["id"])
                 )
             except Exception as e:
                 print(f"Error updating liquidation_distance for position {pos['id']}: {e}")
 
+            # Calculate value and leverage for completeness
             if entry_price > 0:
                 token_count = size / entry_price
                 if position_type == "LONG":
@@ -283,7 +298,43 @@ class CalcServices:
             else:
                 pos["leverage"] = 0.0
 
-            pos["heat_index"] = self.calculate_heat_index(pos) or 0.0
+            # Calculate heat index and set current_heat_index (using the same value)
+            heat_index = self.calculate_heat_index(pos) or 0.0
+            pos["heat_index"] = heat_index
+            pos["current_heat_index"] = heat_index
+
+            # Update heat index and current heat index in DB
+            try:
+                cursor.execute(
+                    "UPDATE positions SET heat_index = ?, current_heat_index = ? WHERE id = ?",
+                    (heat_index, heat_index, pos["id"])
+                )
+            except Exception as e:
+                print(f"Error updating heat indexes for position {pos['id']}: {e}")
+
+            # Update current price in DB
+            try:
+                cursor.execute(
+                    "UPDATE positions SET current_price = ? WHERE id = ?",
+                    (current_price, pos["id"])
+                )
+            except Exception as e:
+                print(f"Error updating current_price for position {pos['id']}: {e}")
+
+            # Confirm update: Read the updated record for these fields
+            try:
+                cursor.execute(
+                    "SELECT heat_index, current_heat_index, current_price FROM positions WHERE id = ?",
+                    (pos["id"],)
+                )
+                updated_row = cursor.fetchone()
+                if updated_row:
+                    print(
+                        f"[DEBUG] Confirmed update for position {pos['id']}: heat_index = {updated_row[0]}, current_heat_index = {updated_row[1]}, current_price = {updated_row[2]}")
+                else:
+                    print(f"[DEBUG] No updated record found for position {pos['id']}")
+            except Exception as e:
+                print(f"Error reading back updated values for position {pos['id']}: {e}")
 
         conn.commit()
         conn.close()

@@ -1,33 +1,13 @@
-import sqlite3
-from config.config_constants import DB_PATH  # Adjust the path as needed
+#!/usr/bin/env python3
+from datetime import datetime
+from data.data_locker import DataLocker
 
-def create_alerts_table():
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    try:
-        # Drop the table if it already exists
-        cursor.execute("DROP TABLE IF EXISTS alerts;")
-        # Create the alerts table with all required columns
-        cursor.execute("""
-            CREATE TABLE alerts (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                position_id TEXT,
-                alert_type TEXT NOT NULL,
-                alert_class TEXT,
-                notification_type TEXT,
-                status TEXT,
-                description TEXT,
-                created_at TEXT NOT NULL,
-                updated_at TEXT
-            );
-        """)
-        conn.commit()
-        print("Alerts table created successfully with all columns.")
-    except Exception as e:
-        print(f"Error creating alerts table: {e}")
-    finally:
-        cursor.close()
-        conn.close()
+def insert_sol_price():
+    # Get the singleton instance of DataLocker
+    dl = DataLocker.get_instance()
+    # Insert or update the SOL price with a current price of 145.67 and source "Manual"
+    dl.insert_or_update_price("SOL", 145.67, "Manual", datetime.now())
+    print("Inserted SOL price: 145.67")
 
 if __name__ == "__main__":
-    create_alerts_table()
+    insert_sol_price()
