@@ -155,9 +155,10 @@
     <div class="card-body" style="background-color: var(--card-background-color); color: var(--text-color);">
       <div class="row">
         {% for alert in alerts %}
+          {% set atype = alert.alert_type|upper %}  {# Normalize to uppercase #}
           <div class="col-auto" style="margin-bottom: 1rem;">
             <details class="info-box
-              {% if alert.alert_type == 'PriceThreshold' and alert.state == 'High' %}
+              {% if atype == 'PRICE_THRESHOLD' and alert.state == 'High' %}
                 price-high
               {% elif alert.state == 'Normal' %}
                 no-alert
@@ -172,34 +173,42 @@
               {% endif %} shadow-sm">
               <summary class="info-header">
                 <span class="info-box-icon">
-                  {% if alert.alert_type == 'PriceThreshold' %}
+                  {% if atype in ['TRAVEL_PERCENT_ALERT','TRAVELPERCENTALERT','TRAVELPERCENTLIQUID'] %}
+                    <i class="fas fa-rocket"></i>
+                  {% elif atype in ['HEAT_INDEX_ALERT','HEATINDEXALERT'] %}
+                    <i class="fas fa-fire"></i>
+                  {% elif atype in ['PROFIT','PROFITALERT'] %}
+                    <i class="fas fa-dollar-sign" style="color: green;"></i>
+                  {% elif atype == 'PRICE_THRESHOLD' %}
                     💲
-                  {% elif alert.alert_type in ['TravelPercent','TravelPercentLiquid'] %}
-                    💧
-                  {% elif alert.alert_type == 'DeltaChange' %}
-                    🚀
-                  {% elif alert.alert_type == 'Profit' %}
-                    💹
                   {% else %}
                     🔔
                   {% endif %}
                 </span>
                 <div class="info-basic-container">
                   <div class="info-basic-type">
-                    {{ alert.alert_type }}
+                    {% if atype in ['TRAVEL_PERCENT_ALERT','TRAVELPERCENTALERT','TRAVELPERCENTLIQUID'] %}
+                      Travel Percent
+                    {% elif atype in ['HEAT_INDEX_ALERT','HEATINDEXALERT'] %}
+                      Heat Index
+                    {% elif atype in ['PROFIT','PROFITALERT'] %}
+                      Profit
+                    {% elif atype == 'PRICE_THRESHOLD' %}
+                      Price Threshold
+                    {% else %}
+                      {{ alert.alert_type }}
+                    {% endif %}
                   </div>
                   <div class="info-basic-trigger">
                     Trigger: <strong>
-                      {% if alert.alert_type == 'PriceThreshold' %}
-                        {% if alert.asset_type in ['BTC','ETH'] %}
-                          ${{ "{:,.0f}".format(alert.trigger_value or 0) }}
-                        {% else %}
-                          ${{ "{:,.2f}".format(alert.trigger_value or 0) }}
-                        {% endif %}
-                      {% elif alert.alert_type in ['TravelPercent','TravelPercentLiquid'] %}
-                        {{ "{:,.2f}".format(alert.trigger_value or 0) }}%
-                      {% elif alert.alert_type == 'Profit' %}
+                      {% if atype == 'PRICE_THRESHOLD' %}
                         ${{ "{:,.2f}".format(alert.trigger_value or 0) }}
+                      {% elif atype in ['TRAVEL_PERCENT_ALERT','TRAVELPERCENTALERT','TRAVELPERCENTLIQUID'] %}
+                        {{ "{:,.2f}".format(alert.trigger_value or 0) }}%
+                      {% elif atype in ['PROFIT','PROFITALERT'] %}
+                        ${{ "{:,.2f}".format(alert.trigger_value or 0) }}
+                      {% elif atype in ['HEAT_INDEX_ALERT','HEATINDEXALERT'] %}
+                        {{ "{:,.2f}".format(alert.trigger_value or 0) }}
                       {% else %}
                         {{ "{:,.2f}".format(alert.trigger_value or 0) }}
                       {% endif %}
@@ -208,19 +217,17 @@
                   <div class="info-basic-current-value">
                     Current Value:
                     <strong>
-                    {% if alert.alert_type == 'PriceThreshold' %}
-                      {% if alert.asset_type in ['BTC','ETH'] %}
-                        ${{ "{:,.0f}".format(alert.current_price or 0) }}
+                      {% if atype == 'PRICE_THRESHOLD' %}
+                        ${{ "{:,.2f}".format(alert.evaluated_value or 0) }}
+                      {% elif atype in ['TRAVEL_PERCENT_ALERT','TRAVELPERCENTALERT','TRAVELPERCENTLIQUID'] %}
+                        {{ "{:,.2f}".format(alert.evaluated_value or 0) }}%
+                      {% elif atype in ['PROFIT','PROFITALERT'] %}
+                        ${{ "{:,.2f}".format(alert.evaluated_value or 0) }}
+                      {% elif atype in ['HEAT_INDEX_ALERT','HEATINDEXALERT'] %}
+                        {{ "{:,.2f}".format(alert.evaluated_value or 0) }}
                       {% else %}
-                        ${{ "{:,.2f}".format(alert.current_price or 0) }}
+                        N/A
                       {% endif %}
-                    {% elif alert.alert_type in ['TravelPercent','TravelPercentLiquid'] %}
-                      {{ "{:,.2f}".format(alert.current_travel_percent or 0) }}%
-                    {% elif alert.alert_type == 'Profit' %}
-                      ${{ "{:,.2f}".format(alert.current_profit or 0) }}
-                    {% else %}
-                      N/A
-                    {% endif %}
                     </strong>
                   </div>
                   <div class="info-basic-state">
@@ -233,16 +240,14 @@
                   <div class="alert-details-column">
                     <div><strong>Type:</strong> {{ alert.alert_type }}</div>
                     <div><strong>Trigger:</strong> <strong>
-                      {% if alert.alert_type == 'PriceThreshold' %}
-                        {% if alert.asset_type in ['BTC','ETH'] %}
-                          ${{ "{:,.0f}".format(alert.trigger_value or 0) }}
-                        {% else %}
-                          ${{ "{:,.2f}".format(alert.trigger_value or 0) }}
-                        {% endif %}
-                      {% elif alert.alert_type in ['TravelPercent','TravelPercentLiquid'] %}
-                        {{ "{:,.2f}".format(alert.trigger_value or 0) }}%
-                      {% elif alert.alert_type == 'Profit' %}
+                      {% if atype == 'PRICE_THRESHOLD' %}
                         ${{ "{:,.2f}".format(alert.trigger_value or 0) }}
+                      {% elif atype in ['TRAVEL_PERCENT_ALERT','TRAVELPERCENTALERT','TRAVELPERCENTLIQUID'] %}
+                        {{ "{:,.2f}".format(alert.trigger_value or 0) }}%
+                      {% elif atype in ['PROFIT','PROFITALERT'] %}
+                        ${{ "{:,.2f}".format(alert.trigger_value or 0) }}
+                      {% elif atype in ['HEAT_INDEX_ALERT','HEATINDEXALERT'] %}
+                        {{ "{:,.2f}".format(alert.trigger_value or 0) }}
                       {% else %}
                         {{ "{:,.2f}".format(alert.trigger_value or 0) }}
                       {% endif %}
@@ -278,61 +283,29 @@
                   </div>
                   <div class="alert-range-column">
                     {% if alert_ranges %}
-                      {% if alert.alert_type == 'PriceThreshold' %}
+                      {% if atype == 'PRICE_THRESHOLD' %}
                         {% set h = alert.trigger_value or 0 %}
                         {% set m = h * 0.75 %}
                         {% set l = h * 0.5 %}
-                      {% else %}
-                        {% if alert.alert_type in ['TravelPercent','TravelPercentLiquid'] %}
-                          {% set range_config = alert_ranges.travel_percent_liquid_ranges %}
-                        {% elif alert.alert_type == 'Profit' %}
-                          {% set range_config = alert_ranges.profit_ranges %}
-                        {% elif alert.alert_type == 'HeatIndex' %}
-                          {% set range_config = alert_ranges.heat_index_ranges %}
-                        {% else %}
-                          {% set range_config = None %}
-                        {% endif %}
-                        {% if range_config %}
-                          {% set l = range_config.low|float %}
-                          {% set m = range_config.medium|float %}
-                          {% set h = range_config.high|float %}
-                        {% endif %}
-                      {% endif %}
-                      <div><strong>Range:</strong></div>
-                      {% if alert.alert_type == 'PriceThreshold' %}
-                        <div>
-                          {% if alert.asset_type in ['BTC','ETH'] %}
-                            ${{ "{:,.0f}".format(l|default(0)) }}
-                          {% else %}
-                            ${{ "{:,.2f}".format(l|default(0)) }}
-                          {% endif %}
-                        </div>
-                        <div>
-                          {% if alert.asset_type in ['BTC','ETH'] %}
-                            ${{ "{:,.0f}".format(m|default(0)) }}
-                          {% else %}
-                            ${{ "{:,.2f}".format(m|default(0)) }}
-                          {% endif %}
-                        </div>
-                        <div>
-                          {% if alert.asset_type in ['BTC','ETH'] %}
-                            ${{ "{:,.0f}".format(h|default(0)) }}
-                          {% else %}
-                            ${{ "{:,.2f}".format(h|default(0)) }}
-                          {% endif %}
-                        </div>
-                      {% elif alert.alert_type in ['TravelPercent','TravelPercentLiquid'] %}
-                        <div>{{ "{:,.2f}".format(l|default(0)) }}%</div>
-                        <div>{{ "{:,.2f}".format(m|default(0)) }}%</div>
-                        <div>{{ "{:,.2f}".format(h|default(0)) }}%</div>
-                      {% elif alert.alert_type == 'Profit' %}
+                        <div><strong>Range:</strong></div>
                         <div>${{ "{:,.2f}".format(l|default(0)) }}</div>
                         <div>${{ "{:,.2f}".format(m|default(0)) }}</div>
                         <div>${{ "{:,.2f}".format(h|default(0)) }}</div>
                       {% else %}
-                        <div>{{ "{:,.2f}".format(l|default(0)) }}</div>
-                        <div>{{ "{:,.2f}".format(m|default(0)) }}</div>
-                        <div>{{ "{:,.2f}".format(h|default(0)) }}</div>
+                        {% set range_config = None %}
+                        {% if atype in ['TRAVEL_PERCENT_ALERT','TRAVELPERCENTALERT','TRAVELPERCENTLIQUID'] %}
+                          {% set range_config = alert_ranges.travel_percent_liquid_ranges %}
+                        {% elif atype in ['PROFIT','PROFITALERT'] %}
+                          {% set range_config = alert_ranges.profit_ranges %}
+                        {% elif atype in ['HEAT_INDEX_ALERT','HEATINDEXALERT'] %}
+                          {% set range_config = alert_ranges.heat_index_ranges %}
+                        {% endif %}
+                        {% if range_config %}
+                          <div><strong>Range:</strong></div>
+                          <div>{{ "{:,.2f}".format(range_config.low|float) }}{% if atype in ['TRAVEL_PERCENT_ALERT','TRAVELPERCENTALERT','TRAVELPERCENTLIQUID'] %}%{% endif %}</div>
+                          <div>{{ "{:,.2f}".format(range_config.medium|float) }}{% if atype in ['TRAVEL_PERCENT_ALERT','TRAVELPERCENTALERT','TRAVELPERCENTLIQUID'] %}%{% endif %}</div>
+                          <div>{{ "{:,.2f}".format(range_config.high|float) }}{% if atype in ['TRAVEL_PERCENT_ALERT','TRAVELPERCENTALERT','TRAVELPERCENTLIQUID'] %}%{% endif %}</div>
+                        {% endif %}
                       {% endif %}
                     {% endif %}
                   </div>

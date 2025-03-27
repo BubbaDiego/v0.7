@@ -338,7 +338,8 @@ class Cyclone:
             "create_system_alerts": self.run_create_system_alerts,
             "update_evaluated_value": self.run_update_evaluated_value,
             "alert": self.run_alert_updates,
-            "system": self.run_system_updates
+            "system": self.run_system_updates,
+            "update_evaluated_value": self.run_update_evaluated_value
         }
         if steps:
             for step in steps:

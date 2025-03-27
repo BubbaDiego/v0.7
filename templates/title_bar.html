@@ -20,11 +20,12 @@
       flex-direction: row;
     }
     .navbar-nav.center-timer {
-      /* let it grow and push left and right items out, so it sits center */
+      /* Let this container grow and center its items */
       flex: 1;
       display: flex;
       justify-content: center;
       align-items: center;
+      gap: 1rem;
     }
     .navbar-nav.right-items {
       flex-direction: row;
@@ -109,26 +110,21 @@
         </li>
       </ul>
 
-      <!-- Center Timer Box -->
+      <!-- Center Items: Timer, Layout Toggle, and Price Panel -->
       <ul class="navbar-nav center-timer">
+        <!-- Timer Box -->
         <li class="nav-item d-none d-md-flex align-items-center">
           <div class="timer-box">
-            <!-- Just icons + countdown values, no text -->
             <span id="callTimer">☎ --</span>
             <span id="snoozeTimer">💤 --</span>
           </div>
         </li>
-      </ul>
-
-      <!-- Right Items -->
-      <ul class="navbar-nav right-items">
-        <!-- Layout Toggle -->
+        <!-- Layout Toggle Button -->
         <li class="nav-item">
           <a href="#" class="nav-link" id="layoutToggle" title="Toggle Layout">
             <i class="fas fa-arrows-alt-h"></i>
           </a>
         </li>
-
         <!-- Price Panel -->
         <li class="nav-item d-none d-md-flex align-items-center me-3">
           <div class="d-flex gap-2">
@@ -149,7 +145,10 @@
             </div>
           </div>
         </li>
+      </ul>
 
+      <!-- Right Items: Update Buttons and Gear Dropdown -->
+      <ul class="navbar-nav right-items">
         <!-- Jupiter Update Button -->
         <li class="nav-item d-flex align-items-center me-3">
           <button type="button" class="update-btn" id="updateJupiterBtn" title="Update Positions">
@@ -167,7 +166,7 @@
           </button>
         </li>
 
-        <!-- Full Cycle Update Button -->
+        <!-- Full Cycle (Cyclone) Update Button -->
         <li class="nav-item d-flex align-items-center me-3">
           <button type="button" class="update-btn" id="updateFullCycleBtn" title="Full Cycle Update">
             <span class="update-icon">🌀</span>
@@ -296,12 +295,12 @@
     });
   }
 
-  // Full Cycle Update Button
+  // Full Cycle (Cyclone) Update Button - now calls the cyclone bp endpoint
   const updateFullCycleBtn = document.getElementById("updateFullCycleBtn");
   if (updateFullCycleBtn) {
     updateFullCycleBtn.addEventListener("click", () => {
       updateFullCycleBtn.querySelector(".update-icon").classList.add("spin");
-      fetch("/api/run_full_cycle", { method: "POST" })
+      fetch("{{ url_for('cyclone.run_full_cycle_api') }}", { method: "POST" })
         .then(response => response.json())
         .then(data => {
           updateFullCycleBtn.querySelector(".update-icon").classList.remove("spin");
