@@ -3,6 +3,7 @@ import time
 from config.unified_config_manager import UnifiedConfigManager
 from config.config_constants import CONFIG_PATH
 from utils.unified_logger import UnifiedLogger
+from alerts.alert_enrichment import enrich_alert_data
 
 u_logger = UnifiedLogger()
 
@@ -55,15 +56,26 @@ class AlertEvaluator:
 
         if current_val >= 0:
             state = "Normal"
+
         elif current_val <= high_threshold:
             state = "High"
+            print("🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴")
         elif current_val <= medium_threshold:
             state = "Medium"
+            print("🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡")
         elif current_val <= low_threshold:
             state = "Low"
+            print(" 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢")
         else:
             state = "Normal"
         return state, current_val
+
+    def enrich_alert(self, alert: dict) -> dict:
+        """
+        Enrich the alert by delegating to the shared enrichment routine.
+        """
+        enriched_alert = enrich_alert_data(alert, self.data_locker, self.logger)
+        return enriched_alert
 
     def evaluate_profit_alert(self, pos: dict) -> str:
         """

@@ -6,6 +6,7 @@ from typing import Optional
 import logging
 import sqlite3
 from utils.unified_logger import UnifiedLogger
+from alerts.alert_enrichment import enrich_alert_data
 
 from uuid import uuid4
 from data.models import Status  # Ensure Status is imported
@@ -167,7 +168,7 @@ class AlertController:
             print(f"[DEBUG] Alert inserted successfully with ID: {alert_dict['id']}")
             self.logger.debug(f"Alert inserted successfully with ID: {alert_dict['id']}")
 
-            # Optionally, enrich alert after creation.
+
             enriched_alert = self.enrich_alert(alert_dict)
             print(f"[DEBUG] Alert after enrichment: {enriched_alert}")
             self.logger.debug(f"Alert after enrichment: {enriched_alert}")
@@ -193,111 +194,11 @@ class AlertController:
             return False
 
     def enrich_alert(self, alert: dict) -> dict:
-        print("Before enrichment:", alert)
-
-        # 1. Normalize the alert type.
-        if alert.get("alert_type"):
-            normalized_type = alert["alert_type"].upper().replace(" ", "").replace("_", "")
-            if normalized_type == "PRICETHRESHOLD":
-                normalized_type = "PRICE_THRESHOLD"
-            elif normalized_type in ["TRAVELPERCENTALERT", "TRAVELPERCENTLIQUID"]:
-                normalized_type = "TRAVEL_PERCENT_ALERT"
-            elif normalized_type == "PROFITALERT":
-                normalized_type = "PROFIT"
-            elif normalized_type == "HEATINDEXALERT":
-                normalized_type = "HEAT_INDEX_ALERT"
-            alert["alert_type"] = normalized_type
-        else:
-            self.logger.error("Alert missing alert_type.")
-            print("Error: Alert missing alert_type.")
-            return alert
-
-        # 2. Set Alert Class and assert position_reference_id for position alerts.
-        if alert["alert_type"] in ["TRAVEL_PERCENT_ALERT", "PROFIT", "HEAT_INDEX_ALERT"]:
-            alert["alert_class"] = "Position"
-            if not alert.get("position_reference_id"):
-                self.logger.error("Position alert missing position_reference_id.")
-                print("Error: Position alert missing position_reference_id.")
-        elif alert["alert_type"] == "PRICE_THRESHOLD":
-            alert["alert_class"] = "Market"
-        else:
-            self.logger.error(f"Unrecognized alert_type: {alert['alert_type']}")
-            print(f"Error: Unrecognized alert_type: {alert['alert_type']}")
-
-        # 3. Load alert limits configuration.
-        jm = self.json_manager
-        alert_limits = jm.load("", JsonType.ALERT_LIMITS)
-
-        # 4. Enrich based on alert type.
-        if alert["alert_type"] == "PRICE_THRESHOLD":
-            asset = alert.get("asset_type", "BTC")
-            asset_config = alert_limits.get("alert_ranges", {}).get("price_alerts", {}).get(asset, {})
-            if asset_config:
-                notifications = asset_config.get("notifications", {})
-                alert["notification_type"] = "Call" if notifications.get("call", False) else "Email"
-                if alert.get("trigger_value", 0.0) == 0.0:
-                    alert["trigger_value"] = float(asset_config.get("trigger_value", 0.0))
-                alert["condition"] = asset_config.get("condition", alert["condition"])
-            else:
-                self.logger.error(f"No configuration found for price alert asset {asset}.")
-                print(f"Error: No configuration found for price alert asset {asset}.")
-                alert["notification_type"] = "Email"
-        elif alert["alert_type"] == "TRAVEL_PERCENT_ALERT":
-            config = alert_limits.get("alert_ranges", {}).get("travel_percent_liquid_ranges", {})
-            if config.get("enabled", False):
-                if alert.get("trigger_value", 0.0) == 0.0:
-                    alert["trigger_value"] = float(config.get("low", -4.0))
-                alert["condition"] = "BELOW"
-            if not alert.get("notification_type"):
-                alert["notification_type"] = "Email"
-        elif alert["alert_type"] == "PROFIT":
-            config = alert_limits.get("alert_ranges", {}).get("profit_ranges", {})
-            if config.get("enabled", False):
-                if alert.get("trigger_value", 0.0) == 0.0:
-                    alert["trigger_value"] = float(config.get("low", 22.0))
-                alert["condition"] = config.get("condition", "ABOVE")
-            if not alert.get("notification_type"):
-                alert["notification_type"] = "Email"
-        elif alert["alert_type"] == "HEAT_INDEX_ALERT":
-            config = alert_limits.get("alert_ranges", {}).get("heat_index_ranges", {})
-            if config.get("enabled", False):
-                if alert.get("trigger_value", 0.0) == 0.0:
-                    alert["trigger_value"] = float(config.get("low", 12.0))
-                alert["condition"] = config.get("condition", "ABOVE")
-            if not alert.get("notification_type"):
-                alert["notification_type"] = "Email"
-        else:
-            if not alert.get("notification_type"):
-                alert["notification_type"] = "Email"
-
-        # 4.5. For position alerts, update additional fields from the associated position.
-        if alert.get("alert_class") == "Position":
-            pos_id = alert.get("position_reference_id")
-            if pos_id:
-                positions = self.data_locker.read_positions()
-                self.logger.debug("Enriching position alert: retrieved positions: %s", positions)
-                position = next((p for p in positions if p.get("id") == pos_id), None)
-                if position:
-                    alert["liquidation_distance"] = position.get("liquidation_distance", 0.0)
-                    alert["liquidation_price"] = position.get("liquidation_price", 0.0)
-                    alert["target_travel_percent"] = position.get("target_travel_percent", 0.0)
-                    self.logger.debug("Enriched position alert %s with liquidation_distance: %s, liquidation_price: %s, target_travel_percent: %s",
-                                        alert["id"], alert["liquidation_distance"], alert["liquidation_price"], alert["target_travel_percent"])
-                else:
-                    self.logger.error("No position found for id %s during alert enrichment.", pos_id)
-                    print(f"Error: No position found for id {pos_id} during alert enrichment.")
-            else:
-                self.logger.error("Position alert missing position_reference_id during enrichment.")
-                print("Error: Position alert missing position_reference_id during enrichment.")
-
-        # 5. Force state to "Normal".
-        alert["state"] = "Normal"
-
-        # 6. Populate evaluated value.
-        alert["evaluated_value"] = self.populate_evaluated_value_for_alert(alert)
-
-        print("After enrichment:", alert)
-        return alert
+        """
+        Enrich the alert by delegating to the shared enrichment routine.
+        """
+        enriched_alert = enrich_alert_data(alert, self.data_locker, self.logger)
+        return enriched_alert
 
     def populate_evaluated_value_for_alert(self, alert: dict) -> float:
         self.logger.debug("Entering populate_evaluated_value_for_alert with alert: %s", alert)
