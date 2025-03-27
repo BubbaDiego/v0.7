@@ -761,18 +761,11 @@ class AlertController:
     #print("↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️")
 
     def refresh_position_alerts(self) -> int:
-        """
-        Periodically refreshes position alerts by pulling the latest position data.
-        For each alert with alert_class "Position" and a valid position_reference_id,
-        it re-enriches the alert, updates the record in the database, and confirms the write.
-        Returns the count of alerts updated and confirmed.
-        """
         updated_count = 0
         try:
             alerts = self.get_all_alerts()
             positions = self.data_locker.read_positions()
             for alert in alerts:
-                # Early debug: print alert id, class, and position reference.
                 print(
                     f"[Early Debug] Processing alert ID: {alert.get('id')} | Class: {alert.get('alert_class')} | Position Ref ID: {alert.get('position_reference_id')}")
                 self.logger.debug(
@@ -780,19 +773,20 @@ class AlertController:
 
                 if alert.get("alert_class") == "Position" and alert.get("position_reference_id"):
                     pos_id = alert["position_reference_id"]
-                    # Find the corresponding position.
                     position = next((p for p in positions if p.get("id") == pos_id), None)
                     if not position:
                         print(f"[Refresh] No position found for id {pos_id}.")
                         self.logger.error(f"No position found for id {pos_id} during periodic alert refresh.")
                         continue
 
-                    # Log original alert data.
                     print(f"[Before Update] Alert {alert['id']} original values: {alert}")
                     self.logger.debug(f"[Before Update] Alert {alert['id']} original values: {alert}")
 
-                    # Enrich a copy of the alert.
                     enriched_alert = self.enrich_alert(alert.copy())
+                    # *** Recalculate evaluated_value explicitly ***
+                    evaluated_val = self.populate_evaluated_value_for_alert(enriched_alert)
+                    enriched_alert["evaluated_value"] = evaluated_val
+
                     update_fields = {
                         "liquidation_distance": enriched_alert.get("liquidation_distance", 0.0),
                         "liquidation_price": enriched_alert.get("liquidation_price", 0.0),
@@ -803,12 +797,10 @@ class AlertController:
                     self.logger.debug(
                         f"[Update Data] Alert {enriched_alert['id']} will be updated with: {update_fields}")
 
-                    # Execute update.
                     rows_updated = self.data_locker.update_alert_conditions(enriched_alert["id"], update_fields)
                     print(f"[Update Result] Rows updated for alert {enriched_alert['id']}: {rows_updated}")
                     self.logger.debug(f"Rows updated for alert {enriched_alert['id']}: {rows_updated}")
 
-                    # Query the alert to confirm the update.
                     cursor = self.data_locker.conn.cursor()
                     cursor.execute(
                         "SELECT liquidation_distance, liquidation_price, target_travel_percent, evaluated_value FROM alerts WHERE id=?",
@@ -826,7 +818,6 @@ class AlertController:
                         self.logger.info(
                             f"[After Update] Alert {enriched_alert['id']} confirmed values: {confirmed_values}")
 
-                        # Compute differences.
                         diff_liq_dist = abs(
                             confirmed_values["liquidation_distance"] - update_fields["liquidation_distance"])
                         diff_liq_price = abs(confirmed_values["liquidation_price"] - update_fields["liquidation_price"])
@@ -961,67 +952,115 @@ class AlertController:
 
     def populate_evaluated_value_for_alert(self, alert: dict) -> float:
         self.logger.debug("Entering populate_evaluated_value_for_alert with alert: %s", alert)
+        print(f"[populate_evaluated_value] Received alert: {alert}")
         evaluated_value = 0.0
         alert_type = alert.get("alert_type")
         self.logger.debug("Alert type: %s", alert_type)
+        print(f"[populate_evaluated_value] Alert type: {alert_type}")
 
-        if alert_type == AlertType.PRICE_THRESHOLD.value:
+        # Check for PRICE_THRESHOLD alerts.
+        if alert_type == AlertType.PRICE_THRESHOLD.value or alert_type == "PRICE_THRESHOLD":
             asset = alert.get("asset_type", "BTC")
             self.logger.debug("Processing PRICE_THRESHOLD for asset: %s", asset)
+            print(f"[populate_evaluated_value] Processing PRICE_THRESHOLD for asset: {asset}")
             price_record = self.data_locker.get_latest_price(asset)
             if price_record:
                 self.logger.debug("Found price record: %s", price_record)
+                print(f"[populate_evaluated_value] Found price record: {price_record}")
                 try:
                     evaluated_value = float(price_record.get("current_price", 0.0))
                     self.logger.debug("Parsed current_price: %f", evaluated_value)
+                    print(f"[populate_evaluated_value] Parsed current_price: {evaluated_value}")
                 except Exception as e:
                     self.logger.error("Error parsing current_price from price_record: %s", e, exc_info=True)
+                    print(f"[populate_evaluated_value] Error parsing current_price: {e}")
                     evaluated_value = 0.0
             else:
                 self.logger.debug("No price record found for asset: %s", asset)
+                print(f"[populate_evaluated_value] No price record found for asset: {asset}")
                 evaluated_value = 0.0
 
-        elif alert_type == AlertType.TRAVEL_PERCENT_LIQUID.value:
+        # Check for travel percent alerts.
+        elif alert_type == AlertType.TRAVEL_PERCENT_LIQUID.value or alert_type == "TRAVEL_PERCENT_ALERT":
             pos_id = alert.get("position_reference_id") or alert.get("id")
-            self.logger.debug("Processing TRAVEL_PERCENT_LIQUID for position id: %s", pos_id)
+            self.logger.debug("Processing TRAVEL_PERCENT alert for position id: %s", pos_id)
+            print(f"[populate_evaluated_value] Processing TRAVEL_PERCENT alert for position id: {pos_id}")
             positions = self.data_locker.read_positions()
             self.logger.debug("Retrieved positions: %s", positions)
             position = next((p for p in positions if p.get("id") == pos_id), None)
             if position:
                 self.logger.debug("Found matching position: %s", position)
+                print(f"[populate_evaluated_value] Found matching position: {position}")
                 try:
                     evaluated_value = float(position.get("current_travel_percent", 0.0))
                     self.logger.debug("Parsed current_travel_percent: %f", evaluated_value)
+                    print(f"[populate_evaluated_value] Parsed current_travel_percent: {evaluated_value}")
                 except Exception as e:
                     self.logger.error("Error parsing current_travel_percent: %s", e, exc_info=True)
+                    print(f"[populate_evaluated_value] Error parsing current_travel_percent: {e}")
                     evaluated_value = 0.0
             else:
                 self.logger.debug("No matching position found for id: %s", pos_id)
+                print(f"[populate_evaluated_value] No matching position found for id: {pos_id}")
                 evaluated_value = 0.0
 
-        elif alert_type == AlertType.PROFIT.value:
+        # Check for profit alerts using pnl_after_fees_usd.
+        elif alert_type == AlertType.PROFIT.value or alert_type == "PROFIT" or alert_type == "PROFITALERT":
             pos_id = alert.get("position_reference_id") or alert.get("id")
-            self.logger.debug("Processing PROFIT for position id: %s", pos_id)
+            self.logger.debug("Processing PROFIT alert for position id: %s", pos_id)
+            print(f"[populate_evaluated_value] Processing PROFIT alert for position id: {pos_id}")
             positions = self.data_locker.read_positions()
             self.logger.debug("Retrieved positions: %s", positions)
             position = next((p for p in positions if p.get("id") == pos_id), None)
             if position:
                 self.logger.debug("Found matching position: %s", position)
+                print(f"[populate_evaluated_value] Found matching position: {position}")
                 try:
-                    evaluated_value = float(position.get("profit", 0.0))
-                    self.logger.debug("Parsed profit: %f", evaluated_value)
+                    # Now using pnl_after_fees_usd instead of profit.
+                    evaluated_value = float(position.get("pnl_after_fees_usd", 0.0))
+                    self.logger.debug("Parsed pnl_after_fees_usd: %f", evaluated_value)
+                    print(f"[populate_evaluated_value] Parsed pnl_after_fees_usd: {evaluated_value}")
                 except Exception as e:
-                    self.logger.error("Error parsing profit: %s", e, exc_info=True)
+                    self.logger.error("Error parsing pnl_after_fees_usd: %s", e, exc_info=True)
+                    print(f"[populate_evaluated_value] Error parsing pnl_after_fees_usd: {e}")
                     evaluated_value = 0.0
             else:
                 self.logger.debug("No matching position found for id: %s", pos_id)
+                print(f"[populate_evaluated_value] No matching position found for id: {pos_id}")
+                evaluated_value = 0.0
+
+        # Add support for heat index alerts.
+        elif alert_type == "HEAT_INDEX_ALERT":
+            pos_id = alert.get("position_reference_id") or alert.get("id")
+            self.logger.debug("Processing HEAT_INDEX_ALERT for position id: %s", pos_id)
+            print(f"[populate_evaluated_value] Processing HEAT_INDEX_ALERT for position id: {pos_id}")
+            positions = self.data_locker.read_positions()
+            position = next((p for p in positions if p.get("id") == pos_id), None)
+            if position:
+                self.logger.debug("Found matching position for HEAT_INDEX_ALERT: %s", position)
+                print(f"[populate_evaluated_value] Found matching position: {position}")
+                try:
+                    evaluated_value = float(position.get("current_heat_index", 0.0))
+                    self.logger.debug("Parsed current_heat_index: %f", evaluated_value)
+                    print(f"[populate_evaluated_value] Parsed current_heat_index: {evaluated_value}")
+                except Exception as e:
+                    self.logger.error("Error parsing current_heat_index: %s", e, exc_info=True)
+                    print(f"[populate_evaluated_value] Error parsing current_heat_index: {e}")
+                    evaluated_value = 0.0
+            else:
+                self.logger.debug("No matching position found for id: %s", pos_id)
+                print(f"[populate_evaluated_value] No matching position found for id: {pos_id}")
                 evaluated_value = 0.0
 
         else:
-            self.logger.debug("Alert type %s not recognized for evaluation; defaulting evaluated_value to 0.0", alert_type)
+            self.logger.debug("Alert type %s not recognized for evaluation; defaulting evaluated_value to 0.0",
+                              alert_type)
+            print(
+                f"[populate_evaluated_value] Alert type {alert_type} not recognized; defaulting evaluated_value to 0.0")
             evaluated_value = 0.0
 
         self.logger.debug("Exiting populate_evaluated_value_for_alert with evaluated_value: %f", evaluated_value)
+        print(f"[populate_evaluated_value] Exiting with evaluated_value: {evaluated_value}")
         return evaluated_value
 
     def get_all_alerts(self):
