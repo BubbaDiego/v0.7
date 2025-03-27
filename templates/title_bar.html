@@ -14,28 +14,51 @@
       width: 20px;
       height: 20px;
     }
-    .update-jupiter-btn {
+
+    /* Left nav and right nav split: we’ll manually handle spacing */
+    .navbar-nav.left-items {
+      flex-direction: row;
+    }
+    .navbar-nav.center-timer {
+      /* let it grow and push left and right items out, so it sits center */
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .navbar-nav.right-items {
+      flex-direction: row;
+    }
+
+    /* Unified update button styles (slightly smaller than before) */
+    .update-btn {
       border: none;
       background: none;
       cursor: pointer;
-      padding: 0.25rem;
+      padding: 0.2rem; /* smaller padding */
     }
-    .update-jupiter-btn img {
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-    }
-    .price-icon {
+    .update-icon {
       display: inline-flex;
       justify-content: center;
       align-items: center;
-      width: 30px;
-      height: 30px;
+      width: 32px;      /* smaller circle than before */
+      height: 32px;     /* smaller circle than before */
       border-radius: 50%;
-      font-size: 16px;
+      font-size: 18px;  /* icon is bigger relative to the circle */
       font-weight: bold;
       background-color: #f8f9fa;
     }
+
+    /* Subtle container for call/zzz icons, now light grey (#e2e2e2) */
+    .timer-box {
+      background-color: #e2e2e2;
+      border-radius: 4px;
+      padding: 0.25rem 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
     @keyframes spin {
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
@@ -52,7 +75,8 @@
 
     <!-- Collapsible Nav Items -->
     <div class="collapse navbar-collapse" id="navbarCollapse">
-      <ul class="navbar-nav">
+      <!-- Left Items -->
+      <ul class="navbar-nav left-items">
         <!-- Dashboard -->
         <li class="nav-item">
           <a href="{{ url_for('dashboard.dashboard') }}" class="nav-link">
@@ -85,19 +109,26 @@
         </li>
       </ul>
 
-      <!-- Right Side Items -->
-      <ul class="navbar-nav ms-auto">
+      <!-- Center Timer Box -->
+      <ul class="navbar-nav center-timer">
+        <li class="nav-item d-none d-md-flex align-items-center">
+          <div class="timer-box">
+            <!-- Just icons + countdown values, no text -->
+            <span id="callTimer">☎ --</span>
+            <span id="snoozeTimer">💤 --</span>
+          </div>
+        </li>
+      </ul>
+
+      <!-- Right Items -->
+      <ul class="navbar-nav right-items">
         <!-- Layout Toggle -->
         <li class="nav-item">
           <a href="#" class="nav-link" id="layoutToggle" title="Toggle Layout">
             <i class="fas fa-arrows-alt-h"></i>
           </a>
         </li>
-        <!-- Timers -->
-        <li class="nav-item d-none d-md-flex align-items-center me-3">
-          <span id="callTimer" class="me-2">☎ Call: --</span>
-          <span id="snoozeTimer">⏳ Snooze: --</span>
-        </li>
+
         <!-- Price Panel -->
         <li class="nav-item d-none d-md-flex align-items-center me-3">
           <div class="d-flex gap-2">
@@ -118,24 +149,31 @@
             </div>
           </div>
         </li>
-        <!-- Jupiter Update Button (for positions) -->
+
+        <!-- Jupiter Update Button -->
         <li class="nav-item d-flex align-items-center me-3">
-          <button type="button" class="update-jupiter-btn" id="updateJupiterBtn" title="Update Positions">
-            <img src="{{ url_for('static', filename='images/jupiter.jpg') }}" alt="Update Jupiter">
+          <button type="button" class="update-btn" id="updateJupiterBtn" title="Update Positions">
+            <span class="update-icon"
+                  style="background-image: url('{{ url_for('static', filename='images/jupiter.jpg') }}');
+                         background-size: cover;">
+            </span>
           </button>
         </li>
-        <!-- Prices Update Button (for prices only) -->
+
+        <!-- Prices Update Button -->
         <li class="nav-item d-flex align-items-center me-3">
-          <button type="button" class="update-jupiter-btn" id="updatePricesBtn" title="Update Prices">
-            <span class="price-icon">$</span>
+          <button type="button" class="update-btn" id="updatePricesBtn" title="Update Prices">
+            <span class="update-icon" style="color: green;">$</span>
           </button>
         </li>
+
         <!-- Full Cycle Update Button -->
         <li class="nav-item d-flex align-items-center me-3">
-          <button type="button" class="update-jupiter-btn" id="updateFullCycleBtn" title="Full Cycle Update">
-            <img src="{{ url_for('static', filename='images/full_cycle.png') }}" alt="Full Cycle Update">
+          <button type="button" class="update-btn" id="updateFullCycleBtn" title="Full Cycle Update">
+            <span class="update-icon">🌀</span>
           </button>
         </li>
+
         <!-- Gear Dropdown -->
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="gearDropdown" role="button"
@@ -188,9 +226,9 @@
       const snoozeStart = data.snooze_start;
       function updateTimers() {
         document.getElementById('callTimer').textContent =
-          `☎ Call: ${getRemaining(callStart, callPeriod)}`;
+          `☎ ${getRemaining(callStart, callPeriod)}`;
         document.getElementById('snoozeTimer').textContent =
-          `⏳ Snooze: ${getRemaining(snoozeStart, snoozeCount)}`;
+          `💤 ${getRemaining(snoozeStart, snoozeCount)}`;
       }
       updateTimers();
       setInterval(updateTimers, 1000);
@@ -208,12 +246,14 @@
         const btcChangeElem = document.getElementById('btcChange');
         btcChangeElem.textContent = btcChange + '%';
         btcChangeElem.style.color = btcChange >= 0 ? 'green' : 'red';
+
         document.getElementById('ethPrice').textContent =
           '$' + data.ethereum.usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         const ethChange = data.ethereum.usd_24h_change.toFixed(2);
         const ethChangeElem = document.getElementById('ethChange');
         ethChangeElem.textContent = ethChange + '%';
         ethChangeElem.style.color = ethChange >= 0 ? 'green' : 'red';
+
         document.getElementById('solPrice').textContent =
           '$' + data.solana.usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         const solChange = data.solana.usd_24h_change.toFixed(2);
@@ -230,12 +270,12 @@
   const updateJupiterBtn = document.getElementById("updateJupiterBtn");
   if (updateJupiterBtn) {
     updateJupiterBtn.addEventListener("click", () => {
-      updateJupiterBtn.querySelector("img").classList.add("spin");
+      updateJupiterBtn.querySelector(".update-icon").classList.add("spin");
       fetch("/positions/update_jupiter?source=User", { method: "POST" })
         .then(r => r.json())
         .then(() => window.location.reload())
         .catch(err => {
-          updateJupiterBtn.querySelector("img").classList.remove("spin");
+          updateJupiterBtn.querySelector(".update-icon").classList.remove("spin");
           console.error("Jupiter update error:", err);
         });
     });
@@ -245,12 +285,12 @@
   const updatePricesBtn = document.getElementById("updatePricesBtn");
   if (updatePricesBtn) {
     updatePricesBtn.addEventListener("click", () => {
-      updatePricesBtn.querySelector(".price-icon").classList.add("spin");
+      updatePricesBtn.querySelector(".update-icon").classList.add("spin");
       fetch("/prices/update?source=User", { method: "POST" })
         .then(r => r.json())
         .then(() => window.location.reload())
         .catch(err => {
-          updatePricesBtn.querySelector(".price-icon").classList.remove("spin");
+          updatePricesBtn.querySelector(".update-icon").classList.remove("spin");
           console.error("Prices update error:", err);
         });
     });
@@ -260,15 +300,15 @@
   const updateFullCycleBtn = document.getElementById("updateFullCycleBtn");
   if (updateFullCycleBtn) {
     updateFullCycleBtn.addEventListener("click", () => {
-      updateFullCycleBtn.querySelector("img").classList.add("spin");
+      updateFullCycleBtn.querySelector(".update-icon").classList.add("spin");
       fetch("/api/run_full_cycle", { method: "POST" })
         .then(response => response.json())
         .then(data => {
-          updateFullCycleBtn.querySelector("img").classList.remove("spin");
+          updateFullCycleBtn.querySelector(".update-icon").classList.remove("spin");
           window.location.reload();
         })
         .catch(err => {
-          updateFullCycleBtn.querySelector("img").classList.remove("spin");
+          updateFullCycleBtn.querySelector(".update-icon").classList.remove("spin");
           console.error("Full cycle update error:", err);
         });
     });

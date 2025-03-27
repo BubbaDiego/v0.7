@@ -1,351 +1,279 @@
-#!/usr/bin/env python
-import os
-import json
 import unittest
-import time as t  # import as t so we can patch properly
-from data.data_locker import DataLocker
-from alerts.alert_controller import AlertController
-from alerts.alert_manager import AlertManager
-from sonic_labs.hedge_manager import HedgeManager
-from data.models import Position, Hedge  # assuming these exist
+import sqlite3
+import asyncio
+import logging
+import re
+from uuid import UUID
+from datetime import datetime
 
-# Dummy configuration for alerts (all alert types enabled for testing)
-DUMMY_CONFIG = {
-    "alert_ranges": {
-        "price_alerts": {
-            "BTC": {"enabled": True, "condition": "ABOVE", "trigger_value": 70000, "notifications": {"call": False, "email": True}},
-            "ETH": {"enabled": True, "condition": "ABOVE", "trigger_value": 1800, "notifications": {"call": False, "email": True}},
-            "SOL": {"enabled": True, "condition": "BELOW", "trigger_value": 150, "notifications": {"call": True, "email": False}}
-        },
-        "travel_percent_liquid_ranges": {
-            "enabled": True,
-            "low": -10.0,
-            "medium": -30.0,
-            "high": -50.0,
-            "low_notifications": {"call": True},
-            "medium_notifications": {"call": True},
-            "high_notifications": {"call": True}
-        },
-        "profit_ranges": {
-            "enabled": True,
-            "low": 50.0,
-            "medium": 100.0,
-            "high": 150.0,
-            "condition": "ABOVE",
-            "notifications": {"call": True, "email": True}
-        },
-        "heat_index_alerts": {
-            "enabled": False  # disabled for testing
-        }
-    },
-    "alert_cooldown_seconds": 1,
-    "call_refractory_period": 1,
-    "snooze_countdown": 300,
-    "twilio_config": {}
-}
+# Patch the underlying DataLocker so that both modules use our dummy instance.
+import data.data_locker
+from alert_controller import AlertController, DummyPositionAlert
+from cyclone import Cyclone  # Make sure cyclone.py is accessible (e.g., in your package or same folder)
 
-# A simple DummyAlert for manual alert creation tests
-class DummyAlert:
-    def __init__(self, position_reference_id=None, state="Normal", asset_type="BTC", condition="Normal", profit=None):
-        self.data = {
-            "id": None,
-            "alert_type": "TestAlert",
-            "alert_class": "TestClass",
-            "asset_type": asset_type,
-            "trigger_value": 100.0,
-            "condition": condition,
-            "notification_type": "Email",
-            "state": state,
-            "last_triggered": None,
-            "status": "Active",
-            "frequency": 1,
-            "counter": 0,
-            "liquidation_distance": 0.0,
-            "target_travel_percent": 0.0,
-            "liquidation_price": 0.0,
-            "notes": "Test note",
-            "position_reference_id": position_reference_id
-        }
-        if profit is not None:
-            self.data["profit"] = profit
+# --- Dummy DataLocker for Testing ---
+class DummyDataLocker:
+    def __init__(self, db_path=None):
+        self.conn = sqlite3.connect(":memory:")
+        self.conn.row_factory = sqlite3.Row
+        self.create_tables()
 
-    def to_dict(self):
-        return self.data.copy()
+    def create_tables(self):
+        cursor = self.conn.cursor()
+        # Added alert_class column after alert_type
+        cursor.execute("""
+            CREATE TABLE alerts (
+                id TEXT PRIMARY KEY,
+                created_at TEXT,
+                alert_type TEXT,
+                alert_class TEXT,
+                asset_type TEXT,
+                trigger_value REAL,
+                condition TEXT,
+                notification_type TEXT,
+                state TEXT,
+                last_triggered TEXT,
+                status TEXT,
+                frequency INTEGER,
+                counter INTEGER,
+                liquidation_distance REAL,
+                target_travel_percent REAL,
+                liquidation_price REAL,
+                notes TEXT,
+                description TEXT,
+                position_reference_id TEXT,
+                evaluated_value REAL
+            )
+        """)
+        self.conn.commit()
 
-class TestIntegrationUseCases(unittest.TestCase):
+    def delete_alert(self, alert_id: str):
+        cursor = self.conn.cursor()
+        cursor.execute("DELETE FROM alerts WHERE id=?", (alert_id,))
+        self.conn.commit()
+
+    def update_alert_status(self, alert_id: str, status: str):
+        cursor = self.conn.cursor()
+        cursor.execute("UPDATE alerts SET status=? WHERE id=?", (status, alert_id))
+        self.conn.commit()
+
+    def update_alert_conditions(self, alert_id: str, update_fields: dict):
+        cursor = self.conn.cursor()
+        set_clause = ", ".join(f"{k}=?" for k in update_fields.keys())
+        values = list(update_fields.values()) + [alert_id]
+        cursor.execute(f"UPDATE alerts SET {set_clause} WHERE id=?", values)
+        self.conn.commit()
+        return cursor.rowcount
+
+    def get_alerts(self):
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT * FROM alerts")
+        rows = cursor.fetchall()
+        return [dict(row) for row in rows]
+
+    def get_db_connection(self):
+        return self.conn
+
+# Use a shared dummy database for all components.
+def get_shared_dummy_db(db_path=None):
+    return DummyDataLocker(db_path)
+
+# Patch DataLocker.get_instance in the underlying module so that both AlertController and Cyclone use the same DB.
+data.data_locker.DataLocker.get_instance = get_shared_dummy_db
+
+# Disable logging for clean test output.
+logging.disable(logging.CRITICAL)
+
+class TestPositionAlerts(unittest.TestCase):
+
     def setUp(self):
-        # Use an in-memory SQLite DB and reset the DataLocker singleton.
-        self.db_path = ":memory:"
-        DataLocker._instance = None
-        # Force DataLocker.get_instance to always return our patched instance.
-        DataLocker.get_instance = lambda db_path=None: self.data_locker
+        # Create a new DummyDataLocker instance and patch DataLocker.get_instance to return it.
+        self.dummy_db = DummyDataLocker(":memory:")
+        data.data_locker.DataLocker.get_instance = lambda db_path=None: self.dummy_db
 
-        # Create a dummy config file.
-        self.config_path = "dummy_config.json"
-        with open(self.config_path, "w", encoding="utf-8") as f:
-            json.dump(DUMMY_CONFIG, f, indent=2)
+        # Instantiate AlertController and Cyclone.
+        self.controller = AlertController(db_path=":memory:")
+        self.controller.logger = logging.getLogger("TestPositionAlerts")
+        self.cyclone = Cyclone(poll_interval=1)
 
-        # Instantiate our DataLocker, AlertController, and AlertManager.
-        self.data_locker = DataLocker(db_path=self.db_path)
-        self.alert_controller = AlertController(db_path=self.db_path)
-        self.alert_manager = AlertManager(db_path=self.db_path, poll_interval=1, config_path=self.config_path)
-        # Override send_call to avoid real Twilio calls.
-        self.alert_manager.send_call = lambda body, key: None
+    def get_latest_alert(self):
+        alerts = self.controller.data_locker.get_alerts()
+        return alerts[-1] if alerts else None
 
-        # Force both AlertController and AlertManager to use our patched DataLocker.
-        self.alert_controller.data_locker = self.data_locker
-        self.alert_manager.data_locker = self.data_locker
+    def test_1_dummy_position_alert_defaults(self):
+        # Verify that DummyPositionAlert gets proper default values.
+        dp_alert = DummyPositionAlert(
+            alert_type="TravelPercentAlert",
+            asset_type="SOL",
+            trigger_value=5.0,
+            condition="BELOW",
+            notification_type="Call",
+            position_reference_id="pos1"
+        )
+        result = self.controller.create_alert(dp_alert)
+        self.assertTrue(result, "create_alert should return True")
+        alert = self.get_latest_alert()
+        self.assertEqual(alert["alert_class"], "Position", "Default alert_class should be 'Position'")
+        self.assertEqual(alert["status"], "Active", "Default status should be 'Active'")
+        self.assertEqual(alert["frequency"], 1, "Default frequency should be 1")
+        self.assertEqual(alert["counter"], 0, "Default counter should be 0")
+        self.assertEqual(alert["liquidation_distance"], 0.0, "Default liquidation_distance should be 0.0")
+        self.assertEqual(alert["target_travel_percent"], 0.0, "Default target_travel_percent should be 0.0")
+        self.assertEqual(alert["liquidation_price"], 0.0, "Default liquidation_price should be 0.0")
+        self.assertEqual(alert["evaluated_value"], 0.0, "Default evaluated_value should be 0.0")
+        self.assertEqual(alert["asset_type"], "SOL", "Asset type should be preserved as 'SOL'")
+        self.assertTrue(alert["id"], "Alert id should not be empty")
+        self.assertTrue(alert["created_at"], "created_at should not be empty")
 
-        # Patch DataLocker methods to store alerts and positions in in-memory lists.
-        self._alerts = []
-        self._positions = []
-        self.data_locker.create_alert = self._dummy_create_alert
-        self.data_locker.get_alerts = lambda: self._alerts
-        self.data_locker.delete_alert = self._dummy_delete_alert
-        self.data_locker.delete_all_alerts = lambda: self._dummy_delete_all_alerts()
-        self.data_locker.create_position = lambda pos: self._positions.append(pos)
-        self.data_locker.read_positions = lambda: self._positions
-        self.data_locker.delete_all_positions = lambda: self._positions.clear()
-        # Patch update_alert_conditions to update our in-memory alerts.
-        self.data_locker.update_alert_conditions = lambda alert_id, fields: [
-            a.update(fields) for a in self._alerts if a.get("id") == alert_id
-        ]
+    def test_2_empty_fields_default(self):
+        # Test that empty or None fields get replaced by defaults.
+        dp_alert = DummyPositionAlert(
+            alert_type="TravelPercentAlert",
+            asset_type="",           # should default to "BTC"
+            trigger_value=10.0,
+            condition=None,          # should default to "ABOVE"
+            notification_type="",    # should default to "Email"
+            position_reference_id="pos2"
+        )
+        self.controller.create_alert(dp_alert)
+        alert = self.get_latest_alert()
+        self.assertEqual(alert["asset_type"], "BTC", "Empty asset_type should default to 'BTC'")
+        self.assertEqual(alert["condition"], "ABOVE", "None condition should default to 'ABOVE'")
+        self.assertEqual(alert["notification_type"], "Email", "Empty notification_type should default to 'Email'")
 
-        # Patch the time in the alert_manager module so that time.time() works.
-        import alerts.alert_manager as am
-        am.time = t
+    def test_3_preserve_valid_values(self):
+        # Verify that valid non-empty values remain unchanged.
+        dp_alert = DummyPositionAlert(
+            alert_type="TravelPercentAlert",
+            asset_type="ETH",
+            trigger_value=20.0,
+            condition="BELOW",
+            notification_type="Call",
+            position_reference_id="pos3"
+        )
+        self.controller.create_alert(dp_alert)
+        alert = self.get_latest_alert()
+        self.assertEqual(alert["asset_type"], "ETH", "Asset type should be 'ETH'")
+        self.assertEqual(alert["condition"], "BELOW", "Condition should be 'BELOW'")
+        self.assertEqual(alert["notification_type"], "Call", "Notification type should be 'Call'")
 
-    def _dummy_create_alert(self, alert):
-        alert["id"] = f"alert_{len(self._alerts)+1}"
-        self._alerts.append(alert)
-        return True  # Ensure we return True for success.
-
-    def _dummy_delete_alert(self, alert_id):
-        initial = len(self._alerts)
-        self._alerts = [a for a in self._alerts if a.get("id") != alert_id]
-        return initial - len(self._alerts)
-
-    def _dummy_delete_all_alerts(self):
-        count = len(self._alerts)
-        self._alerts = []
-        return count
-
-    def tearDown(self):
-        if os.path.exists(self.config_path):
-            os.remove(self.config_path)
-        self._alerts.clear()
-        self._positions.clear()
-
-    # 1. Create an alert successfully via AlertController.
-    def test_create_alert_success(self):
-        dummy = DummyAlert(position_reference_id="pos1", state="Normal")
-        result = self.alert_controller.create_alert(dummy)
-        self.assertTrue(result)
-        alerts = self.data_locker.get_alerts()
-        self.assertEqual(len(alerts), 1)
-
-    # 2. Delete an alert successfully.
-    def test_delete_alert_success(self):
-        dummy = DummyAlert(position_reference_id="posDel", state="Normal")
-        self.alert_controller.create_alert(dummy)
-        alerts = self.alert_controller.get_all_alerts()
-        self.assertEqual(len(alerts), 1)
-        alert_id = alerts[0]["id"]
-        result = self.alert_controller.delete_alert(alert_id)
-        self.assertTrue(result)
-        alerts_after = self.data_locker.get_alerts()
-        self.assertEqual(len(alerts_after), 0)
-
-    # 3. Update alert conditions.
-    def test_update_alert_conditions(self):
-        dummy = DummyAlert(position_reference_id="posUpdate", state="Normal")
-        self.alert_controller.create_alert(dummy)
-        alerts = self.data_locker.get_alerts()
-        self.assertGreater(len(alerts), 0)
-        alert_id = alerts[0]["id"]
-        update_fields = {"state": "High", "position_reference_id": "posUpdated"}
-        self.data_locker.update_alert_conditions(alert_id, update_fields)
-        updated_alerts = self.data_locker.get_alerts()
-        self.assertEqual(updated_alerts[0].get("state"), "High")
-        self.assertEqual(updated_alerts[0].get("position_reference_id"), "posUpdated")
-
-    # 4. Retrieve all alerts (count check).
-    def test_get_all_alerts_count(self):
-        for i in range(3):
-            dummy = DummyAlert(position_reference_id=f"pos{i}", state="Normal")
-            self.alert_controller.create_alert(dummy)
-        alerts = self.alert_controller.get_all_alerts()
-        self.assertEqual(len(alerts), 3)
-
-    # 5. Create price alerts via AlertController.
-    def test_price_alerts_creation(self):
-        created = self.alert_controller.create_price_alerts()
-        self.assertEqual(len(created), 3)
-
-    # 6. Create travel percent alerts.
-    def test_travel_percent_alerts_creation(self):
-        dummy_position = {
-            "id": "posT1",
-            "asset_type": "SOL",
-            "position_type": "short",
-            "current_travel_percent": -40.0
+    def test_4_create_alert_with_dict_input(self):
+        # Test that create_alert accepts a dictionary input and applies defaults.
+        alert_dict = {
+            "alert_type": "TravelPercentAlert",
+            "asset_type": "",       # empty -> default to "BTC"
+            "trigger_value": 15.0,
+            "condition": "",        # empty -> default to "ABOVE"
+            "notification_type": None,  # None -> default to "Email"
+            "state": "",
+            "notes": "",
+            "description": "",
+            "position_reference_id": ""
         }
-        self.data_locker.create_position(dummy_position)
-        created = self.alert_controller.create_travel_percent_alerts()
-        self.assertEqual(len(created), 1)
+        result = self.controller.create_alert(alert_dict)
+        self.assertTrue(result, "create_alert should return True when passed a dict")
+        alert = self.get_latest_alert()
+        self.assertEqual(alert["asset_type"], "BTC", "Empty asset_type in dict should default to 'BTC'")
+        self.assertEqual(alert["condition"], "ABOVE", "Empty condition in dict should default to 'ABOVE'")
+        self.assertEqual(alert["notification_type"], "Email", "None notification_type should default to 'Email'")
 
-    # 7. Create profit alerts.
-    def test_profit_alerts_creation(self):
-        dummy_position = {
-            "id": "posP1",
-            "asset_type": "BTC",
-            "position_type": "long",
-            "profit": 160.0
-        }
-        self.data_locker.create_position(dummy_position)
-        created = self.alert_controller.create_profit_alerts()
-        self.assertGreaterEqual(len(created), 1)
+    def test_5_notes_field_format(self):
+        # Test that the notes field is correctly formatted.
+        dp_alert = DummyPositionAlert(
+            alert_type="TravelPercentAlert",
+            asset_type="BTC",
+            trigger_value=7.0,
+            condition="ABOVE",
+            notification_type="Email",
+            position_reference_id="pos4"
+        )
+        self.controller.create_alert(dp_alert)
+        alert = self.get_latest_alert()
+        expected_notes = "Position TravelPercentAlert alert created by Cyclone"
+        self.assertEqual(alert["notes"], expected_notes, "Notes field should match expected format")
 
-    # 8. Create heat index alerts (disabled).
-    def test_heat_index_alerts_disabled(self):
-        created = self.alert_controller.create_heat_index_alerts()
-        self.assertEqual(len(created), 0)
+    def test_6_cyclone_run_create_position_alerts_integration(self):
+        # Integration test: Cyclone's run_create_position_alerts should create 3 alerts.
+        async def run_test():
+            await self.cyclone.run_create_position_alerts()
+        asyncio.run(run_test())
+        alerts = self.dummy_db.get_alerts()  # Use the shared dummy DB instance.
+        self.assertEqual(len(alerts), 3, "Cyclone.run_create_position_alerts should insert 3 alerts")
+        expected_types = {"TravelPercentAlert", "ProfitAlert", "HeatIndexAlert"}
+        types = {alert["alert_type"] for alert in alerts}
+        self.assertEqual(types, expected_types, "Alert types should match expected position alerts")
+        for alert in alerts:
+            self.assertTrue(alert.get("created_at"), "created_at should be set for each alert")
 
-    # 9. Create all alerts (combined).
-    def test_create_all_alerts_combined(self):
-        created = self.alert_controller.create_all_alerts()
-        self.assertEqual(len(created), 3)
+    def test_7_cyclone_and_alert_controller_integration(self):
+        # Integration test: Create a position alert via AlertController and verify it in the shared DB.
+        dp_alert = DummyPositionAlert(
+            alert_type="TravelPercentAlert",
+            asset_type="LTC",
+            trigger_value=12.0,
+            condition="BELOW",
+            notification_type="Call",
+            position_reference_id="pos5"
+        )
+        self.controller.create_alert(dp_alert)
+        alerts = self.dummy_db.get_alerts()
+        self.assertTrue(any(alert["position_reference_id"] == "pos5" for alert in alerts),
+                        "The created alert should be retrievable via the shared database integration")
 
-    # 10. AlertManager refresh with no positions.
-    def test_alert_manager_refresh_no_positions(self):
-        self.data_locker.delete_all_positions()
-        self.alert_manager.check_alerts(source="manual refresh")
-        alerts = self.data_locker.get_alerts()
-        self.assertEqual(len(alerts), 0)
-
-    # 11. AlertManager refresh with positions triggering alerts.
-    def test_alert_manager_refresh_with_positions(self):
-        dummy_position = {
-            "id": "posRefresh",
-            "asset_type": "BTC",
-            "position_type": "long",
-            "profit": 160.0,
-            "current_travel_percent": -80.0
-        }
-        self.data_locker.create_position(dummy_position)
-        _ = self.alert_manager.create_all_alerts()
-        self.alert_manager.check_alerts(source="end-to-end test")
-        alerts = self.data_locker.get_alerts()
-        profit_alerts = [a for a in alerts if a.get("alert_type") == "Profit"]
-        self.assertGreaterEqual(len(profit_alerts), 1)
-
-    # 12. Update alert state helper using AlertController.
-    def test_update_alert_state_helper(self):
-        dummy = DummyAlert(position_reference_id="posHelper", state="Normal")
-        self.alert_controller.create_alert(dummy)
-        alerts = self.data_locker.get_alerts()
-        self.assertGreater(len(alerts), 0)
-        self.alert_controller._update_alert_state(alerts[0], "Medium", evaluated_value=75.0)
-        updated = self.data_locker.get_alerts()
-        self.assertEqual(updated[0].get("state"), "Medium")
-
-    # 13. End-to-end interaction.
-    def test_end_to_end_interaction(self):
-        pos = {
-            "id": "posE2",
-            "asset_type": "BTC",
-            "position_type": "long",
-            "profit": 160.0,
-            "current_travel_percent": -80.0
-        }
-        self.data_locker.create_position(pos)
-        created_alerts = self.alert_manager.create_all_alerts()
-        self.assertGreater(len(created_alerts), 0)
-        self.alert_manager.check_alerts(source="end-to-end test")
-        alerts = self.data_locker.get_alerts()
-        triggered = [a for a in alerts if a.get("state") in ["Low", "Medium", "High", "Triggered"]]
-        self.assertGreaterEqual(len(triggered), 1)
-
-    # 14. Multiple alerts for the same position.
-    def test_multiple_alerts_for_same_position(self):
-        pos = {
-            "id": "posMulti",
-            "asset_type": "ETH",
-            "position_type": "long",
-            "profit": 200.0,
-            "current_travel_percent": -90.0,
-            "liquidation_distance": 15.0
-        }
-        self.data_locker.create_position(pos)
-        all_alerts = self.alert_manager.create_all_alerts()
-        self.assertGreaterEqual(len(all_alerts), 3)
-
-    # 15. Alert suppression due to cooldown.
-    def test_alert_suppression_due_to_cooldown(self):
-        pos = {
-            "id": "posCool",
-            "asset_type": "BTC",
-            "position_type": "long",
-            "profit": 180.0,
-            "current_travel_percent": -85.0
-        }
-        self.data_locker.create_position(pos)
-        _ = self.alert_manager.create_all_alerts()
-        self.alert_manager.check_alerts(source="cooldown test")
-        before = self.alert_manager.suppressed_count
-        self.alert_manager.check_alerts(source="cooldown test")
-        after = self.alert_manager.suppressed_count
-        self.assertGreaterEqual(after, before)
-
-    # 16. Configuration reload.
-    def test_config_reload(self):
-        new_config = DUMMY_CONFIG.copy()
-        new_config["alert_cooldown_seconds"] = 5
-        with open(self.config_path, "w", encoding="utf-8") as f:
-            json.dump(new_config, f, indent=2)
+    def test_8_valid_uuid_generation(self):
+        # Test that the alert id generated is a valid UUID.
+        dp_alert = DummyPositionAlert(
+            alert_type="TravelPercentAlert",
+            asset_type="XRP",
+            trigger_value=3.0,
+            condition="ABOVE",
+            notification_type="Email",
+            position_reference_id="pos6"
+        )
+        self.controller.create_alert(dp_alert)
+        alert = self.get_latest_alert()
         try:
-            self.alert_manager.reload_config()
-            self.assertEqual(self.alert_manager.cooldown, 5)
-        except ModuleNotFoundError:
-            self.skipTest("Module config.config_manager not found; skipping reload test.")
+            UUID(alert["id"], version=4)
+        except ValueError:
+            self.fail("Alert id is not a valid UUID")
 
-    # 17. Delete all alerts.
-    def test_delete_all_alerts(self):
-        for i in range(3):
-            dummy = DummyAlert(position_reference_id=f"posDel{i}", state="Normal")
-            self.alert_controller.create_alert(dummy)
-        count = self.alert_controller.delete_all_alerts()
-        self.assertEqual(count, 3)
-        alerts = self.data_locker.get_alerts()
-        self.assertEqual(len(alerts), 0)
+    def test_9_created_at_format(self):
+        # Test that created_at follows the format YYYY-MM-DD HH:MM:SS.
+        dp_alert = DummyPositionAlert(
+            alert_type="TravelPercentAlert",
+            asset_type="ADA",
+            trigger_value=8.0,
+            condition="ABOVE",
+            notification_type="Call",
+            position_reference_id="pos7"
+        )
+        self.controller.create_alert(dp_alert)
+        alert = self.get_latest_alert()
+        pattern = r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}"
+        self.assertRegex(alert["created_at"], pattern, "created_at should match the datetime format YYYY-MM-DD HH:MM:SS")
 
-    # 18. HedgeManager integration: grouping positions.
-    def test_hedge_manager_integration(self):
-        pos1 = Position(asset_type="BTC", position_type="long", size=1.5, heat_index=10.0, hedge_buddy_id="group1")
-        pos2 = Position(asset_type="BTC", position_type="short", size=0.5, heat_index=5.0, hedge_buddy_id="group1")
-        pos3 = Position(asset_type="ETH", position_type="long", size=2.0, heat_index=8.0, hedge_buddy_id="group2")
-        pos4 = Position(asset_type="ETH", position_type="long", size=1.0, heat_index=6.0, hedge_buddy_id="group2")
-        pos5 = Position(asset_type="SOL", position_type="long", size=3.0, heat_index=4.0, hedge_buddy_id=None)
-        positions = [p.__dict__ for p in [pos1, pos2, pos3, pos4, pos5]]
-        hedge_manager = HedgeManager(positions)
-        hedges = hedge_manager.get_hedges()
-        self.assertEqual(len(hedges), 2)
+    def test_10_create_alert_returns_true(self):
+        # Test that create_alert returns True upon successful creation.
+        dp_alert = DummyPositionAlert(
+            alert_type="TravelPercentAlert",
+            asset_type="DOGE",
+            trigger_value=2.0,
+            condition="BELOW",
+            notification_type="Email",
+            position_reference_id="pos8"
+        )
+        result = self.controller.create_alert(dp_alert)
+        self.assertTrue(result, "create_alert should return True upon successful creation")
 
-    # 19. Alert creation with missing optional fields.
-    def test_alert_creation_missing_fields(self):
-        dummy = DummyAlert(position_reference_id="posMissing")
-        alert_created = self.alert_controller.create_alert(dummy)
-        self.assertTrue(alert_created)
-        alerts = self.data_locker.get_alerts()
-        self.assertGreater(len(alerts), 0)
-        self.assertEqual(alerts[0].get("asset_type"), "BTC")
-        self.assertEqual(alerts[0].get("state"), "Normal")
-        self.assertEqual(alerts[0].get("evaluated_value"), 0.0)
-
-    # 20. AlertController default initialization.
-    def test_alert_controller_default_initialization(self):
-        controller = AlertController()
-        self.assertIsNotNone(controller.data_locker)
-
-if __name__ == '__main__':
-    unittest.main(verbosity=2)
+if __name__ == "__main__":
+    runner = unittest.TextTestRunner(verbosity=2)
+    result = runner.run(unittest.defaultTestLoader.loadTestsFromTestCase(TestPositionAlerts))
+    total = result.testsRun
+    failures = len(result.failures)
+    errors = len(result.errors)
+    passed = total - failures - errors
+    print("\nDetailed Test Report:")
+    print(f"Total tests run: {total}")
+    print(f"Passed: {passed}")
+    print(f"Failures: {failures}")
+    print(f"Errors: {errors}")

@@ -8,9 +8,11 @@ from data.data_locker import DataLocker
 from utils.unified_logger import UnifiedLogger
 from sonic_labs.hedge_manager import HedgeManager  # Import HedgeManager directly
 from positions.position_service import PositionService
+from alerts.alert_controller import AlertController, DummyPositionAlert  # Import DummyPositionAlert
 
 class Cyclone:
     def __init__(self, poll_interval=60):
+        self.logger = logging.getLogger(__name__)
         self.poll_interval = poll_interval
         self.logger = logging.getLogger("Cyclone")
         self.logger.setLevel(logging.DEBUG)
@@ -89,25 +91,22 @@ class Cyclone:
     async def run_create_market_alerts(self):
         self.logger.info("Creating Market Alerts via AlertController")
         try:
-            # Instantiate AlertController using the current DB connection.
             ac = self.AlertController()
 
-            # Define a dummy alert object to represent a market alert.
             class DummyPriceAlert:
                 def __init__(self):
-                    # Import required constants locally.
                     from data.models import AlertType, AlertClass, Status
                     from uuid import uuid4
                     self.id = str(uuid4())
-                    self.alert_type = AlertType.PRICE_THRESHOLD.value  # e.g., "PriceAlert"2
-                    self.alert_class = None  # Will be defaulted in create_alert
-                    self.asset_type = "BTC"  # Change this to desired asset if needed
-                    self.trigger_value = 0.0  # Set your desired trigger value here
-                    self.condition = "ABOVE"  # For example
-                    self.notification_type = None  # Will be set from alert limits
+                    self.alert_type = AlertType.PRICE_THRESHOLD.value
+                    self.alert_class = None
+                    self.asset_type = "BTC"
+                    self.trigger_value = 0.0
+                    self.condition = "ABOVE"
+                    self.notification_type = None
                     self.state = "Normal"
                     self.last_triggered = None
-                    self.status = None  # Will be defaulted to Active
+                    self.status = None
                     self.frequency = 1
                     self.counter = 0
                     self.liquidation_distance = 0.0
@@ -140,8 +139,6 @@ class Cyclone:
                     }
 
             dummy_alert = DummyPriceAlert()
-
-            # Create the alert via the AlertController.
             if ac.create_alert(dummy_alert):
                 self.u_logger.log_operation(
                     operation_type="Create Market Alerts",
@@ -161,36 +158,43 @@ class Cyclone:
         except Exception as e:
             self.logger.error(f"Error creating market alerts: {e}", exc_info=True)
             print(f"Error creating market alerts: {e}")
-
-        # Return a dummy value so that await works without error.
         return
 
     async def run_create_position_alerts(self):
         self.logger.info("Creating Position Alerts")
         try:
-            dl = DataLocker.get_instance()
-            cursor = dl.conn.cursor()
-            alerts_to_create = [
-                ("TravelPercentAlert", "Position travel percent alert created by Cyclone"),
-                ("ProfitAlert", "Position profit alert created by Cyclone"),
-                ("HeatIndexAlert", "Position heat index alert created by Cyclone")
-            ]
-            total_inserted = 0
-            for alert_type, description in alerts_to_create:
-                cursor.execute(
-                    "INSERT INTO alerts (alert_type, description, created_at) VALUES (?, ?, datetime('now'))",
-                    (alert_type, description)
-                )
-                total_inserted += cursor.rowcount
-            dl.conn.commit()
-            cursor.close()
+            ac = self.AlertController()
+            # Retrieve real positions from the database.
+            positions = self.data_locker.read_positions()
+            if not positions:
+                print("No positions available to create alerts.")
+                return
+
+            created = 0
+            for pos in positions:
+                pos_dict = dict(pos)
+                pos_id = pos_dict.get("id")
+                if not pos_id:
+                    self.logger.error("Position missing id. Skipping alert creation for this position.")
+                    continue
+
+                # Create alerts for each position using the real position id.
+                travel_alert = DummyPositionAlert("TravelPercentAlert", pos_dict.get("asset_type", "BTC"), -4.0, "BELOW", "Call", pos_id)
+                profit_alert = DummyPositionAlert("ProfitAlert", pos_dict.get("asset_type", "BTC"), 22.0, "ABOVE", "Email", pos_id)
+                heat_alert = DummyPositionAlert("HeatIndexAlert", pos_dict.get("asset_type", "BTC"), 12.0, "ABOVE", "Email", pos_id)
+
+                for alert in [travel_alert, profit_alert, heat_alert]:
+                    if ac.create_alert(alert):
+                        created += 1
+                    else:
+                        self.logger.error("Failed to create alert for position id: %s", pos_id)
             self.u_logger.log_operation(
                 operation_type="Create Position Alerts",
-                primary_text=f"Created {total_inserted} position alert(s)",
+                primary_text=f"Created {created} position alert(s)",
                 source="Cyclone",
                 file="cyclone.py"
             )
-            print(f"Created {total_inserted} position alert(s).")
+            print(f"Created {created} position alert(s).")
         except Exception as e:
             print(f"Error creating position alerts: {e}")
 
@@ -217,9 +221,6 @@ class Cyclone:
             print(f"Error creating system alerts: {e}")
 
     async def run_update_evaluated_value(self):
-        """
-        Calls the AlertManager's method to update evaluated_value for all alerts.
-        """
         self.logger.info("Updating Evaluated Values for Alerts...")
         try:
             self.alert_manager.update_alerts_evaluated_value()
@@ -301,13 +302,12 @@ class Cyclone:
                 file="cyclone.py"
             )
 
-    # --- New Hedge Menu Methods ---
     def run_hedges_menu(self):
         while True:
             print("\n--- Hedge Menu ---")
-            print("1) Find Hedges")
-            print("2) Clear Hedges")
-            print("3) Back to Previous Menu")
+            print("1) 🔍 Find Hedges")
+            print("2) 🧹 Clear Hedges")
+            print("3) ↩️ Back to Previous Menu")
             choice = input("Enter your choice (1-3): ").strip()
             if choice == "1":
                 print("Finding Hedges...")
@@ -359,10 +359,10 @@ class Cyclone:
     def run_prices_menu(self):
         while True:
             print("\n--- Prices Menu ---")
-            print("1) Market Update")
-            print("2) View Prices")
-            print("3) Clear Prices")
-            print("4) Back to Main Menu")
+            print("1) 🚀 Market Update")
+            print("2) 👁 View Prices")
+            print("3) 🧹 Clear Prices")
+            print("4) ↩️ Back to Main Menu")
             choice = input("Enter your choice (1-4): ").strip()
             if choice == "1":
                 print("Running Market Update...")
@@ -382,11 +382,11 @@ class Cyclone:
     def run_positions_menu(self):
         while True:
             print("\n--- Positions Menu ---")
-            print("1) View Positions")
-            print("2) Positions Updates")
-            print("3) Position Data Enrichment")
-            print("4) Clear Positions")
-            print("5) Back to Main Menu")
+            print("1) 👁 View Positions")
+            print("2) 🔄 Positions Updates")
+            print("3) ✨ Position Data Enrichment")
+            print("4) 🧹 Clear Positions")
+            print("5) ↩️ Back to Main Menu")
             choice = input("Enter your choice (1-5): ").strip()
             if choice == "1":
                 print("Viewing Positions...")
@@ -410,15 +410,16 @@ class Cyclone:
     def run_alerts_menu(self):
         while True:
             print("\n--- Alerts Menu ---")
-            print("1) View Alerts")
-            print("2) Create Market Alerts")
-            print("3) Create Position Alerts")
-            print("4) Create System Alerts")
-            print("5) Update Evaluated Value")
-            print("6) Alert Evaluations")
-            print("7) Clear Alerts")
-            print("8) Back to Main Menu")
-            choice = input("Enter your choice (1-8): ").strip()
+            print("1) 👁 View Alerts")
+            print("2) 💵 Create Market Alerts")
+            print("3) 📌 Create Position Alerts")
+            print("4) 🖥 Create System Alerts")
+            print("5) 🔄 Update Evaluated Value")
+            print("6) 🔍 Alert Evaluations")
+            print("7) 🧹 Clear Alerts")
+            print("8) ♻️ Refresh Alerts")  # New option for refresh_all_alerts
+            print("9) ↩️ Back to Main Menu")
+            choice = input("Enter your choice (1-9): ").strip()
             if choice == "1":
                 print("Viewing Alerts...")
                 self.view_alerts_backend()
@@ -442,17 +443,23 @@ class Cyclone:
                 print("Clearing Alerts...")
                 self.clear_alerts_backend()
             elif choice == "8":
+                print("Refreshing Alerts...")
+                ac = self.AlertController()
+                count = ac.refresh_all_alerts()
+                print(f"Refreshed and confirmed {count} alert(s).")
+            elif choice == "9":
                 break
             else:
                 print("Invalid choice, please try again.")
 
+
     def run_wallets_menu(self):
         while True:
             print("\n--- Wallets Menu ---")
-            print("1) View Wallets")
-            print("2) Add Wallet")
-            print("3) Clear Wallets")
-            print("4) Back to Main Menu")
+            print("1) 👁 View Wallets")
+            print("2) ➕ Add Wallet")
+            print("3) 🧹 Clear Wallets")
+            print("4) ↩️ Back to Main Menu")
             choice = input("Enter your choice (1-4): ").strip()
             if choice == "1":
                 print("Viewing Wallets...")
@@ -471,12 +478,12 @@ class Cyclone:
     def run_individual_steps_menu(self):
         while True:
             print("\n--- Individual Steps Menu ---")
-            print("1) Prices")
-            print("2) Positions")
-            print("3) Alerts")
-            print("4) Hedge")
-            print("5) Wallets")
-            print("6) Back to Main Menu")
+            print("1) 💰 Prices")
+            print("2) 📊 Positions")
+            print("3) 🔔 Alerts")
+            print("4) 🛡 Hedge")
+            print("5) 💼 Wallets")
+            print("6) ↩️ Back to Main Menu")
             choice = input("Enter your choice (1-6): ").strip()
             if choice == "1":
                 self.run_prices_menu()
@@ -496,9 +503,9 @@ class Cyclone:
     def run_console(self):
         while True:
             print("\n=== Cyclone Interactive Console ===")
-            print("1) Run Full Cycle (Cyclone)")
-            print("2) Run Individual Steps")
-            print("3) Exit")
+            print("1) 🚀 Run Full Cycle (Cyclone)")
+            print("2) 🔧 Run Individual Steps")
+            print("3) ❌ Exit")
             choice = input("Enter your choice (1-3): ").strip()
             if choice == "1":
                 print("Running full cycle (all steps)...")
@@ -512,7 +519,6 @@ class Cyclone:
             else:
                 print("Invalid choice, please try again.")
 
-    # Backend view and clear methods for Prices, Positions, Alerts, Wallets
     def view_prices_backend(self):
         try:
             from pprint import pprint
@@ -591,7 +597,6 @@ class Cyclone:
             print(f"Found {len(alerts)} alert record(s).")
             for row in alerts:
                 alert_dict = dict(row)
-                # Ensure evaluated_value is explicitly shown
                 if "evaluated_value" not in alert_dict:
                     alert_dict["evaluated_value"] = None
                 pprint(alert_dict)
@@ -682,12 +687,12 @@ class Cyclone:
     def run_individual_steps_menu(self):
         while True:
             print("\n--- Individual Steps Menu ---")
-            print("1) Prices")
-            print("2) Positions")
-            print("3) Alerts")
-            print("4) Hedge")
-            print("5) Wallets")
-            print("6) Back to Main Menu")
+            print("1) 💰 Prices")
+            print("2) 📊 Positions")
+            print("3) 🔔 Alerts")
+            print("4) 🛡 Hedge")
+            print("5) 💼 Wallets")
+            print("6) ↩️ Back to Main Menu")
             choice = input("Enter your choice (1-6): ").strip()
             if choice == "1":
                 self.run_prices_menu()
@@ -707,9 +712,152 @@ class Cyclone:
     def run_console(self):
         while True:
             print("\n=== Cyclone Interactive Console ===")
-            print("1) Run Full Cycle (Cyclone)")
-            print("2) Run Individual Steps")
-            print("3) Exit")
+            print("1) 🚀 Run Full Cycle (Cyclone)")
+            print("2) 🔧 Run Individual Steps")
+            print("3) ❌ Exit")
+            choice = input("Enter your choice (1-3): ").strip()
+            if choice == "1":
+                print("Running full cycle (all steps)...")
+                asyncio.run(self.run_cycle())
+                print("Full cycle completed.")
+            elif choice == "2":
+                self.run_individual_steps_menu()
+            elif choice == "3":
+                print("Exiting console mode.")
+                break
+            else:
+                print("Invalid choice, please try again.")
+
+    def view_alerts_backend(self):
+        try:
+            from pprint import pprint
+            dl = DataLocker.get_instance()
+            cursor = dl.conn.cursor()
+            cursor.execute("SELECT * FROM alerts")
+            alerts = cursor.fetchall()
+            cursor.close()
+            print("----- Alerts -----")
+            print(f"Found {len(alerts)} alert record(s).")
+            for row in alerts:
+                alert_dict = dict(row)
+                if "evaluated_value" not in alert_dict:
+                    alert_dict["evaluated_value"] = None
+                pprint(alert_dict)
+        except Exception as e:
+            print(f"Error viewing alerts: {e}")
+
+    def clear_alerts_backend(self):
+        try:
+            dl = DataLocker.get_instance()
+            cursor = dl.conn.cursor()
+            cursor.execute("DELETE FROM alerts")
+            dl.conn.commit()
+            deleted = cursor.rowcount
+            cursor.close()
+            self.u_logger.log_operation(
+                operation_type="Clear Alerts",
+                primary_text=f"Cleared {deleted} alert record(s)",
+                source="Cyclone",
+                file="cyclone.py"
+            )
+            print(f"Alerts cleared. {deleted} record(s) deleted.")
+        except Exception as e:
+            print(f"Error clearing alerts: {e}")
+
+    def view_wallets_backend(self):
+        try:
+            from pprint import pprint
+            dl = DataLocker.get_instance()
+            cursor = dl.conn.cursor()
+            cursor.execute("SELECT * FROM wallets")
+            wallets = cursor.fetchall()
+            cursor.close()
+            print("----- Wallets -----")
+            print(f"Found {len(wallets)} wallet record(s).")
+            for row in wallets:
+                pprint(dict(row))
+        except Exception as e:
+            print(f"Error viewing wallets: {e}")
+
+    def add_wallet_backend(self):
+        try:
+            name = input("Enter wallet name: ").strip()
+            public_address = input("Enter public address: ").strip()
+            private_address = input("Enter private address: ").strip()
+            image_path = input("Enter image path: ").strip()
+            balance_str = input("Enter balance: ").strip()
+            try:
+                balance = float(balance_str)
+            except Exception:
+                balance = 0.0
+            dl = DataLocker.get_instance()
+            cursor = dl.conn.cursor()
+            cursor.execute(
+                "INSERT INTO wallets (name, public_address, private_address, image_path, balance) VALUES (?, ?, ?, ?, ?)",
+                (name, public_address, private_address, image_path, balance)
+            )
+            dl.conn.commit()
+            inserted = cursor.rowcount
+            cursor.close()
+            self.u_logger.log_operation(
+                operation_type="Add Wallet",
+                primary_text=f"Added wallet '{name}' ({inserted} row inserted)",
+                source="Cyclone",
+                file="cyclone.py"
+            )
+            print(f"Wallet added successfully. {inserted} record(s) inserted.")
+        except Exception as e:
+            print(f"Error adding wallet: {e}")
+
+    def clear_wallets_backend(self):
+        try:
+            dl = DataLocker.get_instance()
+            cursor = dl.conn.cursor()
+            cursor.execute("DELETE FROM wallets")
+            dl.conn.commit()
+            deleted = cursor.rowcount
+            cursor.close()
+            self.u_logger.log_operation(
+                operation_type="Clear Wallets",
+                primary_text=f"Cleared {deleted} wallet record(s)",
+                source="Cyclone",
+                file="cyclone.py"
+            )
+            print(f"Wallets cleared. {deleted} record(s) deleted.")
+        except Exception as e:
+            print(f"Error clearing wallets: {e}")
+
+    def run_individual_steps_menu(self):
+        while True:
+            print("\n--- Individual Steps Menu ---")
+            print("1) 💰 Prices")
+            print("2) 📊 Positions")
+            print("3) 🔔 Alerts")
+            print("4) 🛡 Hedge")
+            print("5) 💼 Wallets")
+            print("6) ↩️ Back to Main Menu")
+            choice = input("Enter your choice (1-6): ").strip()
+            if choice == "1":
+                self.run_prices_menu()
+            elif choice == "2":
+                self.run_positions_menu()
+            elif choice == "3":
+                self.run_alerts_menu()
+            elif choice == "4":
+                self.run_hedges_menu()
+            elif choice == "5":
+                self.run_wallets_menu()
+            elif choice == "6":
+                break
+            else:
+                print("Invalid choice, please try again.")
+
+    def run_console(self):
+        while True:
+            print("\n=== Cyclone Interactive Console ===")
+            print("1) 🚀 Run Full Cycle (Cyclone)")
+            print("2) 🔧 Run Individual Steps")
+            print("3) ❌ Exit")
             choice = input("Enter your choice (1-3): ").strip()
             if choice == "1":
                 print("Running full cycle (all steps)...")

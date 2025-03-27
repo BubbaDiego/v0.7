@@ -146,7 +146,9 @@ class DataLocker:
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS alerts (
                     id TEXT PRIMARY KEY,
+                    created_at DATETIME,
                     alert_type TEXT,
+                    alert_class TEXT,       -- New column for alert class
                     asset_type TEXT,
                     trigger_value REAL,
                     condition TEXT,
@@ -160,6 +162,7 @@ class DataLocker:
                     target_travel_percent REAL,
                     liquidation_price REAL,
                     notes TEXT,
+                    description TEXT,
                     position_reference_id TEXT,
                     evaluated_value REAL
                 )
@@ -168,24 +171,26 @@ class DataLocker:
             # Create alerts table if it doesn't exist
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS alerts (
-                id TEXT PRIMARY KEY,
-                alert_type TEXT,
-                asset_type TEXT,
-                trigger_value REAL,
-                condition TEXT,
-                notification_type TEXT,
-                state TEXT,
-                last_triggered DATETIME,
-                status TEXT,
-                frequency INTEGER,
-                counter INTEGER,
-                liquidation_distance REAL,
-                target_travel_percent REAL,
-                liquidation_price REAL,
-                notes TEXT,
-                position_reference_id TEXT,
-                evaluated_value REAL  -- NEW: Evaluated value used for debugging evaluation
-            )    
+                    id TEXT PRIMARY KEY,
+                    alert_type TEXT,
+                    alert_class TEXT,
+                    asset_type TEXT,
+                    trigger_value REAL,
+                    condition TEXT,
+                    notification_type TEXT,
+                    state TEXT,
+                    last_triggered DATETIME,
+                    status TEXT,
+                    frequency INTEGER,
+                    counter INTEGER,
+                    liquidation_distance REAL,
+                    target_travel_percent REAL,
+                    liquidation_price REAL,
+                    notes TEXT,
+                    description TEXT,
+                    position_reference_id TEXT,
+                    evaluated_value REAL
+                )
             """)
 
             # Create brokers table if it doesn't exist
@@ -438,15 +443,63 @@ class DataLocker:
     # ALERTS
     # ----------------------------------------------------------------
 
-    def create_alert(self, alert_dict: dict) -> bool:
+    def create_alert(self, alert_obj) -> bool:
         try:
-            if "id" not in alert_dict or not alert_dict["id"]:
-                alert_dict["id"] = str(uuid4())
-            cursor = self.conn.cursor()
-            cursor.execute("""
+            print("[DEBUG] Starting create_alert process.")
+            self.logger.debug("[DEBUG] Starting create_alert process.")
+
+            # Convert alert object to dictionary if needed.
+            if not isinstance(alert_obj, dict):
+                alert_dict = alert_obj.to_dict()
+                print("[DEBUG] Converted alert object to dict.")
+                self.logger.debug("Converted alert object to dict.")
+            else:
+                alert_dict = alert_obj
+                print("[DEBUG] Alert object is already a dict.")
+                self.logger.debug("Alert object is already a dict.")
+
+            # Print alert before normalization.
+            print(f"[DEBUG] Alert before normalization: {alert_dict}")
+            self.logger.debug(f"Alert before normalization: {alert_dict}")
+
+            # Normalize alert_type.
+            if alert_dict.get("alert_type"):
+                normalized_type = alert_dict["alert_type"].upper().replace(" ", "").replace("_", "")
+                print(f"[DEBUG] Normalized alert_type: {normalized_type}")
+                self.logger.debug(f"Normalized alert_type: {normalized_type}")
+                if normalized_type == "PRICETHRESHOLD":
+                    normalized_type = "PRICE_THRESHOLD"
+                alert_dict["alert_type"] = normalized_type
+
+                # Set alert_class based on alert_type.
+                if normalized_type == "PRICE_THRESHOLD":
+                    alert_dict["alert_class"] = "Market"
+                else:
+                    alert_dict["alert_class"] = "Position"
+                print(f"[DEBUG] Set alert_class to: {alert_dict['alert_class']}")
+                self.logger.debug(f"Set alert_class to: {alert_dict['alert_class']}")
+            else:
+                self.logger.error("Alert missing alert_type.")
+                print("[ERROR] Alert missing alert_type.")
+                return False
+
+            # Initialize alert defaults.
+            alert_dict = self.initialize_alert_data(alert_dict)
+            print(f"[DEBUG] Alert after initializing defaults: {alert_dict}")
+            self.logger.debug(f"Alert after initializing defaults: {alert_dict}")
+
+            # Log the complete alert dictionary before insertion.
+            print(f"[DEBUG] Final alert_dict to insert: {alert_dict}")
+            self.logger.debug(f"Final alert_dict to insert: {alert_dict}")
+
+            # Insert alert into the database.
+            cursor = self.data_locker.conn.cursor()
+            sql = """
                 INSERT INTO alerts (
                     id,
+                    created_at,
                     alert_type,
+                    alert_class,
                     asset_type,
                     trigger_value,
                     condition,
@@ -460,23 +513,52 @@ class DataLocker:
                     target_travel_percent,
                     liquidation_price,
                     notes,
+                    description,
                     position_reference_id,
                     evaluated_value
                 ) VALUES (
-                    :id, :alert_type, :asset_type, :trigger_value, :condition, :notification_type,
-                    :state, :last_triggered, :status, :frequency, :counter,
-                    :liquidation_distance, :target_travel_percent, :liquidation_price, :notes,
-                    :position_reference_id, :evaluated_value
+                    :id,
+                    :created_at,
+                    :alert_type,
+                    :alert_class,
+                    :asset_type,
+                    :trigger_value,
+                    :condition,
+                    :notification_type,
+                    :state,
+                    :last_triggered,
+                    :status,
+                    :frequency,
+                    :counter,
+                    :liquidation_distance,
+                    :target_travel_percent,
+                    :liquidation_price,
+                    :notes,
+                    :description,
+                    :position_reference_id,
+                    :evaluated_value
                 )
-            """, alert_dict)
-            self.conn.commit()
-            self.logger.debug(f"Created alert with ID={alert_dict['id']}")
+            """
+            print(f"[DEBUG] Executing SQL: {sql}")
+            self.logger.debug(f"Executing SQL for alert creation: {sql}")
+            cursor.execute(sql, alert_dict)
+            self.data_locker.conn.commit()
+            print(f"[DEBUG] Alert inserted successfully with ID: {alert_dict['id']}")
+            self.logger.debug(f"Alert inserted successfully with ID: {alert_dict['id']}")
+
+            # Optionally, enrich alert after creation.
+            enriched_alert = self.enrich_alert(alert_dict)
+            print(f"[DEBUG] Alert after enrichment: {enriched_alert}")
+            self.logger.debug(f"Alert after enrichment: {enriched_alert}")
+
             return True
         except sqlite3.IntegrityError as ie:
-            self.logger.error(f"IntegrityError creating alert: {ie}", exc_info=True)
+            self.logger.error("CREATE ALERT: IntegrityError creating alert: %s", ie, exc_info=True)
+            print(f"[ERROR] IntegrityError creating alert: {ie}")
             return False
         except Exception as ex:
-            self.logger.exception(f"Unexpected error in create_alert: {ex}")
+            self.logger.exception("CREATE ALERT: Unexpected error in create_alert: %s", ex)
+            print(f"[ERROR] Unexpected error in create_alert: {ex}")
             raise
 
     from utils.unified_logger import UnifiedLogger
