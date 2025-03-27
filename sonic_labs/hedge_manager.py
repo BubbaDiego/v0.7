@@ -110,37 +110,55 @@ class HedgeManager:
 
     @staticmethod
     def find_hedges(db_path: str = DB_PATH) -> List[list]:
-        """
-        Finds hedges by retrieving raw positions from the database and grouping them by wallet and asset.
-        For groups that contain positions with opposing stances (one long and one short), a unique hedge_buddy_id is assigned.
-        Returns a list of hedge groups (each group is a list of positions that have been assigned the same hedge_buddy_id).
-        """
+        logger.debug("Entering HedgeManager.find_hedges")
         try:
             from uuid import uuid4
             dl = DataLocker.get_instance(db_path)
             raw_positions = dl.read_positions()
+            logger.debug(f"Retrieved {len(raw_positions)} raw positions from the database.")
+
             positions = [dict(pos) for pos in raw_positions]
+            logger.debug(
+                f"Converted raw positions to dictionaries. Position IDs: {[pos.get('id') for pos in positions]}")
+
             groups = {}
             for pos in positions:
                 wallet = pos.get("wallet_name")
                 asset = pos.get("asset_type")
                 if wallet and asset:
-                    key = (wallet, asset)
+                    key = (wallet.strip(), asset.strip())
                     groups.setdefault(key, []).append(pos)
+                    logger.debug(
+                        f"Added position id={pos.get('id')} with type '{pos.get('position_type')}' to group {key}.")
+                else:
+                    logger.debug(f"Skipping position id={pos.get('id')} due to missing wallet or asset info.")
+            logger.debug(f"Formed {len(groups)} groups from positions.")
+
+            for key, pos_list in groups.items():
+                pos_types = [pos.get("position_type", "").strip().lower() for pos in pos_list]
+                logger.debug(f"Group {key}: contains positions with types {pos_types} (Total: {len(pos_list)})")
+
             hedged_groups = []
             for key, pos_list in groups.items():
-                has_long = any(pos.get("position_type", "").lower() == "long" for pos in pos_list)
-                has_short = any(pos.get("position_type", "").lower() == "short" for pos in pos_list)
+                has_long = any(pos.get("position_type", "").strip().lower() == "long" for pos in pos_list)
+                has_short = any(pos.get("position_type", "").strip().lower() == "short" for pos in pos_list)
+                logger.debug(f"Group {key}: has_long={has_long}, has_short={has_short}")
                 if has_long and has_short:
                     hedge_id = str(uuid4())
+                    logger.debug(f"Group {key} qualifies for hedge. Assigning hedge_id {hedge_id}.")
                     for pos in pos_list:
                         pos["hedge_buddy_id"] = hedge_id
                         cursor = dl.conn.cursor()
                         cursor.execute("UPDATE positions SET hedge_buddy_id = ? WHERE id = ?", (hedge_id, pos["id"]))
                         dl.conn.commit()
                         cursor.close()
+                        logger.debug(f"Updated position id={pos.get('id')} with hedge_buddy_id {hedge_id}.")
                     hedged_groups.append(pos_list)
+                    logger.debug(f"Group {key} added as a hedge group. Total positions in group: {len(pos_list)}")
+                else:
+                    logger.debug(f"Group {key} does not qualify (requires both long and short).")
             logger.info(f"Found {len(hedged_groups)} hedge group(s).")
+            logger.debug("Exiting HedgeManager.find_hedges successfully.")
             return hedged_groups
         except Exception as e:
             logger.error(f"Error in find_hedges: {e}", exc_info=True)

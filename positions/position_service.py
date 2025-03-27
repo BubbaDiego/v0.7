@@ -189,6 +189,48 @@ class PositionService:
             logger.error(f"Error enriching position data: {e}", exc_info=True)
             raise
 
+    def delete_position_and_cleanup(position_id: str, db_path: str = DB_PATH) -> None:
+        """
+        Deletes a position and cleans up all associated alerts and hedge references.
+
+        Steps:
+          1. Delete all alerts whose position_reference_id equals position_id.
+          2. Clear hedge associations in positions that reference the position.
+          3. Delete the position record from the database.
+        """
+        try:
+            # Get the DataLocker instance
+            dl = DataLocker.get_instance(db_path)
+            # Instantiate AlertController for alert deletion operations
+            alert_ctrl = AlertController(db_path)
+
+            # Step 1: Delete associated alerts
+            alerts = dl.get_alerts()
+            alerts_deleted = 0
+            for alert in alerts:
+                if alert.get("position_reference_id") == position_id:
+                    if alert_ctrl.delete_alert(alert["id"]):
+                        alerts_deleted += 1
+                        logger.info(f"Deleted alert {alert['id']} for position {position_id}")
+                    else:
+                        logger.error(f"Failed to delete alert {alert['id']} for position {position_id}")
+            logger.info(f"Total alerts deleted for position {position_id}: {alerts_deleted}")
+
+            # Step 2: Clear hedge associations referencing this position.
+            # If the position is part of any hedge, reset its hedge_buddy_id to NULL.
+            cursor = dl.conn.cursor()
+            cursor.execute("UPDATE positions SET hedge_buddy_id = NULL WHERE hedge_buddy_id = ?", (position_id,))
+            dl.conn.commit()
+            logger.info(f"Cleared hedge associations for position {position_id}")
+
+            # Step 3: Delete the position record
+            dl.delete_position(position_id)
+            logger.info(f"Position {position_id} deleted successfully.")
+
+        except Exception as ex:
+            logger.exception(f"Error during deletion of position {position_id}: {ex}")
+            raise
+
     @staticmethod
     def fill_positions_with_latest_price(positions: List[Any]) -> List[Dict[str, Any]]:
         try:

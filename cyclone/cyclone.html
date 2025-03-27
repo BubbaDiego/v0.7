@@ -58,6 +58,11 @@
               6. <i class="fas fa-desktop"></i> System Updates
             </button>
           </li>
+          <li class="list-group-item">
+            <button id="runMainConsoleBtn" class="btn btn-danger btn-block">
+              7. <i class="fas fa-terminal"></i> Run Main Console
+            </button>
+          </li>
         </ul>
       </div>
     </div>
@@ -206,6 +211,23 @@
           appendToConsole(data.message);
         } else {
           appendToConsole("No message returned.");
+        }
+      })
+      .catch(err => {
+        appendToConsole("Error: " + err);
+      });
+  });
+
+  // Real AJAX call for Running the Main Console
+  document.getElementById("runMainConsoleBtn").addEventListener("click", function() {
+    appendToConsole("Launching Main Console...");
+    fetch("/cyclone/api/run_console_main", { method: "POST" })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message) {
+          appendToConsole(data.message);
+        } else {
+          appendToConsole("Main Console started.");
         }
       })
       .catch(err => {

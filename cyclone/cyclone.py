@@ -160,6 +160,60 @@ class Cyclone:
             print(f"Error creating market alerts: {e}")
         return
 
+    async def run_update_hedges(self):
+        self.logger.info("Starting Hedge Update")
+        try:
+            # Call the static method to find hedge groups in the database.
+            hedge_groups = HedgeManager.find_hedges()
+            self.logger.info(f"Found {len(hedge_groups)} hedge group(s) using find_hedges.")
+
+            # Retrieve the latest positions from the DB.
+            positions = [dict(pos) for pos in self.data_locker.read_positions()]
+            # Build hedges from these positions.
+            hedge_manager = HedgeManager(positions)
+            hedges = hedge_manager.get_hedges()
+            self.logger.info(f"Built {len(hedges)} hedge(s) using HedgeManager instance.")
+
+            self.u_logger.log_operation(
+                operation_type="Update Hedges",
+                primary_text=f"Updated hedges: {len(hedge_groups)} hedge group(s) found, {len(hedges)} hedges built.",
+                source="Cyclone",
+                file="cyclone.py"
+            )
+            print(f"Updated hedges: {len(hedge_groups)} group(s) found, {len(hedges)} hedge(s) built.")
+        except Exception as e:
+            self.logger.error(f"Hedge Update failed: {e}", exc_info=True)
+            self.u_logger.log_operation(
+                operation_type="Update Hedges",
+                primary_text=f"Failed: {e}",
+                source="Cyclone",
+                file="cyclone.py"
+            )
+
+    async def run_cycle(self, steps=None):
+        available_steps = {
+            "market": self.run_market_updates,
+            "position": self.run_position_updates,
+            "delete_position": self.run_delete_position,  # New deletion step
+            "enrichment": self.run_position_enrichment,
+            "create_market_alerts": self.run_create_market_alerts,
+            "create_position_alerts": self.run_create_position_alerts,
+            "create_system_alerts": self.run_create_system_alerts,
+            "update_evaluated_value": self.run_update_evaluated_value,
+            "alert": self.run_alert_updates,
+            "system": self.run_system_updates
+        }
+        if steps:
+            for step in steps:
+                if step in available_steps:
+                    await available_steps[step]()
+                else:
+                    self.logger.warning(f"Unknown step requested: {step}")
+        else:
+            for step in ["market", "position", "enrichment", "create_market_alerts",
+                         "create_position_alerts", "create_system_alerts", "update_evaluated_value", "alert", "system"]:
+                await available_steps[step]()
+
     async def run_create_position_alerts(self):
         self.logger.info("Creating Position Alerts")
         try:
@@ -198,8 +252,25 @@ class Cyclone:
         except Exception as e:
             print(f"Error creating position alerts: {e}")
 
+    async def run_delete_position(self):
+        position_id = input("Enter the Position ID to delete: ").strip()
+        if not position_id:
+            print("No position ID provided.")
+            return
+        try:
+            # Import the deletion method from PositionService
+            from positions.position_service import delete_position_and_cleanup
+            # Run the deletion in a separate thread so as not to block the event loop
+            await asyncio.to_thread(delete_position_and_cleanup, position_id)
+            print(f"Position {position_id} deleted along with associated alerts and hedges.")
+        except Exception as e:
+            print(f"Error deleting position {position_id}: {e}")
+
+
     async def run_create_system_alerts(self):
         self.logger.info("Creating System Alerts")
+
+        return
         try:
             dl = DataLocker.get_instance()
             cursor = dl.conn.cursor()
@@ -506,8 +577,9 @@ class Cyclone:
             print("\n=== Cyclone Interactive Console ===")
             print("1) 🚀 Run Full Cycle (Cyclone)")
             print("2) 🔧 Run Individual Steps")
-            print("3) ❌ Exit")
-            choice = input("Enter your choice (1-3): ").strip()
+            print("3) 🗑️ Delete All Data")
+            print("4) ❌ Exit")
+            choice = input("Enter your choice (1-4): ").strip()
             if choice == "1":
                 print("Running full cycle (all steps)...")
                 asyncio.run(self.run_cycle())
@@ -515,10 +587,13 @@ class Cyclone:
             elif choice == "2":
                 self.run_individual_steps_menu()
             elif choice == "3":
+                self.run_delete_all_data()
+            elif choice == "4":
                 print("Exiting console mode.")
                 break
             else:
                 print("Invalid choice, please try again.")
+
 
     def view_prices_backend(self):
         try:
@@ -534,6 +609,26 @@ class Cyclone:
                 pprint(dict(row))
         except Exception as e:
             print(f"Error viewing prices: {e}")
+
+    def run_delete_all_data(self):
+        confirm = input("WARNING: This will DELETE ALL alerts, prices, and positions from the database. Are you sure? (yes/no): ").strip().lower()
+        if confirm != "yes":
+            print("Deletion aborted.")
+            return
+        try:
+            self.clear_alerts_backend()
+            self.clear_prices_backend()
+            self.clear_positions_backend()
+            self.u_logger.log_operation(
+                operation_type="Delete All Data",
+                primary_text="All alerts, prices, and positions have been deleted.",
+                source="Cyclone",
+                file="cyclone.py"
+            )
+            print("All alerts, prices, and positions have been deleted.")
+        except Exception as e:
+            print(f"Error deleting data: {e}")
+
 
     def clear_prices_backend(self):
         try:
@@ -715,8 +810,9 @@ class Cyclone:
             print("\n=== Cyclone Interactive Console ===")
             print("1) 🚀 Run Full Cycle (Cyclone)")
             print("2) 🔧 Run Individual Steps")
-            print("3) ❌ Exit")
-            choice = input("Enter your choice (1-3): ").strip()
+            print("3) 🗑️ Delete All Data")
+            print("4) ❌ Exit")
+            choice = input("Enter your choice (1-4): ").strip()
             if choice == "1":
                 print("Running full cycle (all steps)...")
                 asyncio.run(self.run_cycle())
@@ -724,10 +820,13 @@ class Cyclone:
             elif choice == "2":
                 self.run_individual_steps_menu()
             elif choice == "3":
+                self.run_delete_all_data()
+            elif choice == "4":
                 print("Exiting console mode.")
                 break
             else:
                 print("Invalid choice, please try again.")
+
 
     def view_alerts_backend(self):
         try:
@@ -853,24 +952,6 @@ class Cyclone:
             else:
                 print("Invalid choice, please try again.")
 
-    def run_console(self):
-        while True:
-            print("\n=== Cyclone Interactive Console ===")
-            print("1) 🚀 Run Full Cycle (Cyclone)")
-            print("2) 🔧 Run Individual Steps")
-            print("3) ❌ Exit")
-            choice = input("Enter your choice (1-3): ").strip()
-            if choice == "1":
-                print("Running full cycle (all steps)...")
-                asyncio.run(self.run_cycle())
-                print("Full cycle completed.")
-            elif choice == "2":
-                self.run_individual_steps_menu()
-            elif choice == "3":
-                print("Exiting console mode.")
-                break
-            else:
-                print("Invalid choice, please try again.")
 
 if __name__ == "__main__":
     cyclone = Cyclone(poll_interval=60)
