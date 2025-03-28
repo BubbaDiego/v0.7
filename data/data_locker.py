@@ -125,7 +125,7 @@ class DataLocker:
                     position_type TEXT,
                     entry_price REAL,
                     liquidation_price REAL,
-                    travel_percent REAL,  -- ← NEW unified column name
+                    travel_percent REAL,  -- Unified column name for travel percent
                     value REAL,
                     collateral REAL,
                     size REAL,
@@ -140,39 +140,14 @@ class DataLocker:
                     current_heat_index REAL,
                     pnl_after_fees_usd REAL
                 )
-
             """)
 
+            # Create alerts table if it doesn't exist
             # Create alerts table if it doesn't exist
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS alerts (
                     id TEXT PRIMARY KEY,
                     created_at DATETIME,
-                    alert_type TEXT,
-                    alert_class TEXT,       -- New column for alert class
-                    asset_type TEXT,
-                    trigger_value REAL,
-                    condition TEXT,
-                    notification_type TEXT,
-                    state TEXT,
-                    last_triggered DATETIME,
-                    status TEXT,
-                    frequency INTEGER,
-                    counter INTEGER,
-                    liquidation_distance REAL,
-                    target_travel_percent REAL,
-                    liquidation_price REAL,
-                    notes TEXT,
-                    description TEXT,
-                    position_reference_id TEXT,
-                    evaluated_value REAL
-                )
-            """)
-
-            # Create alerts table if it doesn't exist
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS alerts (
-                    id TEXT PRIMARY KEY,
                     alert_type TEXT,
                     alert_class TEXT,
                     asset_type TEXT,
@@ -185,12 +160,25 @@ class DataLocker:
                     frequency INTEGER,
                     counter INTEGER,
                     liquidation_distance REAL,
-                    target_travel_percent REAL,
+                    travel_percent REAL,  -- Updated column name
                     liquidation_price REAL,
                     notes TEXT,
                     description TEXT,
                     position_reference_id TEXT,
                     evaluated_value REAL
+                )
+            """)
+
+            # Create new ledger table for update ledger (alert ledger)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS alert_ledger (
+                    id TEXT PRIMARY KEY,
+                    alert_id TEXT,
+                    modified_by TEXT,
+                    reason TEXT,
+                    before_value TEXT,
+                    after_value TEXT,
+                    timestamp DATETIME
                 )
             """)
 

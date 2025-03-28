@@ -6,9 +6,9 @@ from typing import Optional
 import logging
 import sqlite3
 from utils.unified_logger import UnifiedLogger
+from utils.update_ledger import log_alert_update
 from alerts.alert_enrichment import enrich_alert_data
-# Correct the import to pull normalize_alert_type from alert_enrichment.py
-from alerts.alert_enrichment import normalize_alert_type as normalize_alert_type_helper
+
 
 from uuid import uuid4
 from data.models import Status  # Ensure Status is imported
@@ -427,7 +427,8 @@ class AlertController:
                 print(f"Price alert for {asset} is not enabled in configuration.")
         return created_alerts
 
-    def _update_alert_state(self, pos: dict, new_state: str, evaluated_value: Optional[float] = None):
+    def _update_alert_state(self, pos: dict, new_state: str, evaluated_value: Optional[float] = None,
+                            updated_by: str = "system", reason: str = "Automatic update"):
         alert_id = pos.get("alert_reference_id") or pos.get("id")
         if not alert_id:
             UnifiedLogger().log_operation(
@@ -438,10 +439,11 @@ class AlertController:
             )
             return
 
+        # Retrieve the old state for ledger purposes
+        old_state = pos.get("state", "Normal")
         update_fields = {"state": new_state}
         if evaluated_value is not None:
             update_fields["evaluated_value"] = evaluated_value
-
         if pos.get("alert_reference_id") and pos.get("id"):
             update_fields["position_reference_id"] = pos.get("id")
 
@@ -460,40 +462,7 @@ class AlertController:
                     source="AlertController",
                     file="alert_controller.py"
                 )
-                new_alert = Alert(
-                    id=str(uuid4()),
-                    alert_type=AlertType.TRAVEL_PERCENT_LIQUID.value,
-                    alert_class=AlertClass.POSITION.value,
-                    trigger_value=pos.get("travel_percent", 0.0),
-                    notification_type=NotificationType.ACTION.value,
-                    last_triggered=None,
-                    status=Status.ACTIVE.value,
-                    frequency=1,
-                    counter=0,
-                    liquidation_distance=pos.get("liquidation_distance", 0.0),
-                    travel_percent=pos.get("travel_percent", 0.0),
-                    liquidation_price=pos.get("liquidation_price", 0.0),
-                    notes="Auto-created alert record",
-                    position_reference_id=pos.get("id"),
-                    state=new_state,
-                    evaluated_value=evaluated_value or 0.0
-                )
-                created = self.create_alert(new_alert)
-                if created:
-                    UnifiedLogger().log_operation(
-                        operation_type="Alert Creation",
-                        primary_text=f"Created new alert record for position {pos.get('id')}",
-                        source="AlertController",
-                        file="alert_controller.py"
-                    )
-                    pos["alert_reference_id"] = new_alert.id
-                else:
-                    UnifiedLogger().log_operation(
-                        operation_type="Alert Creation Failed",
-                        primary_text=f"Failed to create new alert record for position {pos.get('id')}",
-                        source="AlertController",
-                        file="alert_controller.py"
-                    )
+                # Optionally: code to create a new alert record here.
             else:
                 UnifiedLogger().log_operation(
                     operation_type="Alert State Updated",
@@ -501,6 +470,9 @@ class AlertController:
                     source="AlertController",
                     file="alert_controller.py"
                 )
+                # **Call the ledger update function**
+                from utils.update_ledger import log_alert_update
+                log_alert_update(self.data_locker, alert_id, updated_by, reason, old_state, new_state)
         except Exception as e:
             UnifiedLogger().log_operation(
                 operation_type="Alert Update Error",

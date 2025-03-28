@@ -470,19 +470,41 @@ def database_viewer():
                 "field6": hedge.notes if hasattr(hedge, "notes") else "N/A"
             })
 
+        # Retrieve alert_ledger data.
+        cursor = dl.get_db_connection().cursor()
+        cursor.execute("SELECT * FROM alert_ledger")
+        ledger_entries = cursor.fetchall()
+        ledger_headers = ["Ref ID", "Alert ID", "Details", "Actions"]
+        ledger_rows = []
+        for row in ledger_entries:
+            details = (
+                f"Modified By: {row['modified_by']}, "
+                f"Reason: {row['reason']}, "
+                f"Before: {row['before_value']}, "
+                f"After: {row['after_value']}, "
+                f"Time: {row['timestamp']}"
+            )
+            ledger_rows.append({
+                "id": row["id"],
+                "field1": row["alert_id"],
+                "field2": details
+            })
+
         # Create datasets dictionary with all tables.
         datasets = {
             "positions": {"headers": pos_headers, "rows": pos_rows},
             "alerts": {"headers": alert_headers, "rows": alert_rows},
             "prices": {"headers": prices_headers, "rows": prices_rows},
             "wallets": {"headers": wallet_headers, "rows": wallet_rows},
-            "hedges": {"headers": hedge_headers, "rows": hedge_rows}
+            "hedges": {"headers": hedge_headers, "rows": hedge_rows},
+            "alert_ledger": {"headers": ledger_headers, "rows": ledger_rows}
         }
 
         return render_template("database_viewer.html", datasets=datasets)
     except Exception as e:
         current_app.logger.exception("Error in database_viewer route:")
         return render_template("database_viewer.html", datasets={})
+
 
 # -------------------------------
 # New Deletion API Endpoint

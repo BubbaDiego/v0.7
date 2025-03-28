@@ -11,7 +11,7 @@ from utils.unified_logger import UnifiedLogger
 from sonic_labs.hedge_manager import HedgeManager  # Import HedgeManager directly
 from positions.position_service import PositionService
 from alerts.alert_controller import AlertController, DummyPositionAlert
-from cyclone_report_generator import generate_cycle_report
+from cyclone.cyclone_report_generator import generate_cycle_report
 
 class Cyclone:
     def __init__(self, poll_interval=60):

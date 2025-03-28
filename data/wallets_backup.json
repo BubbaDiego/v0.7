@@ -1,0 +1,16 @@
+[
+  {
+    "name": "R2Vault",
+    "public_address": "Gwk8DdAZPyonAcxfJDs7fZazC2bDKmpASWsBEbtxvAY6",
+    "private_address": "",
+    "image_path": "\\static\\images\\r2vault.jpg",
+    "balance": 1.23
+  },
+  {
+    "name": "LandoVault",
+    "public_address": "6vMjsGU63evYuwwGsDHBRnKs1stALR7SYN5V57VZLXca",
+    "private_address": "6vMjsGU63evYuwwGsDHBRnKs1stALR7SYN5V57VZLXca",
+    "image_path": "1.23",
+    "balance": 1.23
+  }
+]
