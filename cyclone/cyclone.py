@@ -1,7 +1,10 @@
 import asyncio
 import logging
 import sys
+import os
+import json
 from uuid import uuid4
+from config.config_constants import BASE_DIR
 from prices.price_monitor import PriceMonitor
 from alerts.alert_manager import AlertManager
 from data.data_locker import DataLocker
@@ -13,19 +16,24 @@ from alerts.alert_controller import AlertController, DummyPositionAlert
 
 class Cyclone:
     def __init__(self, poll_interval=60):
-        self.logger = logging.getLogger(__name__)
-        self.poll_interval = poll_interval
         self.logger = logging.getLogger("Cyclone")
+        self.poll_interval = poll_interval
         self.logger.setLevel(logging.DEBUG)
         self.u_logger = UnifiedLogger()  # Unified logging
+
+        # Log the start of Cyclone initialization using cyclone log type
+        self.u_logger.logger.info("Cyclone: Initializing Cyclone instance",
+                                    extra={'log_type': 'cyclone', 'operation_type': 'Initialization', 'source': 'Cyclone', 'file': 'cyclone.py'})
 
         # Initialize core components
         self.data_locker = DataLocker.get_instance()
         self.price_monitor = PriceMonitor()  # Market Updates
-        self.alert_manager = AlertManager()  # Alert Updates
+        self.alert_manager = AlertManager()    # Alert Updates
 
     async def run_market_updates(self):
         self.logger.info("Starting Market Updates")
+        self.u_logger.logger.info("Cyclone: Starting Market Updates",
+                                    extra={'log_type': 'cyclone', 'operation_type': 'Market Updates', 'source': 'Cyclone', 'file': 'cyclone.py'})
         try:
             await self.price_monitor.update_prices(source="Market Updates")
             self.u_logger.log_operation(
@@ -34,6 +42,8 @@ class Cyclone:
                 source="Cyclone",
                 file="cyclone.py"
             )
+            self.u_logger.logger.info("Cyclone: Market Updates completed",
+                                        extra={'log_type': 'cyclone', 'operation_type': 'Market Updates', 'source': 'Cyclone', 'file': 'cyclone.py'})
         except Exception as e:
             self.logger.error(f"Market Updates failed: {e}")
             self.u_logger.log_operation(
@@ -45,8 +55,9 @@ class Cyclone:
 
     async def run_position_updates(self):
         self.logger.info("Starting Position Updates")
+        self.u_logger.logger.info("Cyclone: Starting Position Updates",
+                                    extra={'log_type': 'cyclone', 'operation_type': 'Position Updates', 'source': 'Cyclone', 'file': 'cyclone.py'})
         try:
-            # Call update_jupiter_positions() for the position update step.
             result = PositionService.update_jupiter_positions()
             self.u_logger.log_operation(
                 operation_type="Position Updates",
@@ -54,6 +65,8 @@ class Cyclone:
                 source="Cyclone",
                 file="cyclone.py"
             )
+            self.u_logger.logger.info("Cyclone: Position Updates completed",
+                                        extra={'log_type': 'cyclone', 'operation_type': 'Position Updates', 'source': 'Cyclone', 'file': 'cyclone.py'})
         except Exception as e:
             self.logger.error(f"Position Updates failed: {e}")
             self.u_logger.log_operation(
@@ -65,8 +78,9 @@ class Cyclone:
 
     async def run_position_enrichment(self):
         self.logger.info("Starting Position Data Enrichment")
+        self.u_logger.logger.info("Cyclone: Starting Position Data Enrichment",
+                                    extra={'log_type': 'cyclone', 'operation_type': 'Position Enrichment', 'source': 'Cyclone', 'file': 'cyclone.py'})
         try:
-            # Retrieve and enrich positions.
             enriched_positions = PositionService.get_all_positions()
             count = len(enriched_positions)
             self.u_logger.log_operation(
@@ -76,6 +90,8 @@ class Cyclone:
                 file="cyclone.py"
             )
             print(f"Enriched {count} positions.")
+            self.u_logger.logger.info("Cyclone: Position Data Enrichment completed",
+                                        extra={'log_type': 'cyclone', 'operation_type': 'Position Enrichment', 'source': 'Cyclone', 'file': 'cyclone.py'})
         except Exception as e:
             self.logger.error(f"Position Data Enrichment failed: {e}")
             self.u_logger.log_operation(
@@ -85,12 +101,10 @@ class Cyclone:
                 file="cyclone.py"
             )
 
-    from uuid import uuid4
-    from alerts.alert_controller import AlertController
-    from data.models import AlertType, AlertClass, Status
-
     async def run_create_market_alerts(self):
         self.logger.info("Creating Market Alerts via AlertController")
+        self.u_logger.logger.info("Cyclone: Starting creation of Market Alerts",
+                                    extra={'log_type': 'cyclone', 'operation_type': 'Create Market Alerts', 'source': 'Cyclone', 'file': 'cyclone.py'})
         try:
             ac = self.AlertController()
 
@@ -156,21 +170,21 @@ class Cyclone:
                     file="cyclone.py"
                 )
                 print("Failed to create market alert.")
+            self.u_logger.logger.info("Cyclone: Market Alerts creation step completed",
+                                        extra={'log_type': 'cyclone', 'operation_type': 'Create Market Alerts', 'source': 'Cyclone', 'file': 'cyclone.py'})
         except Exception as e:
             self.logger.error(f"Error creating market alerts: {e}", exc_info=True)
             print(f"Error creating market alerts: {e}")
-        return
 
     async def run_update_hedges(self):
         self.logger.info("Starting Hedge Update")
+        self.u_logger.logger.info("Cyclone: Starting Hedge Update",
+                                    extra={'log_type': 'cyclone', 'operation_type': 'Hedge Update', 'source': 'Cyclone', 'file': 'cyclone.py'})
         try:
-            # Call the static method to find hedge groups in the database.
             hedge_groups = HedgeManager.find_hedges()
             self.logger.info(f"Found {len(hedge_groups)} hedge group(s) using find_hedges.")
 
-            # Retrieve the latest positions from the DB.
             positions = [dict(pos) for pos in self.data_locker.read_positions()]
-            # Build hedges from these positions.
             hedge_manager = HedgeManager(positions)
             hedges = hedge_manager.get_hedges()
             self.logger.info(f"Built {len(hedges)} hedge(s) using HedgeManager instance.")
@@ -182,6 +196,8 @@ class Cyclone:
                 file="cyclone.py"
             )
             print(f"Updated hedges: {len(hedge_groups)} group(s) found, {len(hedges)} hedge(s) built.")
+            self.u_logger.logger.info("Cyclone: Hedge Update completed",
+                                        extra={'log_type': 'cyclone', 'operation_type': 'Hedge Update', 'source': 'Cyclone', 'file': 'cyclone.py'})
         except Exception as e:
             self.logger.error(f"Hedge Update failed: {e}", exc_info=True)
             self.u_logger.log_operation(
@@ -192,10 +208,13 @@ class Cyclone:
             )
 
     async def run_cycle(self, steps=None):
+        self.u_logger.logger.info("Cyclone: Starting full cycle",
+                                    extra={'log_type': 'cyclone', 'operation_type': 'Cycle Start', 'source': 'Cyclone', 'file': 'cyclone.py'})
         # Master run_cycle method to run various steps
         available_steps = {
             "market": self.run_market_updates,
             "position": self.run_position_updates,
+            "cleanse_ids": self.run_cleanse_ids,
             "enrichment": self.run_position_enrichment,
             "create_market_alerts": self.run_create_market_alerts,
             "create_position_alerts": self.run_create_position_alerts,
@@ -218,12 +237,15 @@ class Cyclone:
                 "alert", "system"
             ]:
                 await available_steps[step]()
+        self.u_logger.logger.info("Cyclone: Full cycle completed",
+                                    extra={'log_type': 'cyclone', 'operation_type': 'Cycle End', 'source': 'Cyclone', 'file': 'cyclone.py'})
 
     async def run_create_position_alerts(self):
         self.logger.info("Creating Position Alerts")
+        self.u_logger.logger.info("Cyclone: Starting creation of Position Alerts",
+                                    extra={'log_type': 'cyclone', 'operation_type': 'Create Position Alerts', 'source': 'Cyclone', 'file': 'cyclone.py'})
         try:
             ac = self.AlertController()
-            # Retrieve real positions from the database.
             positions = self.data_locker.read_positions()
             if not positions:
                 print("No positions available to create alerts.")
@@ -237,7 +259,6 @@ class Cyclone:
                     self.logger.error("Position missing id. Skipping alert creation for this position.")
                     continue
 
-                # Create alerts for each position using the real position id.
                 travel_alert = DummyPositionAlert("TravelPercentAlert", pos_dict.get("asset_type", "BTC"), -4.0, "BELOW", "Call", pos_id)
                 profit_alert = DummyPositionAlert("ProfitAlert", pos_dict.get("asset_type", "BTC"), 22.0, "ABOVE", "Email", pos_id)
                 heat_alert = DummyPositionAlert("HeatIndexAlert", pos_dict.get("asset_type", "BTC"), 12.0, "ABOVE", "Email", pos_id)
@@ -254,6 +275,8 @@ class Cyclone:
                 file="cyclone.py"
             )
             print(f"Created {created} position alert(s).")
+            self.u_logger.logger.info("Cyclone: Position Alerts creation completed",
+                                        extra={'log_type': 'cyclone', 'operation_type': 'Create Position Alerts', 'source': 'Cyclone', 'file': 'cyclone.py'})
         except Exception as e:
             print(f"Error creating position alerts: {e}")
 
@@ -263,40 +286,25 @@ class Cyclone:
             print("No position ID provided.")
             return
         try:
-            # Import the deletion method from PositionService
             from positions.position_service import delete_position_and_cleanup
-            # Run the deletion in a separate thread so as not to block the event loop
             await asyncio.to_thread(delete_position_and_cleanup, position_id)
             print(f"Position {position_id} deleted along with associated alerts and hedges.")
+            self.u_logger.logger.info(f"Cyclone: Position {position_id} deleted",
+                                        extra={'log_type': 'cyclone', 'operation_type': 'Delete Position', 'source': 'Cyclone', 'file': 'cyclone.py'})
         except Exception as e:
             print(f"Error deleting position {position_id}: {e}")
 
     async def run_create_system_alerts(self):
         self.logger.info("Creating System Alerts")
-
+        self.u_logger.logger.info("Cyclone: Starting creation of System Alerts",
+                                    extra={'log_type': 'cyclone', 'operation_type': 'Create System Alerts', 'source': 'Cyclone', 'file': 'cyclone.py'})
+        # No additional system alert creation logic provided.
         return
-        try:
-            dl = DataLocker.get_instance()
-            cursor = dl.conn.cursor()
-            cursor.execute(
-                "INSERT INTO alerts (alert_type, description, created_at) VALUES (?, ?, datetime('now'))",
-                ("SystemAlert", "System alert (placeholder) created by Cyclone")
-            )
-            dl.conn.commit()
-            inserted = cursor.rowcount
-            cursor.close()
-            self.u_logger.log_operation(
-                operation_type="Create System Alerts",
-                primary_text=f"Created {inserted} system alert(s)",
-                source="Cyclone",
-                file="cyclone.py"
-            )
-            print(f"Created {inserted} system alert(s).")
-        except Exception as e:
-            print(f"Error creating system alerts: {e}")
 
     async def run_update_evaluated_value(self):
         self.logger.info("Updating Evaluated Values for Alerts...")
+        self.u_logger.logger.info("Cyclone: Starting update of evaluated alert values",
+                                    extra={'log_type': 'cyclone', 'operation_type': 'Update Evaluated Value', 'source': 'Cyclone', 'file': 'cyclone.py'})
         try:
             self.alert_manager.update_alerts_evaluated_value()
             self.u_logger.log_operation(
@@ -306,6 +314,8 @@ class Cyclone:
                 file="cyclone.py"
             )
             print("Alert evaluated values updated.")
+            self.u_logger.logger.info("Cyclone: Update Evaluated Value completed",
+                                        extra={'log_type': 'cyclone', 'operation_type': 'Update Evaluated Value', 'source': 'Cyclone', 'file': 'cyclone.py'})
         except Exception as e:
             self.logger.error(f"Updating evaluated values failed: {e}")
             self.u_logger.log_operation(
@@ -317,6 +327,8 @@ class Cyclone:
 
     async def run_alert_updates(self):
         self.logger.info("Starting Alert Evaluations")
+        self.u_logger.logger.info("Cyclone: Starting Alert Evaluations",
+                                    extra={'log_type': 'cyclone', 'operation_type': 'Alert Evaluations', 'source': 'Cyclone', 'file': 'cyclone.py'})
         try:
             positions = self.data_locker.read_positions()
             combined_eval = self.alert_manager.alert_evaluator.evaluate_alerts(positions=positions, market_data={})
@@ -350,6 +362,8 @@ class Cyclone:
                     source="Cyclone",
                     file="cyclone.py"
                 )
+            self.u_logger.logger.info("Cyclone: Alert Evaluations completed",
+                                        extra={'log_type': 'cyclone', 'operation_type': 'Alert Evaluations', 'source': 'Cyclone', 'file': 'cyclone.py'})
         except Exception as e:
             self.logger.error(f"Alert Evaluations failed: {e}")
             self.u_logger.log_operation(
@@ -361,6 +375,8 @@ class Cyclone:
 
     async def run_system_updates(self):
         self.logger.info("Starting System Updates")
+        self.u_logger.logger.info("Cyclone: Starting System Updates",
+                                    extra={'log_type': 'cyclone', 'operation_type': 'System Updates', 'source': 'Cyclone', 'file': 'cyclone.py'})
         try:
             self.u_logger.log_operation(
                 operation_type="System Updates",
@@ -368,6 +384,8 @@ class Cyclone:
                 source="Cyclone",
                 file="cyclone.py"
             )
+            self.u_logger.logger.info("Cyclone: System Updates completed",
+                                        extra={'log_type': 'cyclone', 'operation_type': 'System Updates', 'source': 'Cyclone', 'file': 'cyclone.py'})
         except Exception as e:
             self.logger.error(f"System Updates failed: {e}")
             self.u_logger.log_operation(
@@ -377,37 +395,24 @@ class Cyclone:
                 file="cyclone.py"
             )
 
-    def run_hedges_menu(self):
-        while True:
-            print("\n--- Hedge Menu ---")
-            print("1) 🔍 Find Hedges")
-            print("2) 🧹 Clear Hedges")
-            print("3) ↩️ Back to Previous Menu")
-            choice = input("Enter your choice (1-3): ").strip()
-            if choice == "1":
-                print("Finding Hedges...")
-                try:
-                    hedges = HedgeManager.find_hedges()
-                    print(f"Found {len(hedges)} hedge group(s).")
-                except Exception as e:
-                    print(f"Error finding hedges: {e}")
-            elif choice == "2":
-                print("Clearing Hedge Data...")
-                try:
-                    HedgeManager.clear_hedge_data()
-                    print("Hedge associations cleared.")
-                except Exception as e:
-                    print(f"Error clearing hedge data: {e}")
-            elif choice == "3":
-                break
-            else:
-                print("Invalid choice, please try again.")
-
-    async def run(self):
-        self.logger.info("Cyclone main loop started in Active mode.")
-        while True:
-            await self.run_cycle()
-            await asyncio.sleep(self.poll_interval)
+    async def run_cleanse_ids(self):
+        self.logger.info("Running cleanse_ids step: clearing stale IDs.")
+        self.u_logger.logger.info("Cyclone: Starting cleanse_ids step",
+                                    extra={'log_type': 'cyclone', 'operation_type': 'Clear IDs', 'source': 'Cyclone', 'file': 'cyclone.py'})
+        try:
+            self.alert_manager.clear_stale_alerts()
+            self.u_logger.log_operation(
+                operation_type="Clear IDs",
+                primary_text="Stale alert, position, and hedge IDs cleared successfully",
+                source="Cyclone",
+                file="cyclone.py"
+            )
+            print("Stale IDs have been cleansed successfully.")
+            self.u_logger.logger.info("Cyclone: cleanse_ids step completed",
+                                        extra={'log_type': 'cyclone', 'operation_type': 'Clear IDs', 'source': 'Cyclone', 'file': 'cyclone.py'})
+        except Exception as e:
+            self.logger.error(f"Error cleansing IDs: {e}", exc_info=True)
+            print(f"Error cleansing IDs: {e}")
 
     def run_prices_menu(self):
         while True:
@@ -501,6 +506,32 @@ class Cyclone:
                 count = ac.refresh_all_alerts()
                 print(f"Refreshed and confirmed {count} alert(s).")
             elif choice == "9":
+                break
+            else:
+                print("Invalid choice, please try again.")
+
+    def run_hedges_menu(self):
+        while True:
+            print("\n--- Hedge Menu ---")
+            print("1) 🔍 Find Hedges")
+            print("2) 🧹 Clear Hedges")
+            print("3) ↩️ Back to Previous Menu")
+            choice = input("Enter your choice (1-3): ").strip()
+            if choice == "1":
+                print("Finding Hedges...")
+                try:
+                    hedges = HedgeManager.find_hedges()
+                    print(f"Found {len(hedges)} hedge group(s).")
+                except Exception as e:
+                    print(f"Error finding hedges: {e}")
+            elif choice == "2":
+                print("Clearing Hedge Data...")
+                try:
+                    HedgeManager.clear_hedge_data()
+                    print("Hedge associations cleared.")
+                except Exception as e:
+                    print(f"Error clearing hedge data: {e}")
+            elif choice == "3":
                 break
             else:
                 print("Invalid choice, please try again.")
@@ -711,8 +742,131 @@ class Cyclone:
         except Exception as e:
             print(f"Error clearing wallets: {e}")
 
+    def generate_cycle_report(self):
+        """
+        Reads the cyclone log file (cyclone_log.txt) from the logs folder,
+        builds a summary and detailed table from the JSON log records,
+        and writes a pretty HTML report to cycle_report.html in the same folder.
+        """
+        logs_dir = os.path.join(os.path.dirname(BASE_DIR), "logs")
+        if not os.path.exists(logs_dir):
+            os.makedirs(logs_dir)
+        cyclone_log_path = os.path.join(logs_dir, "cyclone_log.txt")
+        cycle_report_path = os.path.join(logs_dir, "cycle_report.html")
+
+        if not os.path.exists(cyclone_log_path):
+            print(f"No cyclone log file found at {cyclone_log_path}. Cannot generate report.")
+            return
+
+        log_entries = []
+        with open(cyclone_log_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    record = json.loads(line)
+                    log_entries.append(record)
+                except json.JSONDecodeError:
+                    continue
+
+        summary = {}
+        for record in log_entries:
+            op_type = record.get("operation_type", "Unknown")
+            summary[op_type] = summary.get(op_type, 0) + 1
+
+        html_content = f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Cycle Report</title>
+    <style>
+        body {{
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }}
+        h1, h2 {{
+            color: #333;
+        }}
+        .summary {{
+            margin-bottom: 20px;
+            background-color: #fff;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }}
+        table {{
+            border-collapse: collapse;
+            width: 100%;
+            background-color: #fff;
+        }}
+        th, td {{
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }}
+        th {{
+            background-color: #333;
+            color: white;
+        }}
+        tr:nth-child(even) {{background-color: #f2f2f2;}}
+    </style>
+</head>
+<body>
+    <h1>Cycle Report</h1>
+    <div class="summary">
+        <h2>Summary</h2>
+        <ul>
+"""
+        for op, count in summary.items():
+            html_content += f"            <li><strong>{op}:</strong> {count}</li>\n"
+        html_content += """        </ul>
+    </div>
+    <h2>Detailed Log Entries</h2>
+    <table>
+        <tr>
+            <th>Timestamp</th>
+            <th>Operation Type</th>
+            <th>Source</th>
+            <th>File</th>
+            <th>Message</th>
+        </tr>
+"""
+        for record in log_entries:
+            ts = record.get("timestamp", "")
+            op_type = record.get("operation_type", "")
+            source = record.get("source", "")
+            file_name = record.get("file", "")
+            message = record.get("message", "")
+            html_content += f"""        <tr>
+            <td>{ts}</td>
+            <td>{op_type}</td>
+            <td>{source}</td>
+            <td>{file_name}</td>
+            <td>{message}</td>
+        </tr>
+"""
+        html_content += """    </table>
+</body>
+</html>
+"""
+
+        with open(cycle_report_path, "w", encoding="utf-8") as f:
+            f.write(html_content)
+
+        print(f"Cycle report generated: {cycle_report_path}")
+        self.u_logger.log_operation(
+            operation_type="Cycle Report Generated",
+            primary_text=f"Cycle report generated at {cycle_report_path}",
+            source="Cyclone",
+            file="cyclone.py"
+        )
+        self.u_logger.logger.info("Cyclone: Cycle Report generated",
+                                    extra={'log_type': 'cyclone', 'operation_type': 'Cycle Report', 'source': 'Cyclone', 'file': 'cyclone.py'})
+
     def run_console(self):
-        # Combined menu, with #1 Full Cycle, #2 Delete All, #3–#7 submenus, #8 Exit
+        # Combined menu, with 1) Full Cycle, 2) Delete All, etc.
         while True:
             print("\n=== Cyclone Interactive Console ===")
             print("1) 🌀 Run Full Cycle")
@@ -721,9 +875,11 @@ class Cyclone:
             print("4) 📊 Positions")
             print("5) 🔔 Alerts")
             print("6) 🛡 Hedge")
-            print("7) 💼 Wallets")
-            print("8) ❌ Exit")
-            choice = input("Enter your choice (1-8): ").strip()
+            print("7) 🧹 Clear IDs")
+            print("8) 💼 Wallets")
+            print("9) 📝 Generate Cycle Report")
+            print("10) ❌ Exit")
+            choice = input("Enter your choice (1-10): ").strip()
 
             if choice == "1":
                 print("Running full cycle (all steps)...")
@@ -740,13 +896,17 @@ class Cyclone:
             elif choice == "6":
                 self.run_hedges_menu()
             elif choice == "7":
-                self.run_wallets_menu()
+                print("Clearing stale IDs...")
+                asyncio.run(self.run_cleanse_ids())
             elif choice == "8":
+                self.run_wallets_menu()
+            elif choice == "9":
+                self.generate_cycle_report()
+            elif choice == "10":
                 print("Exiting console mode.")
                 break
             else:
                 print("Invalid choice, please try again.")
-
 
 if __name__ == "__main__":
     cyclone = Cyclone(poll_interval=60)

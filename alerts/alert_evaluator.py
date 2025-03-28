@@ -4,6 +4,8 @@ from config.unified_config_manager import UnifiedConfigManager
 from config.config_constants import CONFIG_PATH
 from utils.unified_logger import UnifiedLogger
 from alerts.alert_enrichment import enrich_alert_data
+from data.models import Alert, AlertType, AlertClass, NotificationType, Status
+from uuid import uuid4
 
 u_logger = UnifiedLogger()
 
@@ -19,6 +21,7 @@ class AlertEvaluator:
         self.cooldown = self.config.get("alert_cooldown_seconds", 900)
         self.last_triggered = {}
         self.suppressed_count = 0
+        self.logger = logging.getLogger("AlertEvaluatorLogger")
 
     def _debug_log(self, message: str):
         """Helper method to print messages to console and write to a debug log file."""
@@ -63,10 +66,8 @@ class AlertEvaluator:
             )
             return None
 
-        # Create a before-evaluation log message (blue color)
         before_log = (f"[Travel Alert] BEFORE: travel_percent = {current_val}, "
                       f"thresholds -> low: {low_threshold}, medium: {medium_threshold}, high: {high_threshold}")
-        # ANSI code for blue is "\033[94m" and reset is "\033[0m"
         print("\033[94m" + before_log + "\033[0m")
         u_logger.log_operation(
             operation_type="Alert Evaluation",
@@ -75,24 +76,22 @@ class AlertEvaluator:
             file="alert_evaluator.py"
         )
 
-        # Determine the alert state based on current_val and thresholds
         if current_val >= 0:
             state = "Normal"
-            state_color = "\033[0m"  # default color
+            state_color = "\033[0m"
         elif current_val <= high_threshold:
             state = "High"
-            state_color = "\033[91m"  # red
+            state_color = "\033[91m"
         elif current_val <= medium_threshold:
             state = "Medium"
-            state_color = "\033[93m"  # yellow
+            state_color = "\033[93m"
         elif current_val <= low_threshold:
             state = "Low"
-            state_color = "\033[92m"  # green
+            state_color = "\033[92m"
         else:
             state = "Normal"
             state_color = "\033[0m"
 
-        # Create an after-evaluation log message with the chosen color
         after_log = f"[Travel Alert] AFTER: Evaluated state = '{state}' for travel_percent = {current_val}"
         print(state_color + after_log + "\033[0m")
         u_logger.log_operation(
@@ -117,14 +116,13 @@ class AlertEvaluator:
         Returns a message if triggered, else an empty string.
         """
         asset_code = pos.get("asset_type", "???").upper()
-        asset_full = asset_code  # Alternatively, you could map this to full names.
+        asset_full = asset_code
         position_type = pos.get("position_type", "").capitalize()
         position_id = pos.get("position_id") or pos.get("id") or "unknown"
         try:
             profit_val = float(pos.get("profit", 0.0))
         except Exception:
             return ""
-        # Log initial profit value
         self._debug_log(f"[Profit Alert] Initial profit value: {profit_val} for position {position_id}")
 
         if profit_val <= 0:
@@ -255,7 +253,6 @@ class AlertEvaluator:
                         file="alert_evaluator.py"
                     )
                     continue
-                # Log the comparison values for this asset
                 self._debug_log(f"[Market Alert] {asset}: current price: {price}, trigger value: {trigger_val}, condition: {condition}")
                 if (condition == "ABOVE" and price >= trigger_val) or (condition == "BELOW" and price <= trigger_val):
                     msg = f"Market ALERT: {asset} price {price} meets condition {condition} {trigger_val}"
@@ -295,7 +292,7 @@ class AlertEvaluator:
 
     def evaluate_position_alerts(self, positions: list) -> list:
         """
-        Evaluate position-related alerts by checking travel, profit, swing, and blast alerts.
+        Evaluate position-related alerts by checking travel, profit, swing, blast, and heat index alerts.
         :param positions: List of position dictionaries.
         :return: List of triggered position alert messages.
         """
@@ -309,6 +306,9 @@ class AlertEvaluator:
             profit_msg = self.evaluate_profit_alert(pos)
             if profit_msg:
                 alerts.append(profit_msg)
+            heat_msg = self.evaluate_heat_index_alert(pos)
+            if heat_msg:
+                alerts.append(heat_msg)
             swing_msg = self.evaluate_swing_alert(pos)
             if swing_msg:
                 alerts.append(swing_msg)
@@ -327,7 +327,7 @@ class AlertEvaluator:
         if system_config.get("heartbeat_enabled", False):
             heartbeat = system_config.get("last_heartbeat", 0)
             current_time_val = time.time()
-            threshold = system_config.get("heartbeat_threshold", 300)  # seconds
+            threshold = system_config.get("heartbeat_threshold", 300)
             if current_time_val - heartbeat > threshold:
                 msg = "System ALERT: Heartbeat threshold exceeded"
                 alerts.append(msg)
@@ -338,42 +338,164 @@ class AlertEvaluator:
                     file="alert_evaluator.py"
                 )
                 self._debug_log(f"[System Alert] {msg}")
-        # Additional system checks can be added here.
         return alerts
 
-    # -------------------------
-    # Helper Method
-    # -------------------------
-    def _update_alert_state(self, pos: dict, new_state: str, evaluated_value: float = None):
+    def evaluate_heat_index_alert(self, pos: dict) -> str:
         """
-        Helper method to update the alert record in the DB.
+        Evaluate heat index alert for a position.
+        Returns a message if triggered, else an empty string.
         """
+        print(f"[DEBUG] evaluate_heat_index_alert: Evaluating position with id: {pos.get('id')}")
+        try:
+            current_heat = float(pos.get("current_heat_index", 0.0))
+            print(f"[DEBUG] evaluate_heat_index_alert: current_heat = {current_heat}")
+        except Exception as e:
+            self._debug_log(f"[Heat Alert] Error parsing heat index: {e}")
+            return ""
+        try:
+            trigger_value = float(pos.get("heat_index_trigger", 12.0))
+            print(f"[DEBUG] evaluate_heat_index_alert: trigger_value = {trigger_value}")
+        except Exception:
+            trigger_value = 12.0
+            print(f"[DEBUG] evaluate_heat_index_alert: Using default trigger_value = {trigger_value}")
+
+        self._debug_log(f"[Heat Alert] current_heat = {current_heat}, trigger_value = {trigger_value}")
+
+        if current_heat <= trigger_value:
+            print("[DEBUG] evaluate_heat_index_alert: current_heat is below or equal to trigger, setting state to Normal.")
+            self._update_alert_state(pos, "Normal", evaluated_value=current_heat, custom_alert_type=AlertType.HEAT_INDEX.value)
+            return ""
+        if current_heat < trigger_value * 1.5:
+            current_level = "Low"
+        elif current_heat < trigger_value * 2:
+            current_level = "Medium"
+        else:
+            current_level = "High"
+
+        print(f"[DEBUG] evaluate_heat_index_alert: Determined alert level as {current_level}")
+        self._update_alert_state(pos, current_level, evaluated_value=current_heat, custom_alert_type=AlertType.HEAT_INDEX.value)
+        msg = (f"Heat Index ALERT: Position {pos.get('id')} heat index {current_heat:.2f} "
+               f"exceeds trigger {trigger_value} (Level: {current_level})")
+        self._debug_log(f"[Heat Alert] {msg}")
+        print(f"[DEBUG] evaluate_heat_index_alert: {msg}")
+        return msg
+
+    def _update_alert_state(self, pos: dict, new_state: str, evaluated_value: float = None,
+                            custom_alert_type: str = None):
         alert_id = pos.get("alert_reference_id") or pos.get("id")
         if not alert_id:
             u_logger.log_operation(
-                operation_type="Update Alert State",
-                primary_text="No alert identifier found; update skipped",
+                operation_type="Alert Update Skipped",
+                primary_text="No alert identifier found for updating state.",
                 source="AlertEvaluator",
                 file="alert_evaluator.py"
             )
+            print("[DEBUG] _update_alert_state: No alert identifier found. Exiting update.")
             return
+
         update_fields = {"state": new_state}
         if evaluated_value is not None:
             update_fields["evaluated_value"] = evaluated_value
+
+        if pos.get("alert_reference_id") and pos.get("id"):
+            update_fields["position_reference_id"] = pos.get("id")
+
+        print(f"[DEBUG] _update_alert_state: Updating alert '{alert_id}' with fields: {update_fields}")
+        u_logger.log_operation(
+            operation_type="Alert State Update",
+            primary_text=f"Updating alert '{alert_id}' with {update_fields}",
+            source="AlertEvaluator",
+            file="alert_evaluator.py"
+        )
         try:
-            self.data_locker.update_alert_conditions(alert_id, update_fields)
-            u_logger.log_operation(
-                operation_type="Alert Updated",
-                primary_text=f"Alert {alert_id} updated to state '{new_state}' with value {evaluated_value}",
-                source="AlertEvaluator",
-                file="alert_evaluator.py"
-            )
-            self._debug_log(f"[Update Alert State] For alert {alert_id}: set state to '{new_state}', evaluated_value: {evaluated_value}")
+            num_updated = self.data_locker.update_alert_conditions(alert_id, update_fields)
+            print(f"[DEBUG] _update_alert_state: Number of rows updated: {num_updated}")
+            if num_updated == 0:
+                u_logger.log_operation(
+                    operation_type="Alert Update",
+                    primary_text=f"No alert record found for id '{alert_id}', creating new alert record.",
+                    source="AlertEvaluator",
+                    file="alert_evaluator.py"
+                )
+                new_alert_type = custom_alert_type if custom_alert_type is not None else AlertType.TRAVEL_PERCENT_LIQUID.value
+                if new_alert_type == AlertType.HEAT_INDEX.value:
+                    new_trigger = pos.get("heat_index_trigger", 12.0)
+                else:
+                    new_trigger = pos.get("travel_percent", 0.0)
+                new_alert = Alert(
+                    id=str(uuid4()),
+                    alert_type=new_alert_type,
+                    alert_class=AlertClass.POSITION.value,
+                    trigger_value=new_trigger,
+                    notification_type=NotificationType.ACTION.value,
+                    last_triggered=None,
+                    status=Status.ACTIVE.value,
+                    frequency=1,
+                    counter=0,
+                    liquidation_distance=pos.get("liquidation_distance", 0.0),
+                    travel_percent=pos.get("travel_percent", 0.0),
+                    liquidation_price=pos.get("liquidation_price", 0.0),
+                    notes="Auto-created alert record",
+                    position_reference_id=pos.get("id"),
+                    state=new_state,
+                    evaluated_value=evaluated_value or 0.0
+                )
+                created = self.create_alert(new_alert)
+                if created:
+                    u_logger.log_operation(
+                        operation_type="Alert Creation",
+                        primary_text=f"Created new alert record for position {pos.get('id')}",
+                        source="AlertEvaluator",
+                        file="alert_evaluator.py"
+                    )
+                    pos["alert_reference_id"] = new_alert.id
+                    print(f"[DEBUG] _update_alert_state: Created new alert with id {new_alert.id}")
+                else:
+                    u_logger.log_operation(
+                        operation_type="Alert Creation Failed",
+                        primary_text=f"Failed to create new alert record for position {pos.get('id')}",
+                        source="AlertEvaluator",
+                        file="alert_evaluator.py"
+                    )
+                    print("[DEBUG] _update_alert_state: Failed to create new alert record.")
+            else:
+                u_logger.log_operation(
+                    operation_type="Alert State Updated",
+                    primary_text=f"Updated alert '{alert_id}' to state '{new_state}' with evaluated value '{evaluated_value}'.",
+                    source="AlertEvaluator",
+                    file="alert_evaluator.py"
+                )
+                print(f"[DEBUG] _update_alert_state: Successfully updated alert '{alert_id}' to state '{new_state}'.")
         except Exception as e:
             u_logger.log_operation(
-                operation_type="Alert Update Failed",
-                primary_text=f"Failed to update alert {alert_id}: {e}",
+                operation_type="Alert Update Error",
+                primary_text=f"Error updating alert state for id '{alert_id}': {e}",
                 source="AlertEvaluator",
                 file="alert_evaluator.py"
             )
-            self._debug_log(f"[Update Alert State] Failed to update alert {alert_id}: {e}")
+            print(f"[DEBUG] _update_alert_state: Exception while updating alert '{alert_id}': {e}")
+
+
+def create_alert(self, alert_obj) -> bool:
+    """
+    Delegate alert creation to the data locker.
+    Converts the alert object to a dictionary if necessary.
+    This patch ensures that DataLocker.data_locker is set.
+    """
+    try:
+        # Patch DataLocker: if it doesn't have 'data_locker', assign it to itself.
+        if not hasattr(self.data_locker, "data_locker"):
+            self.data_locker.data_locker = self.data_locker
+        if not hasattr(self.data_locker, "initialize_alert_data"):
+            self.data_locker.initialize_alert_data = lambda x: x
+        if isinstance(alert_obj, dict):
+            return self.data_locker.create_alert(alert_obj)
+        elif hasattr(alert_obj, "to_dict"):
+            return self.data_locker.create_alert(alert_obj.to_dict())
+        else:
+            # Fallback: convert using the object's __dict__
+            return self.data_locker.create_alert(alert_obj.__dict__)
+    except Exception as e:
+        self._debug_log(f"[DEBUG] create_alert: Error creating alert: {e}")
+        return False
+

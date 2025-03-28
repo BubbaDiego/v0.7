@@ -1,26 +1,30 @@
-# alert_enrichment.py
 import logging
 from utils.json_manager import JsonManager, JsonType
+from data.models import AlertType  # Import the model for consistent alert type values
 
-
-# alerts/alert_enrichment.py
 
 def normalize_alert_type(alert: dict) -> dict:
     if "alert_type" not in alert or not alert["alert_type"]:
         raise ValueError("Alert missing alert_type.")
 
-    normalized_type = alert["alert_type"].upper().replace(" ", "").replace("_", "")
+    # Remove spaces and underscores and convert to upper case for normalization.
+    normalized = alert["alert_type"].upper().replace(" ", "").replace("_", "")
 
-    if normalized_type in ["TRAVELPERCENTALERT", "TRAVELPERCENTLIQUID"]:
-        normalized_type = "TRAVEL_PERCENT_ALERT"
-    elif normalized_type == "PRICETHRESHOLD":
-        normalized_type = "PRICE_THRESHOLD"
-    elif normalized_type == "PROFITALERT":
-        normalized_type = "PROFIT"
-    elif normalized_type == "HEATINDEXALERT":
-        normalized_type = "HEAT_INDEX_ALERT"
+    # Map various input variants to the model's standardized values.
+    if normalized in ["TRAVELPERCENTALERT", "TRAVELPERCENTLIQUID"]:
+        normalized = AlertType.TRAVEL_PERCENT_LIQUID.value  # "TravelPercent"
+    elif normalized == "PRICETHRESHOLD":
+        normalized = AlertType.PRICE_THRESHOLD.value         # "PriceThreshold"
+    elif normalized == "PROFITALERT":
+        normalized = AlertType.PROFIT.value                    # "Profit"
+    elif normalized == "HEATINDEXALERT":
+        normalized = AlertType.HEAT_INDEX.value                # "HeatIndex"
+    else:
+        # For any other alert type, assume it's already standardized.
+        # You may choose to add additional normalization here if needed.
+        normalized = alert["alert_type"]
 
-    alert["alert_type"] = normalized_type
+    alert["alert_type"] = normalized
     return alert
 
 
@@ -30,9 +34,9 @@ def populate_evaluated_value_for_alert(alert: dict, data_locker, logger: logging
     alert_type = alert.get("alert_type")
     logger.debug("Alert type: %s", alert_type)
 
-    if alert_type == "PRICE_THRESHOLD":
+    if alert_type == AlertType.PRICE_THRESHOLD.value:
         asset = alert.get("asset_type", "BTC")
-        logger.debug("Processing PRICE_THRESHOLD for asset: %s", asset)
+        logger.debug("Processing PriceThreshold for asset: %s", asset)
         price_record = data_locker.get_latest_price(asset)
         if price_record:
             try:
@@ -45,9 +49,9 @@ def populate_evaluated_value_for_alert(alert: dict, data_locker, logger: logging
             logger.debug("No price record found for asset: %s", asset)
             evaluated_value = 0.0
 
-    elif alert_type == "TRAVEL_PERCENT_LIQUID":
+    elif alert_type == AlertType.TRAVEL_PERCENT_LIQUID.value:
         pos_id = alert.get("position_reference_id") or alert.get("id")
-        logger.debug("Processing TRAVEL_PERCENT_LIQUID for position id: %s", pos_id)
+        logger.debug("Processing TravelPercent for position id: %s", pos_id)
         positions = data_locker.read_positions()
         position = next((p for p in positions if p.get("id") == pos_id), None)
         if position:
@@ -61,9 +65,9 @@ def populate_evaluated_value_for_alert(alert: dict, data_locker, logger: logging
             logger.debug("No matching position found for id: %s", pos_id)
             evaluated_value = 0.0
 
-    elif alert_type == "PROFIT":
+    elif alert_type == AlertType.PROFIT.value:
         pos_id = alert.get("position_reference_id") or alert.get("id")
-        logger.debug("Processing PROFIT for position id: %s", pos_id)
+        logger.debug("Processing Profit for position id: %s", pos_id)
         positions = data_locker.read_positions()
         position = next((p for p in positions if p.get("id") == pos_id), None)
         if position:
@@ -77,9 +81,9 @@ def populate_evaluated_value_for_alert(alert: dict, data_locker, logger: logging
             logger.debug("No matching position found for id: %s", pos_id)
             evaluated_value = 0.0
 
-    elif alert_type == "HEAT_INDEX_ALERT":
+    elif alert_type == AlertType.HEAT_INDEX.value:
         pos_id = alert.get("position_reference_id") or alert.get("id")
-        logger.debug("Processing HEAT_INDEX_ALERT for position id: %s", pos_id)
+        logger.debug("Processing HeatIndex for position id: %s", pos_id)
         positions = data_locker.read_positions()
         position = next((p for p in positions if p.get("id") == pos_id), None)
         if position:
@@ -101,12 +105,6 @@ def populate_evaluated_value_for_alert(alert: dict, data_locker, logger: logging
     return evaluated_value
 
 
-import logging
-from utils.json_manager import JsonManager, JsonType
-from alerts.alert_enrichment import populate_evaluated_value_for_alert  # Ensure this helper is available
-
-from utils.json_manager import JsonManager, JsonType
-
 def enrich_alert_data(alert: dict, data_locker, logger: 'logging.Logger') -> dict:
     logger.debug("Starting enrich_alert_data with alert: %s", alert)
     try:
@@ -117,11 +115,11 @@ def enrich_alert_data(alert: dict, data_locker, logger: 'logging.Logger') -> dic
         return alert
 
     # Set alert class based on normalized type.
-    if alert["alert_type"] in ["TRAVEL_PERCENT_ALERT", "PROFIT", "HEAT_INDEX_ALERT"]:
+    if alert["alert_type"] in [AlertType.TRAVEL_PERCENT_LIQUID.value, AlertType.PROFIT.value, AlertType.HEAT_INDEX.value]:
         alert["alert_class"] = "Position"
         if not alert.get("position_reference_id"):
             logger.error("Position alert missing position_reference_id.")
-    elif alert["alert_type"] == "PRICE_THRESHOLD":
+    elif alert["alert_type"] == AlertType.PRICE_THRESHOLD.value:
         alert["alert_class"] = "Market"
     else:
         logger.error("Unrecognized alert type: %s", alert["alert_type"])
@@ -131,7 +129,7 @@ def enrich_alert_data(alert: dict, data_locker, logger: 'logging.Logger') -> dic
     alert_limits = jm.load("", JsonType.ALERT_LIMITS)
     logger.debug("Loaded alert_limits: %s", alert_limits)
 
-    if alert["alert_type"] == "PRICE_THRESHOLD":
+    if alert["alert_type"] == AlertType.PRICE_THRESHOLD.value:
         asset = alert.get("asset_type", "BTC")
         asset_config = alert_limits.get("alert_ranges", {}).get("price_alerts", {}).get(asset, {})
         logger.debug("Asset config for %s: %s", asset, asset_config)
@@ -144,7 +142,7 @@ def enrich_alert_data(alert: dict, data_locker, logger: 'logging.Logger') -> dic
         else:
             logger.error("No configuration found for price alert asset %s.", asset)
             alert["notification_type"] = "Email"
-    elif alert["alert_type"] == "TRAVEL_PERCENT_ALERT":
+    elif alert["alert_type"] == AlertType.TRAVEL_PERCENT_LIQUID.value:
         config = alert_limits.get("alert_ranges", {}).get("travel_percent_liquid_ranges", {})
         logger.debug("Travel alert config: %s", config)
         if config.get("enabled", False):
@@ -153,7 +151,7 @@ def enrich_alert_data(alert: dict, data_locker, logger: 'logging.Logger') -> dic
             alert["condition"] = "BELOW"
         if not alert.get("notification_type"):
             alert["notification_type"] = "Email"
-    elif alert["alert_type"] == "PROFIT":
+    elif alert["alert_type"] == AlertType.PROFIT.value:
         config = alert_limits.get("alert_ranges", {}).get("profit_ranges", {})
         logger.debug("Profit alert config: %s", config)
         if config.get("enabled", False):
@@ -162,7 +160,7 @@ def enrich_alert_data(alert: dict, data_locker, logger: 'logging.Logger') -> dic
             alert["condition"] = config.get("condition", "ABOVE")
         if not alert.get("notification_type"):
             alert["notification_type"] = "Email"
-    elif alert["alert_type"] == "HEAT_INDEX_ALERT":
+    elif alert["alert_type"] == AlertType.HEAT_INDEX.value:
         config = alert_limits.get("alert_ranges", {}).get("heat_index_ranges", {})
         logger.debug("Heat index alert config: %s", config)
         if config.get("enabled", False):
@@ -223,5 +221,3 @@ def enrich_alert_data(alert: dict, data_locker, logger: 'logging.Logger') -> dic
     except Exception as e:
         logger.error("Error persisting enriched alert %s: %s", alert["id"], e, exc_info=True)
     return alert
-
-

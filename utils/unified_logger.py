@@ -3,10 +3,10 @@
 unified_logger.py
 
 This module implements a unified logger for the application.
-It writes logs in JSON format to separate files for operations and alerts,
+It writes logs in JSON format to separate files for operations, alerts, and now cyclone events,
 and also outputs logs to the console.
 The log records include custom fields such as source, operation type, file name,
-and now a 'json_type' field if provided.
+and an optional 'json_type' field.
 Timestamps are formatted in US/Pacific time using a configurable date format.
 """
 
@@ -56,14 +56,17 @@ class LogTypeFilter(logging.Filter):
 
 # The UnifiedLogger class configures multiple handlers for logging.
 class UnifiedLogger:
-    def __init__(self, operations_log_filename: str = None, alert_log_filename: str = None):
+    def __init__(self, operations_log_filename: str = None, alert_log_filename: str = None, cyclone_log_filename: str = None):
         if operations_log_filename is None:
             operations_log_filename = os.path.join(str(BASE_DIR), "operations_log.txt")
         if alert_log_filename is None:
             alert_log_filename = os.path.join(str(BASE_DIR), "alert_monitor_log.txt")
+        if cyclone_log_filename is None:
+            cyclone_log_filename = os.path.join(str(BASE_DIR), "cyclone_log.txt")
 
         self.operations_log_filename = operations_log_filename
         self.alert_log_filename = alert_log_filename
+        self.cyclone_log_filename = cyclone_log_filename
 
         # Create a logger named "UnifiedLogger" and set its level to DEBUG.
         self.logger = logging.getLogger("UnifiedLogger")
@@ -88,6 +91,12 @@ class UnifiedLogger:
         alert_handler.setFormatter(json_formatter)
         alert_handler.addFilter(LogTypeFilter("alert"))
 
+        # File handler for cyclone logs.
+        cyclone_handler = logging.FileHandler(self.cyclone_log_filename, encoding="utf-8")
+        cyclone_handler.setLevel(logging.INFO)
+        cyclone_handler.setFormatter(json_formatter)
+        cyclone_handler.addFilter(LogTypeFilter("cyclone"))
+
         # Optional console handler.
         console_handler = logging.StreamHandler(sys.stdout)
         console_handler.setLevel(logging.INFO)
@@ -96,6 +105,7 @@ class UnifiedLogger:
         # Add handlers to the logger.
         self.logger.addHandler(op_handler)
         self.logger.addHandler(alert_handler)
+        self.logger.addHandler(cyclone_handler)
         self.logger.addHandler(console_handler)
 
     def log_operation(self, operation_type: str, primary_text: str, source: str = "", file: str = "", extra_data: dict = None):
@@ -126,6 +136,23 @@ class UnifiedLogger:
         self.logger.info(primary_text, extra=extra)
         self.logger.debug("Logged alert entry with operation_type=%s", operation_type)
 
+    def log_cyclone(self, operation_type: str, primary_text: str, source: str = "", file: str = "", extra_data: dict = None):
+        """
+        Logs cyclone-related events to the dedicated cyclone log file.
+        """
+        self.logger.debug("About to log cyclone event: operation_type=%s, primary_text=%s, source=%s, file=%s",
+                          operation_type, primary_text, source, file)
+        extra = {
+            "source": source,
+            "operation_type": operation_type,
+            "log_type": "cyclone",
+            "file": file
+        }
+        if extra_data:
+            extra.update(extra_data)
+        self.logger.info(primary_text, extra=extra)
+        self.logger.debug("Logged cyclone entry with operation_type=%s", operation_type)
+
 # Example usage:
 if __name__ == "__main__":
     u_logger = UnifiedLogger()
@@ -142,4 +169,10 @@ if __name__ == "__main__":
         source="System",
         file="alert_manager",
         extra_data={"json_type": ""}
+    )
+    u_logger.log_cyclone(
+        operation_type="Cycle Report",
+        primary_text="Cycle report generated successfully",
+        source="Cyclone",
+        file="cyclone.py"
     )

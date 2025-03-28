@@ -10,9 +10,6 @@ from alerts.alert_enrichment import enrich_alert_data
 # Correct the import to pull normalize_alert_type from alert_enrichment.py
 from alerts.alert_enrichment import normalize_alert_type as normalize_alert_type_helper
 
-
-
-
 from uuid import uuid4
 from data.models import Status  # Ensure Status is imported
 
@@ -20,15 +17,15 @@ from data.models import Status  # Ensure Status is imported
 class DummyPositionAlert:
     def __init__(self, alert_type, asset_type, trigger_value, condition, notification_type, position_reference_id):
         self.id = str(uuid4())
-        self.alert_type = alert_type                     # e.g., "TravelPercentAlert", "ProfitAlert", "HeatIndexAlert"
-        self.alert_class = "Position"                    # default for position alerts
-        self.asset_type = asset_type                     # e.g., "SOL"
-        self.trigger_value = trigger_value               # e.g., a numeric threshold
-        self.condition = condition                       # e.g., "BELOW" or "ABOVE"
-        self.notification_type = notification_type       # e.g., "Call" or "Email"
+        self.alert_type = alert_type  # e.g., using model values like "PriceThreshold", "TravelPercent", "Profit", "HeatIndex"
+        self.alert_class = "Position"  # default for position alerts; might be updated later
+        self.asset_type = asset_type   # e.g., "SOL"
+        self.trigger_value = trigger_value  # e.g., a numeric threshold
+        self.condition = condition          # e.g., "BELOW" or "ABOVE"
+        self.notification_type = notification_type  # e.g., "Call" or "Email"
         self.state = "Normal"
         self.last_triggered = None
-        self.status = Status.ACTIVE.value                # e.g., "Active"
+        self.status = Status.ACTIVE.value  # e.g., "Active"
         self.frequency = 1
         self.counter = 0
         self.liquidation_distance = 0.0
@@ -89,13 +86,11 @@ class AlertController:
             print(f"[DEBUG] Alert before processing: {alert_dict}")
             self.logger.debug(f"Alert before processing: {alert_dict}")
 
-            # We are not normalizing alert types—alert_dict["alert_type"] remains as provided.
-
             # Set alert_class based on alert type.
-            if alert_dict["alert_type"] == "PRICE_THRESHOLD":
-                alert_dict["alert_class"] = "Market"
+            if alert_dict["alert_type"] == AlertType.PRICE_THRESHOLD.value:
+                alert_dict["alert_class"] = AlertClass.MARKET.value
             else:
-                alert_dict["alert_class"] = "Position"
+                alert_dict["alert_class"] = AlertClass.POSITION.value
             print(f"[DEBUG] Set alert_class to: {alert_dict['alert_class']}")
             self.logger.debug(f"Set alert_class to: {alert_dict['alert_class']}")
 
@@ -187,7 +182,7 @@ class AlertController:
         for pos in positions:
             if not pos.get("alert_reference_id"):
                 asset = pos.get("asset_type", "BTC")
-                alert_obj = DummyPositionAlert("TravelPercentAlert", asset, -4.0, "BELOW", "Call", pos.get("id"))
+                alert_obj = DummyPositionAlert(AlertType.TRAVEL_PERCENT_LIQUID.value, asset, -4.0, "BELOW", "Call", pos.get("id"))
                 if self.create_alert(alert_obj):
                     created_alerts.append(alert_obj.to_dict())
                     conn = self.data_locker.get_db_connection()
@@ -221,7 +216,7 @@ class AlertController:
         alert_type = alert.get("alert_type")
         self.logger.debug("Alert type: %s", alert_type)
 
-        if alert_type == AlertType.PRICE_THRESHOLD.value or alert_type == "PRICE_THRESHOLD":
+        if alert_type == AlertType.PRICE_THRESHOLD.value:
             asset = alert.get("asset_type", "BTC")
             self.logger.debug("Processing PRICE_THRESHOLD for asset: %s", asset)
             price_record = self.data_locker.get_latest_price(asset)
@@ -237,9 +232,9 @@ class AlertController:
                 self.logger.debug("No price record found for asset: %s", asset)
                 evaluated_value = 0.0
 
-        elif alert_type == AlertType.TRAVEL_PERCENT_LIQUID.value or alert_type == "TRAVEL_PERCENT_ALERT":
+        elif alert_type == AlertType.TRAVEL_PERCENT_LIQUID.value:
             pos_id = alert.get("position_reference_id") or alert.get("id")
-            self.logger.debug("Processing TRAVEL_PERCENT alert for position id: %s", pos_id)
+            self.logger.debug("Processing TRAVEL_PERCENT for position id: %s", pos_id)
             positions = self.data_locker.read_positions()
             self.logger.debug("Retrieved positions: %s", positions)
             position = next((p for p in positions if p.get("id") == pos_id), None)
@@ -255,7 +250,7 @@ class AlertController:
                 self.logger.debug("No matching position found for id: %s", pos_id)
                 evaluated_value = 0.0
 
-        elif alert_type == AlertType.PROFIT.value or alert_type == "PROFIT" or alert_type == "PROFITALERT":
+        elif alert_type == AlertType.PROFIT.value:
             pos_id = alert.get("position_reference_id") or alert.get("id")
             self.logger.debug("Processing PROFIT for position id: %s", pos_id)
             positions = self.data_locker.read_positions()
@@ -273,13 +268,13 @@ class AlertController:
                 self.logger.debug("No matching position found for id: %s", pos_id)
                 evaluated_value = 0.0
 
-        elif alert_type == "HEAT_INDEX_ALERT":
+        elif alert_type == AlertType.HEAT_INDEX.value:
             pos_id = alert.get("position_reference_id") or alert.get("id")
-            self.logger.debug("Processing HEAT_INDEX_ALERT for position id: %s", pos_id)
+            self.logger.debug("Processing HEAT_INDEX for position id: %s", pos_id)
             positions = self.data_locker.read_positions()
             position = next((p for p in positions if p.get("id") == pos_id), None)
             if position:
-                self.logger.debug("Found matching position for HEAT_INDEX_ALERT: %s", position)
+                self.logger.debug("Found matching position for HEAT_INDEX: %s", position)
                 try:
                     evaluated_value = float(position.get("current_heat_index", 0.0))
                     self.logger.debug("Parsed current_heat_index: %f", evaluated_value)
@@ -530,8 +525,7 @@ class AlertController:
                 condition = "BELOW"
                 notification_type = "Call"
                 position_id = pos_dict.get("id")
-                # Use the global DummyPositionAlert
-                alert_obj = DummyPositionAlert("TravelPercentAlert", asset, trigger_value, condition, notification_type, position_id)
+                alert_obj = DummyPositionAlert(AlertType.TRAVEL_PERCENT_LIQUID.value, asset, trigger_value, condition, notification_type, position_id)
                 if self.create_alert(alert_obj):
                     created_alerts.append(alert_obj.to_dict())
                     UnifiedLogger().log_operation(
@@ -562,7 +556,6 @@ class AlertController:
             return []
         created_alerts = []
         positions = self.data_locker.read_positions()
-        # Use the global DummyPositionAlert for profit alerts as well.
         for pos in positions:
             asset = pos.get("asset_type", "BTC")
             try:
@@ -595,7 +588,7 @@ class AlertController:
             notification_type = "Call" if notifications.get("call", False) else "Email"
             position_id = pos.get("id")
             alert_obj = DummyPositionAlert(
-                "ProfitAlert",
+                AlertType.PROFIT.value,
                 AlertClass.POSITION.value,
                 asset,
                 computed_trigger,
@@ -603,7 +596,6 @@ class AlertController:
                 notification_type,
                 position_id
             )
-            # Set state based on current level.
             alert_obj.state = current_level
             if self.create_alert(alert_obj):
                 created_alerts.append(alert_obj.to_dict())
@@ -723,7 +715,6 @@ class AlertController:
             return []
         created_alerts = []
         positions = self.data_locker.read_positions()
-        # Use global DummyPositionAlert for heat index alerts as well.
         for pos in positions:
             asset = pos.get("asset_type", "BTC")
             trigger_value = float(heat_config.get("trigger_value", 0.0))
@@ -731,15 +722,7 @@ class AlertController:
             notifications = heat_config.get("notifications", {})
             notification_type = "Call" if notifications.get("call", False) else "Email"
             position_id = pos.get("id")
-            alert_obj = DummyPositionAlert(
-                "HeatIndexAlert",
-                AlertClass.POSITION.value,
-                asset,
-                trigger_value,
-                condition,
-                notification_type,
-                position_id
-            )
+            alert_obj = DummyPositionAlert(AlertType.HEAT_INDEX.value, AlertClass.POSITION.value, asset, trigger_value, condition, notification_type, position_id)
             if self.create_alert(alert_obj):
                 created_alerts.append(alert_obj.to_dict())
                 print(f"Created heat index alert for position {position_id} ({asset}): condition {condition}, trigger {trigger_value}, notification {notification_type}.")
@@ -755,8 +738,7 @@ class AlertController:
         self.logger.debug("Alert type: %s", alert_type)
         print(f"[populate_evaluated_value] Alert type: {alert_type}")
 
-        # Check for PRICE_THRESHOLD alerts.
-        if alert_type == AlertType.PRICE_THRESHOLD.value or alert_type == "PRICE_THRESHOLD":
+        if alert_type == AlertType.PRICE_THRESHOLD.value:
             asset = alert.get("asset_type", "BTC")
             self.logger.debug("Processing PRICE_THRESHOLD for asset: %s", asset)
             print(f"[populate_evaluated_value] Processing PRICE_THRESHOLD for asset: {asset}")
@@ -777,11 +759,10 @@ class AlertController:
                 print(f"[populate_evaluated_value] No price record found for asset: {asset}")
                 evaluated_value = 0.0
 
-        # Check for travel percent alerts.
-        elif alert_type == AlertType.TRAVEL_PERCENT_LIQUID.value or alert_type == "TRAVEL_PERCENT_ALERT":
+        elif alert_type == AlertType.TRAVEL_PERCENT_LIQUID.value:
             pos_id = alert.get("position_reference_id") or alert.get("id")
-            self.logger.debug("Processing TRAVEL_PERCENT alert for position id: %s", pos_id)
-            print(f"[populate_evaluated_value] Processing TRAVEL_PERCENT alert for position id: {pos_id}")
+            self.logger.debug("Processing TRAVEL_PERCENT for position id: %s", pos_id)
+            print(f"[populate_evaluated_value] Processing TRAVEL_PERCENT for position id: {pos_id}")
             positions = self.data_locker.read_positions()
             self.logger.debug("Retrieved positions: %s", positions)
             position = next((p for p in positions if p.get("id") == pos_id), None)
@@ -801,11 +782,10 @@ class AlertController:
                 print(f"[populate_evaluated_value] No matching position found for id: {pos_id}")
                 evaluated_value = 0.0
 
-        # Check for profit alerts using pnl_after_fees_usd.
-        elif alert_type == AlertType.PROFIT.value or alert_type == "PROFIT" or alert_type == "PROFITALERT":
+        elif alert_type == AlertType.PROFIT.value:
             pos_id = alert.get("position_reference_id") or alert.get("id")
-            self.logger.debug("Processing PROFIT alert for position id: %s", pos_id)
-            print(f"[populate_evaluated_value] Processing PROFIT alert for position id: {pos_id}")
+            self.logger.debug("Processing PROFIT for position id: %s", pos_id)
+            print(f"[populate_evaluated_value] Processing PROFIT for position id: {pos_id}")
             positions = self.data_locker.read_positions()
             self.logger.debug("Retrieved positions: %s", positions)
             position = next((p for p in positions if p.get("id") == pos_id), None)
@@ -825,14 +805,14 @@ class AlertController:
                 print(f"[populate_evaluated_value] No matching position found for id: {pos_id}")
                 evaluated_value = 0.0
 
-        elif alert_type == "HEAT_INDEX_ALERT":
+        elif alert_type == AlertType.HEAT_INDEX.value:
             pos_id = alert.get("position_reference_id") or alert.get("id")
-            self.logger.debug("Processing HEAT_INDEX_ALERT for position id: %s", pos_id)
-            print(f"[populate_evaluated_value] Processing HEAT_INDEX_ALERT for position id: {pos_id}")
+            self.logger.debug("Processing HEAT_INDEX for position id: %s", pos_id)
+            print(f"[populate_evaluated_value] Processing HEAT_INDEX for position id: {pos_id}")
             positions = self.data_locker.read_positions()
             position = next((p for p in positions if p.get("id") == pos_id), None)
             if position:
-                self.logger.debug("Found matching position for HEAT_INDEX_ALERT: %s", position)
+                self.logger.debug("Found matching position for HEAT_INDEX: %s", position)
                 print(f"[populate_evaluated_value] Found matching position: {position}")
                 try:
                     evaluated_value = float(position.get("current_heat_index", 0.0))
@@ -848,7 +828,7 @@ class AlertController:
                 evaluated_value = 0.0
 
         else:
-            self.logger.debug("Alert type %s not recognized for evaluation; defaulting evaluated_value to 0.0", alert_type)
+            self.logger.debug("Alert type %s not recognized; defaulting evaluated_value to 0.0", alert_type)
             print(f"[populate_evaluated_value] Alert type {alert_type} not recognized; defaulting evaluated_value to 0.0")
             evaluated_value = 0.0
 

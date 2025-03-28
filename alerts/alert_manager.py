@@ -16,6 +16,7 @@ import inspect
 from utils.unified_logger import UnifiedLogger
 from alerts.alert_controller import AlertController
 from alerts.alert_evaluator import AlertEvaluator
+from data.models import AlertType  # Imported to standardize alert type checks
 
 # Instantiate the unified logger
 u_logger = UnifiedLogger()
@@ -290,21 +291,19 @@ class AlertManager:
         """
         Updates the evaluated_value for each alert based on its alert type.
 
-        - For Price* alerts, sets evaluated_value to the latest asset price.
-        - For TravelPercent* alerts, sets evaluated_value to the position's current travel percent.
-        - For Profit* alerts, sets evaluated_value to the position's pnl_after_fees_usd.
-        - For HeatIndex* alerts, sets evaluated_value to the position's current_heat_index.
+        - For PriceThreshold alerts, sets evaluated_value to the latest asset price.
+        - For TravelPercent alerts, sets evaluated_value to the position's current travel percent.
+        - For Profit alerts, sets evaluated_value to the position's pnl_after_fees_usd.
+        - For HeatIndex alerts, sets evaluated_value to the position's current_heat_index.
         """
         alerts = self.data_locker.get_alerts()
         positions = self.data_locker.read_positions()
-        # Build lookup using the position id from positions
         pos_lookup = {pos.get("id"): pos for pos in positions}
 
         for alert in alerts:
             evaluated_val = None
             alert_type = alert.get("alert_type", "")
-
-            if alert_type.startswith("Price"):
+            if alert_type == AlertType.PRICE_THRESHOLD.value:
                 asset_type = alert.get("asset_type", "BTC")
                 price_data = self.data_locker.get_latest_price(asset_type)
                 if price_data and "current_price" in price_data:
@@ -312,25 +311,21 @@ class AlertManager:
                         evaluated_val = float(price_data["current_price"])
                     except Exception as e:
                         self.logger.error(f"Error converting latest price for asset {asset_type}: {e}", exc_info=True)
-
-            elif alert_type.startswith("TravelPercent"):
-                # Check both 'position_reference_id' and 'position_id'
+            elif alert_type == AlertType.TRAVEL_PERCENT_LIQUID.value:
                 pos_id = alert.get("position_reference_id") or alert.get("position_id")
                 if pos_id and pos_id in pos_lookup:
                     try:
                         evaluated_val = float(pos_lookup[pos_id].get("current_travel_percent", 0))
                     except Exception as e:
                         self.logger.error(f"Error retrieving travel percent for position {pos_id}: {e}", exc_info=True)
-
-            elif alert_type.startswith("Profit"):
+            elif alert_type == AlertType.PROFIT.value:
                 pos_id = alert.get("position_reference_id") or alert.get("position_id")
                 if pos_id and pos_id in pos_lookup:
                     try:
                         evaluated_val = float(pos_lookup[pos_id].get("pnl_after_fees_usd", 0))
                     except Exception as e:
                         self.logger.error(f"Error retrieving pnl for position {pos_id}: {e}", exc_info=True)
-
-            elif alert_type.startswith("HeatIndex"):
+            elif alert_type == AlertType.HEAT_INDEX.value:
                 pos_id = alert.get("position_reference_id") or alert.get("position_id")
                 if pos_id and pos_id in pos_lookup:
                     try:
@@ -483,6 +478,55 @@ class AlertManager:
                 json.dump(config, f, indent=2)
         except Exception:
             pass
+
+    def clear_stale_alerts(self):
+        """
+        Clear stale IDs in three steps:
+          1) For each alert record that has a position_reference_id, check if the referenced position exists.
+             If not, delete that alert.
+          2) For each position record that has an alert_reference_id, check if that alert exists.
+             If not, clear the alert_reference_id.
+          3) Instruct the HedgeManager to clear its hedge associations.
+        Prints the number of alerts deleted and positions updated.
+        """
+        # Step 1: Check alerts whose referenced positions no longer exist.
+        alerts = self.data_locker.get_alerts()
+        positions = self.data_locker.read_positions()
+        valid_position_ids = {pos.get("id") for pos in positions}
+        deleted_alerts = 0
+
+        for alert in alerts:
+            pos_id = alert.get("position_reference_id")
+            if pos_id and pos_id not in valid_position_ids:
+                # Delete this stale alert.
+                if self.alert_controller.delete_alert(alert["id"]):
+                    deleted_alerts += 1
+
+        print(f"Deleted {deleted_alerts} stale alert(s) referencing non-existent positions.")
+
+        # Step 2: Check positions whose alert_reference_id no longer exists.
+        alerts = self.data_locker.get_alerts()  # updated alerts list
+        valid_alert_ids = {alert.get("id") for alert in alerts}
+        updated_positions = 0
+
+        for pos in positions:
+            alert_id = pos.get("alert_reference_id")
+            if alert_id and alert_id not in valid_alert_ids:
+                cursor = self.data_locker.conn.cursor()
+                cursor.execute("UPDATE positions SET alert_reference_id = NULL WHERE id = ?", (pos.get("id"),))
+                self.data_locker.conn.commit()
+                updated_positions += 1
+
+        print(f"Cleared stale alert references in {updated_positions} position(s).")
+
+        # Step 3: Ask the HedgeManager to clear its hedge associations.
+        try:
+            from sonic_labs.hedge_manager import HedgeManager
+            HedgeManager.clear_hedge_data()  # This static method clears hedge_buddy_id from positions.
+            print("Cleared hedge associations in positions.")
+        except Exception as e:
+            print(f"Error clearing hedge data: {e}")
+
 
 
 # Create a global AlertManager instance for use in other modules.
