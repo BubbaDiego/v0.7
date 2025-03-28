@@ -11,6 +11,9 @@
     color: #fff;
     font-weight: bold;
   }
+  .grid-row, .grid-totals {
+    color: #000;
+  }
   .grid-row {
     border-bottom: 1px solid #ddd;
   }
@@ -23,99 +26,164 @@
     text-align: center;
     padding: 0.25rem;
   }
-  /* Asset column gets a fixed width */
   .grid-col.asset {
     flex: 0 0 10%;
     max-width: 10%;
+  }
+  .sortable {
+    cursor: pointer;
   }
   /* Asset icon styling */
   .asset-icon {
     width: 32px;
     height: 32px;
   }
+  /* Title text dark blue */
+  .title-text {
+    color: darkblue;
+  }
 </style>
 {% endblock %}
 {% block content %}
 <div class="container my-4">
-  <h2 class="mb-4">Positions Grid</h2>
-  <!-- Header Row -->
-  <div class="grid-header d-flex">
-    <div class="grid-col asset">Asset</div>
-    <div class="grid-col">Profit</div>
-    <div class="grid-col">Collateral</div>
-    <div class="grid-col">Value</div>
-    <div class="grid-col">Size</div>
-    <div class="grid-col">Leverage</div>
-    <div class="grid-col">Travel %</div>
-  </div>
-  <!-- Data Rows -->
-  {% for pos in positions|sort(attribute='size', reverse=True) %}
-  <div class="grid-row d-flex">
-    <div class="grid-col asset">
-      {% if pos.asset_type == 'BTC' %}
-         <img src="{{ url_for('static', filename='images/btc_logo.png') }}" alt="BTC" class="asset-icon">
-      {% elif pos.asset_type == 'ETH' %}
-         <img src="{{ url_for('static', filename='images/eth_logo.png') }}" alt="ETH" class="asset-icon">
-      {% elif pos.asset_type == 'SOL' %}
-         <img src="{{ url_for('static', filename='images/sol_logo.png') }}" alt="SOL" class="asset-icon">
-      {% else %}
-         {{ pos.asset_type }}
-      {% endif %}
+  <div class="card">
+    <div class="card-body">
+      <h2 class="title-text mb-4">Positions</h2>
+      <!-- Header Row -->
+      <div class="grid-header d-flex">
+        <div class="grid-col asset sortable" data-col-index="0">Asset</div>
+        <div class="grid-col sortable" data-col-index="1">Profit</div>
+        <div class="grid-col sortable" data-col-index="2">Heat Index</div>
+        <div class="grid-col sortable" data-col-index="3">Collateral</div>
+        <div class="grid-col sortable" data-col-index="4">Value</div>
+        <div class="grid-col sortable" data-col-index="5">Size</div>
+        <div class="grid-col sortable" data-col-index="6">Leverage</div>
+        <div class="grid-col sortable" data-col-index="7">Travel %</div>
+      </div>
+      <!-- Data Rows Container -->
+      <div id="gridRows">
+        {% for pos in positions|sort(attribute='size', reverse=True) %}
+        <div class="grid-row d-flex">
+          <div class="grid-col asset">
+            {% if pos.asset_type == 'BTC' %}
+              <img src="{{ url_for('static', filename='images/btc_logo.png') }}" alt="BTC" class="asset-icon">
+            {% elif pos.asset_type == 'ETH' %}
+              <img src="{{ url_for('static', filename='images/eth_logo.png') }}" alt="ETH" class="asset-icon">
+            {% elif pos.asset_type == 'SOL' %}
+              <img src="{{ url_for('static', filename='images/sol_logo.png') }}" alt="SOL" class="asset-icon">
+            {% else %}
+              {{ pos.asset_type }}
+            {% endif %}
+          </div>
+          <div class="grid-col">
+            {% if pos.pnl_after_fees_usd is defined and pos.pnl_after_fees_usd is not none %}
+              {{ "{:,.2f}".format(pos.pnl_after_fees_usd) }}
+            {% else %}
+              N/A
+            {% endif %}
+          </div>
+          <div class="grid-col">
+            {% if pos.heat_index is not none %}
+              {{ "{:,.2f}".format(pos.heat_index) }}
+            {% else %}
+              N/A
+            {% endif %}
+          </div>
+          <div class="grid-col">
+            {% if pos.collateral is not none %}
+              {{ "{:,.2f}".format(pos.collateral) }}
+            {% else %}
+              N/A
+            {% endif %}
+          </div>
+          <div class="grid-col">
+            {% if pos.value is not none %}
+              {{ "{:,.2f}".format(pos.value) }}
+            {% else %}
+              N/A
+            {% endif %}
+          </div>
+          <div class="grid-col">
+            {% if pos.size is not none %}
+              {{ "{:,.2f}".format(pos.size) }}
+            {% else %}
+              N/A
+            {% endif %}
+          </div>
+          <div class="grid-col">
+            {% if pos.leverage is not none %}
+              {{ "{:,.2f}".format(pos.leverage) }}
+            {% else %}
+              N/A
+            {% endif %}
+          </div>
+          <div class="grid-col">
+            {% if pos.travel_percent is not none %}
+              {{ "{:,.2f}".format(pos.travel_percent) }}%
+            {% else %}
+              N/A
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <!-- Totals Row -->
+      {% set total_profit = positions|sum(attribute='pnl_after_fees_usd') %}
+      <div class="grid-totals d-flex">
+        <div class="grid-col asset text-center">Totals</div>
+        <div class="grid-col text-center">{{ "{:,.2f}".format(total_profit) }}</div>
+        <div class="grid-col text-center">{{ "{:,.2f}".format(totals.get("avg_heat_index", 0)) }}</div>
+        <div class="grid-col text-center">{{ "{:,.2f}".format(totals.get("total_collateral", 0)) }}</div>
+        <div class="grid-col text-center">{{ "{:,.2f}".format(totals.get("total_value", 0)) }}</div>
+        <div class="grid-col text-center">{{ "{:,.2f}".format(totals.get("total_size", 0)) }}</div>
+        <div class="grid-col text-center">{{ "{:,.2f}".format(totals.get("avg_leverage", 0)) }}</div>
+        <div class="grid-col text-center">{{ "{:,.2f}".format(totals.get("avg_travel_percent", 0)) }}%</div>
+      </div>
     </div>
-    <div class="grid-col">
-      {% if pos.pnl_after_fees_usd is defined and pos.pnl_after_fees_usd is not none %}
-         {{ "{:,.2f}".format(pos.pnl_after_fees_usd) }}
-      {% else %}
-         N/A
-      {% endif %}
-    </div>
-    <div class="grid-col">
-      {% if pos.collateral is not none %}
-         {{ "{:,.2f}".format(pos.collateral) }}
-      {% else %}
-         N/A
-      {% endif %}
-    </div>
-    <div class="grid-col">
-      {% if pos.value is not none %}
-         {{ "{:,.2f}".format(pos.value) }}
-      {% else %}
-         N/A
-      {% endif %}
-    </div>
-    <div class="grid-col">
-      {% if pos.size is not none %}
-         {{ "{:,.2f}".format(pos.size) }}
-      {% else %}
-         N/A
-      {% endif %}
-    </div>
-    <div class="grid-col">
-      {% if pos.leverage is not none %}
-         {{ "{:,.2f}".format(pos.leverage) }}
-      {% else %}
-         N/A
-      {% endif %}
-    </div>
-    <div class="grid-col">
-      {% if pos.travel_percent is not none %}
-         {{ "{:,.2f}".format(pos.travel_percent) }}%
-      {% else %}
-         N/A
-      {% endif %}
-    </div>
-  </div>
-  {% endfor %}
-  <!-- Totals Row -->
-  {% set total_profit = positions|sum(attribute='pnl_after_fees_usd') %}
-  <div class="grid-totals d-flex">
-    <div class="grid-col asset text-center">Totals</div>
-    <div class="grid-col text-center">{{ "{:,.2f}".format(total_profit) }}</div>
-    <div class="grid-col text-center">{{ "{:,.2f}".format(totals.get("total_collateral", 0)) }}</div>
-    <div class="grid-col text-center">{{ "{:,.2f}".format(totals.get("total_value", 0)) }}</div>
-    <div class="grid-col text-center">{{ "{:,.2f}".format(totals.get("total_size", 0)) }}</div>
-    <div class="grid-col text-center">{{ "{:,.2f}".format(totals.get("avg_leverage", 0)) }}</div>
-    <div class="grid-col text-center">{{ "{:,.2f}".format(totals.get("avg_travel_percent", 0)) }}%</div>
   </div>
 </div>
+{% endblock %}
+{% block extra_scripts %}
+<script>
+  // Sorting functionality for the grid
+  document.addEventListener("DOMContentLoaded", function() {
+    const headerCells = document.querySelectorAll(".grid-header .sortable");
+    const gridRowsContainer = document.getElementById("gridRows");
+    headerCells.forEach(function(cell) {
+      cell.addEventListener("click", function() {
+        const colIndex = parseInt(cell.getAttribute("data-col-index"));
+        const currentDirection = cell.getAttribute("data-sort-direction") || "asc";
+        const newDirection = currentDirection === "asc" ? "desc" : "asc";
+        cell.setAttribute("data-sort-direction", newDirection);
+        // Get all grid rows as an array
+        const rows = Array.from(gridRowsContainer.getElementsByClassName("grid-row"));
+        rows.sort(function(a, b) {
+          const aCells = a.getElementsByClassName("grid-col");
+          const bCells = b.getElementsByClassName("grid-col");
+          let aValue = aCells[colIndex].innerText.trim();
+          let bValue = bCells[colIndex].innerText.trim();
+          // For Asset column, if there is an image, use its alt attribute
+          if (colIndex === 0) {
+            const aImg = aCells[colIndex].querySelector("img");
+            const bImg = bCells[colIndex].querySelector("img");
+            if(aImg) aValue = aImg.getAttribute("alt") || aValue;
+            if(bImg) bValue = bImg.getAttribute("alt") || bValue;
+          }
+          // Try parsing as float to compare numbers
+          const aNum = parseFloat(aValue.replace(/[^0-9.-]+/g, ""));
+          const bNum = parseFloat(bValue.replace(/[^0-9.-]+/g, ""));
+          if (!isNaN(aNum) && !isNaN(bNum)) {
+            return newDirection === "asc" ? aNum - bNum : bNum - aNum;
+          } else {
+            return newDirection === "asc" ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+          }
+        });
+        // Append sorted rows back into the container
+        rows.forEach(function(row) {
+          gridRowsContainer.appendChild(row);
+        });
+      });
+    });
+  });
+</script>
 {% endblock %}

@@ -1,23 +1,68 @@
-# add_state_column.py
-import sqlite3
-from config.config_constants import DB_PATH
-
-def add_state_column(db_path=DB_PATH):
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
-    try:
-        cursor.execute("ALTER TABLE alerts ADD COLUMN state TEXT DEFAULT 'Normal'")
-        conn.commit()
-        print("Column 'state' added successfully.")
-    except sqlite3.OperationalError as e:
-        if "duplicate column name: state" in str(e):
-            print("Column 'state' already exists.")
-            print("")
-        else:
-            print("Error adding column:", e)
-            print("")
-    finally:
-        conn.close()
-
-if __name__ == '__main__':
-    add_state_column()
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Crypto Holdings Icons</title>
+  <style>
+    .crypto-icon {
+      width: 64px;
+      height: 64px;
+      margin: 0.5rem;
+    }
+    .icon-container {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+    }
+    .icon-item {
+      text-align: center;
+      margin: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="icon-container">
+    <div class="icon-item">
+      <img src="https://cryptologos.cc/logos/bitcoin-btc-logo.png?v=023" alt="Bitcoin (BTC)" class="crypto-icon">
+      <p>Bitcoin (BTC)</p>
+    </div>
+    <div class="icon-item">
+      <img src="https://cryptologos.cc/logos/ethereum-eth-logo.png?v=023" alt="Ethereum (ETH)" class="crypto-icon">
+      <p>Ethereum (ETH)</p>
+    </div>
+    <div class="icon-item">
+      <img src="https://cryptologos.cc/logos/solana-sol-logo.png?v=023" alt="Solana (SOL)" class="crypto-icon">
+      <p>Solana (SOL)</p>
+    </div>
+    <div class="icon-item">
+      <img src="https://cryptologos.cc/logos/ripple-xrp-logo.png?v=023" alt="Ripple (XRP)" class="crypto-icon">
+      <p>Ripple (XRP)</p>
+    </div>
+    <div class="icon-item">
+      <img src="https://cryptologos.cc/logos/cardano-ada-logo.png?v=023" alt="Cardano (ADA)" class="crypto-icon">
+      <p>Cardano (ADA)</p>
+    </div>
+    <div class="icon-item">
+      <img src="https://cryptologos.cc/logos/polkadot-new-dot-logo.png?v=023" alt="Polkadot (DOT)" class="crypto-icon">
+      <p>Polkadot (DOT)</p>
+    </div>
+    <div class="icon-item">
+      <img src="https://cryptologos.cc/logos/binance-coin-bnb-logo.png?v=023" alt="Binance Coin (BNB)" class="crypto-icon">
+      <p>Binance Coin (BNB)</p>
+    </div>
+    <div class="icon-item">
+      <img src="https://cryptologos.cc/logos/litecoin-ltc-logo.png?v=023" alt="Litecoin (LTC)" class="crypto-icon">
+      <p>Litecoin (LTC)</p>
+    </div>
+    <div class="icon-item">
+      <img src="https://cryptologos.cc/logos/chainlink-link-logo.png?v=023" alt="Chainlink (LINK)" class="crypto-icon">
+      <p>Chainlink (LINK)</p>
+    </div>
+    <div class="icon-item">
+      <img src="https://cryptologos.cc/logos/dogecoin-doge-logo.png?v=023" alt="Dogecoin (DOGE)" class="crypto-icon">
+      <p>Dogecoin (DOGE)</p>
+    </div>
+  </div>
+</body>
+</html>
