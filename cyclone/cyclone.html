@@ -224,8 +224,7 @@
     fetch("/cyclone/api/run_console_main", { method: "POST" })
       .then(response => response.json())
       .then(data => {
-        if (data.message) {
-          appendToConsole(data.message);
+        if (data.message) {2
         } else {
           appendToConsole("Main Console started.");
         }

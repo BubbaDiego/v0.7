@@ -7,10 +7,16 @@ import logging
 import sqlite3
 from utils.unified_logger import UnifiedLogger
 from alerts.alert_enrichment import enrich_alert_data
+# Correct the import to pull normalize_alert_type from alert_enrichment.py
+from alerts.alert_enrichment import normalize_alert_type as normalize_alert_type_helper
+
+
+
 
 from uuid import uuid4
 from data.models import Status  # Ensure Status is imported
 
+# Global DummyPositionAlert definition to be used across all position alert creation methods.
 class DummyPositionAlert:
     def __init__(self, alert_type, asset_type, trigger_value, condition, notification_type, position_reference_id):
         self.id = str(uuid4())
@@ -26,7 +32,7 @@ class DummyPositionAlert:
         self.frequency = 1
         self.counter = 0
         self.liquidation_distance = 0.0
-        self.target_travel_percent = 0.0
+        self.travel_percent = 0.0
         self.liquidation_price = 0.0
         self.notes = f"Position {alert_type} alert created by Cyclone"
         self.position_reference_id = position_reference_id
@@ -47,7 +53,7 @@ class DummyPositionAlert:
             "frequency": self.frequency,
             "counter": self.counter,
             "liquidation_distance": self.liquidation_distance,
-            "target_travel_percent": self.target_travel_percent,
+            "travel_percent": self.travel_percent,
             "liquidation_price": self.liquidation_price,
             "notes": self.notes,
             "description": f"Position {self.alert_type} alert created by Cyclone",
@@ -80,37 +86,24 @@ class AlertController:
                 print("[DEBUG] Alert object is already a dict.")
                 self.logger.debug("Alert object is already a dict.")
 
-            # Print alert before normalization.
-            print(f"[DEBUG] Alert before normalization: {alert_dict}")
-            self.logger.debug(f"Alert before normalization: {alert_dict}")
+            print(f"[DEBUG] Alert before processing: {alert_dict}")
+            self.logger.debug(f"Alert before processing: {alert_dict}")
 
-            # Normalize alert_type.
-            if alert_dict.get("alert_type"):
-                normalized_type = alert_dict["alert_type"].upper().replace(" ", "").replace("_", "")
-                print(f"[DEBUG] Normalized alert_type: {normalized_type}")
-                self.logger.debug(f"Normalized alert_type: {normalized_type}")
-                if normalized_type == "PRICETHRESHOLD":
-                    normalized_type = "PRICE_THRESHOLD"
-                alert_dict["alert_type"] = normalized_type
+            # We are not normalizing alert types—alert_dict["alert_type"] remains as provided.
 
-                # Set alert_class based on alert_type.
-                if normalized_type == "PRICE_THRESHOLD":
-                    alert_dict["alert_class"] = "Market"
-                else:
-                    alert_dict["alert_class"] = "Position"
-                print(f"[DEBUG] Set alert_class to: {alert_dict['alert_class']}")
-                self.logger.debug(f"Set alert_class to: {alert_dict['alert_class']}")
+            # Set alert_class based on alert type.
+            if alert_dict["alert_type"] == "PRICE_THRESHOLD":
+                alert_dict["alert_class"] = "Market"
             else:
-                self.logger.error("Alert missing alert_type.")
-                print("[ERROR] Alert missing alert_type.")
-                return False
+                alert_dict["alert_class"] = "Position"
+            print(f"[DEBUG] Set alert_class to: {alert_dict['alert_class']}")
+            self.logger.debug(f"Set alert_class to: {alert_dict['alert_class']}")
 
             # Initialize alert defaults.
             alert_dict = self.initialize_alert_data(alert_dict)
             print(f"[DEBUG] Alert after initializing defaults: {alert_dict}")
             self.logger.debug(f"Alert after initializing defaults: {alert_dict}")
 
-            # Log the complete alert dictionary before insertion.
             print(f"[DEBUG] Final alert_dict to insert: {alert_dict}")
             self.logger.debug(f"Final alert_dict to insert: {alert_dict}")
 
@@ -132,7 +125,7 @@ class AlertController:
                     frequency,
                     counter,
                     liquidation_distance,
-                    target_travel_percent,
+                    travel_percent,
                     liquidation_price,
                     notes,
                     description,
@@ -153,7 +146,7 @@ class AlertController:
                     :frequency,
                     :counter,
                     :liquidation_distance,
-                    :target_travel_percent,
+                    :travel_percent,
                     :liquidation_price,
                     :notes,
                     :description,
@@ -168,7 +161,6 @@ class AlertController:
             print(f"[DEBUG] Alert inserted successfully with ID: {alert_dict['id']}")
             self.logger.debug(f"Alert inserted successfully with ID: {alert_dict['id']}")
 
-
             enriched_alert = self.enrich_alert(alert_dict)
             print(f"[DEBUG] Alert after enrichment: {enriched_alert}")
             self.logger.debug(f"Alert after enrichment: {enriched_alert}")
@@ -182,6 +174,29 @@ class AlertController:
             self.logger.exception("CREATE ALERT: Unexpected error in create_alert: %s", ex)
             print(f"[ERROR] Unexpected error in create_alert: {ex}")
             raise
+
+    def create_position_alerts(self):
+        """
+        Create position alerts for each position that doesn't have an alert_reference_id.
+        Returns a list of created alert dictionaries.
+        """
+        created_alerts = []
+        positions = self.data_locker.read_positions()
+
+        # Use the global DummyPositionAlert
+        for pos in positions:
+            if not pos.get("alert_reference_id"):
+                asset = pos.get("asset_type", "BTC")
+                alert_obj = DummyPositionAlert("TravelPercentAlert", asset, -4.0, "BELOW", "Call", pos.get("id"))
+                if self.create_alert(alert_obj):
+                    created_alerts.append(alert_obj.to_dict())
+                    conn = self.data_locker.get_db_connection()
+                    cursor = conn.cursor()
+                    cursor.execute("UPDATE positions SET alert_reference_id=? WHERE id=?", (alert_obj.id, pos.get("id")))
+                    conn.commit()
+                else:
+                    self.logger.error("Failed to create alert for position id: %s", pos.get("id"))
+        return created_alerts
 
     def delete_alert(self, alert_id: str) -> bool:
         try:
@@ -206,7 +221,7 @@ class AlertController:
         alert_type = alert.get("alert_type")
         self.logger.debug("Alert type: %s", alert_type)
 
-        if alert_type == AlertType.PRICE_THRESHOLD.value:
+        if alert_type == AlertType.PRICE_THRESHOLD.value or alert_type == "PRICE_THRESHOLD":
             asset = alert.get("asset_type", "BTC")
             self.logger.debug("Processing PRICE_THRESHOLD for asset: %s", asset)
             price_record = self.data_locker.get_latest_price(asset)
@@ -222,25 +237,25 @@ class AlertController:
                 self.logger.debug("No price record found for asset: %s", asset)
                 evaluated_value = 0.0
 
-        elif alert_type == AlertType.TRAVEL_PERCENT_LIQUID.value:
+        elif alert_type == AlertType.TRAVEL_PERCENT_LIQUID.value or alert_type == "TRAVEL_PERCENT_ALERT":
             pos_id = alert.get("position_reference_id") or alert.get("id")
-            self.logger.debug("Processing TRAVEL_PERCENT_LIQUID for position id: %s", pos_id)
+            self.logger.debug("Processing TRAVEL_PERCENT alert for position id: %s", pos_id)
             positions = self.data_locker.read_positions()
             self.logger.debug("Retrieved positions: %s", positions)
             position = next((p for p in positions if p.get("id") == pos_id), None)
             if position:
                 self.logger.debug("Found matching position: %s", position)
                 try:
-                    evaluated_value = float(position.get("current_travel_percent", 0.0))
-                    self.logger.debug("Parsed current_travel_percent: %f", evaluated_value)
+                    evaluated_value = float(position.get("travel_percent", 0.0))
+                    self.logger.debug("Parsed travel_percent: %f", evaluated_value)
                 except Exception as e:
-                    self.logger.error("Error parsing current_travel_percent: %s", e, exc_info=True)
+                    self.logger.error("Error parsing travel_percent: %s", e, exc_info=True)
                     evaluated_value = 0.0
             else:
                 self.logger.debug("No matching position found for id: %s", pos_id)
                 evaluated_value = 0.0
 
-        elif alert_type == AlertType.PROFIT.value:
+        elif alert_type == AlertType.PROFIT.value or alert_type == "PROFIT" or alert_type == "PROFITALERT":
             pos_id = alert.get("position_reference_id") or alert.get("id")
             self.logger.debug("Processing PROFIT for position id: %s", pos_id)
             positions = self.data_locker.read_positions()
@@ -253,6 +268,23 @@ class AlertController:
                     self.logger.debug("Parsed profit: %f", evaluated_value)
                 except Exception as e:
                     self.logger.error("Error parsing profit: %s", e, exc_info=True)
+                    evaluated_value = 0.0
+            else:
+                self.logger.debug("No matching position found for id: %s", pos_id)
+                evaluated_value = 0.0
+
+        elif alert_type == "HEAT_INDEX_ALERT":
+            pos_id = alert.get("position_reference_id") or alert.get("id")
+            self.logger.debug("Processing HEAT_INDEX_ALERT for position id: %s", pos_id)
+            positions = self.data_locker.read_positions()
+            position = next((p for p in positions if p.get("id") == pos_id), None)
+            if position:
+                self.logger.debug("Found matching position for HEAT_INDEX_ALERT: %s", position)
+                try:
+                    evaluated_value = float(position.get("current_heat_index", 0.0))
+                    self.logger.debug("Parsed current_heat_index: %f", evaluated_value)
+                except Exception as e:
+                    self.logger.error("Error parsing current_heat_index: %s", e, exc_info=True)
                     evaluated_value = 0.0
             else:
                 self.logger.debug("No matching position found for id: %s", pos_id)
@@ -292,7 +324,7 @@ class AlertController:
             "frequency": 1,
             "counter": 0,
             "liquidation_distance": 0.0,
-            "target_travel_percent": 0.0,
+            "travel_percent": 0.0,
             "liquidation_price": 0.0,
             "notes": "",
             "description": "",
@@ -335,7 +367,7 @@ class AlertController:
                 self.frequency = 1
                 self.counter = 0
                 self.liquidation_distance = 0.0
-                self.target_travel_percent = 0.0
+                self.travel_percent = 0.0
                 self.liquidation_price = 0.0
                 self.notes = ""
                 self.position_reference_id = position_reference_id
@@ -355,7 +387,7 @@ class AlertController:
                     "frequency": self.frequency,
                     "counter": self.counter,
                     "liquidation_distance": self.liquidation_distance,
-                    "target_travel_percent": self.target_travel_percent,
+                    "travel_percent": self.travel_percent,
                     "liquidation_price": self.liquidation_price,
                     "notes": self.notes,
                     "position_reference_id": self.position_reference_id
@@ -444,7 +476,7 @@ class AlertController:
                     frequency=1,
                     counter=0,
                     liquidation_distance=pos.get("liquidation_distance", 0.0),
-                    target_travel_percent=pos.get("travel_percent", 0.0),
+                    travel_percent=pos.get("travel_percent", 0.0),
                     liquidation_price=pos.get("liquidation_price", 0.0),
                     notes="Auto-created alert record",
                     position_reference_id=pos.get("id"),
@@ -498,48 +530,8 @@ class AlertController:
                 condition = "BELOW"
                 notification_type = "Call"
                 position_id = pos_dict.get("id")
-                class DummyAlert:
-                    def __init__(self):
-                        self.id = str(uuid4())
-                        self.alert_type = "TravelPercentAlert"  # Or use AlertType.TRAVEL_PERCENT_LIQUID.value
-                        self.alert_class = "Position"
-                        self.asset_type = asset
-                        self.trigger_value = trigger_value
-                        self.condition = condition
-                        self.notification_type = notification_type
-                        self.state = "Normal"
-                        self.last_triggered = None
-                        self.status = "Active"
-                        self.frequency = 1
-                        self.counter = 0
-                        self.liquidation_distance = 0.0
-                        self.target_travel_percent = 0.0
-                        self.liquidation_price = 0.0
-                        self.notes = "Auto-created alert record"
-                        self.position_reference_id = position_id
-                        self.evaluated_value = 0.0
-                    def to_dict(self):
-                        return {
-                            "id": self.id,
-                            "alert_type": self.alert_type,
-                            "alert_class": self.alert_class,
-                            "asset_type": self.asset_type,
-                            "trigger_value": self.trigger_value,
-                            "condition": self.condition,
-                            "notification_type": self.notification_type,
-                            "state": self.state,
-                            "last_triggered": self.last_triggered,
-                            "status": self.status,
-                            "frequency": self.frequency,
-                            "counter": self.counter,
-                            "liquidation_distance": self.liquidation_distance,
-                            "target_travel_percent": self.target_travel_percent,
-                            "liquidation_price": self.liquidation_price,
-                            "notes": self.notes,
-                            "position_reference_id": self.position_reference_id,
-                            "evaluated_value": self.evaluated_value
-                        }
-                alert_obj = DummyAlert()
+                # Use the global DummyPositionAlert
+                alert_obj = DummyPositionAlert("TravelPercentAlert", asset, trigger_value, condition, notification_type, position_id)
                 if self.create_alert(alert_obj):
                     created_alerts.append(alert_obj.to_dict())
                     UnifiedLogger().log_operation(
@@ -570,46 +562,7 @@ class AlertController:
             return []
         created_alerts = []
         positions = self.data_locker.read_positions()
-        class DummyAlert:
-            def __init__(self, alert_type, alert_class, asset_type, trigger_value, condition, notification_type,
-                         position_reference_id, state="Normal", status="Active"):
-                self.id = str(uuid4())
-                self.alert_type = alert_type
-                self.alert_class = alert_class
-                self.asset_type = asset_type
-                self.trigger_value = trigger_value
-                self.condition = condition
-                self.notification_type = notification_type
-                self.state = state
-                self.last_triggered = None
-                self.status = status
-                self.frequency = 1
-                self.counter = 0
-                self.liquidation_distance = 0.0
-                self.target_travel_percent = 0.0
-                self.liquidation_price = 0.0
-                self.notes = ""
-                self.position_reference_id = position_reference_id
-            def to_dict(self):
-                return {
-                    "id": self.id,
-                    "alert_type": self.alert_type,
-                    "alert_class": self.alert_class,
-                    "asset_type": self.asset_type,
-                    "trigger_value": self.trigger_value,
-                    "condition": self.condition,
-                    "notification_type": self.notification_type,
-                    "state": self.state,
-                    "last_triggered": self.last_triggered,
-                    "status": self.status,
-                    "frequency": self.frequency,
-                    "counter": self.counter,
-                    "liquidation_distance": self.liquidation_distance,
-                    "target_travel_percent": self.target_travel_percent,
-                    "liquidation_price": self.liquidation_price,
-                    "notes": self.notes,
-                    "position_reference_id": self.position_reference_id
-                }
+        # Use the global DummyPositionAlert for profit alerts as well.
         for pos in positions:
             asset = pos.get("asset_type", "BTC")
             try:
@@ -641,25 +594,23 @@ class AlertController:
             notifications = profit_config.get("notifications", {})
             notification_type = "Call" if notifications.get("call", False) else "Email"
             position_id = pos.get("id")
-            dummy_alert = DummyAlert(
-                alert_type=AlertType.PROFIT.value,
-                alert_class=AlertClass.POSITION.value,
-                asset_type=asset,
-                trigger_value=computed_trigger,
-                condition=condition,
-                notification_type=notification_type,
-                position_reference_id=position_id,
-                state=current_level,
-                status=Status.ACTIVE.value
+            alert_obj = DummyPositionAlert(
+                "ProfitAlert",
+                AlertClass.POSITION.value,
+                asset,
+                computed_trigger,
+                condition,
+                notification_type,
+                position_id
             )
-            if self.create_alert(dummy_alert):
-                created_alerts.append(dummy_alert.to_dict())
+            # Set state based on current level.
+            alert_obj.state = current_level
+            if self.create_alert(alert_obj):
+                created_alerts.append(alert_obj.to_dict())
                 print(f"Created profit alert for position {position_id} ({asset}): level {current_level}, computed trigger {computed_trigger}, notification {notification_type}.")
             else:
                 print(f"Failed to create profit alert for position {position_id}.")
         return created_alerts
-
-    #print("↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️")
 
     def refresh_position_alerts(self) -> int:
         updated_count = 0
@@ -667,10 +618,8 @@ class AlertController:
             alerts = self.get_all_alerts()
             positions = self.data_locker.read_positions()
             for alert in alerts:
-                print(
-                    f"[Early Debug] Processing alert ID: {alert.get('id')} | Class: {alert.get('alert_class')} | Position Ref ID: {alert.get('position_reference_id')}")
-                self.logger.debug(
-                    f"[Early Debug] Processing alert ID: {alert.get('id')} | Class: {alert.get('alert_class')} | Position Ref ID: {alert.get('position_reference_id')}")
+                print(f"[Early Debug] Processing alert ID: {alert.get('id')} | Class: {alert.get('alert_class')} | Position Ref ID: {alert.get('position_reference_id')}")
+                self.logger.debug(f"[Early Debug] Processing alert ID: {alert.get('id')} | Class: {alert.get('alert_class')} | Position Ref ID: {alert.get('position_reference_id')}")
 
                 if alert.get("alert_class") == "Position" and alert.get("position_reference_id"):
                     pos_id = alert["position_reference_id"]
@@ -684,61 +633,49 @@ class AlertController:
                     self.logger.debug(f"[Before Update] Alert {alert['id']} original values: {alert}")
 
                     enriched_alert = self.enrich_alert(alert.copy())
-                    # *** Recalculate evaluated_value explicitly ***
                     evaluated_val = self.populate_evaluated_value_for_alert(enriched_alert)
                     enriched_alert["evaluated_value"] = evaluated_val
 
                     update_fields = {
-                        "liquidation_distance": enriched_alert.get("liquidation_distance", 0.0),
-                        "liquidation_price": enriched_alert.get("liquidation_price", 0.0),
-                        "target_travel_percent": enriched_alert.get("target_travel_percent", 0.0),
-                        "evaluated_value": enriched_alert.get("evaluated_value", 0.0)
+                        "liquidation_distance": enriched_alert.get("liquidation_distance") or 0.0,
+                        "liquidation_price": enriched_alert.get("liquidation_price") or 0.0,
+                        "travel_percent": enriched_alert.get("travel_percent") or 0.0,
+                        "evaluated_value": enriched_alert.get("evaluated_value") or 0.0
                     }
                     print(f"[Update Data] Alert {enriched_alert['id']} will be updated with: {update_fields}")
-                    self.logger.debug(
-                        f"[Update Data] Alert {enriched_alert['id']} will be updated with: {update_fields}")
+                    self.logger.debug(f"[Update Data] Alert {enriched_alert['id']} will be updated with: {update_fields}")
 
                     rows_updated = self.data_locker.update_alert_conditions(enriched_alert["id"], update_fields)
                     print(f"[Update Result] Rows updated for alert {enriched_alert['id']}: {rows_updated}")
                     self.logger.debug(f"Rows updated for alert {enriched_alert['id']}: {rows_updated}")
 
                     cursor = self.data_locker.conn.cursor()
-                    cursor.execute(
-                        "SELECT liquidation_distance, liquidation_price, target_travel_percent, evaluated_value FROM alerts WHERE id=?",
-                        (enriched_alert["id"],)
-                    )
+                    cursor.execute("SELECT liquidation_distance, liquidation_price, travel_percent, evaluated_value FROM alerts WHERE id=?", (enriched_alert["id"],))
                     row = cursor.fetchone()
                     if row:
                         confirmed_values = {
-                            "liquidation_distance": row["liquidation_distance"],
-                            "liquidation_price": row["liquidation_price"],
-                            "target_travel_percent": row["target_travel_percent"],
-                            "evaluated_value": row["evaluated_value"]
+                            "liquidation_distance": row["liquidation_distance"] or 0.0,
+                            "liquidation_price": row["liquidation_price"] or 0.0,
+                            "travel_percent": row["travel_percent"] or 0.0,
+                            "evaluated_value": row["evaluated_value"] or 0.0
                         }
                         print(f"[After Update] Alert {enriched_alert['id']} confirmed values: {confirmed_values}")
-                        self.logger.info(
-                            f"[After Update] Alert {enriched_alert['id']} confirmed values: {confirmed_values}")
+                        self.logger.info(f"[After Update] Alert {enriched_alert['id']} confirmed values: {confirmed_values}")
 
-                        diff_liq_dist = abs(
-                            confirmed_values["liquidation_distance"] - update_fields["liquidation_distance"])
+                        diff_liq_dist = abs(confirmed_values["liquidation_distance"] - update_fields["liquidation_distance"])
                         diff_liq_price = abs(confirmed_values["liquidation_price"] - update_fields["liquidation_price"])
-                        diff_target_travel = abs(
-                            confirmed_values["target_travel_percent"] - update_fields["target_travel_percent"])
+                        diff_travel = abs(confirmed_values["travel_percent"] - update_fields["travel_percent"])
                         diff_eval_value = abs(confirmed_values["evaluated_value"] - update_fields["evaluated_value"])
 
                         print(f"[Differences] Alert {enriched_alert['id']} differences:")
                         print(f"  liquidation_distance diff: {diff_liq_dist}")
                         print(f"  liquidation_price diff:    {diff_liq_price}")
-                        print(f"  target_travel_percent diff:{diff_target_travel}")
-                        print(f"  evaluated_value diff:      {diff_eval_value}")
-                        self.logger.debug(
-                            f"Alert {enriched_alert['id']} differences -> liquidation_distance: {diff_liq_dist}, "
-                            f"liquidation_price: {diff_liq_price}, target_travel_percent: {diff_target_travel}, "
-                            f"evaluated_value: {diff_eval_value}")
+                        print(f"  travel_percent diff:         {diff_travel}")
+                        print(f"  evaluated_value diff:        {diff_eval_value}")
+                        self.logger.debug(f"Alert {enriched_alert['id']} differences -> liquidation_distance: {diff_liq_dist}, liquidation_price: {diff_liq_price}, travel_percent: {diff_travel}, evaluated_value: {diff_eval_value}")
 
                         tolerance = 1e-6
-                        if (diff_liq_dist < tolerance and diff_liq_price < tolerance and
-                                diff_target_travel < tolerance and diff_eval_value < tolerance):
+                        if (diff_liq_dist < tolerance and diff_liq_price < tolerance and diff_travel < tolerance and diff_eval_value < tolerance):
                             updated_count += 1
                             print(f"[Confirmation] Alert {enriched_alert['id']} update confirmed.")
                             self.logger.info(f"Alert {enriched_alert['id']} update confirmed.")
@@ -746,8 +683,7 @@ class AlertController:
                             print(f"[Mismatch] Alert {enriched_alert['id']} update mismatch.")
                             print(f"  Intended update: {update_fields}")
                             print(f"  Confirmed in DB: {confirmed_values}")
-                            self.logger.error(
-                                f"Alert {enriched_alert['id']} update mismatch. Intended: {update_fields} | Confirmed: {confirmed_values}")
+                            self.logger.error(f"Alert {enriched_alert['id']} update mismatch. Intended: {update_fields} | Confirmed: {confirmed_values}")
                     else:
                         print(f"[Error] Could not retrieve alert {enriched_alert['id']} after update.")
                         self.logger.error(f"Could not retrieve alert {enriched_alert['id']} after update.")
@@ -787,45 +723,7 @@ class AlertController:
             return []
         created_alerts = []
         positions = self.data_locker.read_positions()
-        class DummyAlert:
-            def __init__(self, alert_type, alert_class, asset_type, trigger_value, condition, notification_type, position_reference_id, state="Normal", status="Active"):
-                self.id = str(uuid4())
-                self.alert_type = alert_type
-                self.alert_class = alert_class
-                self.asset_type = asset_type
-                self.trigger_value = trigger_value
-                self.condition = condition
-                self.notification_type = notification_type
-                self.state = state
-                self.last_triggered = None
-                self.status = status
-                self.frequency = 1
-                self.counter = 0
-                self.liquidation_distance = 0.0
-                self.target_travel_percent = 0.0
-                self.liquidation_price = 0.0
-                self.notes = ""
-                self.position_reference_id = position_reference_id
-            def to_dict(self):
-                return {
-                    "id": self.id,
-                    "alert_type": self.alert_type,
-                    "alert_class": self.alert_class,
-                    "asset_type": self.asset_type,
-                    "trigger_value": self.trigger_value,
-                    "condition": self.condition,
-                    "notification_type": self.notification_type,
-                    "state": self.state,
-                    "last_triggered": self.last_triggered,
-                    "status": self.status,
-                    "frequency": self.frequency,
-                    "counter": self.counter,
-                    "liquidation_distance": self.liquidation_distance,
-                    "target_travel_percent": self.target_travel_percent,
-                    "liquidation_price": self.liquidation_price,
-                    "notes": self.notes,
-                    "position_reference_id": self.position_reference_id
-                }
+        # Use global DummyPositionAlert for heat index alerts as well.
         for pos in positions:
             asset = pos.get("asset_type", "BTC")
             trigger_value = float(heat_config.get("trigger_value", 0.0))
@@ -833,19 +731,17 @@ class AlertController:
             notifications = heat_config.get("notifications", {})
             notification_type = "Call" if notifications.get("call", False) else "Email"
             position_id = pos.get("id")
-            dummy_alert = DummyAlert(
-                alert_type=AlertType.HEAT_INDEX.value,
-                alert_class=AlertClass.POSITION.value,
-                asset_type=asset,
-                trigger_value=trigger_value,
-                condition=condition,
-                notification_type=notification_type,
-                position_reference_id=position_id,
-                state="Normal",
-                status=Status.ACTIVE.value
+            alert_obj = DummyPositionAlert(
+                "HeatIndexAlert",
+                AlertClass.POSITION.value,
+                asset,
+                trigger_value,
+                condition,
+                notification_type,
+                position_id
             )
-            if self.create_alert(dummy_alert):
-                created_alerts.append(dummy_alert.to_dict())
+            if self.create_alert(alert_obj):
+                created_alerts.append(alert_obj.to_dict())
                 print(f"Created heat index alert for position {position_id} ({asset}): condition {condition}, trigger {trigger_value}, notification {notification_type}.")
             else:
                 print(f"Failed to create heat index alert for position {position_id}.")
@@ -893,12 +789,12 @@ class AlertController:
                 self.logger.debug("Found matching position: %s", position)
                 print(f"[populate_evaluated_value] Found matching position: {position}")
                 try:
-                    evaluated_value = float(position.get("current_travel_percent", 0.0))
-                    self.logger.debug("Parsed current_travel_percent: %f", evaluated_value)
-                    print(f"[populate_evaluated_value] Parsed current_travel_percent: {evaluated_value}")
+                    evaluated_value = float(position.get("travel_percent", 0.0))
+                    self.logger.debug("Parsed travel_percent: %f", evaluated_value)
+                    print(f"[populate_evaluated_value] Parsed travel_percent: {evaluated_value}")
                 except Exception as e:
-                    self.logger.error("Error parsing current_travel_percent: %s", e, exc_info=True)
-                    print(f"[populate_evaluated_value] Error parsing current_travel_percent: {e}")
+                    self.logger.error("Error parsing travel_percent: %s", e, exc_info=True)
+                    print(f"[populate_evaluated_value] Error parsing travel_percent: {e}")
                     evaluated_value = 0.0
             else:
                 self.logger.debug("No matching position found for id: %s", pos_id)
@@ -917,7 +813,6 @@ class AlertController:
                 self.logger.debug("Found matching position: %s", position)
                 print(f"[populate_evaluated_value] Found matching position: {position}")
                 try:
-                    # Now using pnl_after_fees_usd instead of profit.
                     evaluated_value = float(position.get("pnl_after_fees_usd", 0.0))
                     self.logger.debug("Parsed pnl_after_fees_usd: %f", evaluated_value)
                     print(f"[populate_evaluated_value] Parsed pnl_after_fees_usd: {evaluated_value}")
@@ -930,7 +825,6 @@ class AlertController:
                 print(f"[populate_evaluated_value] No matching position found for id: {pos_id}")
                 evaluated_value = 0.0
 
-        # Add support for heat index alerts.
         elif alert_type == "HEAT_INDEX_ALERT":
             pos_id = alert.get("position_reference_id") or alert.get("id")
             self.logger.debug("Processing HEAT_INDEX_ALERT for position id: %s", pos_id)
@@ -954,10 +848,8 @@ class AlertController:
                 evaluated_value = 0.0
 
         else:
-            self.logger.debug("Alert type %s not recognized for evaluation; defaulting evaluated_value to 0.0",
-                              alert_type)
-            print(
-                f"[populate_evaluated_value] Alert type {alert_type} not recognized; defaulting evaluated_value to 0.0")
+            self.logger.debug("Alert type %s not recognized for evaluation; defaulting evaluated_value to 0.0", alert_type)
+            print(f"[populate_evaluated_value] Alert type {alert_type} not recognized; defaulting evaluated_value to 0.0")
             evaluated_value = 0.0
 
         self.logger.debug("Exiting populate_evaluated_value_for_alert with evaluated_value: %f", evaluated_value)
@@ -993,7 +885,3 @@ class AlertController:
                 count += 1
         print(f"Deleted {count} alerts.")
         return count
-
-
-
-

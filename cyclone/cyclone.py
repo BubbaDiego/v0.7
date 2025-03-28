@@ -8,7 +8,10 @@ from data.data_locker import DataLocker
 from utils.unified_logger import UnifiedLogger
 from sonic_labs.hedge_manager import HedgeManager  # Import HedgeManager directly
 from positions.position_service import PositionService
-from alerts.alert_controller import AlertController, DummyPositionAlert  # Import DummyPositionAlert
+from alerts.alert_enrichment_helpers import normalize_alert_type as normalize_alert_type_helper
+from alerts.alert_controller import AlertController, DummyPositionAlert
+
+ # Import DummyPositionAlert
 
 class Cyclone:
     def __init__(self, poll_interval=60):

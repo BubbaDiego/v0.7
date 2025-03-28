@@ -20,6 +20,15 @@ class AlertEvaluator:
         self.last_triggered = {}
         self.suppressed_count = 0
 
+    def _debug_log(self, message: str):
+        """Helper method to print messages to console and write to a debug log file."""
+        print(message)
+        try:
+            with open("alert_evaluator_debug.log", "a") as f:
+                f.write(message + "\n")
+        except Exception as e:
+            print(f"Error writing to debug log file: {e}")
+
     # -------------------------
     # Subordinate Evaluation Methods
     # -------------------------
@@ -44,7 +53,7 @@ class AlertEvaluator:
             )
             return None
         try:
-            current_val = float(pos.get("current_travel_percent", 0.0))
+            current_val = float(pos.get("travel_percent", 0.0))
         except Exception as e:
             u_logger.log_operation(
                 operation_type="Alert Evaluation Error",
@@ -54,20 +63,45 @@ class AlertEvaluator:
             )
             return None
 
+        # Create a before-evaluation log message (blue color)
+        before_log = (f"[Travel Alert] BEFORE: travel_percent = {current_val}, "
+                      f"thresholds -> low: {low_threshold}, medium: {medium_threshold}, high: {high_threshold}")
+        # ANSI code for blue is "\033[94m" and reset is "\033[0m"
+        print("\033[94m" + before_log + "\033[0m")
+        u_logger.log_operation(
+            operation_type="Alert Evaluation",
+            primary_text=before_log,
+            source="AlertEvaluator",
+            file="alert_evaluator.py"
+        )
+
+        # Determine the alert state based on current_val and thresholds
         if current_val >= 0:
             state = "Normal"
-
+            state_color = "\033[0m"  # default color
         elif current_val <= high_threshold:
             state = "High"
-            print("🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴")
+            state_color = "\033[91m"  # red
         elif current_val <= medium_threshold:
             state = "Medium"
-            print("🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡🟡")
+            state_color = "\033[93m"  # yellow
         elif current_val <= low_threshold:
             state = "Low"
-            print(" 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢 🟢")
+            state_color = "\033[92m"  # green
         else:
             state = "Normal"
+            state_color = "\033[0m"
+
+        # Create an after-evaluation log message with the chosen color
+        after_log = f"[Travel Alert] AFTER: Evaluated state = '{state}' for travel_percent = {current_val}"
+        print(state_color + after_log + "\033[0m")
+        u_logger.log_operation(
+            operation_type="Alert Evaluation",
+            primary_text=after_log,
+            source="AlertEvaluator",
+            file="alert_evaluator.py"
+        )
+
         return state, current_val
 
     def enrich_alert(self, alert: dict) -> dict:
@@ -90,7 +124,11 @@ class AlertEvaluator:
             profit_val = float(pos.get("profit", 0.0))
         except Exception:
             return ""
+        # Log initial profit value
+        self._debug_log(f"[Profit Alert] Initial profit value: {profit_val} for position {position_id}")
+
         if profit_val <= 0:
+            self._debug_log(f"[Profit Alert] Profit value <= 0. Setting state to Normal for position {position_id}")
             self._update_alert_state(pos, "Normal", evaluated_value=profit_val)
             return ""
         profit_config = self.config.get("alert_ranges", {}).get("profit_ranges", {})
@@ -102,7 +140,11 @@ class AlertEvaluator:
             high_thresh = float(profit_config.get("high", 202.0))
         except Exception:
             return ""
+
+        self._debug_log(f"[Profit Alert] profit: {profit_val}, thresholds -> low: {low_thresh}, medium: {med_thresh}, high: {high_thresh}")
+
         if profit_val < low_thresh:
+            self._debug_log(f"[Profit Alert] Profit {profit_val} is below low threshold {low_thresh}. Setting state to Normal.")
             self._update_alert_state(pos, "Normal", evaluated_value=profit_val)
             return ""
         elif profit_val < med_thresh:
@@ -111,15 +153,19 @@ class AlertEvaluator:
             current_level = "Medium"
         else:
             current_level = "High"
+
+        self._debug_log(f"[Profit Alert] Evaluated state: {current_level} for profit value: {profit_val}")
         self._update_alert_state(pos, current_level, evaluated_value=profit_val)
         profit_key = f"profit-{asset_full}-{position_type}-{position_id}"
         now = time.time()
         last_time = self.last_triggered.get(profit_key, 0)
         if now - last_time < self.cooldown:
             self.suppressed_count += 1
+            self._debug_log(f"[Profit Alert] Alert for {position_id} suppressed due to cooldown.")
             return ""
         self.last_triggered[profit_key] = now
         msg = f"Profit ALERT: {asset_full} {position_type} profit of {profit_val:.2f} (Level: {current_level})"
+        self._debug_log(f"[Profit Alert] Final message: {msg}")
         return msg
 
     def evaluate_swing_alert(self, pos: dict) -> str:
@@ -140,15 +186,19 @@ class AlertEvaluator:
             return ""
         hardcoded_swing_thresholds = {"BTC": 6.24, "ETH": 8.0, "SOL": 13.0}
         swing_threshold = hardcoded_swing_thresholds.get(asset, 0)
+        self._debug_log(f"[Swing Alert] liquidation_distance: {current_value}, threshold for {asset}: {swing_threshold}")
         if current_value >= swing_threshold:
+            self._debug_log(f"[Swing Alert] Condition met. Updating alert state to 'Triggered' for position {position_id} with value {current_value}")
             self._update_alert_state(pos, "Triggered", evaluated_value=current_value)
             key = f"swing-{asset_full}-{position_type}-{position_id}"
             now = time.time()
             last_time = self.last_triggered.get(key, 0)
             if now - last_time >= self.cooldown:
                 self.last_triggered[key] = now
-                return (f"Average Daily Swing ALERT: {asset_full} {position_type} (ID: {position_id}) - "
-                        f"Actual Value = {current_value:.2f} exceeds threshold {swing_threshold:.2f}")
+                msg = (f"Average Daily Swing ALERT: {asset_full} {position_type} (ID: {position_id}) - "
+                       f"Actual Value = {current_value:.2f} exceeds threshold {swing_threshold:.2f}")
+                self._debug_log(f"[Swing Alert] Final message: {msg}")
+                return msg
         return ""
 
     def evaluate_blast_alert(self, pos: dict) -> str:
@@ -168,15 +218,19 @@ class AlertEvaluator:
         except Exception:
             return ""
         blast_threshold = 11.2  # Hard-coded for demonstration
+        self._debug_log(f"[Blast Alert] liquidation_distance: {current_value}, blast threshold: {blast_threshold}")
         if current_value >= blast_threshold:
+            self._debug_log(f"[Blast Alert] Condition met. Updating alert state to 'Triggered' for position {position_id} with value {current_value}")
             self._update_alert_state(pos, "Triggered", evaluated_value=current_value)
             key = f"blast-{asset_full}-{position_type}-{position_id}"
             now = time.time()
             last_time = self.last_triggered.get(key, 0)
             if now - last_time >= self.cooldown:
                 self.last_triggered[key] = now
-                return (f"One Day Blast Radius ALERT: {asset_full} {position_type} (ID: {position_id}) - "
-                        f"Actual Value = {current_value:.2f} exceeds threshold {blast_threshold:.2f}")
+                msg = (f"One Day Blast Radius ALERT: {asset_full} {position_type} (ID: {position_id}) - "
+                       f"Actual Value = {current_value:.2f} exceeds threshold {blast_threshold:.2f}")
+                self._debug_log(f"[Blast Alert] Final message: {msg}")
+                return msg
         return ""
 
     def evaluate_price_alerts(self, market_data: dict) -> list:
@@ -201,6 +255,8 @@ class AlertEvaluator:
                         file="alert_evaluator.py"
                     )
                     continue
+                # Log the comparison values for this asset
+                self._debug_log(f"[Market Alert] {asset}: current price: {price}, trigger value: {trigger_val}, condition: {condition}")
                 if (condition == "ABOVE" and price >= trigger_val) or (condition == "BELOW" and price <= trigger_val):
                     msg = f"Market ALERT: {asset} price {price} meets condition {condition} {trigger_val}"
                     alerts.append(msg)
@@ -210,6 +266,7 @@ class AlertEvaluator:
                         source="AlertEvaluator",
                         file="alert_evaluator.py"
                     )
+                    self._debug_log(f"[Market Alert] Triggered message: {msg}")
         return alerts
 
     # -------------------------
@@ -280,6 +337,7 @@ class AlertEvaluator:
                     source="AlertEvaluator",
                     file="alert_evaluator.py"
                 )
+                self._debug_log(f"[System Alert] {msg}")
         # Additional system checks can be added here.
         return alerts
 
@@ -310,6 +368,7 @@ class AlertEvaluator:
                 source="AlertEvaluator",
                 file="alert_evaluator.py"
             )
+            self._debug_log(f"[Update Alert State] For alert {alert_id}: set state to '{new_state}', evaluated_value: {evaluated_value}")
         except Exception as e:
             u_logger.log_operation(
                 operation_type="Alert Update Failed",
@@ -317,3 +376,4 @@ class AlertEvaluator:
                 source="AlertEvaluator",
                 file="alert_evaluator.py"
             )
+            self._debug_log(f"[Update Alert State] Failed to update alert {alert_id}: {e}")

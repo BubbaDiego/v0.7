@@ -29,6 +29,8 @@ class State(str, Enum):
     LOW = "Low"
     MEDIUM = "Medium"
     HIGH = "High"
+    TRIGGERED = "Triggered"
+    LIQUIDATED = "Liquidated"  # Newly added state
 
 class AlertType(str, Enum):
     PRICE_THRESHOLD = "PriceThreshold"
@@ -96,24 +98,25 @@ class Alert:
     """
     Represents alert configuration for monitoring certain thresholds.
     """
+
     def __init__(
-        self,
-        id: str,
-        alert_type: AlertType,
-        alert_class: AlertClass,  # Indicates if the alert is Market or Position related
-        trigger_value: float,
-        notification_type: NotificationType,
-        last_triggered: Optional[datetime],
-        status: Status,
-        frequency: int,
-        counter: int,
-        liquidation_distance: float,
-        target_travel_percent: float,
-        liquidation_price: float,
-        notes: Optional[str],
-        position_reference_id: Optional[str],
-        state: State = State.NORMAL,  # New explicit state field with default Normal
-        evaluated_value: float = 0.0   # NEW: The evaluated value used for alert condition checking
+            self,
+            id: str,
+            alert_type: AlertType,
+            alert_class: AlertClass,
+            trigger_value: float,
+            notification_type: NotificationType,
+            last_triggered: Optional[datetime],
+            status: Status,
+            frequency: int,
+            counter: int,
+            liquidation_distance: float,
+            travel_percent: float,
+            liquidation_price: float,
+            notes: Optional[str],
+            position_reference_id: Optional[str],
+            state: State = State.NORMAL,
+            evaluated_value: float = 0.0
     ):
         self.id = id
         self.alert_type = alert_type
@@ -125,7 +128,7 @@ class Alert:
         self.frequency = frequency
         self.counter = counter
         self.liquidation_distance = liquidation_distance
-        self.target_travel_percent = target_travel_percent
+        self.target_travel_percent = travel_percent
         self.liquidation_price = liquidation_price
         self.notes = notes
         self.position_reference_id = position_reference_id
@@ -154,7 +157,7 @@ class Position:
         position_type: str = "",
         entry_price: float = 0.0,
         liquidation_price: float = 0.0,
-        current_travel_percent: float = 0.0,
+        travel_percent: float = 0.0,
         value: float = 0.0,
         collateral: float = 0.0,
         size: float = 0.0,

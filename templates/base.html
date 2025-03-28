@@ -24,6 +24,8 @@
       --title-bar-color: {{ theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('title bar', {}).get('color', '#007BFF') }};
       --text-color: {{ theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('text', {}).get('color', '#FFF') }};
       --wallpaper-color: {{ theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('wallpaper', {}).get('color', '#E7F1FF') }};
+      --card-title-color: {{ theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('card title', {}).get('color', '#FFFFFF') }};
+      --card-background-color: {{ theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('card background', {}).get('color', '#D0E7FF') }};
     }
     body {
       color: var(--text-color);

@@ -90,14 +90,14 @@ class PositionService:
                 cursor = dl.conn.cursor()
                 cursor.execute("""
                     UPDATE positions 
-                       SET current_travel_percent = ?,
+                       SET travel_percent = ?,
                            liquidation_distance = ?,
                            heat_index = ?,
                            current_heat_index = ?,
                            current_price = ?
                      WHERE id = ?
                 """, (
-                    enriched.get("current_travel_percent"),
+                    enriched.get("travel_percent"),
                     enriched.get("liquidation_distance"),
                     enriched.get("heat_index"),
                     enriched.get("current_heat_index"),
@@ -309,7 +309,7 @@ class PositionService:
                             "last_updated": updated_dt.isoformat(),
                             "wallet_name": w["name"],
                             "pnl_after_fees_usd": float(item.get("pnlAfterFeesUsd", 0.0)),
-                            "current_travel_percent": travel_percent
+                            "travel_percent": travel_percent
                         }
                         new_positions.append(pos_dict)
                     except Exception as map_err:
@@ -368,7 +368,7 @@ class PositionService:
                     "position_type": pos.get("side", ""),
                     "entry_price": float(pos.get("entryPrice", 0.0)),
                     "liquidation_price": 0.0,
-                    "current_travel_percent": 0.0,
+                    "travel_percent": 0.0,
                     "value": float(pos.get("size", 0.0)) * float(pos.get("entryPrice", 0.0)),
                     "collateral": 0.0,
                     "size": float(pos.get("size", 0.0)),

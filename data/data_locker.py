@@ -125,7 +125,7 @@ class DataLocker:
                     position_type TEXT,
                     entry_price REAL,
                     liquidation_price REAL,
-                    current_travel_percent REAL,
+                    travel_percent REAL,  -- ← NEW unified column name
                     value REAL,
                     collateral REAL,
                     size REAL,
@@ -140,6 +140,7 @@ class DataLocker:
                     current_heat_index REAL,
                     pnl_after_fees_usd REAL
                 )
+
             """)
 
             # Create alerts table if it doesn't exist
@@ -571,25 +572,14 @@ class DataLocker:
             values = list(update_fields.values())
             values.append(alert_id)
             sql = f"UPDATE alerts SET {set_clause} WHERE id=?"
+            self.logger.debug("Executing SQL: %s with values: %s", sql, values)
             cursor.execute(sql, values)
             self.conn.commit()
             num_updated = cursor.rowcount
-            self.u_logger.log_operation(
-                operation_type="Alert Update",
-                primary_text=f"Alert {alert_id} updated, rows affected: {num_updated}",
-                source="System",
-                file="data_locker.py",
-                extra_data={}
-            )
+            self.logger.info("Alert %s updated, rows affected: %s", alert_id, num_updated)
             return num_updated
         except Exception as ex:
-            self.u_logger.log_operation(
-                operation_type="Alert Update Failed",
-                primary_text=f"Error updating alert conditions for {alert_id}: {ex}",
-                source="System",
-                file="data_locker.py",
-                extra_data={}
-            )
+            self.logger.error("Error updating alert conditions for %s: %s", alert_id, ex, exc_info=True)
             raise
 
     def get_alerts(self) -> List[dict]:
@@ -671,7 +661,7 @@ class DataLocker:
         pos_dict.setdefault("position_type", "LONG")
         pos_dict.setdefault("entry_price", 0.0)
         pos_dict.setdefault("liquidation_price", 0.0)
-        pos_dict.setdefault("current_travel_percent", 0.0)
+        pos_dict.setdefault("travel_percent", 0.0)
         pos_dict.setdefault("value", 0.0)
         pos_dict.setdefault("collateral", 0.0)
         pos_dict.setdefault("size", 0.0)
@@ -691,14 +681,14 @@ class DataLocker:
             cursor.execute("""
                 INSERT INTO positions (
                     id, asset_type, position_type,
-                    entry_price, liquidation_price, current_travel_percent,
+                    entry_price, liquidation_price, travel_percent,
                     value, collateral, size, wallet_name, leverage, last_updated,
                     alert_reference_id, hedge_buddy_id, current_price,
                     liquidation_distance, heat_index, current_heat_index,
                     pnl_after_fees_usd
                 ) VALUES (
                     :id, :asset_type, :position_type,
-                    :entry_price, :liquidation_price, :current_travel_percent,
+                    :entry_price, :liquidation_price, :travel_percent,
                     :value, :collateral, :size, :wallet_name, :leverage, :last_updated,
                     :alert_reference_id, :hedge_buddy_id, :current_price,
                     :liquidation_distance, :heat_index, :current_heat_index,
