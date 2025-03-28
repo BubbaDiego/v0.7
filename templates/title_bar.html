@@ -49,24 +49,29 @@
       font-size: 24px;
       font-weight: bold;
       background-color: #f8f9fa;
-      /* make Jupiter image fill more of the circle */
       background-size: 80%;
       background-position: center;
       background-repeat: no-repeat;
     }
+    /* Make the Jupiter image a little bigger without increasing the circle size */
+    #updateJupiterBtn .update-icon {
+      background-size: 90%;
+    }
 
-    /* Timer box: now purple, bold white text */
+    /* Timer box: now purple, bold white text, and shifted slightly to the left */
     .timer-box {
-      background-color: #6f42c1; /* changed to purple */
+      background-color: #6f42c1; /* purple */
       border-radius: 4px;
       padding: 0.25rem 0.5rem;
       display: flex;
       align-items: center;
       gap: 0.75rem;
+      margin-left: -5px; /* shifted left */
     }
     .timer-box span {
       color: #fff;        /* white text */
-      font-weight: bold;  /* bold numbers */
+      font-weight: bold;  /* bold */
+      font-size: 1.2em;   /* slightly bigger icons */
     }
 
     /* Slightly lower the Jupiter button to align with other buttons */
@@ -77,7 +82,7 @@
     /* Raise the hedgehog icon a bit */
     .hedgehog-icon {
       position: relative;
-      top: -2px; /* negative = shift upward */
+      top: -2px; /* shift upward */
     }
 
     @keyframes spin {
