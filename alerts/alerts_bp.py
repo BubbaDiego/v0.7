@@ -16,7 +16,7 @@ if current_dir not in sys.path:
     sys.path.append(current_dir)
 
 # Create the blueprint with URL prefix '/alerts'
-alerts_bp = Blueprint('alerts_bp', __name__, url_prefix='/alerts')
+alerts_bp = Blueprint('alerts_bp', __name__, url_prefix='/alerts', template_folder='.')
 
 logger = logging.getLogger("AlertManagerLogger")
 logger.setLevel(logging.DEBUG)

@@ -1,0 +1,383 @@
+{% extends "base.html" %}
+
+{% block title %}Alert Limits Configuration{% endblock %}
+
+{% block extra_styles %}
+<style>
+  /* Override default Bootstrap classes to use theme colors */
+  .bg-primary {
+    background-color: var(--card-title-color) !important;
+    color: var(--text-color) !important;
+  }
+  .bg-info {
+    background-color: var(--card-background-color) !important;
+    color: var(--text-color) !important;
+  }
+  /* Outer wrapper for all alert sections */
+  .alert-limits-wrapper {
+    background: var(--card-background-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-top: 1rem;
+    margin-bottom: 2rem;
+    color: var(--text-color);
+  }
+  /* Smaller card header text - making titles bold */
+  .card-header h5 {
+    font-size: 1.25rem;
+    margin: 0;
+    font-weight: bold;
+  }
+  /* Table styling for inline notification selectors */
+  .notif-inline {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .notif-inline .form-check {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0;
+  }
+  .notif-inline .form-check-input {
+    margin-right: 0.3rem;
+  }
+  /* For threshold input with inline notification selectors */
+  .threshold-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  /* Increase the width so text won't be cut off */
+  .threshold-input,
+  .form-control.threshold-input {
+    width: 100px;
+    position: relative;
+    z-index: 2;
+  }
+  /* Spacing between card rows */
+  .card-row + .card-row {
+    margin-top: 1.5rem;
+  }
+  /* Let the second column match the height of the first by using flex-fill */
+  .equal-height-col {
+    display: flex;
+    flex-direction: column;
+  }
+  .equal-height-col .card {
+    flex: 1 1 auto;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="alert-limits-wrapper">
+    <!-- Wrap the entire configuration in a form -->
+    <form method="POST" action="{{ url_for('alerts_bp.update_alert_config') }}">
+      <!-- Content Header -->
+      <section class="content-header">
+        <div class="container-fluid">
+          <div class="row mb-2">
+            <div class="col-sm-12">
+              <h1>Alert Limits Configuration</h1>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Main content -->
+      <section class="content">
+        <div class="container-fluid">
+          <!-- First row: Price Alerts & Alert Timing side by side -->
+          <div class="row card-row">
+            <!-- Price Alerts Column (left) -->
+            <div class="col-lg-7">
+              <div class="card bg-primary">
+                <div class="card-header">
+                  <h5 class="card-title"><strong>💲 Price Alerts</strong></h5>
+                </div>
+                <div class="card-body">
+                  <table class="table table-bordered text-center">
+                    <thead>
+                      <tr>
+                        <th>Asset</th>
+                        <th>Enabled</th>
+                        <th>Condition</th>
+                        <th>Trigger Value</th>
+                        <th>Notifications</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <!-- BTC Row -->
+                      <tr>
+                        <td>
+                          <img src="https://cryptologos.cc/logos/bitcoin-btc-logo.png"
+                               alt="BTC"
+                               style="height:24px; margin-right:5px;">
+                          BTC
+                        </td>
+                        <td>
+                          <input type="checkbox" name="price_alerts[BTC][enabled]" {% if price_alerts.BTC.enabled %}checked{% endif %} />
+                        </td>
+                        <td>{{ price_alerts.BTC.condition }}</td>
+                        <td>
+                          <input type="number" class="form-control" style="width:100px;" name="price_alerts[BTC][trigger_value]" value="{{ price_alerts.BTC.trigger_value }}" />
+                        </td>
+                        <td>
+                          <div class="notif-inline justify-content-center">
+                            <label class="form-check">
+                              <input type="checkbox" class="form-check-input" name="price_alerts[BTC][notifications][call]" {% if price_alerts['BTC']['notifications']['call'] %}checked{% endif %} />
+                              <span style="color:green;">☎</span>
+                            </label>
+                            <label class="form-check">
+                              <input type="checkbox" class="form-check-input" name="price_alerts[BTC][notifications][sms]" {% if price_alerts.BTC.notifications.sms %}checked{% endif %} />
+                              <span style="color:orange;">💬</span>
+                            </label>
+                            <label class="form-check">
+                              <input type="checkbox" class="form-check-input" name="price_alerts[BTC][notifications][email]" {% if price_alerts.BTC.notifications.email %}checked{% endif %} />
+                              <span style="color:blue;">✉</span>
+                            </label>
+                          </div>
+                        </td>
+                      </tr>
+                      <!-- ETH Row -->
+                      <tr>
+                        <td>
+                          <img src="https://cryptologos.cc/logos/ethereum-eth-logo.png"
+                               alt="ETH"
+                               style="height:24px; margin-right:5px;">
+                          ETH
+                        </td>
+                        <td>
+                          <input type="checkbox" name="price_alerts[ETH][enabled]" {% if price_alerts.ETH.enabled %}checked{% endif %} />
+                        </td>
+                        <td>{{ price_alerts.ETH.condition }}</td>
+                        <td>
+                          <input type="number" class="form-control" style="width:100px;" name="price_alerts[ETH][trigger_value]" value="{{ price_alerts.ETH.trigger_value }}" />
+                        </td>
+                        <td>
+                          <div class="notif-inline justify-content-center">
+                            <label class="form-check">
+                              <input type="checkbox" class="form-check-input" name="price_alerts[ETH][notifications][call]" {% if price_alerts.ETH.notifications.call %}checked{% endif %} />
+                              <span style="color:green;">☎</span>
+                            </label>
+                            <label class="form-check">
+                              <input type="checkbox" class="form-check-input" name="price_alerts[ETH][notifications][sms]" {% if price_alerts.ETH.notifications.sms %}checked{% endif %} />
+                              <span style="color:orange;">💬</span>
+                            </label>
+                            <label class="form-check">
+                              <input type="checkbox" class="form-check-input" name="price_alerts[ETH][notifications][email]" {% if price_alerts.ETH.notifications.email %}checked{% endif %} />
+                              <span style="color:blue;">✉</span>
+                            </label>
+                          </div>
+                        </td>
+                      </tr>
+                      <!-- SOL Row -->
+                      <tr>
+                        <td>
+                          <img src="https://cryptologos.cc/logos/solana-sol-logo.png"
+                               alt="SOL"
+                               style="height:24px; margin-right:5px;">
+                          SOL
+                        </td>
+                        <td>
+                          <input type="checkbox" name="price_alerts[SOL][enabled]" {% if price_alerts.SOL.enabled %}checked{% endif %} />
+                        </td>
+                        <td>{{ price_alerts.SOL.condition }}</td>
+                        <td>
+                          <input type="number" class="form-control" style="width:100px;" name="price_alerts[SOL][trigger_value]" value="{{ price_alerts.SOL.trigger_value }}" />
+                        </td>
+                        <td>
+                          <div class="notif-inline justify-content-center">
+                            <label class="form-check">
+                              <input type="checkbox" class="form-check-input" name="price_alerts[SOL][notifications][call]" {% if price_alerts.SOL.notifications.call %}checked{% endif %} />
+                              <span style="color:green;">☎</span>
+                            </label>
+                            <label class="form-check">
+                              <input type="checkbox" class="form-check-input" name="price_alerts[SOL][notifications][sms]" {% if price_alerts.SOL.notifications.sms %}checked{% endif %} />
+                              <span style="color:orange;">💬</span>
+                            </label>
+                            <label class="form-check">
+                              <input type="checkbox" class="form-check-input" name="price_alerts[SOL][notifications][email]" {% if price_alerts.SOL.notifications.email %}checked{% endif %} />
+                              <span style="color:blue;">✉</span>
+                            </label>
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Alert Timing Column (right) -->
+            <div class="col-lg-5 equal-height-col">
+              <div class="card bg-info flex-fill">
+                <div class="card-header">
+                  <h5 class="card-title"><strong>⏱ Alert Timing</strong></h5>
+                </div>
+                <div class="card-body">
+                  <div class="form-group">
+                    <label>Alert Cooldown (seconds)</label>
+                    <input type="number" class="form-control" style="width:100px;" name="alert_cooldown_seconds" value="{{ alert_cooldown_seconds }}">
+                  </div>
+                  <div class="form-group">
+                    <label>Call Refractory Period (seconds)</label>
+                    <input type="number" class="form-control" style="width:100px;" name="call_refractory_period" id="callRefractoryInput" value="{{ call_refractory_period }}">
+                  </div>
+                  <div class="form-group">
+                    <label>Snooze Countdown (seconds)</label>
+                    <input type="number" class="form-control" style="width:100px;" name="snooze_countdown" value="{{ alert_ranges.snooze_countdown if alert_ranges.snooze_countdown is defined else 300 }}" readonly>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Second row: Alert Limits (full width) -->
+          <div class="row card-row">
+            <div class="col-12">
+              <div class="card bg-info">
+                <div class="card-header">
+                  <h5 class="card-title"><strong>⚙️ Alert Limits</strong></h5>
+                </div>
+                <div class="card-body">
+                  <table class="table table-bordered text-center">
+                    <thead>
+                      <tr>
+                        <th style="width:18%;">Metric</th>
+                        <th style="width:10%;">Enabled</th>
+                        <th style="width:24%;">Low</th>
+                        <th style="width:24%;">Medium</th>
+                        <th style="width:24%;">High</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <!-- Heat Index -->
+                      <tr>
+                        <td>🔥 Heat Index</td>
+                        <td><input type="checkbox" name="alert_ranges[heat_index_ranges][enabled]" {% if alert_ranges.heat_index_ranges.enabled %}checked{% endif %} /></td>
+                        <td>
+                          <div class="threshold-cell">
+                            <input type="number" class="threshold-input form-control" name="alert_ranges[heat_index_ranges][low]" value="{{ alert_ranges.heat_index_ranges.low }}">
+                          </div>
+                        </td>
+                        <td>
+                          <div class="threshold-cell">
+                            <input type="number" class="threshold-input form-control" name="alert_ranges[heat_index_ranges][medium]" value="{{ alert_ranges.heat_index_ranges.medium }}">
+                          </div>
+                        </td>
+                        <td>
+                          <div class="threshold-cell">
+                            <input type="number" class="threshold-input form-control" name="alert_ranges[heat_index_ranges][high]" value="{{ alert_ranges.heat_index_ranges.high }}">
+                          </div>
+                        </td>
+                      </tr>
+                      <!-- Travel Percent Liquid -->
+                      <tr>
+                        <td>💧 Travel % Liquid</td>
+                        <td><input type="checkbox" name="alert_ranges[travel_percent_liquid_ranges][enabled]" {% if alert_ranges.travel_percent_liquid_ranges.enabled %}checked{% endif %} /></td>
+                        <td>
+                          <div class="threshold-cell">
+                            <input type="number" class="threshold-input form-control" name="alert_ranges[travel_percent_liquid_ranges][low]" value="{{ alert_ranges.travel_percent_liquid_ranges.low }}">
+                          </div>
+                        </td>
+                        <td>
+                          <div class="threshold-cell">
+                            <input type="number" class="threshold-input form-control" name="alert_ranges[travel_percent_liquid_ranges][medium]" value="{{ alert_ranges.travel_percent_liquid_ranges.medium }}">
+                          </div>
+                        </td>
+                        <td>
+                          <div class="threshold-cell">
+                            <input type="number" class="threshold-input form-control" name="alert_ranges[travel_percent_liquid_ranges][high]" value="{{ alert_ranges.travel_percent_liquid_ranges.high }}">
+                          </div>
+                        </td>
+                      </tr>
+                      <!-- Travel Percent Profit -->
+                      <tr>
+                        <td>📈 Travel % Profit</td>
+                        <td><input type="checkbox" name="alert_ranges[travel_percent_profit_ranges][enabled]" {% if alert_ranges.travel_percent_profit_ranges.enabled %}checked{% endif %} /></td>
+                        <td>
+                          <div class="threshold-cell">
+                            <input type="number" class="threshold-input form-control" name="alert_ranges[travel_percent_profit_ranges][low]" value="{{ alert_ranges.travel_percent_profit_ranges.low }}">
+                          </div>
+                        </td>
+                        <td>
+                          <div class="threshold-cell">
+                            <input type="number" class="threshold-input form-control" name="alert_ranges[travel_percent_profit_ranges][medium]" value="{{ alert_ranges.travel_percent_profit_ranges.medium }}">
+                          </div>
+                        </td>
+                        <td>
+                          <div class="threshold-cell">
+                            <input type="number" class="threshold-input form-control" name="alert_ranges[travel_percent_profit_ranges][high]" value="{{ alert_ranges.travel_percent_profit_ranges.high }}">
+                          </div>
+                        </td>
+                      </tr>
+                      <!-- Profit -->
+                      <tr>
+                        <td>💰 Profit</td>
+                        <td><input type="checkbox" name="alert_ranges[profit_ranges][enabled]" {% if alert_ranges.profit_ranges.enabled %}checked{% endif %} /></td>
+                        <td>
+                          <div class="threshold-cell">
+                            <input type="number" class="threshold-input form-control" name="alert_ranges[profit_ranges][low]" value="{{ alert_ranges.profit_ranges.low }}">
+                          </div>
+                        </td>
+                        <td>
+                          <div class="threshold-cell">
+                            <input type="number" class="threshold-input form-control" name="alert_ranges[profit_ranges][medium]" value="{{ alert_ranges.profit_ranges.medium }}">
+                          </div>
+                        </td>
+                        <td>
+                          <div class="threshold-cell">
+                            <input type="number" class="threshold-input form-control" name="alert_ranges[profit_ranges][high]" value="{{ alert_ranges.profit_ranges.high }}">
+                          </div>
+                        </td>
+                      </tr>
+                      <!-- Liquidation Distance -->
+                      <tr>
+                        <td>📏 Liquidation Distance</td>
+                        <td><input type="checkbox" name="alert_ranges[liquidation_distance_ranges][enabled]" {% if alert_ranges.liquidation_distance_ranges.enabled %}checked{% endif %} /></td>
+                        <td>
+                          <div class="threshold-cell">
+                            <input type="number" class="threshold-input form-control" name="alert_ranges[liquidation_distance_ranges][low]" value="{{ alert_ranges.liquidation_distance_ranges.low }}" placeholder="N/A">
+                          </div>
+                        </td>
+                        <td>
+                          <div class="threshold-cell">
+                            <input type="number" class="threshold-input form-control" name="alert_ranges[liquidation_distance_ranges][medium]" value="{{ alert_ranges.liquidation_distance_ranges.medium }}" placeholder="N/A">
+                          </div>
+                        </td>
+                        <td>
+                          <div class="threshold-cell">
+                            <input type="number" class="threshold-input form-control" name="alert_ranges[liquidation_distance_ranges][high]" value="{{ alert_ranges.liquidation_distance_ranges.high }}" placeholder="N/A">
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Save Configuration Button -->
+        <div class="row mt-4">
+          <div class="col-12 text-center">
+            <button type="submit" class="btn btn-success btn-lg">Save Configuration</button>
+          </div>
+        </div>
+      </div>
+    </section>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // Header timers removed as per request.
+</script>
+{% endblock %}

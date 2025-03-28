@@ -8,10 +8,8 @@ from data.data_locker import DataLocker
 from utils.unified_logger import UnifiedLogger
 from sonic_labs.hedge_manager import HedgeManager  # Import HedgeManager directly
 from positions.position_service import PositionService
-from alerts.alert_enrichment_helpers import normalize_alert_type as normalize_alert_type_helper
+#from alerts.alert_enrichment_helpers import normalize_alert_type as normalize_alert_type_helper
 from alerts.alert_controller import AlertController, DummyPositionAlert
-
- # Import DummyPositionAlert
 
 class Cyclone:
     def __init__(self, poll_interval=60):
@@ -24,7 +22,7 @@ class Cyclone:
         # Initialize core components
         self.data_locker = DataLocker.get_instance()
         self.price_monitor = PriceMonitor()  # Market Updates
-        self.alert_manager = AlertManager()    # Alert Updates
+        self.alert_manager = AlertManager()  # Alert Updates
 
     async def run_market_updates(self):
         self.logger.info("Starting Market Updates")
@@ -194,10 +192,10 @@ class Cyclone:
             )
 
     async def run_cycle(self, steps=None):
+        # Master run_cycle method to run various steps
         available_steps = {
             "market": self.run_market_updates,
             "position": self.run_position_updates,
-            "delete_position": self.run_delete_position,  # New deletion step
             "enrichment": self.run_position_enrichment,
             "create_market_alerts": self.run_create_market_alerts,
             "create_position_alerts": self.run_create_position_alerts,
@@ -213,8 +211,12 @@ class Cyclone:
                 else:
                     self.logger.warning(f"Unknown step requested: {step}")
         else:
-            for step in ["market", "position", "enrichment", "create_market_alerts",
-                         "create_position_alerts", "create_system_alerts", "update_evaluated_value", "alert", "system"]:
+            for step in [
+                "market", "position", "enrichment",
+                "create_market_alerts", "create_position_alerts",
+                "create_system_alerts", "update_evaluated_value",
+                "alert", "system"
+            ]:
                 await available_steps[step]()
 
     async def run_create_position_alerts(self):
@@ -268,7 +270,6 @@ class Cyclone:
             print(f"Position {position_id} deleted along with associated alerts and hedges.")
         except Exception as e:
             print(f"Error deleting position {position_id}: {e}")
-
 
     async def run_create_system_alerts(self):
         self.logger.info("Creating System Alerts")
@@ -402,29 +403,6 @@ class Cyclone:
             else:
                 print("Invalid choice, please try again.")
 
-    async def run_cycle(self, steps=None):
-        available_steps = {
-            "market": self.run_market_updates,
-            "position": self.run_position_updates,
-            "enrichment": self.run_position_enrichment,
-            "create_market_alerts": self.run_create_market_alerts,
-            "create_position_alerts": self.run_create_position_alerts,
-            "create_system_alerts": self.run_create_system_alerts,
-            "update_evaluated_value": self.run_update_evaluated_value,
-            "alert": self.run_alert_updates,
-            "system": self.run_system_updates,
-            "update_evaluated_value": self.run_update_evaluated_value
-        }
-        if steps:
-            for step in steps:
-                if step in available_steps:
-                    await available_steps[step]()
-                else:
-                    self.logger.warning(f"Unknown step requested: {step}")
-        else:
-            for step in ["market", "position", "enrichment", "create_market_alerts", "create_position_alerts", "create_system_alerts", "update_evaluated_value", "alert", "system"]:
-                await available_steps[step]()
-
     async def run(self):
         self.logger.info("Cyclone main loop started in Active mode.")
         while True:
@@ -492,7 +470,7 @@ class Cyclone:
             print("5) 🔄 Update Evaluated Value")
             print("6) 🔍 Alert Evaluations")
             print("7) 🧹 Clear Alerts")
-            print("8) ♻️ Refresh Alerts")  # New option for refresh_all_alerts
+            print("8) ♻️ Refresh Alerts")
             print("9) ↩️ Back to Main Menu")
             choice = input("Enter your choice (1-9): ").strip()
             if choice == "1":
@@ -527,7 +505,6 @@ class Cyclone:
             else:
                 print("Invalid choice, please try again.")
 
-
     def run_wallets_menu(self):
         while True:
             print("\n--- Wallets Menu ---")
@@ -549,54 +526,6 @@ class Cyclone:
                 break
             else:
                 print("Invalid choice, please try again.")
-
-    def run_individual_steps_menu(self):
-        while True:
-            print("\n--- Individual Steps Menu ---")
-            print("1) 💰 Prices")
-            print("2) 📊 Positions")
-            print("3) 🔔 Alerts")
-            print("4) 🛡 Hedge")
-            print("5) 💼 Wallets")
-            print("6) ↩️ Back to Main Menu")
-            choice = input("Enter your choice (1-6): ").strip()
-            if choice == "1":
-                self.run_prices_menu()
-            elif choice == "2":
-                self.run_positions_menu()
-            elif choice == "3":
-                self.run_alerts_menu()
-            elif choice == "4":
-                self.run_hedges_menu()
-            elif choice == "5":
-                self.run_wallets_menu()
-            elif choice == "6":
-                break
-            else:
-                print("Invalid choice, please try again.")
-
-    def run_console(self):
-        while True:
-            print("\n=== Cyclone Interactive Console ===")
-            print("1) 🚀 Run Full Cycle (Cyclone)")
-            print("2) 🔧 Run Individual Steps")
-            print("3) 🗑️ Delete All Data")
-            print("4) ❌ Exit")
-            choice = input("Enter your choice (1-4): ").strip()
-            if choice == "1":
-                print("Running full cycle (all steps)...")
-                asyncio.run(self.run_cycle())
-                print("Full cycle completed.")
-            elif choice == "2":
-                self.run_individual_steps_menu()
-            elif choice == "3":
-                self.run_delete_all_data()
-            elif choice == "4":
-                print("Exiting console mode.")
-                break
-            else:
-                print("Invalid choice, please try again.")
-
 
     def view_prices_backend(self):
         try:
@@ -631,7 +560,6 @@ class Cyclone:
             print("All alerts, prices, and positions have been deleted.")
         except Exception as e:
             print(f"Error deleting data: {e}")
-
 
     def clear_prices_backend(self):
         try:
@@ -783,174 +711,38 @@ class Cyclone:
         except Exception as e:
             print(f"Error clearing wallets: {e}")
 
-    def run_individual_steps_menu(self):
-        while True:
-            print("\n--- Individual Steps Menu ---")
-            print("1) 💰 Prices")
-            print("2) 📊 Positions")
-            print("3) 🔔 Alerts")
-            print("4) 🛡 Hedge")
-            print("5) 💼 Wallets")
-            print("6) ↩️ Back to Main Menu")
-            choice = input("Enter your choice (1-6): ").strip()
-            if choice == "1":
-                self.run_prices_menu()
-            elif choice == "2":
-                self.run_positions_menu()
-            elif choice == "3":
-                self.run_alerts_menu()
-            elif choice == "4":
-                self.run_hedges_menu()
-            elif choice == "5":
-                self.run_wallets_menu()
-            elif choice == "6":
-                break
-            else:
-                print("Invalid choice, please try again.")
-
     def run_console(self):
+        # Combined menu, with #1 Full Cycle, #2 Delete All, #3–#7 submenus, #8 Exit
         while True:
             print("\n=== Cyclone Interactive Console ===")
-            print("1) 🚀 Run Full Cycle (Cyclone)")
-            print("2) 🔧 Run Individual Steps")
-            print("3) 🗑️ Delete All Data")
-            print("4) ❌ Exit")
-            choice = input("Enter your choice (1-4): ").strip()
+            print("1) 🌀 Run Full Cycle")
+            print("2) 🗑️ Delete All Data")
+            print("3) 💰 Prices")
+            print("4) 📊 Positions")
+            print("5) 🔔 Alerts")
+            print("6) 🛡 Hedge")
+            print("7) 💼 Wallets")
+            print("8) ❌ Exit")
+            choice = input("Enter your choice (1-8): ").strip()
+
             if choice == "1":
                 print("Running full cycle (all steps)...")
                 asyncio.run(self.run_cycle())
                 print("Full cycle completed.")
             elif choice == "2":
-                self.run_individual_steps_menu()
-            elif choice == "3":
                 self.run_delete_all_data()
-            elif choice == "4":
-                print("Exiting console mode.")
-                break
-            else:
-                print("Invalid choice, please try again.")
-
-
-    def view_alerts_backend(self):
-        try:
-            from pprint import pprint
-            dl = DataLocker.get_instance()
-            cursor = dl.conn.cursor()
-            cursor.execute("SELECT * FROM alerts")
-            alerts = cursor.fetchall()
-            cursor.close()
-            print("----- Alerts -----")
-            print(f"Found {len(alerts)} alert record(s).")
-            for row in alerts:
-                alert_dict = dict(row)
-                if "evaluated_value" not in alert_dict:
-                    alert_dict["evaluated_value"] = None
-                pprint(alert_dict)
-        except Exception as e:
-            print(f"Error viewing alerts: {e}")
-
-    def clear_alerts_backend(self):
-        try:
-            dl = DataLocker.get_instance()
-            cursor = dl.conn.cursor()
-            cursor.execute("DELETE FROM alerts")
-            dl.conn.commit()
-            deleted = cursor.rowcount
-            cursor.close()
-            self.u_logger.log_operation(
-                operation_type="Clear Alerts",
-                primary_text=f"Cleared {deleted} alert record(s)",
-                source="Cyclone",
-                file="cyclone.py"
-            )
-            print(f"Alerts cleared. {deleted} record(s) deleted.")
-        except Exception as e:
-            print(f"Error clearing alerts: {e}")
-
-    def view_wallets_backend(self):
-        try:
-            from pprint import pprint
-            dl = DataLocker.get_instance()
-            cursor = dl.conn.cursor()
-            cursor.execute("SELECT * FROM wallets")
-            wallets = cursor.fetchall()
-            cursor.close()
-            print("----- Wallets -----")
-            print(f"Found {len(wallets)} wallet record(s).")
-            for row in wallets:
-                pprint(dict(row))
-        except Exception as e:
-            print(f"Error viewing wallets: {e}")
-
-    def add_wallet_backend(self):
-        try:
-            name = input("Enter wallet name: ").strip()
-            public_address = input("Enter public address: ").strip()
-            private_address = input("Enter private address: ").strip()
-            image_path = input("Enter image path: ").strip()
-            balance_str = input("Enter balance: ").strip()
-            try:
-                balance = float(balance_str)
-            except Exception:
-                balance = 0.0
-            dl = DataLocker.get_instance()
-            cursor = dl.conn.cursor()
-            cursor.execute(
-                "INSERT INTO wallets (name, public_address, private_address, image_path, balance) VALUES (?, ?, ?, ?, ?)",
-                (name, public_address, private_address, image_path, balance)
-            )
-            dl.conn.commit()
-            inserted = cursor.rowcount
-            cursor.close()
-            self.u_logger.log_operation(
-                operation_type="Add Wallet",
-                primary_text=f"Added wallet '{name}' ({inserted} row inserted)",
-                source="Cyclone",
-                file="cyclone.py"
-            )
-            print(f"Wallet added successfully. {inserted} record(s) inserted.")
-        except Exception as e:
-            print(f"Error adding wallet: {e}")
-
-    def clear_wallets_backend(self):
-        try:
-            dl = DataLocker.get_instance()
-            cursor = dl.conn.cursor()
-            cursor.execute("DELETE FROM wallets")
-            dl.conn.commit()
-            deleted = cursor.rowcount
-            cursor.close()
-            self.u_logger.log_operation(
-                operation_type="Clear Wallets",
-                primary_text=f"Cleared {deleted} wallet record(s)",
-                source="Cyclone",
-                file="cyclone.py"
-            )
-            print(f"Wallets cleared. {deleted} record(s) deleted.")
-        except Exception as e:
-            print(f"Error clearing wallets: {e}")
-
-    def run_individual_steps_menu(self):
-        while True:
-            print("\n--- Individual Steps Menu ---")
-            print("1) 💰 Prices")
-            print("2) 📊 Positions")
-            print("3) 🔔 Alerts")
-            print("4) 🛡 Hedge")
-            print("5) 💼 Wallets")
-            print("6) ↩️ Back to Main Menu")
-            choice = input("Enter your choice (1-6): ").strip()
-            if choice == "1":
-                self.run_prices_menu()
-            elif choice == "2":
-                self.run_positions_menu()
             elif choice == "3":
-                self.run_alerts_menu()
+                self.run_prices_menu()
             elif choice == "4":
-                self.run_hedges_menu()
+                self.run_positions_menu()
             elif choice == "5":
-                self.run_wallets_menu()
+                self.run_alerts_menu()
             elif choice == "6":
+                self.run_hedges_menu()
+            elif choice == "7":
+                self.run_wallets_menu()
+            elif choice == "8":
+                print("Exiting console mode.")
                 break
             else:
                 print("Invalid choice, please try again.")

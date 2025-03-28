@@ -51,7 +51,7 @@ u_logger = UnifiedLogger()
 from config.config_constants import CONFIG_PATH
 SONIC_SAUCE_PATH = os.path.join(os.path.dirname(CONFIG_PATH), "sonic_sauce.json")
 
-positions_bp = Blueprint("positions", __name__, template_folder="templates")
+positions_bp = Blueprint("positions", __name__, url_prefix='/positions', template_folder='.')
 
 def get_socketio():
     return current_app.extensions.get('socketio')

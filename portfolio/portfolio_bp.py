@@ -24,7 +24,7 @@ def index():
         last_value = portfolio_history[-1].get("total_value", 0)
         if first_value != 0:
             percent_change = ((last_value - first_value) / first_value) * 100
-    return render_template("portfolio.html", portfolio_data=portfolio_history, percent_change=percent_change)
+    return render_template("../positions/portfolio.html", portfolio_data=portfolio_history, percent_change=percent_change)
 
 @portfolio_bp.route("/add", methods=["GET", "POST"])
 def add_entry():
