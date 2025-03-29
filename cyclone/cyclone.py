@@ -240,6 +240,68 @@ class Cyclone:
             self.logger.error(f"Error cleansing IDs: {e}", exc_info=True)
             print(f"Error cleansing IDs: {e}")
 
+    async def run_link_hedges(self):
+        """
+        Links hedge associations by scanning raw positions using HedgeManager.find_hedges.
+        This will update positions in the DB with a new hedge_buddy_id when both long and short positions
+        exist in the same wallet/asset group.
+        """
+        self.logger.info("Starting Link Hedges step")
+        try:
+            # Call the static method to find (and update) hedge associations.
+            hedge_groups = HedgeManager.find_hedges()
+            count = len(hedge_groups)
+            msg = f"Linked hedges: {count} hedge group(s) found."
+            self.u_logger.log_cyclone(
+                operation_type="Link Hedges",
+                primary_text=msg,
+                source="Cyclone",
+                file="cyclone.py"
+            )
+            print(msg)
+        except Exception as e:
+            self.logger.error(f"Link Hedges failed: {e}", exc_info=True)
+            self.u_logger.log_cyclone(
+                operation_type="Link Hedges",
+                primary_text=f"Failed: {e}",
+                source="Cyclone",
+                file="cyclone.py"
+            )
+
+    async def run_cycle(self, steps=None):
+        """
+        Master run_cycle method to run various steps.
+        New step "cleanse_ids" is added to clear stale IDs.
+        """
+        available_steps = {
+            "market": self.run_market_updates,
+            "position": self.run_position_updates,
+            "cleanse_ids": self.run_cleanse_ids,
+            "link_hedges": self.run_cleanse_ids,
+            "enrichment": self.run_position_enrichment,
+            "create_market_alerts": self.run_link_hedges,
+            "create_position_alerts": self.run_create_position_alerts,
+            "create_system_alerts": self.run_create_system_alerts,
+            "update_evaluated_value": self.run_update_evaluated_value,
+            "alert": self.run_alert_updates,
+            "system": self.run_system_updates,
+            "link_hedges": self.run_cleanse_ids
+        }
+        if steps:
+            for step in steps:
+                if step in available_steps:
+                    await available_steps[step]()
+                else:
+                    self.logger.warning(f"Unknown step requested: {step}")
+        else:
+            for step in [
+                "market", "position", "cleanse_ids", "enrichment",
+                "create_market_alerts", "create_position_alerts",
+                "create_system_alerts", "update_evaluated_value",
+                "alert", "system", "link_hedges"  # Added here so it runs by default if no steps provided
+            ]:
+                await available_steps[step]()
+
     async def run_create_position_alerts(self):
         self.logger.info("Creating Position Alerts using AlertManager linking")
         try:
@@ -279,17 +341,6 @@ class Cyclone:
             print(f"Error creating position alerts: {e}")
             self.logger.error(f"Error creating position alerts: {e}", exc_info=True)
 
-    async def run_delete_position(self):
-        position_id = input("Enter the Position ID to delete: ").strip()
-        if not position_id:
-            print("No position ID provided.")
-            return
-        try:
-            from positions.position_service import delete_position_and_cleanup
-            await asyncio.to_thread(delete_position_and_cleanup, position_id)
-            print(f"Position {position_id} deleted along with associated alerts and hedges.")
-        except Exception as e:
-            print(f"Error deleting position {position_id}: {e}")
 
     async def run_create_system_alerts(self):
         self.logger.info("Creating System Alerts")
@@ -449,6 +500,18 @@ class Cyclone:
             print(f"Price data cleared. {deleted} record(s) deleted.")
         except Exception as e:
             print(f"Error clearing price data: {e}")
+
+    async def run_delete_position(self):
+        position_id = input("Enter the Position ID to delete: ").strip()
+        if not position_id:
+            print("No position ID provided.")
+            return
+        try:
+            from positions.position_service import delete_position_and_cleanup
+            await asyncio.to_thread(delete_position_and_cleanup, position_id)
+            print(f"Position {position_id} deleted along with associated alerts and hedges.")
+        except Exception as e:
+            print(f"Error deleting position {position_id}: {e}")
 
     def view_positions_backend(self):
         try:

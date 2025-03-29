@@ -706,3 +706,50 @@ def api_asset_percent_changes():
     except Exception as e:
         logger.error(f"Error in api_asset_percent_changes: {e}", exc_info=True)
         return jsonify({"error": str(e)}), 500
+
+@dashboard_bp.route("/dash")
+@dashboard_bp.route("/dash")
+def dash_page():
+    all_positions = PositionService.get_all_positions(DB_PATH) or []
+
+    if all_positions:
+        # Compute total value & total collateral for V/C ratio
+        total_value = sum(float(p.get("value", 0)) for p in all_positions)
+        total_collateral = sum(float(p.get("collateral", 0)) for p in all_positions)
+
+        # Compute total size
+        total_size = sum(float(p.get("size", 0)) for p in all_positions)
+
+        # Compute average leverage
+        avg_leverage = sum(float(p.get("leverage", 0)) for p in all_positions) / len(all_positions)
+
+        # Use travel_percent (if that's the current field name)
+        avg_travel_percent = sum(float(p.get("travel_percent", 0)) for p in all_positions) / len(all_positions)
+
+        # Compute V/C ratio
+        if total_collateral > 0:
+            vc_ratio = round(total_value / total_collateral, 2)
+        else:
+            vc_ratio = "N/A"
+    else:
+        total_value = 0
+        total_size = 0
+        avg_leverage = 0
+        avg_travel_percent = 0
+        vc_ratio = "N/A"
+
+    # Format these for display in dash.html
+    formatted_value = "${:,.2f}".format(total_value)
+    formatted_size = "${:,.2f}".format(total_size)
+    formatted_leverage = "{:,.2f}x".format(avg_leverage) if avg_leverage else "N/A"
+    formatted_travel_percent = "{:.2f}%".format(avg_travel_percent) if avg_travel_percent else "N/A"
+
+    return render_template(
+        "dash.html",
+        value=formatted_value,
+        leverage=formatted_leverage,
+        size=formatted_size,
+        vc_ratio=vc_ratio,  # This will be either the ratio or "N/A"
+        travel_percent=formatted_travel_percent
+    )
+
