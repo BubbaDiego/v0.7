@@ -216,22 +216,69 @@ class CycloneConsoleHelper:
                 print("Invalid choice, please try again.")
 
     def run_hedges_menu(self):
+        """
+        Display a submenu for managing hedge data with these options:
+          1) View Hedges – display current hedge data using the HedgeManager.
+          2) Find Hedges – run the HedgeManager.find_hedges method to scan positions and assign new hedge IDs.
+          3) Clear Hedges – clear all hedge associations from the database.
+          4) Back to Main Menu.
+        """
+        from data.data_locker import DataLocker
+        from sonic_labs.hedge_manager import HedgeManager
+
         while True:
-            print("\n--- Hedge Menu ---")
-            print("1) 🔄 Update Hedges")
-            print("2) ↩️ Back to Main Menu")
-            choice = input("Enter your choice (1-2): ").strip()
+            print("\n--- Hedges Menu ---")
+            print("1) 👁 View Hedges")
+            print("2) 🔍 Find Hedges")
+            print("3) 🧹 Clear Hedges")
+            print("4) ↩️ Back to Main Menu")
+            choice = input("Enter your choice (1-4): ").strip()
+
             if choice == "1":
-                print("Running Hedge Update...")
-                # This will run the hedge update step from the Cyclone instance.
-                # We assume run_update_hedges is an async method.
-                import asyncio
-                asyncio.run(self.cyclone.run_update_hedges())
-                print("Hedge Update completed.")
+                # View hedges using current positions
+                dl = DataLocker.get_instance()
+                raw_positions = dl.read_positions()
+                hedge_manager = HedgeManager(raw_positions)
+                hedges = hedge_manager.get_hedges()
+                if hedges:
+                    print("\nCurrent Hedges:")
+                    for hedge in hedges:
+                        print(f"Hedge ID: {hedge.id}")
+                        print(f"  Positions: {hedge.positions}")
+                        print(f"  Total Long Size: {hedge.total_long_size}")
+                        print(f"  Total Short Size: {hedge.total_short_size}")
+                        print(f"  Long Heat Index: {hedge.long_heat_index}")
+                        print(f"  Short Heat Index: {hedge.short_heat_index}")
+                        print(f"  Total Heat Index: {hedge.total_heat_index}")
+                        print(f"  Notes: {hedge.notes}")
+                        print("-" * 40)
+                else:
+                    print("No hedges found.")
             elif choice == "2":
+                # Find hedges: use the static method that scans positions, updates hedge_buddy_id, and returns hedge groups.
+                dl = DataLocker.get_instance()
+                groups = HedgeManager.find_hedges()
+                if groups:
+                    print(f"Found {len(groups)} hedge group(s) after scanning positions:")
+                    for idx, group in enumerate(groups, start=1):
+                        print(f"Group {idx}:")
+                        for pos in group:
+                            print(f"  Position ID: {pos.get('id')} (Type: {pos.get('position_type')})")
+                        print("-" * 30)
+                else:
+                    print("No hedge groups found.")
+            elif choice == "3":
+                # Clear hedges: clear hedge associations from all positions.
+                try:
+                    HedgeManager.clear_hedge_data()
+                    print("Hedge associations cleared.")
+                except Exception as e:
+                    print(f"Error clearing hedges: {e}")
+            elif choice == "4":
                 break
             else:
                 print("Invalid choice, please try again.")
+
 
     def run_wallets_menu(self):
         while True:
