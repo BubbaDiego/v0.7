@@ -16,10 +16,10 @@ import json
 import logging
 import pytz
 from datetime import datetime
-from config.config_constants import BASE_DIR, LOG_DATE_FORMAT
+from config.config_constants import BASE_DIR, LOG_DATE_FORMAT, LOG_DIR
 
-# Ensure the logs directory exists.
-LOGS_DIR = os.path.join(str(BASE_DIR), "logs")
+# Ensure the logs directory exists using LOG_DIR.
+LOGS_DIR = str(LOG_DIR)
 if not os.path.exists(LOGS_DIR):
     os.makedirs(LOGS_DIR)
 

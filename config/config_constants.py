@@ -21,6 +21,9 @@ CONFIG_FILENAME = os.getenv("CONFIG_FILENAME", "sonic_config.json")
 DB_PATH = BASE_DIR / "data" / DB_FILENAME
 CONFIG_PATH = BASE_DIR / CONFIG_FILENAME
 
+# Add LOG_DIR constant (use pathlib for consistency)
+LOG_DIR = BASE_DIR / "logs"
+
 ALERT_MONITOR_LOG_FILENAME = os.getenv("ALERT_MONITOR_LOG_FILENAME", "alert_monitor_log.txt")
 ALERT_MONITOR_LOG_PATH = BASE_DIR / ALERT_MONITOR_LOG_FILENAME
 

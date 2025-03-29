@@ -177,8 +177,9 @@ class CycloneConsoleHelper:
             print("6) 🔍 Alert Evaluations")
             print("7) 🧹 Clear Alerts")
             print("8) ♻️ Refresh Alerts")
-            print("9) ↩️ Back to Main Menu")
-            choice = input("Enter your choice (1-9): ").strip()
+            print("9) 🧹 Clear Alert Ledger")  # New option added here
+            print("10) ↩️ Back to Main Menu")
+            choice = input("Enter your choice (1-10): ").strip()
             if choice == "1":
                 print("Viewing Alerts...")
                 self.cyclone.view_alerts_backend()
@@ -207,6 +208,9 @@ class CycloneConsoleHelper:
                 count = ac.refresh_all_alerts()
                 print(f"Refreshed and confirmed {count} alert(s).")
             elif choice == "9":
+                print("Clearing Alert Ledger...")
+                self.cyclone.clear_alert_ledger_backend()
+            elif choice == "10":
                 break
             else:
                 print("Invalid choice, please try again.")

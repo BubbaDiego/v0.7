@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import os
 import time
+from uuid import uuid4
+
 from time import time as current_time
 import json
 import logging
@@ -14,9 +16,11 @@ from config.config_constants import DB_PATH, CONFIG_PATH, ALERT_LIMITS_PATH, BAS
 from pathlib import Path
 import inspect
 from utils.unified_logger import UnifiedLogger
+from data.models import NotificationType, Status, Alert, Position
+from utils.unified_logger import UnifiedLogger
 from alerts.alert_controller import AlertController
 from alerts.alert_evaluator import AlertEvaluator
-from data.models import AlertType  # Imported to standardize alert type checks
+from data.models import AlertType, Alert, AlertClass  # Imported to standardize alert type checks
 
 # Instantiate the unified logger
 u_logger = UnifiedLogger()
@@ -78,7 +82,7 @@ class AlertManager:
         self.db_path = db_path
         self.poll_interval = poll_interval
         self.config_path = config_path
-
+        self.u_logger = u_logger
         self.last_profit: Dict[str, str] = {}
         self.last_triggered: Dict[str, float] = {}
         self.last_call_triggered: Dict[str, float] = {}
@@ -478,6 +482,197 @@ class AlertManager:
                 json.dump(config, f, indent=2)
         except Exception:
             pass
+
+    def create_and_link_alert(self, position: dict,
+                              alert_type: str = AlertType.TRAVEL_PERCENT_LIQUID.value,
+                              trigger_value: float = 0.0,
+                              condition: str = "BELOW",
+                              notification_type: str = NotificationType.ACTION.value,
+                              state: str = Status.ACTIVE.value) -> dict:
+        """
+        Creates a new alert for a given position and updates the position's
+        alert_reference_id to link to the new alert.
+        """
+        from uuid import uuid4
+        from datetime import datetime
+
+        # Create a new Alert instance.
+        new_alert = Alert(
+            id=str(uuid4()),
+            alert_type=alert_type,
+            alert_class=AlertClass.POSITION.value,
+            trigger_value=trigger_value,
+            notification_type=notification_type,
+            last_triggered=None,
+            status=Status.ACTIVE.value,
+            frequency=1,
+            counter=0,
+            liquidation_distance=position.get("liquidation_distance", 0.0),
+            travel_percent=position.get("travel_percent", 0.0),
+            liquidation_price=position.get("liquidation_price", 0.0),
+            notes="Auto-created alert for position",
+            position_reference_id=position.get("id"),
+            state=state,
+            evaluated_value=0.0
+        )
+
+        # Convert to dictionary and ensure required fields are set.
+        alert_dict = new_alert.__dict__
+        # Set default fields required by the SQL statement.
+        alert_dict.setdefault("asset_type", position.get("asset_type", "BTC"))
+        alert_dict.setdefault("condition", condition)
+        alert_dict.setdefault("description", f"Position alert for {position.get('id')}")
+        if "created_at" not in alert_dict or not alert_dict["created_at"]:
+            alert_dict["created_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        try:
+            # Patch DataLocker if needed: provide initialize_alert_data and enrich_alert if missing.
+            if not hasattr(self.data_locker, "initialize_alert_data"):
+                self.data_locker.initialize_alert_data = lambda x: {**x, "created_at": datetime.now().strftime(
+                    "%Y-%m-%d %H:%M:%S")}
+            if not hasattr(self.data_locker, "enrich_alert"):
+                self.data_locker.enrich_alert = lambda x: x
+
+            success = self.data_locker.create_alert(alert_dict)
+            if success:
+                conn = self.data_locker.get_db_connection()
+                cursor = conn.cursor()
+                cursor.execute("UPDATE positions SET alert_reference_id=? WHERE id=?",
+                               (new_alert.id, position.get("id")))
+                conn.commit()
+                cursor.close()
+
+                self.u_logger.log_operation(
+                    operation_type="Alert Creation and Linking",
+                    primary_text=f"Created alert {new_alert.id} and linked to position {position.get('id')}",
+                    source="AlertManager",
+                    file="alert_manager.py"
+                )
+                return new_alert.__dict__
+            else:
+                self.u_logger.log_operation(
+                    operation_type="Alert Creation Failed",
+                    primary_text=f"Failed to create alert for position {position.get('id')}",
+                    source="AlertManager",
+                    file="alert_manager.py"
+                )
+                return None
+        except Exception as e:
+            self.u_logger.log_operation(
+                operation_type="Alert Creation Exception",
+                primary_text=f"Exception creating alert for position {position.get('id')}: {e}",
+                source="AlertManager",
+                file="alert_manager.py"
+            )
+            return None
+
+    def update_alert_link(self, position: dict, new_alert_id: str) -> bool:
+        """
+        Updates the position's alert_reference_id to link to a given alert.
+        """
+        try:
+            conn = self.data_locker.get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("UPDATE positions SET alert_reference_id=? WHERE id=?",
+                           (new_alert_id, position.get("id")))
+            conn.commit()
+            cursor.close()
+            self.logger.log_operation(
+                operation_type="Alert Link Update",
+                primary_text=f"Updated alert link for position {position.get('id')} to alert {new_alert_id}",
+                source="AlertManager",
+                file="alert_manager.py"
+            )
+            return True
+        except Exception as e:
+            self.logger.log_operation(
+                operation_type="Alert Link Update Error",
+                primary_text=f"Error updating alert link for position {position.get('id')}: {e}",
+                source="AlertManager",
+                file="alert_manager.py"
+            )
+            return False
+
+    def clear_alert_link(self, position: dict) -> bool:
+        """
+        Clears the alert_reference_id for a position.
+        """
+        try:
+            conn = self.data_locker.get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("UPDATE positions SET alert_reference_id=NULL WHERE id=?",
+                           (position.get("id"),))
+            conn.commit()
+            cursor.close()
+            self.logger.log_operation(
+                operation_type="Alert Link Cleared",
+                primary_text=f"Cleared alert link for position {position.get('id')}",
+                source="AlertManager",
+                file="alert_manager.py"
+            )
+            return True
+        except Exception as e:
+            self.logger.log_operation(
+                operation_type="Clear Alert Link Error",
+                primary_text=f"Error clearing alert link for position {position.get('id')}: {e}",
+                source="AlertManager",
+                file="alert_manager.py"
+            )
+            return False
+
+    def update_alert_link(self, position: dict, new_alert_id: str) -> bool:
+        """
+        Updates the position's alert_reference_id to link to a given alert.
+        """
+        try:
+            conn = self.data_locker.get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("UPDATE positions SET alert_reference_id=? WHERE id=?",
+                           (new_alert_id, position.get("id")))
+            conn.commit()
+            cursor.close()
+            self.logger.log_operation(
+                operation_type="Alert Link Update",
+                primary_text=f"Updated alert link for position {position.get('id')} to alert {new_alert_id}",
+                source="AlertManager",
+                file="alert_manager.py"
+            )
+            return True
+        except Exception as e:
+            self.logger.log_operation(
+                operation_type="Alert Link Update Error",
+                primary_text=f"Error updating alert link for position {position.get('id')}: {e}",
+                source="AlertManager",
+                file="alert_manager.py"
+            )
+            return False
+
+    def clear_alert_link(self, position: dict) -> bool:
+        """
+        Clears the alert_reference_id for a position.
+        """
+        try:
+            conn = self.data_locker.get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("UPDATE positions SET alert_reference_id=NULL WHERE id=?",
+                           (position.get("id"),))
+            conn.commit()
+            cursor.close()
+            self.logger.log_operation(
+                operation_type="Alert Link Cleared",
+                primary_text=f"Cleared alert link for position {position.get('id')}",
+                source="AlertManager",
+                file="alert_manager.py"
+            )
+            return True
+        except Exception as e:
+            self.logger.log_operation(
+                operation_type="Clear Alert Link Error",
+                primary_text=f"Error clearing alert link for position {position.get('id')}: {e}",
+                source="AlertManager",
+                file="alert_manager.py"
+            )
+            return False
 
     def clear_stale_alerts(self):
         """

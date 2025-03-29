@@ -3,7 +3,7 @@ import json
 import datetime
 import requests
 import sqlite3
-from config.config_constants import DB_PATH, LOG_DATE_FORMAT  # Use DB_PATH instead of BASE_DIR
+from config.config_constants import DB_PATH, LOG_DATE_FORMAT, LOG_DIR  # Import LOG_DIR
 
 def query_update_ledger():
     """
@@ -41,7 +41,7 @@ def determine_cycle_status(ledger_entries):
 
 def generate_cycle_report():
     """
-    Reads the cyclone log file (cyclone_log.txt) from the logs folder,
+    Reads the cyclone log file (cyclone_log.txt) from the logs folder (using LOG_DIR),
     builds a summary and detailed table from the JSON log records,
     queries the alert ledger table for alert state modifications,
     and writes a pretty dark mode HTML report to cyclone_report.html.
@@ -49,7 +49,8 @@ def generate_cycle_report():
     or a skull (💀) if there were any errors. The ledger details are shown
     at the top right of the summary.
     """
-    logs_dir = os.path.join(os.path.dirname(DB_PATH), "logs")
+    # Use LOG_DIR from config_constants for the logs folder
+    logs_dir = str(LOG_DIR)
     if not os.path.exists(logs_dir):
         os.makedirs(logs_dir)
     cyclone_log_path = os.path.join(logs_dir, "cyclone_log.txt")

@@ -4,24 +4,47 @@ from data.models import AlertType  # Import the model for consistent alert type 
 
 
 def normalize_alert_type(alert: dict) -> dict:
+    """
+    Normalize the alert_type field in the alert dictionary.
+    This function removes spaces and underscores, converts the string to upper case,
+    and then maps various input variants to the standardized alert type values
+    as defined in models.py.
+
+    Valid standardized values:
+      - PriceThreshold
+      - DeltaChange
+      - TravelPercent
+      - Time
+      - Profit
+      - HeatIndex
+
+    :param alert: Dictionary containing at least the "alert_type" key.
+    :return: The alert dictionary with normalized "alert_type".
+    :raises ValueError: if the alert does not contain an "alert_type".
+    """
+    from data.models import AlertType  # Ensure we have the standardized alert types
+
     if "alert_type" not in alert or not alert["alert_type"]:
         raise ValueError("Alert missing alert_type.")
 
     # Remove spaces and underscores and convert to upper case for normalization.
     normalized = alert["alert_type"].upper().replace(" ", "").replace("_", "")
 
-    # Map various input variants to the model's standardized values.
-    if normalized in ["TRAVELPERCENTALERT", "TRAVELPERCENTLIQUID"]:
-        normalized = AlertType.TRAVEL_PERCENT_LIQUID.value  # "TravelPercent"
-    elif normalized == "PRICETHRESHOLD":
-        normalized = AlertType.PRICE_THRESHOLD.value         # "PriceThreshold"
-    elif normalized == "PROFITALERT":
-        normalized = AlertType.PROFIT.value                    # "Profit"
-    elif normalized == "HEATINDEXALERT":
-        normalized = AlertType.HEAT_INDEX.value                # "HeatIndex"
+    # Map various input variants to standardized alert types.
+    if normalized in ["TRAVELPERCENT", "TRAVELPERCENTALERT", "TRAVELPERCENTLIQUID"]:
+        normalized = AlertType.TRAVEL_PERCENT_LIQUID.value  # Expected to be "TravelPercent"
+    elif normalized in ["PRICETHRESHOLD", "PRICETHRESHOLDALERT"]:
+        normalized = AlertType.PRICE_THRESHOLD.value  # Expected to be "PriceThreshold"
+    elif normalized in ["PROFITALERT"]:
+        normalized = AlertType.PROFIT.value  # Expected to be "Profit"
+    elif normalized in ["HEATINDEX", "HEATINDEXALERT"]:
+        normalized = AlertType.HEAT_INDEX.value  # Expected to be "HeatIndex"
+    elif normalized in ["DELTACHANGE", "DELTACHANGE"]:
+        normalized = AlertType.DELTA_CHANGE.value  # Expected to be "DeltaChange"
+    elif normalized in ["TIME"]:
+        normalized = AlertType.TIME.value  # Expected to be "Time"
     else:
-        # For any other alert type, assume it's already standardized.
-        # You may choose to add additional normalization here if needed.
+        # If the input doesn't match any known variant, leave it as provided.
         normalized = alert["alert_type"]
 
     alert["alert_type"] = normalized

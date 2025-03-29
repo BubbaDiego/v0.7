@@ -482,7 +482,8 @@ class DataLocker:
             self.logger.debug(f"Final alert_dict to insert: {alert_dict}")
 
             # Insert alert into the database.
-            cursor = self.data_locker.conn.cursor()
+            cursor = self.conn.cursor()
+
             sql = """
                 INSERT INTO alerts (
                     id,
@@ -531,7 +532,7 @@ class DataLocker:
             print(f"[DEBUG] Executing SQL: {sql}")
             self.logger.debug(f"Executing SQL for alert creation: {sql}")
             cursor.execute(sql, alert_dict)
-            self.data_locker.conn.commit()
+            self.conn.commit()
             print(f"[DEBUG] Alert inserted successfully with ID: {alert_dict['id']}")
             self.logger.debug(f"Alert inserted successfully with ID: {alert_dict['id']}")
 

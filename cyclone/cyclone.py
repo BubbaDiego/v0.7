@@ -4,6 +4,7 @@ import sys
 import os
 import json
 from uuid import uuid4
+
 from prices.price_monitor import PriceMonitor
 from alerts.alert_manager import AlertManager
 from data.data_locker import DataLocker
@@ -11,7 +12,12 @@ from utils.unified_logger import UnifiedLogger
 from sonic_labs.hedge_manager import HedgeManager  # Import HedgeManager directly
 from positions.position_service import PositionService
 from alerts.alert_controller import AlertController, DummyPositionAlert
-from cyclone.cyclone_report_generator import generate_cycle_report
+
+
+
+
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 class Cyclone:
     def __init__(self, poll_interval=60):
@@ -235,40 +241,43 @@ class Cyclone:
             print(f"Error cleansing IDs: {e}")
 
     async def run_create_position_alerts(self):
-        self.logger.info("Creating Position Alerts")
+        self.logger.info("Creating Position Alerts using AlertManager linking")
         try:
-            ac = AlertController()
             positions = self.data_locker.read_positions()
             if not positions:
                 print("No positions available to create alerts.")
                 return
 
-            created = 0
+            created_count = 0
+            # Iterate over all positions and create a position alert if one isn't already linked.
             for pos in positions:
                 pos_dict = dict(pos)
-                pos_id = pos_dict.get("id")
-                if not pos_id:
-                    self.logger.error("Position missing id. Skipping alert creation for this position.")
-                    continue
+                # Check if the position already has an alert_reference_id
+                if not pos_dict.get("alert_reference_id"):
+                    # Create and link a new alert for this position.
+                    # Here we're creating a TravelPercent alert as an example.
+                    result = self.alert_manager.create_and_link_alert(
+                        position=pos_dict,
+                        alert_type="TravelPercent",
+                        # Alternatively, use AlertType.TRAVEL_PERCENT_LIQUID.value if imported
+                        trigger_value=-4.0,
+                        condition="BELOW",
+                        notification_type="Action",  # Alternatively, use NotificationType.ACTION.value if imported
+                        state="Normal"
+                    )
+                    if result is not None:
+                        created_count += 1
 
-                travel_alert = DummyPositionAlert("TravelPercentAlert", pos_dict.get("asset_type", "BTC"), -4.0, "BELOW", "Call", pos_id)
-                profit_alert = DummyPositionAlert("ProfitAlert", pos_dict.get("asset_type", "BTC"), 22.0, "ABOVE", "Email", pos_id)
-                heat_alert = DummyPositionAlert("HeatIndexAlert", pos_dict.get("asset_type", "BTC"), 12.0, "ABOVE", "Email", pos_id)
-
-                for alert in [travel_alert, profit_alert, heat_alert]:
-                    if ac.create_alert(alert):
-                        created += 1
-                    else:
-                        self.logger.error("Failed to create alert for position id: %s", pos_id)
+            print(f"Created {created_count} position alert(s) using the new linking method.")
             self.u_logger.log_cyclone(
                 operation_type="Create Position Alerts",
-                primary_text=f"Created {created} position alert(s)",
+                primary_text=f"Created {created_count} position alert(s)",
                 source="Cyclone",
                 file="cyclone.py"
             )
-            print(f"Created {created} position alert(s).")
         except Exception as e:
             print(f"Error creating position alerts: {e}")
+            self.logger.error(f"Error creating position alerts: {e}", exc_info=True)
 
     async def run_delete_position(self):
         position_id = input("Enter the Position ID to delete: ").strip()
@@ -306,6 +315,25 @@ class Cyclone:
                 source="Cyclone",
                 file="cyclone.py"
             )
+
+    def clear_alert_ledger_backend(self):
+        """Clear all records from the alert_ledger table."""
+        try:
+            dl = DataLocker.get_instance()
+            cursor = dl.conn.cursor()
+            cursor.execute("DELETE FROM alert_ledger")
+            dl.conn.commit()
+            deleted = cursor.rowcount
+            cursor.close()
+            self.u_logger.log_cyclone(
+                operation_type="Clear Alert Ledger",
+                primary_text=f"Cleared {deleted} alert ledger record(s)",
+                source="Cyclone",
+                file="cyclone.py"
+            )
+            print(f"Alert ledger cleared. {deleted} record(s) deleted.")
+        except Exception as e:
+            print(f"Error clearing alert ledger: {e}")
 
     async def run_alert_updates(self):
         self.logger.info("Starting Alert Evaluations")

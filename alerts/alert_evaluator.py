@@ -382,16 +382,65 @@ class AlertEvaluator:
 
     def _update_alert_state(self, pos: dict, new_state: str, evaluated_value: float = None,
                             custom_alert_type: str = None):
-        alert_id = pos.get("alert_reference_id") or pos.get("id")
+        # Use only the alert_reference_id; do not fallback to the position's id.
+        alert_id = pos.get("alert_reference_id")
         if not alert_id:
             u_logger.log_operation(
                 operation_type="Alert Update Skipped",
-                primary_text="No alert identifier found for updating state.",
+                primary_text="No alert_reference_id found for position. Creating new alert record.",
                 source="AlertEvaluator",
                 file="alert_evaluator.py"
             )
-            print("[DEBUG] _update_alert_state: No alert identifier found. Exiting update.")
-            return
+            print("[DEBUG] _update_alert_state: No alert_reference_id found. Creating new alert record.")
+            new_alert_type = custom_alert_type if custom_alert_type is not None else AlertType.TRAVEL_PERCENT_LIQUID.value
+            if new_alert_type == AlertType.HEAT_INDEX.value:
+                new_trigger = pos.get("heat_index_trigger", 12.0)
+            else:
+                new_trigger = pos.get("travel_percent", 0.0)
+            new_alert = Alert(
+                id=str(uuid4()),
+                alert_type=new_alert_type,
+                alert_class=AlertClass.POSITION.value,
+                trigger_value=new_trigger,
+                notification_type=NotificationType.ACTION.value,
+                last_triggered=None,
+                status=Status.ACTIVE.value,
+                frequency=1,
+                counter=0,
+                liquidation_distance=pos.get("liquidation_distance", 0.0),
+                travel_percent=pos.get("travel_percent", 0.0),
+                liquidation_price=pos.get("liquidation_price", 0.0),
+                notes="Auto-created alert record",
+                position_reference_id=pos.get("id"),
+                state=new_state,
+                evaluated_value=evaluated_value or 0.0
+            )
+            created = self.create_alert(new_alert)
+            if created:
+                # Update the in-memory position and persist the alert_reference_id to the database.
+                pos["alert_reference_id"] = new_alert.id
+                conn = self.data_locker.get_db_connection()
+                cursor = conn.cursor()
+                cursor.execute("UPDATE positions SET alert_reference_id=? WHERE id=?", (new_alert.id, pos.get("id")))
+                conn.commit()
+                alert_id = new_alert.id
+                u_logger.log_operation(
+                    operation_type="Alert Creation",
+                    primary_text=f"Created new alert record for position {pos.get('id')} with alert id {new_alert.id}",
+                    source="AlertEvaluator",
+                    file="alert_evaluator.py"
+                )
+                print(
+                    f"[DEBUG] _update_alert_state: Created new alert with id {new_alert.id} and updated position record.")
+            else:
+                u_logger.log_operation(
+                    operation_type="Alert Creation Failed",
+                    primary_text=f"Failed to create new alert record for position {pos.get('id')}",
+                    source="AlertEvaluator",
+                    file="alert_evaluator.py"
+                )
+                print("[DEBUG] _update_alert_state: Failed to create new alert record.")
+                return
 
         update_fields = {"state": new_state}
         if evaluated_value is not None:
@@ -413,51 +462,11 @@ class AlertEvaluator:
             if num_updated == 0:
                 u_logger.log_operation(
                     operation_type="Alert Update",
-                    primary_text=f"No alert record found for id '{alert_id}', creating new alert record.",
+                    primary_text=f"No alert record found for id '{alert_id}' even after creation.",
                     source="AlertEvaluator",
                     file="alert_evaluator.py"
                 )
-                new_alert_type = custom_alert_type if custom_alert_type is not None else AlertType.TRAVEL_PERCENT_LIQUID.value
-                if new_alert_type == AlertType.HEAT_INDEX.value:
-                    new_trigger = pos.get("heat_index_trigger", 12.0)
-                else:
-                    new_trigger = pos.get("travel_percent", 0.0)
-                new_alert = Alert(
-                    id=str(uuid4()),
-                    alert_type=new_alert_type,
-                    alert_class=AlertClass.POSITION.value,
-                    trigger_value=new_trigger,
-                    notification_type=NotificationType.ACTION.value,
-                    last_triggered=None,
-                    status=Status.ACTIVE.value,
-                    frequency=1,
-                    counter=0,
-                    liquidation_distance=pos.get("liquidation_distance", 0.0),
-                    travel_percent=pos.get("travel_percent", 0.0),
-                    liquidation_price=pos.get("liquidation_price", 0.0),
-                    notes="Auto-created alert record",
-                    position_reference_id=pos.get("id"),
-                    state=new_state,
-                    evaluated_value=evaluated_value or 0.0
-                )
-                created = self.create_alert(new_alert)
-                if created:
-                    u_logger.log_operation(
-                        operation_type="Alert Creation",
-                        primary_text=f"Created new alert record for position {pos.get('id')}",
-                        source="AlertEvaluator",
-                        file="alert_evaluator.py"
-                    )
-                    pos["alert_reference_id"] = new_alert.id
-                    print(f"[DEBUG] _update_alert_state: Created new alert with id {new_alert.id}")
-                else:
-                    u_logger.log_operation(
-                        operation_type="Alert Creation Failed",
-                        primary_text=f"Failed to create new alert record for position {pos.get('id')}",
-                        source="AlertEvaluator",
-                        file="alert_evaluator.py"
-                    )
-                    print("[DEBUG] _update_alert_state: Failed to create new alert record.")
+                print(f"[DEBUG] _update_alert_state: No alert record found for id '{alert_id}'.")
             else:
                 u_logger.log_operation(
                     operation_type="Alert State Updated",

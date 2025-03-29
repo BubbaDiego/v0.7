@@ -144,6 +144,26 @@ def format_alert_config_table(alert_ranges: dict) -> str:
     html += "</table>"
     return html
 
+def clear_alert_ledger_backend(self):
+    """Clear all records from the alert_ledger table."""
+    try:
+        dl = DataLocker.get_instance()
+        cursor = dl.conn.cursor()
+        cursor.execute("DELETE FROM alert_ledger")
+        dl.conn.commit()
+        deleted = cursor.rowcount
+        cursor.close()
+        self.u_logger.log_cyclone(
+            operation_type="Clear Alert Ledger",
+            primary_text=f"Cleared {deleted} alert ledger record(s)",
+            source="Cyclone",
+            file="cyclone.py"
+        )
+        print(f"Alert ledger cleared. {deleted} record(s) deleted.")
+    except Exception as e:
+        print(f"Error clearing alert ledger: {e}")
+
+
 # New route for the Alarm Viewer (default mode)
 @alerts_bp.route('/viewer', methods=['GET'], endpoint="alarm_viewer")
 def alarm_viewer():

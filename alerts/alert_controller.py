@@ -156,6 +156,12 @@ class AlertController:
             print(f"[DEBUG] Alert inserted successfully with ID: {alert_dict['id']}")
             self.logger.debug(f"Alert inserted successfully with ID: {alert_dict['id']}")
 
+            # Log initial creation to the ledger.
+            # This logs an entry with empty before value and "Created" as the after value.
+            from utils.update_ledger import log_alert_update
+            log_alert_update(self.data_locker, alert_dict['id'], 'system', 'Initial creation', '', 'Created')
+            self.logger.debug("Initial creation logged to ledger.")
+
             enriched_alert = self.enrich_alert(alert_dict)
             print(f"[DEBUG] Alert after enrichment: {enriched_alert}")
             self.logger.debug(f"Alert after enrichment: {enriched_alert}")
@@ -175,33 +181,51 @@ class AlertController:
         Create position alerts for each position that doesn't have an alert_reference_id.
         Returns a list of created alert dictionaries.
         """
+        self.logger.debug("Starting create_position_alerts method.")
         created_alerts = []
         positions = self.data_locker.read_positions()
+        self.logger.debug(f"Retrieved {len(positions)} positions from the database.")
 
-        # Use the global DummyPositionAlert
         for pos in positions:
+            pos_id = pos.get("id")
             if not pos.get("alert_reference_id"):
+                self.logger.debug(f"Position {pos_id} has no alert_reference_id. Creating alert...")
                 asset = pos.get("asset_type", "BTC")
-                alert_obj = DummyPositionAlert(AlertType.TRAVEL_PERCENT_LIQUID.value, asset, -4.0, "BELOW", "Call", pos.get("id"))
-                if self.create_alert(alert_obj):
-                    created_alerts.append(alert_obj.to_dict())
-                    conn = self.data_locker.get_db_connection()
-                    cursor = conn.cursor()
-                    cursor.execute("UPDATE positions SET alert_reference_id=? WHERE id=?", (alert_obj.id, pos.get("id")))
-                    conn.commit()
-                else:
-                    self.logger.error("Failed to create alert for position id: %s", pos.get("id"))
-        return created_alerts
+                self.logger.debug(f"Position {pos_id}: asset type = {asset}")
+                try:
+                    trigger_value = float(-4.0)
+                    self.logger.debug(f"Using trigger_value {trigger_value} for position {pos_id}.")
+                except Exception as e:
+                    self.logger.error(f"Error converting trigger_value for position {pos_id}: {e}")
+                    trigger_value = -4.0
+                condition = "BELOW"
+                notification_type = "Call"
+                self.logger.debug(
+                    f"Position {pos_id}: condition set to {condition} and notification_type set to {notification_type}.")
 
-    def delete_alert(self, alert_id: str) -> bool:
-        try:
-            self.logger.debug(f"Attempting to delete alert with id: {alert_id}")
-            self.data_locker.delete_alert(alert_id)
-            self.logger.debug(f"Successfully deleted alert with id: {alert_id}")
-            return True
-        except Exception as e:
-            self.logger.error(f"Error deleting alert {alert_id}: {e}", exc_info=True)
-            return False
+                alert_obj = DummyPositionAlert(AlertType.TRAVEL_PERCENT_LIQUID.value, asset, trigger_value, condition,
+                                               notification_type, pos_id)
+                self.logger.debug(f"Created DummyPositionAlert for position {pos_id}: {alert_obj.to_dict()}")
+
+                if self.create_alert(alert_obj):
+                    self.logger.debug(f"Alert created successfully for position {pos_id}.")
+                    created_alerts.append(alert_obj.to_dict())
+                    try:
+                        conn = self.data_locker.get_db_connection()
+                        cursor = conn.cursor()
+                        cursor.execute("UPDATE positions SET alert_reference_id=? WHERE id=?", (alert_obj.id, pos_id))
+                        conn.commit()
+                        self.logger.debug(f"Updated position {pos_id} with alert_reference_id {alert_obj.id}.")
+                    except Exception as e:
+                        self.logger.error(f"Error updating position {pos_id} with alert_reference_id: {e}")
+                else:
+                    self.logger.error(f"Failed to create alert for position {pos_id}.")
+            else:
+                self.logger.debug(
+                    f"Position {pos_id} already has alert_reference_id: {pos.get('alert_reference_id')}. Skipping alert creation.")
+
+        self.logger.debug(f"create_position_alerts completed. Created {len(created_alerts)} alerts.")
+        return created_alerts
 
     def enrich_alert(self, alert: dict) -> dict:
         """
@@ -429,17 +453,51 @@ class AlertController:
 
     def _update_alert_state(self, pos: dict, new_state: str, evaluated_value: Optional[float] = None,
                             updated_by: str = "system", reason: str = "Automatic update"):
-        alert_id = pos.get("alert_reference_id") or pos.get("id")
+        # Only use alert_reference_id; do not fall back to position id.
+        alert_id = pos.get("alert_reference_id")
         if not alert_id:
             UnifiedLogger().log_operation(
-                operation_type="Alert Update Skipped",
-                primary_text="No alert identifier found for updating state.",
+                operation_type="Alert Update",
+                primary_text="No alert_reference_id found for updating state. Creating new alert record.",
                 source="AlertController",
                 file="alert_controller.py"
             )
-            return
+            print("[DEBUG] _update_alert_state: No alert_reference_id found. Creating new alert record.")
+            # Default to a travel percent alert type if no custom type is provided.
+            new_trigger = pos.get("travel_percent", 0.0)
+            new_alert = DummyPositionAlert(
+                AlertType.TRAVEL_PERCENT_LIQUID.value,
+                pos.get("asset_type", "BTC"),
+                new_trigger,
+                "BELOW",
+                "Call",
+                pos.get("id")
+            )
+            if self.create_alert(new_alert):
+                pos["alert_reference_id"] = new_alert.id
+                conn = self.data_locker.get_db_connection()
+                cursor = conn.cursor()
+                cursor.execute("UPDATE positions SET alert_reference_id=? WHERE id=?", (new_alert.id, pos.get("id")))
+                conn.commit()
+                alert_id = new_alert.id
+                UnifiedLogger().log_operation(
+                    operation_type="Alert Creation",
+                    primary_text=f"Created new alert record for position {pos.get('id')} with alert id {new_alert.id}",
+                    source="AlertController",
+                    file="alert_controller.py"
+                )
+                print(
+                    f"[DEBUG] _update_alert_state: Created new alert with id {new_alert.id} and updated position record.")
+            else:
+                UnifiedLogger().log_operation(
+                    operation_type="Alert Creation Failed",
+                    primary_text=f"Failed to create new alert record for position {pos.get('id')}",
+                    source="AlertController",
+                    file="alert_controller.py"
+                )
+                print("[DEBUG] _update_alert_state: Failed to create new alert record.")
+                return
 
-        # Retrieve the old state for ledger purposes
         old_state = pos.get("state", "Normal")
         update_fields = {"state": new_state}
         if evaluated_value is not None:
@@ -447,6 +505,7 @@ class AlertController:
         if pos.get("alert_reference_id") and pos.get("id"):
             update_fields["position_reference_id"] = pos.get("id")
 
+        print(f"[DEBUG] _update_alert_state: Updating alert '{alert_id}' with fields: {update_fields}")
         UnifiedLogger().log_operation(
             operation_type="Alert State Update",
             primary_text=f"Updating alert '{alert_id}' with {update_fields}",
@@ -462,7 +521,7 @@ class AlertController:
                     source="AlertController",
                     file="alert_controller.py"
                 )
-                # Optionally: code to create a new alert record here.
+                print(f"[DEBUG] _update_alert_state: No alert record found for id '{alert_id}'.")
             else:
                 UnifiedLogger().log_operation(
                     operation_type="Alert State Updated",
@@ -470,9 +529,9 @@ class AlertController:
                     source="AlertController",
                     file="alert_controller.py"
                 )
-                # **Call the ledger update function**
                 from utils.update_ledger import log_alert_update
                 log_alert_update(self.data_locker, alert_id, updated_by, reason, old_state, new_state)
+                print(f"[DEBUG] _update_alert_state: Successfully updated alert '{alert_id}' to state '{new_state}'.")
         except Exception as e:
             UnifiedLogger().log_operation(
                 operation_type="Alert Update Error",
@@ -480,6 +539,7 @@ class AlertController:
                 source="AlertController",
                 file="alert_controller.py"
             )
+            print(f"[DEBUG] _update_alert_state: Exception while updating alert '{alert_id}': {e}")
 
     def create_travel_percent_alerts(self):
         created_alerts = []

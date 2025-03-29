@@ -2,83 +2,54 @@
 import sqlite3
 from uuid import uuid4
 from datetime import datetime
-import os
+from data.data_locker import DataLocker
+from alerts.alert_controller import AlertController, DummyPositionAlert
 from config.config_constants import DB_PATH
 
 
-def ensure_travel_percent_column():
-    """Ensure that the alerts table has the 'travel_percent' column."""
+def create_test_alert():
+    """
+    Create a dummy position alert for testing.
+    """
+    # Parameters for the dummy alert:
+    # - Alert type: "TravelPercentAlert"
+    # - Asset type: "BTC"
+    # - Trigger value: -4.0
+    # - Condition: "BELOW"
+    # - Notification type: "Call"
+    # - Position reference ID: "test-position-id"
+    return DummyPositionAlert("TravelPercentAlert", "BTC", -4.0, "BELOW", "Call", "test-position-id")
+
+
+def query_alert_ledger():
+    """
+    Query the alert_ledger table and return all ledger entries.
+    """
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
-    cursor.execute("PRAGMA table_info(alerts)")
-    columns = [row["name"] for row in cursor.fetchall()]
-    if "travel_percent" not in columns:
-        print("Column 'travel_percent' not found in alerts table. Adding it...")
-        cursor.execute("ALTER TABLE alerts ADD COLUMN travel_percent REAL DEFAULT 0.0")
-        conn.commit()
-    else:
-        print("Column 'travel_percent' already exists.")
+    cursor.execute("SELECT * FROM alert_ledger")
+    rows = cursor.fetchall()
     cursor.close()
     conn.close()
+    return [dict(row) for row in rows]
 
 
-def insert_test_alert():
-    """Insert a test alert record into the alerts table."""
-    # Ensure schema is up-to-date
-    ensure_travel_percent_column()
+def main():
+    # Instantiate the AlertController.
+    ac = AlertController()
+    # Create a test alert using our DummyPositionAlert.
+    test_alert = create_test_alert()
+    print("Creating alert via AlertController...")
+    result = ac.create_alert(test_alert)
+    print("Alert creation result:", result)
 
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-
-    test_alert = {
-        "id": str(uuid4()),
-        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "alert_type": "TravelPercentAlert",
-        "alert_class": "Position",
-        "asset_type": "BTC",
-        "trigger_value": -4.0,
-        "condition": "BELOW",
-        "notification_type": "Call",
-        "state": "Normal",
-        "last_triggered": None,
-        "status": "Active",
-        "frequency": 1,
-        "counter": 0,
-        "liquidation_distance": 0.0,
-        "travel_percent": 0.0,  # Using travel_percent as desired
-        "liquidation_price": 0.0,
-        "notes": "Test alert for travel percent",
-        "description": "Test alert inserted via script",
-        "position_reference_id": "test-position-id",
-        "evaluated_value": 0.0
-    }
-
-    sql = """
-    INSERT INTO alerts (
-        id, created_at, alert_type, alert_class, asset_type, trigger_value, condition, 
-        notification_type, state, last_triggered, status, frequency, counter, 
-        liquidation_distance, travel_percent, liquidation_price, notes, description, 
-        position_reference_id, evaluated_value
-    ) VALUES (
-        :id, :created_at, :alert_type, :alert_class, :asset_type, :trigger_value, :condition, 
-        :notification_type, :state, :last_triggered, :status, :frequency, :counter, 
-        :liquidation_distance, :travel_percent, :liquidation_price, :notes, :description, 
-        :position_reference_id, :evaluated_value
-    )
-    """
-
-    try:
-        cursor.execute(sql, test_alert)
-        conn.commit()
-        print("Test alert inserted successfully.")
-    except Exception as e:
-        print(f"Error inserting test alert: {e}")
-    finally:
-        cursor.close()
-        conn.close()
+    # Query the ledger to see if the initial creation log entry was written.
+    ledger_entries = query_alert_ledger()
+    print("Ledger entries:")
+    for entry in ledger_entries:
+        print(entry)
 
 
 if __name__ == "__main__":
-    insert_test_alert()
+    main()
