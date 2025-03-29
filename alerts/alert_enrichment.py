@@ -213,18 +213,20 @@ def enrich_alert_data(alert: dict, data_locker, logger: 'logging.Logger') -> dic
                 logger.error("No position found for id %s during enrichment.", pos_id)
         else:
             logger.error("Position alert missing position_reference_id during enrichment.")
+
     alert["evaluated_value"] = populate_evaluated_value_for_alert(alert, data_locker, logger)
     logger.debug("After populating evaluated value: %s", alert)
 
-    valid_states = ["Normal", "Low", "Medium", "High", "Triggered", "Liquidated"]
-    current_state = alert.get("state", "Normal")
-    current_state_normalized = current_state.capitalize()
-    logger.debug("Current state before validation: '%s' (normalized to '%s')", current_state, current_state_normalized)
-    if current_state_normalized not in valid_states:
-        logger.warning("State '%s' is invalid. Defaulting to 'Normal'.", current_state_normalized)
-        current_state_normalized = "Normal"
+    # Validate and normalize the alert level (must be one of the allowed levels)
+    valid_levels = ["Normal", "Low", "Medium", "High"]
+    current_level = alert.get("level", "Normal")
+    current_level_normalized = current_level.capitalize()
+    logger.debug("Current level before validation: '%s' (normalized to '%s')", current_level, current_level_normalized)
+    if current_level_normalized not in valid_levels:
+        logger.warning("Level '%s' is invalid. Defaulting to 'Normal'.", current_level_normalized)
+        current_level_normalized = "Normal"
     else:
-        logger.debug("State '%s' is valid.", current_state_normalized)
+        logger.debug("Level '%s' is valid.", current_level_normalized)
 
     update_fields = {
         "liquidation_distance": alert.get("liquidation_distance", 0.0),
@@ -234,7 +236,7 @@ def enrich_alert_data(alert: dict, data_locker, logger: 'logging.Logger') -> dic
         "notification_type": alert.get("notification_type"),
         "trigger_value": alert.get("trigger_value"),
         "condition": alert.get("condition"),
-        "state": current_state_normalized
+        "level": current_level_normalized
     }
     logger.debug("Final update_fields to persist: %s", update_fields)
 
@@ -244,3 +246,5 @@ def enrich_alert_data(alert: dict, data_locker, logger: 'logging.Logger') -> dic
     except Exception as e:
         logger.error("Error persisting enriched alert %s: %s", alert["id"], e, exc_info=True)
     return alert
+
+

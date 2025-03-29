@@ -197,34 +197,32 @@ class AlertManager:
         """
         return self.alert_controller.create_all_alerts()
 
-    def _update_alert_state(self, pos: dict, new_state: str, evaluated_value: Optional[float] = None):
-        """
-        Update the state of the matching alert record in the DB (if found).
-        Uses alert_reference_id if present, else pos["id"].
-        """
+    def _update_alert_level(self, pos: dict, new_level: str, evaluated_value: Optional[float] = None):
         alert_id = pos.get("alert_reference_id") or pos.get("id")
         if not alert_id:
-            self.logger.warning("[_update_alert_state] No alert identifier found; update skipped.")
+            self.logger.warning("No alert identifier found; update skipped.")
             return
 
-        update_fields = {"state": new_state}
+        update_fields = {"level": new_level}  # Using "level" now instead of "state"
         if evaluated_value is not None:
             update_fields["evaluated_value"] = evaluated_value
-
         if pos.get("alert_reference_id") and pos.get("id"):
             update_fields["position_reference_id"] = pos.get("id")
 
-        self.logger.debug(f"[_update_alert_state] Attempting to update alert '{alert_id}' with fields: {update_fields}")
+        self.logger.debug(f"Attempting to update alert '{alert_id}' with fields: {update_fields}")
         try:
             num_updated = self.data_locker.update_alert_conditions(alert_id, update_fields)
             if num_updated == 0:
-                self.logger.warning(f"[_update_alert_state] No alert record found for id '{alert_id}'.")
+                self.logger.warning(f"No alert record found for id '{alert_id}'.")
             else:
                 self.logger.info(
-                    f"Successfully updated alert '{alert_id}' to state '{new_state}' with evaluated value '{evaluated_value}'."
+                    f"Successfully updated alert '{alert_id}' to level '{new_level}' with evaluated value '{evaluated_value}'."
                 )
+                from utils.update_ledger import log_alert_update
+                log_alert_update(self.data_locker, alert_id, "system", "Automatic update", pos.get("level", "N/A"),
+                                 new_level)
         except Exception as e:
-            self.logger.error(f"Error updating alert state for id '{alert_id}': {e}", exc_info=True)
+            self.logger.error(f"Error updating alert level for id '{alert_id}': {e}", exc_info=True)
 
     def reevaluate_alerts(self):
         """
@@ -488,7 +486,7 @@ class AlertManager:
                               trigger_value: float = 0.0,
                               condition: str = "BELOW",
                               notification_type: str = NotificationType.ACTION.value,
-                              state: str = Status.ACTIVE.value) -> dict:
+                              level: str = "Normal") -> dict:
         """
         Creates a new alert for a given position and updates the position's
         alert_reference_id to link to the new alert.
@@ -496,7 +494,7 @@ class AlertManager:
         from uuid import uuid4
         from datetime import datetime
 
-        # Create a new Alert instance.
+        # Create a new Alert instance using the new "level" parameter.
         new_alert = Alert(
             id=str(uuid4()),
             alert_type=alert_type,
@@ -512,13 +510,12 @@ class AlertManager:
             liquidation_price=position.get("liquidation_price", 0.0),
             notes="Auto-created alert for position",
             position_reference_id=position.get("id"),
-            state=state,
+            level=level,  # now using level instead of state
             evaluated_value=0.0
         )
 
         # Convert to dictionary and ensure required fields are set.
         alert_dict = new_alert.__dict__
-        # Set default fields required by the SQL statement.
         alert_dict.setdefault("asset_type", position.get("asset_type", "BTC"))
         alert_dict.setdefault("condition", condition)
         alert_dict.setdefault("description", f"Position alert for {position.get('id')}")
@@ -526,7 +523,7 @@ class AlertManager:
             alert_dict["created_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         try:
-            # Patch DataLocker if needed: provide initialize_alert_data and enrich_alert if missing.
+            # Patch DataLocker if needed...
             if not hasattr(self.data_locker, "initialize_alert_data"):
                 self.data_locker.initialize_alert_data = lambda x: {**x, "created_at": datetime.now().strftime(
                     "%Y-%m-%d %H:%M:%S")}

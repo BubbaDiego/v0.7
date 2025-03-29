@@ -143,7 +143,7 @@ class DataLocker:
             """)
 
             # Create alerts table if it doesn't exist
-            # Create alerts table if it doesn't exist
+            # Inside _initialize_database() in DataLocker, update the alerts table creation:
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS alerts (
                     id TEXT PRIMARY KEY,
@@ -154,13 +154,13 @@ class DataLocker:
                     trigger_value REAL,
                     condition TEXT,
                     notification_type TEXT,
-                    state TEXT,
+                    level TEXT,
                     last_triggered DATETIME,
                     status TEXT,
                     frequency INTEGER,
                     counter INTEGER,
                     liquidation_distance REAL,
-                    travel_percent REAL,  -- Updated column name
+                    travel_percent REAL,
                     liquidation_price REAL,
                     notes TEXT,
                     description TEXT,
@@ -428,10 +428,48 @@ class DataLocker:
         self.record_positions_totals_snapshot(totals)
         self.logger.debug("Recorded portfolio snapshot via record_portfolio_snapshot.")
 
+    def initialize_alert_data(self, alert_data: dict = None) -> dict:
+        from data.models import Status, AlertLevel
+        from uuid import uuid4
+        from datetime import datetime
+
+        defaults = {
+            "id": str(uuid4()),
+            "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "alert_type": "",
+            "alert_class": "",
+            "asset_type": "BTC",
+            "trigger_value": 0.0,
+            "condition": "ABOVE",
+            "notification_type": "Email",
+            "level": AlertLevel.NORMAL.value,  # New default for alert level
+            "last_triggered": None,
+            "status": Status.ACTIVE.value,
+            "frequency": 1,
+            "counter": 0,
+            "liquidation_distance": 0.0,
+            "travel_percent": 0.0,  # Updated key for travel percent
+            "liquidation_price": 0.0,
+            "notes": "",
+            "description": "",
+            "position_reference_id": None,
+            "evaluated_value": 0.0
+        }
+        if alert_data is None:
+            alert_data = {}
+
+        for key, default_val in defaults.items():
+            if key not in alert_data or alert_data.get(key) is None:
+                alert_data[key] = default_val
+            elif key == "position_reference_id":
+                value = alert_data.get(key)
+                if isinstance(value, str) and value.strip() == "":
+                    self.logger.error("initialize_alert_data: position_reference_id is empty for a position alert")
+        return alert_data
+
     # ----------------------------------------------------------------
     # ALERTS
     # ----------------------------------------------------------------
-
     def create_alert(self, alert_obj) -> bool:
         try:
             print("[DEBUG] Starting create_alert process.")
@@ -481,9 +519,8 @@ class DataLocker:
             print(f"[DEBUG] Final alert_dict to insert: {alert_dict}")
             self.logger.debug(f"Final alert_dict to insert: {alert_dict}")
 
-            # Insert alert into the database.
+            # Insert alert into the database with updated column names.
             cursor = self.conn.cursor()
-
             sql = """
                 INSERT INTO alerts (
                     id,
@@ -494,13 +531,13 @@ class DataLocker:
                     trigger_value,
                     condition,
                     notification_type,
-                    state,
+                    level,
                     last_triggered,
                     status,
                     frequency,
                     counter,
                     liquidation_distance,
-                    target_travel_percent,
+                    travel_percent,
                     liquidation_price,
                     notes,
                     description,
@@ -515,13 +552,13 @@ class DataLocker:
                     :trigger_value,
                     :condition,
                     :notification_type,
-                    :state,
+                    :level,
                     :last_triggered,
                     :status,
                     :frequency,
                     :counter,
                     :liquidation_distance,
-                    :target_travel_percent,
+                    :travel_percent,
                     :liquidation_price,
                     :notes,
                     :description,
@@ -550,9 +587,6 @@ class DataLocker:
             self.logger.exception("CREATE ALERT: Unexpected error in create_alert: %s", ex)
             print(f"[ERROR] Unexpected error in create_alert: {ex}")
             raise
-
-    from utils.unified_logger import UnifiedLogger
-    u_logger = UnifiedLogger()
 
     def update_alert_conditions(self, alert_id: str, update_fields: dict) -> int:
         try:

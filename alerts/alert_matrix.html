@@ -55,7 +55,7 @@
   details.info-box[open] {
     width: 350px; /* adjust as needed */
   }
-  /* Color-coded states */
+  /* Color-coded levels */
   .info-box.no-alert {
     background-color: #0d6efd !important;
     color: #fff !important;
@@ -158,15 +158,15 @@
           {% set atype = alert.alert_type|upper %}  {# Normalize to uppercase #}
           <div class="col-auto" style="margin-bottom: 1rem;">
             <details class="info-box
-              {% if atype == 'PRICE_THRESHOLD' and alert.state == 'High' %}
+              {% if atype == 'PRICE_THRESHOLD' and alert.level == 'High' %}
                 price-high
-              {% elif alert.state == 'Normal' %}
+              {% elif alert.level == 'Normal' %}
                 no-alert
-              {% elif alert.state == 'Low' %}
+              {% elif alert.level == 'Low' %}
                 low
-              {% elif alert.state == 'Medium' %}
+              {% elif alert.level == 'Medium' %}
                 medium
-              {% elif alert.state == 'High' %}
+              {% elif alert.level == 'High' %}
                 high
               {% else %}
                 unknown
@@ -231,7 +231,7 @@
                     </strong>
                   </div>
                   <div class="info-basic-state">
-                    State: {{ alert.state }}
+                    Level: {{ alert.level }}
                   </div>
                 </div>
               </summary>
@@ -252,7 +252,7 @@
                         {{ "{:,.2f}".format(alert.trigger_value or 0) }}
                       {% endif %}
                     </strong></div>
-                    <div><strong>State:</strong> {{ alert.state }}</div>
+                    <div><strong>Level:</strong> {{ alert.level }}</div>
                     <div><strong>Status:</strong> {{ alert.status }}</div>
                   </div>
                   <div class="alert-id-column">

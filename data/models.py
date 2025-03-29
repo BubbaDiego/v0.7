@@ -24,13 +24,11 @@ class Status(str, Enum):
     LIQUIDATED = "Liquidated"
     INACTIVE = "Inactive"
 
-class State(str, Enum):
+class AlertLevel(str, Enum):
     NORMAL = "Normal"
     LOW = "Low"
     MEDIUM = "Medium"
     HIGH = "High"
-    TRIGGERED = "Triggered"
-    LIQUIDATED = "Liquidated"  # Newly added state
 
 class AlertType(str, Enum):
     PRICE_THRESHOLD = "PriceThreshold"
@@ -49,7 +47,6 @@ class NotificationType(str, Enum):
     EMAIL = "Email"
     SMS = "SMS"
     ACTION = "Action"
-
 
 class Price:
     """
@@ -98,7 +95,6 @@ class Alert:
     """
     Represents alert configuration for monitoring certain thresholds.
     """
-
     def __init__(
             self,
             id: str,
@@ -115,7 +111,7 @@ class Alert:
             liquidation_price: float,
             notes: Optional[str],
             position_reference_id: Optional[str],
-            state: State = State.NORMAL,
+            level: AlertLevel = AlertLevel.NORMAL,
             evaluated_value: float = 0.0
     ):
         self.id = id
@@ -128,11 +124,11 @@ class Alert:
         self.frequency = frequency
         self.counter = counter
         self.liquidation_distance = liquidation_distance
-        self.target_travel_percent = travel_percent
+        self.travel_percent = travel_percent
         self.liquidation_price = liquidation_price
         self.notes = notes
         self.position_reference_id = position_reference_id
-        self.state = state
+        self.level = level
         self.evaluated_value = evaluated_value
 
     def __repr__(self):
@@ -141,14 +137,15 @@ class Alert:
             f"trigger_value={self.trigger_value}, notification_type={self.notification_type!r}, "
             f"last_triggered={self.last_triggered}, status={self.status!r}, frequency={self.frequency}, "
             f"counter={self.counter}, liquidation_distance={self.liquidation_distance}, "
-            f"target_travel_percent={self.target_travel_percent}, liquidation_price={self.liquidation_price}, "
-            f"notes={self.notes!r}, position_reference_id={self.position_reference_id!r}, state={self.state!r}, "
+            f"travel_percent={self.travel_percent}, liquidation_price={self.liquidation_price}, "
+            f"notes={self.notes!r}, position_reference_id={self.position_reference_id!r}, level={self.level!r}, "
             f"evaluated_value={self.evaluated_value})"
         )
 
 class Position:
     """
-    Represents a trading position, with manual validation for current_travel_percent.
+    Represents a trading position.
+    The travel_percent value is manually validated to be between -11500 and 1000.
     """
     def __init__(
         self,
@@ -176,14 +173,15 @@ class Position:
             id = str(uuid4())
         if last_updated is None:
             last_updated = datetime.now()
-        if not -11500.0 <= current_travel_percent <= 1000.0:
-            raise ValueError("current_travel_percent must be between -11500 and 1000")
+        # Validate travel_percent (formerly current_travel_percent)
+        if not -11500.0 <= travel_percent <= 1000.0:
+            raise ValueError("travel_percent must be between -11500 and 1000")
         self.id = id
         self.asset_type = asset_type
         self.position_type = position_type
         self.entry_price = entry_price
         self.liquidation_price = liquidation_price
-        self.current_travel_percent = current_travel_percent
+        self.travel_percent = travel_percent
         self.value = value
         self.collateral = collateral
         self.size = size
@@ -202,7 +200,7 @@ class Position:
         return (
             f"Position(id={self.id!r}, asset_type={self.asset_type!r}, position_type={self.position_type!r}, "
             f"entry_price={self.entry_price}, liquidation_price={self.liquidation_price}, "
-            f"current_travel_percent={self.current_travel_percent}, value={self.value}, "
+            f"travel_percent={self.travel_percent}, value={self.value}, "
             f"collateral={self.collateral}, size={self.size}, leverage={self.leverage}, wallet={self.wallet!r}, "
             f"last_updated={self.last_updated}, alert_reference_id={self.alert_reference_id!r}, "
             f"hedge_buddy_id={self.hedge_buddy_id!r}, current_price={self.current_price}, "

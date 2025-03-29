@@ -106,7 +106,7 @@ class Cyclone:
                     self.trigger_value = 0.0
                     self.condition = "ABOVE"
                     self.notification_type = None
-                    self.state = "Normal"
+                    self.level = "Normal"  # updated from "state" to "level"
                     self.last_triggered = None
                     self.status = None
                     self.frequency = 1
@@ -127,7 +127,7 @@ class Cyclone:
                         "trigger_value": self.trigger_value,
                         "condition": self.condition,
                         "notification_type": self.notification_type,
-                        "state": self.state,
+                        "level": self.level,  # key updated to "level"
                         "last_triggered": self.last_triggered,
                         "status": self.status,
                         "frequency": self.frequency,
@@ -263,7 +263,7 @@ class Cyclone:
                         trigger_value=-4.0,
                         condition="BELOW",
                         notification_type="Action",  # Alternatively, use NotificationType.ACTION.value if imported
-                        state="Normal"
+                        level="Normal"  # updated parameter: using "level" instead of "state"
                     )
                     if result is not None:
                         created_count += 1

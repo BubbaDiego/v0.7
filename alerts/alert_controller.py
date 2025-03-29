@@ -9,7 +9,6 @@ from utils.unified_logger import UnifiedLogger
 from utils.update_ledger import log_alert_update
 from alerts.alert_enrichment import enrich_alert_data
 
-
 from uuid import uuid4
 from data.models import Status  # Ensure Status is imported
 
@@ -22,8 +21,8 @@ class DummyPositionAlert:
         self.asset_type = asset_type   # e.g., "SOL"
         self.trigger_value = trigger_value  # e.g., a numeric threshold
         self.condition = condition          # e.g., "BELOW" or "ABOVE"
-        self.notification_type = notification_type  # e.g., "Call" or "Email"
-        self.state = "Normal"
+        # Replace state with level:
+        self.level = "Normal"
         self.last_triggered = None
         self.status = Status.ACTIVE.value  # e.g., "Active"
         self.frequency = 1
@@ -44,7 +43,8 @@ class DummyPositionAlert:
             "trigger_value": self.trigger_value,
             "condition": self.condition,
             "notification_type": self.notification_type,
-            "state": self.state,
+            # Use key "level" instead of "state"
+            "level": self.level,
             "last_triggered": self.last_triggered,
             "status": self.status,
             "frequency": self.frequency,
@@ -114,7 +114,7 @@ class AlertController:
                     trigger_value,
                     condition,
                     notification_type,
-                    state,
+                    level,
                     last_triggered,
                     status,
                     frequency,
@@ -135,7 +135,7 @@ class AlertController:
                     :trigger_value,
                     :condition,
                     :notification_type,
-                    :state,
+                    :level,
                     :last_triggered,
                     :status,
                     :frequency,
@@ -337,7 +337,8 @@ class AlertController:
             "trigger_value": 0.0,
             "condition": "ABOVE",
             "notification_type": "Email",
-            "state": "Normal",
+            # Replace default key "state" with "level"
+            "level": "Normal",
             "last_triggered": None,
             "status": Status.ACTIVE.value,
             "frequency": 1,
@@ -372,7 +373,7 @@ class AlertController:
 
         class DummyAlert:
             def __init__(self, alert_type, alert_class, asset_type, trigger_value, condition, notification_type,
-                         state="Normal", position_reference_id=None, status="Active"):
+                         level="Normal", position_reference_id=None, status="Active"):
                 self.id = str(uuid4())
                 self.alert_type = alert_type
                 self.alert_class = alert_class
@@ -380,7 +381,8 @@ class AlertController:
                 self.trigger_value = trigger_value
                 self.condition = condition
                 self.notification_type = notification_type
-                self.state = state
+                # Use 'level' consistently
+                self.level = level
                 self.last_triggered = None
                 self.status = status
                 self.frequency = 1
@@ -400,7 +402,7 @@ class AlertController:
                     "trigger_value": self.trigger_value,
                     "condition": self.condition,
                     "notification_type": self.notification_type,
-                    "state": self.state,
+                    "level": self.level,  # key is now "level"
                     "last_triggered": self.last_triggered,
                     "status": self.status,
                     "frequency": self.frequency,
@@ -451,18 +453,27 @@ class AlertController:
                 print(f"Price alert for {asset} is not enabled in configuration.")
         return created_alerts
 
-    def _update_alert_state(self, pos: dict, new_state: str, evaluated_value: Optional[float] = None,
+    def _update_alert_level(self, pos: dict, new_level: str, evaluated_value: Optional[float] = None,
                             updated_by: str = "system", reason: str = "Automatic update"):
-        # Only use alert_reference_id; do not fall back to position id.
+        """
+        Updates the alert's level for a given position.
+        If no alert_reference_id exists in the position, creates a new alert record with the specified level.
+
+        :param pos: Dictionary containing position data (must include position id).
+        :param new_level: The new alert level to set (e.g., "Normal", "Low", "Medium", "High").
+        :param evaluated_value: The evaluated value from the alert evaluation.
+        :param updated_by: Identifier for who/what is making the update.
+        :param reason: Reason for the update (for logging purposes).
+        """
         alert_id = pos.get("alert_reference_id")
         if not alert_id:
             UnifiedLogger().log_operation(
-                operation_type="Alert Update",
-                primary_text="No alert_reference_id found for updating state. Creating new alert record.",
+                operation_type="Alert Level Update",
+                primary_text="No alert_reference_id found for updating level. Creating new alert record.",
                 source="AlertController",
                 file="alert_controller.py"
             )
-            print("[DEBUG] _update_alert_state: No alert_reference_id found. Creating new alert record.")
+            print("[DEBUG] _update_alert_level: No alert_reference_id found. Creating new alert record.")
             # Default to a travel percent alert type if no custom type is provided.
             new_trigger = pos.get("travel_percent", 0.0)
             new_alert = DummyPositionAlert(
@@ -487,7 +498,7 @@ class AlertController:
                     file="alert_controller.py"
                 )
                 print(
-                    f"[DEBUG] _update_alert_state: Created new alert with id {new_alert.id} and updated position record.")
+                    f"[DEBUG] _update_alert_level: Created new alert with id {new_alert.id} and updated position record.")
             else:
                 UnifiedLogger().log_operation(
                     operation_type="Alert Creation Failed",
@@ -495,19 +506,20 @@ class AlertController:
                     source="AlertController",
                     file="alert_controller.py"
                 )
-                print("[DEBUG] _update_alert_state: Failed to create new alert record.")
+                print("[DEBUG] _update_alert_level: Failed to create new alert record.")
                 return
 
-        old_state = pos.get("state", "Normal")
-        update_fields = {"state": new_state}
+        old_level = pos.get("level", "Normal")
+        update_fields = {"level": new_level}
         if evaluated_value is not None:
             update_fields["evaluated_value"] = evaluated_value
+
         if pos.get("alert_reference_id") and pos.get("id"):
             update_fields["position_reference_id"] = pos.get("id")
 
-        print(f"[DEBUG] _update_alert_state: Updating alert '{alert_id}' with fields: {update_fields}")
+        print(f"[DEBUG] _update_alert_level: Updating alert '{alert_id}' with fields: {update_fields}")
         UnifiedLogger().log_operation(
-            operation_type="Alert State Update",
+            operation_type="Alert Level Update",
             primary_text=f"Updating alert '{alert_id}' with {update_fields}",
             source="AlertController",
             file="alert_controller.py"
@@ -516,30 +528,30 @@ class AlertController:
             num_updated = self.data_locker.update_alert_conditions(alert_id, update_fields)
             if num_updated == 0:
                 UnifiedLogger().log_operation(
-                    operation_type="Alert Update",
+                    operation_type="Alert Level Update",
                     primary_text=f"No alert record found for id '{alert_id}', creating new alert record.",
                     source="AlertController",
                     file="alert_controller.py"
                 )
-                print(f"[DEBUG] _update_alert_state: No alert record found for id '{alert_id}'.")
+                print(f"[DEBUG] _update_alert_level: No alert record found for id '{alert_id}'.")
             else:
                 UnifiedLogger().log_operation(
-                    operation_type="Alert State Updated",
-                    primary_text=f"Updated alert '{alert_id}' to state '{new_state}' with evaluated value '{evaluated_value}'.",
+                    operation_type="Alert Level Updated",
+                    primary_text=f"Updated alert '{alert_id}' to level '{new_level}' with evaluated value '{evaluated_value}'.",
                     source="AlertController",
                     file="alert_controller.py"
                 )
                 from utils.update_ledger import log_alert_update
-                log_alert_update(self.data_locker, alert_id, updated_by, reason, old_state, new_state)
-                print(f"[DEBUG] _update_alert_state: Successfully updated alert '{alert_id}' to state '{new_state}'.")
+                log_alert_update(self.data_locker, alert_id, updated_by, reason, old_level, new_level)
+                print(f"[DEBUG] _update_alert_level: Successfully updated alert '{alert_id}' to level '{new_level}'.")
         except Exception as e:
             UnifiedLogger().log_operation(
-                operation_type="Alert Update Error",
-                primary_text=f"Error updating alert state for id '{alert_id}': {e}",
+                operation_type="Alert Level Update Error",
+                primary_text=f"Error updating alert level for id '{alert_id}': {e}",
                 source="AlertController",
                 file="alert_controller.py"
             )
-            print(f"[DEBUG] _update_alert_state: Exception while updating alert '{alert_id}': {e}")
+            print(f"[DEBUG] _update_alert_level: Exception while updating alert '{alert_id}': {e}")
 
     def create_travel_percent_alerts(self):
         created_alerts = []
@@ -628,7 +640,8 @@ class AlertController:
                 notification_type,
                 position_id
             )
-            alert_obj.state = current_level
+            # Set level instead of state.
+            alert_obj.level = current_level
             if self.create_alert(alert_obj):
                 created_alerts.append(alert_obj.to_dict())
                 print(f"Created profit alert for position {position_id} ({asset}): level {current_level}, computed trigger {computed_trigger}, notification {notification_type}.")
