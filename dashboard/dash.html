@@ -5,16 +5,38 @@
 {% block extra_styles %}
   {{ super() }}
   <style>
-    /* Dash Status Bar Styles */
+    /* ----------------------------
+       Common Style Settings
+    ----------------------------- */
+    .common-box {
+      border-radius: 10px;
+      border: 2px solid;
+      padding: 20px;
+      margin-top: 20px;
+      transition: background-color 0.4s, color 0.4s, border-color 0.4s;
+    }
+    /* Light and Dark mode classes for boxes */
+    .light-mode {
+      background-color: #7db3f5;
+      border-color: #fff;
+      color: #fff;
+    }
+    .dark-mode {
+      background-color: #2b2b2b;
+      border-color: #444;
+      color: #ddd;
+    }
+
+    /* ----------------------------
+       Status Bar Styles
+    ----------------------------- */
     .status-bar {
       position: relative;
       display: flex;
       justify-content: space-evenly;
       align-items: center;
       padding: 20px;
-      margin-top: 20px;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-      transition: background-color 0.4s, color 0.4s, border 0.4s;
     }
     .status-bar > div:not(.toggle-container) {
       text-align: center;
@@ -28,18 +50,6 @@
     .status-value {
       font-size: 1.2rem;
     }
-    .light-mode {
-      background-color: #7db3f5;
-      border-radius: 10px;
-      border: 2px solid #fff;
-      color: #fff;
-    }
-    .dark-mode {
-      background-color: #2b2b2b;
-      border: 2px solid #444;
-      border-radius: 10px;
-      color: #ddd;
-    }
     .toggle-container {
       position: absolute;
       bottom: 5px;
@@ -49,6 +59,31 @@
     .toggle-container svg {
       display: block;
     }
+
+    /* ----------------------------
+       Pie Box Styles
+    ----------------------------- */
+    /* The pie box uses the common-box class and is set to about 48% width (for later 2 boxes per row) */
+    .pie-box {
+      width: 48%;
+      display: inline-block;
+      vertical-align: top;
+    }
+    /* New container to hold the two pie charts side by side */
+    .pie-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .pie-col {
+      width: 48%;
+      text-align: center;
+    }
+    .chart-label {
+      font-size: 1.2rem;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
   </style>
 {% endblock %}
 
@@ -57,8 +92,8 @@
 {% endblock %}
 
 {% block content %}
-  <h2>Dashboard Data</h2>
-  <div class="status-bar light-mode" id="statusBar">
+  <!-- Status Bar -->
+  <div class="status-bar common-box light-mode" id="statusBar">
     <div>
       <span class="status-label">💰 Value</span>
       <span class="status-value">{{ value | default("$0.00") }}</span>
@@ -79,20 +114,34 @@
       <span class="status-label">✈️ Travel %</span>
       <span class="status-value">{{ travel_percent | default("N/A") }}</span>
     </div>
-    <!-- Toggle Icon Container -->
     <div class="toggle-container" id="toggleContainer">
       <!-- Initially, the moon icon will be set via JavaScript -->
+    </div>
+  </div>
+
+  <!-- Pie Box Container (for the pie charts) -->
+  <div class="common-box light-mode pie-box" id="pieBox">
+    <div class="pie-row">
+      <div class="pie-col">
+        <div class="chart-label">Size</div>
+        <div id="pieChartSize" style="height: 200px;"></div>
+      </div>
+      <div class="pie-col">
+        <div class="chart-label">Collateral</div>
+        <div id="pieChartCollateral" style="height: 200px;"></div>
+      </div>
     </div>
   </div>
 {% endblock %}
 
 {% block extra_scripts %}
   {{ super() }}
+  <!-- Toggle Script: Syncs light/dark mode for both status bar and pie box -->
   <script>
     const statusBar = document.getElementById('statusBar');
     const toggleContainer = document.getElementById('toggleContainer');
+    const pieBox = document.getElementById('pieBox');
 
-    // SVG icons for toggle
     const sunIcon = `
       <svg viewBox="0 0 24 24" width="16" height="16" fill="white" xmlns="http://www.w3.org/2000/svg">
         <circle cx="12" cy="12" r="5"/>
@@ -111,20 +160,69 @@
         <path d="M21 12.79A9 9 0 0 1 11.21 3 7 7 0 0 0 12 17a7 7 0 0 0 9-4.21z"/>
       </svg>
     `;
-
-    // Initialize toggle with the moon icon (for light mode)
     toggleContainer.innerHTML = moonIcon;
 
     toggleContainer.addEventListener('click', () => {
       if (statusBar.classList.contains('light-mode')) {
         statusBar.classList.remove('light-mode');
         statusBar.classList.add('dark-mode');
+        pieBox.classList.remove('light-mode');
+        pieBox.classList.add('dark-mode');
         toggleContainer.innerHTML = sunIcon;
       } else {
         statusBar.classList.remove('dark-mode');
         statusBar.classList.add('light-mode');
+        pieBox.classList.remove('dark-mode');
+        pieBox.classList.add('light-mode');
         toggleContainer.innerHTML = moonIcon;
       }
     });
+  </script>
+
+  <!-- Load ApexCharts Library -->
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  <script>
+    // Function to render the pie charts using data from the backend API endpoints.
+    function renderPieCharts(seriesSize, seriesCollateral) {
+      function createPieOptions(seriesData) {
+        return {
+          chart: { type: 'pie', height: 200 },
+          series: seriesData,
+          labels: ['Long', 'Short'],
+          dataLabels: {
+            enabled: true,
+            offset: -20, // Moves the percentage labels closer to the center
+            style: { fontSize: '20px' },
+            formatter: function(val) { return val.toFixed(1) + '%'; }
+          },
+          legend: { position: 'bottom' }
+        };
+      }
+
+      // Render Size Pie Chart
+      var optionsSize = createPieOptions(seriesSize);
+      var chartSize = new ApexCharts(document.querySelector("#pieChartSize"), optionsSize);
+      chartSize.render();
+
+      // Render Collateral Pie Chart
+      var optionsCollateral = createPieOptions(seriesCollateral);
+      var chartCollateral = new ApexCharts(document.querySelector("#pieChartCollateral"), optionsCollateral);
+      chartCollateral.render();
+    }
+
+    // Fetch real data for the charts from the backend API endpoints.
+    fetch('/api/size_composition')
+      .then(response => response.json())
+      .then(data => {
+        let sizeSeries = data.series;
+        fetch('/api/collateral_composition')
+          .then(response => response.json())
+          .then(data2 => {
+            let collateralSeries = data2.series;
+            renderPieCharts(sizeSeries, collateralSeries);
+          })
+          .catch(err => console.error("Error fetching collateral composition:", err));
+      })
+      .catch(err => console.error("Error fetching size composition:", err));
   </script>
 {% endblock %}
