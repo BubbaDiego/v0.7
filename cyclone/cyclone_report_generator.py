@@ -39,6 +39,25 @@ def determine_cycle_status(ledger_entries):
     # If no error entries, we assume success.
     return "success"
 
+def query_update_ledger():
+    ledger_entries = []
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM alert_ledger")
+        rows = cursor.fetchall()
+        for row in rows:
+            entry = dict(row)
+            ledger_entries.append(entry)
+        cursor.close()
+        conn.close()
+        print("DEBUG: Ledger entries fetched:", ledger_entries)  # Debug print
+    except Exception as e:
+        print(f"Error querying update ledger: {e}")
+    return ledger_entries
+
+
 def generate_cycle_report():
     """
     Reads the cyclone log file (cyclone_log.txt) from the logs folder (using LOG_DIR),
@@ -78,6 +97,7 @@ def generate_cycle_report():
     for record in log_entries:
         op_type = record.get("operation_type", "Unknown")
         summary[op_type] = summary.get(op_type, 0) + 1
+
 
     # Query the alert ledger using the updated function
     ledger_entries = query_update_ledger()
