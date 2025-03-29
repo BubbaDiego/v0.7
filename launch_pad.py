@@ -30,36 +30,24 @@ from uuid import uuid4
 
 from flask import Flask, request, jsonify, render_template, redirect, url_for, flash, current_app
 from flask_socketio import SocketIO, emit
-
-# Import configuration and data modules
 from config.config_constants import DB_PATH, CONFIG_PATH, BASE_DIR
 from config.unified_config_manager import UnifiedConfigManager
 from data.data_locker import DataLocker
 from utils.json_manager import JsonManager
-from positions.position_service import PositionService
-from prices.price_monitor import PriceMonitor
-
-# Import blueprints – ensure your directories have an __init__.py file
 from positions.positions_bp import positions_bp
 from alerts.alerts_bp import alerts_bp
 from prices.prices_bp import prices_bp
-from dashboard.dashboard_bp import dashboard_bp  # Dashboard-specific routes and API endpoints
-
-# *** NEW: Import the portfolio blueprint ***
+from dashboard.dashboard_bp import dashboard_bp
 from portfolio.portfolio_bp import portfolio_bp
-
-# *** NEW: Import the ChatGPT blueprint ***
-# from chat_gpt.chat_gpt_bp import chat_gpt_bp
-
-# *** NEW: Import the Simulator Dashboard blueprint ***
 from simulator.simulator_bp import simulator_bp as simulator_bp
 from jupiter.jupiter_bp import jupiter_bp
 from cyclone.cyclone_bp import cyclone_bp
-
-# *** NEW: Import the UnifiedLogger and remove the old OperationsLogger ***
 from utils.unified_logger import UnifiedLogger
-#from sonic_labs_bp import sonic_labs_bp
 from sonic_labs.sonic_labs_bp import sonic_labs_bp
+from aave.aave_bp import aave_bp
+from aave import aave_api
+
+
 
 
 # Setup logging
@@ -87,29 +75,18 @@ app.register_blueprint(positions_bp, url_prefix="/positions")
 app.register_blueprint(alerts_bp, url_prefix="/alerts")
 app.register_blueprint(prices_bp, url_prefix="/prices")
 app.register_blueprint(dashboard_bp)  # Dashboard-specific routes and API endpoints
-
 app.register_blueprint(sonic_labs_bp, url_prefix="/sonic_labs")
-# *** NEW: Import the Cyclone blueprint ***
-
-# launch_pad.py
 app.register_blueprint(cyclone_bp, url_prefix="/cyclone")
 
-# *** NEW: Register the Cyclone blueprint with a URL prefix ***
-
-
+app.register_blueprint(aave_bp, url_prefix="/aave")
 
 app.register_blueprint(jupiter_bp, url_prefix="/jupiter")
 
-# *** NEW: Register the portfolio blueprint ***
 app.register_blueprint(portfolio_bp, url_prefix="/portfolio")
 
-# *** NEW: Register the ChatGPT blueprint ***
-# app.register_blueprint(chat_gpt_bp)
-
-# *** NEW: Register the Simulator Dashboard blueprint ***
 app.register_blueprint(simulator_bp, url_prefix="/simulator")
 
-# Call the UnifiedLogger on startup with the source "System Start-up"
+
 unified_logger = UnifiedLogger()
 unified_logger.log_operation("Start Launch Pad", "Launch Pad - Started", source="System")
 

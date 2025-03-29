@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Aave V3 Public Wallet Data</title>
+</head>
+<body>
+  <h1>Aave V3 Public Wallet Data</h1>
+  <h3>Account: {{ address }}</h3>
+  <p>Health Factor: {{ position.health_factor | round(2) }}</p>
+  <p>Total Supplied: {{ position.total_supplied }} | Total Debt: {{ position.total_debt }}</p>
+
+  <h4>Assets</h4>
+  {% if assets %}
+    <table border="1" cellpadding="5" cellspacing="0">
+      <tr>
+        <th>Asset</th>
+        <th>Supplied</th>
+        <th>Debt</th>
+      </tr>
+      {% for asset in assets %}
+        <tr>
+          <td>{{ asset.asset }}</td>
+          <td>{{ asset.supplied }}</td>
+          <td>{{ asset.debt }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <p>No asset data available for this address.</p>
+  {% endif %}
+</body>
+</html>

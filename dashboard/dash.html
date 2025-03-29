@@ -11,7 +11,6 @@
     .common-box {
       border-radius: 10px;
       border: 2px solid;
-      margin-top: 0;
       padding: 20px;
       transition: background-color 0.4s, color 0.4s, border-color 0.4s;
     }
@@ -36,8 +35,8 @@
       justify-content: space-evenly;
       align-items: center;
       padding: 20px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-      margin-top: 0; /* No extra space above status bar */
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      margin-top: 0;
     }
     .status-bar > div:not(.toggle-container) {
       text-align: center;
@@ -45,8 +44,8 @@
     .status-label {
       font-size: 1.1rem;
       font-weight: bold;
-      display: block;
       margin-bottom: 5px;
+      display: block;
     }
     .status-value {
       font-size: 1.2rem;
@@ -67,11 +66,16 @@
     .box-row {
       display: flex;
       justify-content: space-between;
-      gap: 10px;
-      margin-top: 20px; /* Increased space between status bar & row */
+      gap: 25px; /* Increased gap between boxes */
+      margin-top: 20px;
     }
-    .pie-box, .graph-box {
+    /* The mini positions table box will be 48% width and centered if it's alone */
+    .pie-box, .graph-box, .mini-table-box {
       width: 48%;
+    }
+    /* For a single box row (mini table row), center the box if needed */
+    .center-row {
+      justify-content: center;
     }
 
     /* ----------------------------
@@ -96,12 +100,29 @@
        Graph Box Styles
     ----------------------------- */
     .graph-box {
-      overflow: hidden; /* Prevent chart overflow */
+      overflow: hidden;
+    }
+
+    /* ----------------------------
+       Mini Positions Table Styles
+    ----------------------------- */
+    .mini-table-box table {
+      width: 100%;
+      border-collapse: collapse;
+      color: black; /* Force table text to be black */
+    }
+    .mini-table-box th, .mini-table-box td {
+      padding: 0.5rem;
+      text-align: center;
+      border-bottom: 1px solid rgba(255,255,255,0.3);
+    }
+    .mini-table-box th {
+      font-weight: bold;
+      font-size: 1.1rem;
     }
   </style>
 {% endblock %}
 
-<!-- Remove any extra heading or spacing above the status bar -->
 {% block page_title %}{% endblock %}
 
 {% block content %}
@@ -130,9 +151,9 @@
     <div class="toggle-container" id="toggleContainer"></div>
   </div>
 
-  <!-- Row containing two boxes: Pie Box and Graph Box -->
+  <!-- First Row: Pie Box and Graph Box -->
   <div class="box-row">
-    <!-- Pie Box Container -->
+    <!-- Pie Box -->
     <div class="common-box light-mode pie-box" id="pieBox">
       <div class="pie-row">
         <div class="pie-col">
@@ -146,21 +167,65 @@
       </div>
     </div>
 
-    <!-- Graph Box Container (24-hour timescale, Variation 3) -->
+    <!-- Graph Box (24-hour timescale, Variation 3) -->
     <div class="common-box light-mode graph-box" id="graphBox">
       <div id="graphChart" style="height: 300px;"></div>
+    </div>
+  </div>
+
+  <!-- Second Row: Mini Positions Table Box -->
+  <div class="box-row center-row">
+    <div class="common-box light-mode mini-table-box" id="miniTableBox">
+      <div class="chart-label" style="margin-bottom: 15px;">Positions</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Heat Index</th>
+            <th>Travel %</th>
+            <th>Leverage</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for pos in positions %}
+          <tr>
+            <td>
+              {% if pos.heat_index is defined and pos.heat_index is not none %}
+                {{ "{:,.2f}".format(pos.heat_index) }}
+              {% else %}
+                N/A
+              {% endif %}
+            </td>
+            <td>
+              {% if pos.travel_percent is defined and pos.travel_percent is not none %}
+                {{ "{:,.2f}".format(pos.travel_percent) }}%
+              {% else %}
+                N/A
+              {% endif %}
+            </td>
+            <td>
+              {% if pos.leverage is defined and pos.leverage is not none %}
+                {{ "{:,.2f}".format(pos.leverage) }}
+              {% else %}
+                N/A
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
   </div>
 {% endblock %}
 
 {% block extra_scripts %}
   {{ super() }}
-  <!-- Toggle Script: Syncs light/dark mode for status bar, pie box, and graph box -->
+  <!-- Toggle Script: Syncs light/dark mode for all boxes -->
   <script>
     const statusBar = document.getElementById('statusBar');
     const toggleContainer = document.getElementById('toggleContainer');
     const pieBox = document.getElementById('pieBox');
     const graphBox = document.getElementById('graphBox');
+    const miniTableBox = document.getElementById('miniTableBox');
 
     const sunIcon = `
       <svg viewBox="0 0 24 24" width="16" height="16" fill="white" xmlns="http://www.w3.org/2000/svg">
@@ -190,6 +255,8 @@
         pieBox.classList.add('dark-mode');
         graphBox.classList.remove('light-mode');
         graphBox.classList.add('dark-mode');
+        miniTableBox.classList.remove('light-mode');
+        miniTableBox.classList.add('dark-mode');
         toggleContainer.innerHTML = sunIcon;
       } else {
         statusBar.classList.remove('dark-mode');
@@ -198,6 +265,8 @@
         pieBox.classList.add('light-mode');
         graphBox.classList.remove('dark-mode');
         graphBox.classList.add('light-mode');
+        miniTableBox.classList.remove('dark-mode');
+        miniTableBox.classList.add('light-mode');
         toggleContainer.innerHTML = moonIcon;
       }
     });
@@ -233,7 +302,7 @@
       chartCollateral.render();
     }
 
-    // Graph Chart (Variation 3, 24-hour timescale, bigger white legend, bold black tooltip)
+    // Graph Chart (Variation 3, 24-hour timescale, updated legend and tooltip)
     function renderGraphChart() {
       const hours = Array.from({length: 24}, (_, i) => i + 'h');
       // Example data
@@ -259,20 +328,18 @@
           }
         },
         dataLabels: { enabled: false },
-        /* White legend, bigger text */
         legend: {
           position: 'top',
           labels: {
             colors: '#fff',
-            fontSize: '16px',
+            fontSize: '18px',
             fontWeight: 700
           }
         },
-        /* Bold black tooltip text */
         tooltip: {
           theme: 'light',
           style: {
-            fontSize: '14px',
+            fontSize: '16px',
             fontWeight: 'bold',
             color: '#000'
           }
