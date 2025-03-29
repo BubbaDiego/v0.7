@@ -215,6 +215,24 @@ class CycloneConsoleHelper:
             else:
                 print("Invalid choice, please try again.")
 
+    def run_hedges_menu(self):
+        while True:
+            print("\n--- Hedge Menu ---")
+            print("1) 🔄 Update Hedges")
+            print("2) ↩️ Back to Main Menu")
+            choice = input("Enter your choice (1-2): ").strip()
+            if choice == "1":
+                print("Running Hedge Update...")
+                # This will run the hedge update step from the Cyclone instance.
+                # We assume run_update_hedges is an async method.
+                import asyncio
+                asyncio.run(self.cyclone.run_update_hedges())
+                print("Hedge Update completed.")
+            elif choice == "2":
+                break
+            else:
+                print("Invalid choice, please try again.")
+
     def run_wallets_menu(self):
         while True:
             print("\n--- Wallets Menu ---")

@@ -39,8 +39,10 @@
       <div class="modal-body">
         <form id="editForm">
           <div class="mb-3">
-            <label for="editRefId" class="form-label">Ref ID</label>
+            <label for="editRefId" class="form-label">Ref ID (short)</label>
             <input type="text" class="form-control" id="editRefId" name="ref_id" readonly>
+            <!-- Hidden field to store the full ID (UUID) -->
+            <input type="hidden" id="editFullId" name="full_id">
           </div>
           <div class="mb-3">
             <label for="editField1" class="form-label">Field 1</label>
@@ -66,13 +68,13 @@
   // The datasets variable is provided from the backend as JSON.
   const datasets = {{ datasets|tojson }};
 
-  // Function to render the table based on the selected dataset.
+  // Renders the table based on the selected dataset key
   function renderTable(datasetKey) {
     const dataset = datasets[datasetKey];
     const headerEl = document.getElementById('tableHeader');
     const bodyEl = document.getElementById('tableBody');
 
-    // Render headers.
+    // Render headers
     headerEl.innerHTML = '';
     let headerRow = document.createElement('tr');
     dataset.headers.forEach(header => {
@@ -82,64 +84,75 @@
     });
     headerEl.appendChild(headerRow);
 
-    // Render rows.
+    // Render rows
     bodyEl.innerHTML = '';
     dataset.rows.forEach(row => {
       let tr = document.createElement('tr');
-      // Ref ID column: display only the first 6 characters.
+
+      // Ref ID column (show only first 6 chars for brevity)
       let tdRef = document.createElement('td');
       tdRef.textContent = row.id ? row.id.substring(0, 6) : '';
       tr.appendChild(tdRef);
-      // Field 1 column.
+
+      // Field 1 column
       let tdField1 = document.createElement('td');
       tdField1.textContent = row.field1;
       tr.appendChild(tdField1);
-      // Field 2 column.
+
+      // Field 2 column
       let tdField2 = document.createElement('td');
       tdField2.textContent = row.field2;
       tr.appendChild(tdField2);
-      // Actions column with Edit and Delete buttons.
+
+      // Actions column with Edit and Delete buttons
       let tdActions = document.createElement('td');
 
-      // Edit button.
+      // Edit button
       let editBtn = document.createElement('button');
       editBtn.className = 'btn btn-sm btn-primary edit-btn';
       editBtn.textContent = 'Edit';
-      // Store the full ID and other fields.
+      // Store the full ID and other fields in data attributes
       editBtn.setAttribute('data-id', row.id);
       editBtn.setAttribute('data-field1', row.field1);
       editBtn.setAttribute('data-field2', row.field2);
       tdActions.appendChild(editBtn);
 
-      // Delete button.
+      // Delete button
       let deleteBtn = document.createElement('button');
       deleteBtn.className = 'btn btn-sm btn-danger ms-2 delete-btn';
       deleteBtn.textContent = 'Delete';
       deleteBtn.setAttribute('data-id', row.id);
-      // Add a data attribute for the table key so the backend knows which table to target.
-      deleteBtn.setAttribute('data-table', datasetKey);
+      deleteBtn.setAttribute('data-table', datasetKey); // Tells backend which table to delete from
       tdActions.appendChild(deleteBtn);
 
       tr.appendChild(tdActions);
       bodyEl.appendChild(tr);
     });
+
     attachRowEvents();
   }
 
-  // Attach event listeners for edit and delete actions.
+  // Attach event listeners for edit and delete
   function attachRowEvents() {
+    // Edit
     document.querySelectorAll('.edit-btn').forEach(button => {
       button.addEventListener('click', function() {
         const fullId = this.getAttribute('data-id');
         const field1 = this.getAttribute('data-field1');
         const field2 = this.getAttribute('data-field2');
+        // Show short ID in the readonly field
         document.getElementById('editRefId').value = fullId.substring(0, 6);
+        // Store full ID in hidden field
+        document.getElementById('editFullId').value = fullId;
         document.getElementById('editField1').value = field1;
         document.getElementById('editField2').value = field2;
+        // Show modal
         const editModal = new bootstrap.Modal(document.getElementById('editModal'));
         editModal.show();
       });
     });
+
+    // Delete
     document.querySelectorAll('.delete-btn').forEach(button => {
       button.addEventListener('click', function() {
         const fullId = this.getAttribute('data-id');
@@ -147,16 +160,13 @@
         if (confirm('Delete entry ' + fullId.substring(0, 6) + '?')) {
           fetch('/api/delete_entry', {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ table: tableKey, id: fullId })
           })
           .then(response => response.json())
           .then(data => {
             if (data.success) {
               alert('Deleted entry ' + fullId.substring(0, 6));
-              // Refresh the page after deletion to update the view.
               window.location.reload();
             } else {
               alert('Error deleting entry: ' + data.error);
@@ -171,7 +181,7 @@
     });
   }
 
-  // Initialize table on page load.
+  // On page load, render the default table
   document.addEventListener('DOMContentLoaded', function() {
     const tableSelect = document.getElementById('tableSelect');
     tableSelect.addEventListener('change', function() {
@@ -180,9 +190,33 @@
     renderTable(tableSelect.value);
   });
 
-  // Save changes in modal (placeholder action).
+  // Handle "Save Changes" in the edit modal
   document.getElementById('saveEditBtn').addEventListener('click', function() {
-    alert('Save changes for entry with Ref ID: ' + document.getElementById('editRefId').value);
+    const table = document.getElementById('tableSelect').value;
+    const id = document.getElementById('editFullId').value;
+    const field1 = document.getElementById('editField1').value;
+    const field2 = document.getElementById('editField2').value;
+
+    fetch('/api/update_entry', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ table: table, id: id, field1: field1, field2: field2 })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert('Updated entry ' + id);
+        window.location.reload();
+      } else {
+        alert('Error updating entry: ' + data.error);
+      }
+    })
+    .catch(err => {
+      console.error('Update error:', err);
+      alert('Error updating entry.');
+    });
+
+    // Hide the modal after saving
     bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
   });
 </script>

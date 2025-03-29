@@ -673,6 +673,23 @@ class DataLocker:
         }
         self.insert_price(price_dict)
 
+    # APIs use this shit
+    def update_price(self, price_id: str, current_price: float, last_update_time: str) -> int:
+        try:
+            self._init_sqlite_if_needed()
+            cursor = self.conn.cursor()
+            cursor.execute(
+                "UPDATE prices SET current_price = ?, last_update_time = ? WHERE id = ?",
+                (current_price, last_update_time, price_id)
+            )
+            self.conn.commit()
+            self.logger.debug(
+                f"Updated price {price_id}: current_price={current_price}, last_update_time={last_update_time}")
+            return cursor.rowcount
+        except Exception as ex:
+            self.logger.exception(f"Error updating price {price_id}: {ex}")
+            raise
+
     # ----------------------------------------------------------------
     # POSITIONS
     # ----------------------------------------------------------------

@@ -506,6 +506,8 @@ def database_viewer():
         return render_template("database_viewer.html", datasets={})
 
 
+
+
 # -------------------------------
 # New Deletion API Endpoint
 # -------------------------------
@@ -555,6 +557,57 @@ def api_delete_entry():
     except Exception as e:
         logger.exception("Error deleting entry:")
         return jsonify({"success": False, "error": str(e)}), 500
+
+@dashboard_bp.route("/api/update_entry", methods=["POST"])
+def api_update_entry():
+    data = request.get_json() or {}
+    table = data.get("table")
+    record_id = data.get("id")
+    if not table or not record_id:
+        return jsonify({"success": False, "error": "Missing table or id parameter."}), 400
+
+    try:
+        dl = DataLocker.get_instance()
+        if table == "prices":
+            # For price updates, assume:
+            # - field1: new current_price
+            # - field2: new last_update_time (as an ISO-formatted string)
+            current_price = data.get("field1")
+            last_update_time = data.get("field2")
+            if current_price is None or last_update_time is None:
+                return jsonify({"success": False, "error": "Missing price update fields."}), 400
+            rowcount = dl.update_price(record_id, float(current_price), last_update_time)
+            if rowcount > 0:
+                return jsonify({"success": True})
+            else:
+                return jsonify({"success": False, "error": "Price update failed, no row affected."}), 500
+
+        elif table == "alerts":
+            # For alert updates, assume:
+            # - field1: new alert_type
+            # - field2: new status
+            update_fields = {}
+            if "field1" in data:
+                update_fields["alert_type"] = data.get("field1")
+            if "field2" in data:
+                update_fields["status"] = data.get("field2")
+            if not update_fields:
+                return jsonify({"success": False, "error": "No update fields provided for alert."}), 400
+            num_updated = dl.update_alert_conditions(record_id, update_fields)
+            if num_updated:
+                return jsonify({"success": True})
+            else:
+                return jsonify({"success": False, "error": "Alert update failed."}), 500
+
+        else:
+            return jsonify({"success": False, "error": "Update not supported for this table."}), 400
+
+    except Exception as e:
+        logger.exception("Error updating entry:")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+
 
 @dashboard_bp.route("/api/collateral_composition")
 def api_collateral_composition():

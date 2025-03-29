@@ -193,39 +193,63 @@ class CalcServices:
                                  current_price: float,
                                  liquidation_price: float) -> float:
         """
-        Example function that calculates travel_percent for both LONG and SHORT.
-        Adjust as needed to fit your exact logic.
+        Calculates travel percent for a position.
+        For LONG positions:
+          - At entry_price, travel percent = 0.
+          - At liquidation_price, travel percent = -100%.
+          - At profit target (entry_price + (entry_price - liquidation_price)), travel percent = +100%.
+        For SHORT positions:
+          - At entry_price, travel percent = 0.
+          - At liquidation_price, travel percent = -100%.
+          - At profit target (entry_price - (liquidation_price - entry_price)), travel percent = +100%.
         """
-        ptype = (position_type or "").upper()
-        if entry_price <= 0 or liquidation_price <= 0:
+        # Log the input parameters.
+        self.logger.debug(
+            "calculate_travel_percent called with: position_type=%s, entry_price=%f, current_price=%f, liquidation_price=%f",
+            position_type, entry_price, current_price, liquidation_price)
+
+        if entry_price <= 0 or liquidation_price <= 0 or entry_price == liquidation_price:
+            self.logger.debug("Invalid input values; returning 0.0")
             return 0.0
 
-        def pct_of_range(numer, denom):
-            return (numer / denom) * 100 if denom else 0.0
-
-        travel_percent = 0.0
-        profit_price = entry_price * 2
+        ptype = position_type.upper()
+        result = 0.0
 
         if ptype == "LONG":
-            if current_price < entry_price:
-                denom = (entry_price - liquidation_price)
-                numer = (current_price - entry_price)
-                travel_percent = pct_of_range(numer, -abs(denom))
+            if current_price <= entry_price:
+                denom = entry_price - liquidation_price
+                numer = current_price - entry_price
+                result = (numer / denom) * 100
+                self.logger.debug("LONG (current_price <= entry_price): numer=%f, denom=%f, result=%f", numer, denom,
+                                  result)
             else:
-                denom = (profit_price - entry_price)
-                numer = (current_price - entry_price)
-                travel_percent = pct_of_range(numer, denom)
-        else:  # SHORT
-            if current_price > entry_price:
-                denom = (liquidation_price - entry_price)
-                numer = (entry_price - current_price)
-                travel_percent = pct_of_range(numer, -abs(denom))
+                profit_target = entry_price + (entry_price - liquidation_price)
+                denom = profit_target - entry_price
+                numer = current_price - entry_price
+                result = (numer / denom) * 100
+                self.logger.debug("LONG (current_price > entry_price): profit_target=%f, numer=%f, denom=%f, result=%f",
+                                  profit_target, numer, denom, result)
+        elif ptype == "SHORT":
+            if current_price >= entry_price:
+                denom = liquidation_price - entry_price
+                numer = current_price - entry_price
+                result = -((numer / denom) * 100)
+                self.logger.debug("SHORT (current_price >= entry_price): numer=%f, denom=%f, result=%f", numer, denom,
+                                  result)
             else:
-                denom = abs(entry_price - profit_price)
-                numer = (entry_price - current_price)
-                travel_percent = pct_of_range(numer, denom)
+                profit_target = entry_price - (liquidation_price - entry_price)
+                denom = entry_price - profit_target
+                numer = entry_price - current_price
+                result = (numer / denom) * 100
+                self.logger.debug(
+                    "SHORT (current_price < entry_price): profit_target=%f, numer=%f, denom=%f, result=%f",
+                    profit_target, numer, denom, result)
+        else:
+            self.logger.debug("Unknown position type '%s'; returning 0.0", position_type)
+            return 0.0
 
-        return travel_percent
+        self.logger.debug("calculate_travel_percent returning result: %f", result)
+        return result
 
     def aggregator_positions(self, positions: List[dict], db_path: str) -> List[dict]:
         """
