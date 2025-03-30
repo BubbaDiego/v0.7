@@ -731,24 +731,26 @@ def dash_page():
             vc_ratio = round(total_value / total_collateral, 2)
         else:
             vc_ratio = "N/A"
+
+        # Compute average heat index
+        total_heat_index = sum(float(p.get("heat_index", 0)) for p in all_positions)
+        avg_heat_index = total_heat_index / len(all_positions)
     else:
         total_value = 0
         total_size = 0
         avg_leverage = 0
         avg_travel_percent = 0
         vc_ratio = "N/A"
+        avg_heat_index = 0
 
-    # Format these for display in dash.html
+    # Format values for display
     formatted_value = "${:,.2f}".format(total_value)
     formatted_size = "${:,.2f}".format(total_size)
     formatted_leverage = "{:,.2f}x".format(avg_leverage) if avg_leverage else "N/A"
     formatted_travel_percent = "{:.2f}%".format(avg_travel_percent) if avg_travel_percent else "N/A"
+    formatted_avg_heat_index = "{:,.2f}".format(avg_heat_index)
 
     liquidation_positions = all_positions
-
-    # Debug: print how many liquidation positions you have
-    print(f"liquidation_positions count: {len(liquidation_positions)}")
-    print(f"liquidation_positions data: {liquidation_positions}")
 
     return render_template(
         "dash.html",
@@ -757,7 +759,9 @@ def dash_page():
         size=formatted_size,
         vc_ratio=vc_ratio,
         travel_percent=formatted_travel_percent,
+        total_heat_index=formatted_avg_heat_index,  # Now it's the average heat index
         positions=all_positions,
-        liquidation_positions=liquidation_positions  # <-- pass it here
+        liquidation_positions=liquidation_positions
     )
+
 

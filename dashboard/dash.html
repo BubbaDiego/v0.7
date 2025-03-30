@@ -211,6 +211,10 @@
   <!-- Status Bar -->
   <div class="status-bar common-box light-mode" id="statusBar">
     <div>
+    <span class="status-label">🔥 Heat</span>
+    <span class="status-value">{{ total_heat_index | default("N/A") }}</span>
+  </div>
+    <div>
       <span class="status-label">💰 Value</span>
       <span class="status-value">{{ value | default("$0.00") }}</span>
     </div>
