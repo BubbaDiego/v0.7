@@ -128,15 +128,15 @@
                         <td>
                           <div class="notif-inline justify-content-center">
                             <label class="form-check">
-                              <input type="checkbox" class="form-check-input" name="price_alerts[BTC][notifications][call]" {% if price_alerts['BTC']['notifications']['call'] %}checked{% endif %} />
+                              <input type="checkbox" class="form-check-input" name="price_alerts[BTC][notifications][call]" {% if price_alerts['BTC'].get('notifications', {}).get('call', False) %}checked{% endif %} />
                               <span style="color:green;">☎</span>
                             </label>
                             <label class="form-check">
-                              <input type="checkbox" class="form-check-input" name="price_alerts[BTC][notifications][sms]" {% if price_alerts.BTC.notifications.sms %}checked{% endif %} />
+                              <input type="checkbox" class="form-check-input" name="price_alerts[BTC][notifications][sms]" {% if price_alerts['BTC'].get('notifications', {}).get('sms', False) %}checked{% endif %} />
                               <span style="color:orange;">💬</span>
                             </label>
                             <label class="form-check">
-                              <input type="checkbox" class="form-check-input" name="price_alerts[BTC][notifications][email]" {% if price_alerts.BTC.notifications.email %}checked{% endif %} />
+                              <input type="checkbox" class="form-check-input" name="price_alerts[BTC][notifications][email]" {% if price_alerts['BTC'].get('notifications', {}).get('email', False) %}checked{% endif %} />
                               <span style="color:blue;">✉</span>
                             </label>
                           </div>
@@ -160,15 +160,15 @@
                         <td>
                           <div class="notif-inline justify-content-center">
                             <label class="form-check">
-                              <input type="checkbox" class="form-check-input" name="price_alerts[ETH][notifications][call]" {% if price_alerts.ETH.notifications.call %}checked{% endif %} />
+                              <input type="checkbox" class="form-check-input" name="price_alerts[ETH][notifications][call]" {% if price_alerts['ETH'].get('notifications', {}).get('call', False) %}checked{% endif %} />
                               <span style="color:green;">☎</span>
                             </label>
                             <label class="form-check">
-                              <input type="checkbox" class="form-check-input" name="price_alerts[ETH][notifications][sms]" {% if price_alerts.ETH.notifications.sms %}checked{% endif %} />
+                              <input type="checkbox" class="form-check-input" name="price_alerts[ETH][notifications][sms]" {% if price_alerts['ETH'].get('notifications', {}).get('sms', False) %}checked{% endif %} />
                               <span style="color:orange;">💬</span>
                             </label>
                             <label class="form-check">
-                              <input type="checkbox" class="form-check-input" name="price_alerts[ETH][notifications][email]" {% if price_alerts.ETH.notifications.email %}checked{% endif %} />
+                              <input type="checkbox" class="form-check-input" name="price_alerts[ETH][notifications][email]" {% if price_alerts['ETH'].get('notifications', {}).get('email', False) %}checked{% endif %} />
                               <span style="color:blue;">✉</span>
                             </label>
                           </div>
@@ -192,15 +192,15 @@
                         <td>
                           <div class="notif-inline justify-content-center">
                             <label class="form-check">
-                              <input type="checkbox" class="form-check-input" name="price_alerts[SOL][notifications][call]" {% if price_alerts.SOL.notifications.call %}checked{% endif %} />
+                              <input type="checkbox" class="form-check-input" name="price_alerts[SOL][notifications][call]" {% if price_alerts['SOL'].get('notifications', {}).get('call', False) %}checked{% endif %} />
                               <span style="color:green;">☎</span>
                             </label>
                             <label class="form-check">
-                              <input type="checkbox" class="form-check-input" name="price_alerts[SOL][notifications][sms]" {% if price_alerts.SOL.notifications.sms %}checked{% endif %} />
+                              <input type="checkbox" class="form-check-input" name="price_alerts[SOL][notifications][sms]" {% if price_alerts['SOL'].get('notifications', {}).get('sms', False) %}checked{% endif %} />
                               <span style="color:orange;">💬</span>
                             </label>
                             <label class="form-check">
-                              <input type="checkbox" class="form-check-input" name="price_alerts[SOL][notifications][email]" {% if price_alerts.SOL.notifications.email %}checked{% endif %} />
+                              <input type="checkbox" class="form-check-input" name="price_alerts[SOL][notifications][email]" {% if price_alerts['SOL'].get('notifications', {}).get('email', False) %}checked{% endif %} />
                               <span style="color:blue;">✉</span>
                             </label>
                           </div>
@@ -292,26 +292,6 @@
                         <td>
                           <div class="threshold-cell">
                             <input type="number" class="threshold-input form-control" name="alert_ranges[travel_percent_liquid_ranges][high]" value="{{ alert_ranges.travel_percent_liquid_ranges.high }}">
-                          </div>
-                        </td>
-                      </tr>
-                      <!-- Travel Percent Profit -->
-                      <tr>
-                        <td>📈 Travel % Profit</td>
-                        <td><input type="checkbox" name="alert_ranges[travel_percent_profit_ranges][enabled]" {% if alert_ranges.travel_percent_profit_ranges.enabled %}checked{% endif %} /></td>
-                        <td>
-                          <div class="threshold-cell">
-                            <input type="number" class="threshold-input form-control" name="alert_ranges[travel_percent_profit_ranges][low]" value="{{ alert_ranges.travel_percent_profit_ranges.low }}">
-                          </div>
-                        </td>
-                        <td>
-                          <div class="threshold-cell">
-                            <input type="number" class="threshold-input form-control" name="alert_ranges[travel_percent_profit_ranges][medium]" value="{{ alert_ranges.travel_percent_profit_ranges.medium }}">
-                          </div>
-                        </td>
-                        <td>
-                          <div class="threshold-cell">
-                            <input type="number" class="threshold-input form-control" name="alert_ranges[travel_percent_profit_ranges][high]" value="{{ alert_ranges.travel_percent_profit_ranges.high }}">
                           </div>
                         </td>
                       </tr>

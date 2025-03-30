@@ -93,35 +93,72 @@ def parse_nested_form(form: dict) -> dict:
                 current = current[key]
     return updated
 
-
-@alerts_bp.route('/create_all_alerts', methods=['POST'], endpoint="create_all_alerts")
-def create_all_alerts():
-    from alert_manager import manager  # <--- import the global manager
-    print("DEBUG: create_all_alerts route was called!")  # or use logger.debug
-
-    # Now call the manager's create_all_alerts, which internally calls the controller
-    created_alerts = manager.create_all_alerts()
-
-    return jsonify({"success": True, "created_alerts": created_alerts})
-
-@alerts_bp.route('/delete_all_alerts', methods=['POST'], endpoint="delete_all_alerts")
-def delete_all_alerts():
-    from alert_controller import AlertController
-    controller = AlertController()
-    deleted_count = controller.delete_all_alerts()
-    return jsonify({"success": True, "deleted_count": deleted_count})
-
-# NEW: Refresh alerts route
 @alerts_bp.route('/refresh_alerts', methods=['POST'], endpoint="refresh_alerts")
 def refresh_alerts():
-    from alert_manager import manager
+    from cyclone.cyclone import Cyclone
+    import asyncio
+    cyc = Cyclone()
     try:
-        # Call check_alerts to evaluate and update alerts; source "manual refresh" is passed
-        manager.check_alerts(source="manual refresh")
-        return jsonify({"success": True, "message": "Alerts refreshed."})
+        asyncio.run(cyc.run_alert_updates())
+        return jsonify({"success": True, "message": "Alerts refreshed using Cyclone run_alert_updates."})
     except Exception as e:
         logger.error("Error refreshing alerts: %s", str(e))
         return jsonify({"success": False, "error": str(e)}), 500
+
+
+@alerts_bp.route('/create_all_alerts', methods=['POST'], endpoint="create_all_alerts")
+def create_all_alerts():
+    add_type = (request.json.get("add_type") or request.form.get("add_type", "all")).lower()
+    from cyclone import Cyclone
+    import asyncio
+    cyc = Cyclone()
+    messages = []
+    try:
+        if add_type == "position":
+            asyncio.run(cyc.run_create_position_alerts())
+            messages.append("Position alerts created.")
+        elif add_type == "market":
+            asyncio.run(cyc.run_create_market_alerts())
+            messages.append("Market alerts created.")
+        elif add_type == "system":
+            asyncio.run(cyc.run_create_system_alerts())
+            messages.append("System alerts created.")
+        elif add_type == "all":
+            asyncio.run(cyc.run_create_position_alerts())
+            asyncio.run(cyc.run_create_market_alerts())
+            asyncio.run(cyc.run_create_system_alerts())
+            messages.append("All alerts created.")
+        else:
+            return jsonify({"success": False, "error": "Invalid add type."}), 400
+        return jsonify({"success": True, "message": " ".join(messages)})
+    except Exception as e:
+        logger.error("Error creating alerts: %s", str(e))
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@alerts_bp.route('/delete_all_alerts', methods=['POST'], endpoint="delete_all_alerts")
+def delete_all_alerts():
+    delete_type = (request.json.get("delete_type") or request.form.get("delete_type", "alerts")).lower()
+    from cyclone.cyclone import Cyclone
+    cyc = Cyclone()
+    try:
+        if delete_type == "price":
+            cyc.clear_prices_backend()
+            return jsonify({"success": True, "message": "Price data cleared."})
+        elif delete_type == "alerts":
+            cyc.clear_alerts_backend()
+            return jsonify({"success": True, "message": "Alerts cleared."})
+        elif delete_type == "all":
+            cyc.clear_prices_backend()
+            cyc.clear_alerts_backend()
+            return jsonify({"success": True, "message": "Deleted alerts and cleared price data."})
+        else:
+            return jsonify({"success": False, "error": "Invalid delete type."}), 400
+    except Exception as e:
+        logger.error("Error deleting alerts: %s", str(e))
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 
 def format_alert_config_table(alert_ranges: dict) -> str:
     metrics = [
@@ -354,6 +391,15 @@ def alert_matrix():
                     alert["position_reference_id"] = pos.get("id")
                     break
 
+    # For TRAVELPERCENT alerts, attach the travel_percent from the corresponding position
+    for alert in alerts:
+        if alert.get("alert_type", "").upper() == "TRAVELPERCENT":
+            pos = next((p for p in positions if p.get("id") == alert.get("position_reference_id")), None)
+            if pos:
+                alert["travel_percent"] = pos.get("travel_percent")
+            else:
+                alert["travel_percent"] = None
+
     # Retrieve hedges using HedgeManager
     hedge_manager = HedgeManager(positions)
     hedges = hedge_manager.get_hedges()
@@ -407,7 +453,6 @@ def alert_matrix():
                            hedges=hedges,
                            asset_images=asset_images,
                            wallet_default=wallet_default)
-
 
 
 if __name__ == "__main__":

@@ -11,10 +11,11 @@
   }
   /* Card tools icons */
   .card-tools a {
-    color: var(--text-color);
+    color: var(--text-color) !important;
     font-size: 1.25rem;
     margin-left: 10px;
     cursor: pointer;
+    text-decoration: none;
   }
   /* Toggle switch container in header (two-toggle style, no text) */
   .header-toggle {
@@ -101,12 +102,11 @@
     margin-bottom: 8px;
   }
   .icon-container i {
-    color: #fff;
     font-size: 1.5rem;
   }
   .icon-container img {
-    width: 27px;  /* reduced from 36px to 27px */
-    height: 27px; /* reduced from 36px to 27px */
+    width: 27px;
+    height: 27px;
     object-fit: cover;
     border-radius: 50%;
   }
@@ -163,9 +163,34 @@
         <input type="checkbox" id="toggleAllAlerts" title="Toggle All Alerts">
       </div>
       <div class="card-tools" style="position: absolute; right: 10px; top: 10px;">
-        <a id="refreshAlerts" title="Refresh Alerts"><i class="fas fa-sync-alt"></i></a>
-        <a id="createAllAlerts" title="Create All Alerts"><i class="fas fa-plus-circle"></i></a>
-        <a id="deleteAllAlerts" title="Delete All Alerts" style="margin-left: 10px;"><i class="fas fa-trash-alt"></i></a>
+        <a id="refreshAlerts" href="#" title="Refresh Alerts" role="button">
+          <i class="fas fa-sync-alt" style="color: #fff;"></i>
+        </a>
+        <!-- Create Alerts Dropdown -->
+        <div class="dropdown" style="display:inline-block; margin-left: 10px;">
+          <a id="createAllAlerts" href="#" class="dropdown-toggle" data-bs-toggle="dropdown"
+             aria-expanded="false" role="button" title="Create Alerts" style="color: #fff;">
+            <i class="fas fa-plus-circle"></i>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="createAllAlerts">
+            <li><a class="dropdown-item" href="#" data-add-type="position">Add Position Alerts</a></li>
+            <li><a class="dropdown-item" href="#" data-add-type="market">Add Market Alerts</a></li>
+            <li><a class="dropdown-item" href="#" data-add-type="system">Add System Alerts</a></li>
+            <li><a class="dropdown-item" href="#" data-add-type="all">Add All</a></li>
+          </ul>
+        </div>
+        <!-- Delete Alerts Dropdown -->
+        <div class="dropdown" style="display:inline-block; margin-left: 10px;">
+          <a id="deleteAllAlerts" href="#" class="dropdown-toggle" data-bs-toggle="dropdown"
+             aria-expanded="false" role="button" title="Delete Alerts" style="color: #fff;">
+            <i class="fas fa-trash-alt"></i>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="deleteAllAlerts">
+            <li><a class="dropdown-item" href="#" data-delete-type="price">Delete Price</a></li>
+            <li><a class="dropdown-item" href="#" data-delete-type="alerts">Delete Alerts</a></li>
+            <li><a class="dropdown-item" href="#" data-delete-type="all">Delete All</a></li>
+          </ul>
+        </div>
       </div>
     </div>
     <div class="card-body" style="background-color: var(--card-background-color); color: var(--text-color);">
@@ -189,25 +214,25 @@
               {% endif %} shadow-sm">
               <summary class="info-header">
                 <div class="icon-container">
-                  <!-- Alert Icon using updated conditions -->
+                  <!-- Alert Icon -->
                   <div class="alert-icon">
                     {% if atype == 'TRAVELPERCENT' %}
-                      <i class="fas fa-rocket"></i>
+                      <i class="fas fa-rocket" style="color: #fff;"></i>
                     {% elif atype == 'HEATINDEX' %}
-                      <i class="fas fa-fire"></i>
+                      <i class="fas fa-fire" style="color: #fff;"></i>
                     {% elif atype == 'PROFIT' %}
-                      <i class="fas fa-dollar-sign" style="color: white;"></i>
+                      <i class="fas fa-dollar-sign" style="color: #fff;"></i>
                     {% elif atype == 'PRICETHRESHOLD' %}
-                      <i class="fas fa-tag"></i>
+                      <i class="fas fa-tag" style="color: #fff;"></i>
                     {% elif atype == 'TIME' %}
-                      <i class="fas fa-clock"></i>
+                      <i class="fas fa-clock" style="color: #fff;"></i>
                     {% elif atype == 'DELTACHANGE' %}
-                      <i class="fas fa-chart-line"></i>
+                      <i class="fas fa-chart-line" style="color: #fff;"></i>
                     {% else %}
-                      🔔
+                      <i class="fas fa-bell" style="color: #fff;"></i>
                     {% endif %}
                   </div>
-                  <!-- Asset Image -->
+                  <!-- Asset Icon -->
                   <div class="asset-icon">
                     {% if alert.asset_image %}
                       <img src="{{ alert.asset_image }}" alt="Asset">
@@ -219,7 +244,7 @@
                       {% endif %}
                     {% endif %}
                   </div>
-                  <!-- Wallet Image -->
+                  <!-- Wallet Icon -->
                   <div class="wallet-icon">
                     {% if alert.wallet_image %}
                       <img src="{{ alert.wallet_image }}" alt="Wallet">
@@ -251,7 +276,7 @@
                       {% if atype == 'PRICETHRESHOLD' %}
                         ${{ "{:,.2f}".format(alert.trigger_value or 0) }}
                       {% elif atype == 'TRAVELPERCENT' %}
-                        {{ "{:,.2f}".format(alert.trigger_value or 0) }}%
+                        {{ "{:,.2f}".format(alert.trigger_value  or 0) }}%
                       {% elif atype == 'PROFIT' %}
                         ${{ "{:,.2f}".format(alert.trigger_value or 0) }}
                       {% elif atype == 'HEATINDEX' %}
@@ -270,7 +295,7 @@
                       {% if atype == 'PRICETHRESHOLD' %}
                         ${{ "{:,.2f}".format(alert.evaluated_value or 0) }}
                       {% elif atype == 'TRAVELPERCENT' %}
-                        {{ "{:,.2f}".format(alert.evaluated_value or 0) }}%
+                        {{ "{:,.2f}".format(alert.travel_percent or 0) }}%
                       {% elif atype == 'PROFIT' %}
                         ${{ "{:,.2f}".format(alert.evaluated_value or 0) }}
                       {% elif atype == 'HEATINDEX' %}
@@ -293,23 +318,25 @@
                 <div class="alert-info-container">
                   <div class="alert-details-column">
                     <div><strong>Type:</strong> {{ alert.alert_type }}</div>
-                    <div><strong>Trigger:</strong> <strong>
-                      {% if atype == 'PRICETHRESHOLD' %}
-                        ${{ "{:,.2f}".format(alert.trigger_value or 0) }}
-                      {% elif atype == 'TRAVELPERCENT' %}
-                        {{ "{:,.2f}".format(alert.trigger_value or 0) }}%
-                      {% elif atype == 'PROFIT' %}
-                        ${{ "{:,.2f}".format(alert.trigger_value or 0) }}
-                      {% elif atype == 'HEATINDEX' %}
-                        {{ "{:,.2f}".format(alert.trigger_value or 0) }}
-                      {% elif atype == 'TIME' %}
-                        {{ alert.trigger_value or "N/A" }}
-                      {% elif atype == 'DELTACHANGE' %}
-                        {{ "{:,.2f}".format(alert.trigger_value or 0) }}
-                      {% else %}
-                        {{ "{:,.2f}".format(alert.trigger_value or 0) }}
-                      {% endif %}
-                    </strong></div>
+                    <div><strong>Trigger:</strong>
+                      <strong>
+                        {% if atype == 'PRICETHRESHOLD' %}
+                          ${{ "{:,.2f}".format(alert.trigger_value or 0) }}
+                        {% elif atype == 'TRAVELPERCENT' %}
+                          {{ "{:,.2f}".format(alert.travel_percent or 0) }}%
+                        {% elif atype == 'PROFIT' %}
+                          ${{ "{:,.2f}".format(alert.trigger_value or 0) }}
+                        {% elif atype == 'HEATINDEX' %}
+                          {{ "{:,.2f}".format(alert.trigger_value or 0) }}
+                        {% elif atype == 'TIME' %}
+                          {{ alert.trigger_value or "N/A" }}
+                        {% elif atype == 'DELTACHANGE' %}
+                          {{ "{:,.2f}".format(alert.trigger_value or 0) }}
+                        {% else %}
+                          {{ "{:,.2f}".format(alert.trigger_value or 0) }}
+                        {% endif %}
+                      </strong>
+                    </div>
                     <div><strong>Level:</strong> <strong>{{ alert.level }}</strong></div>
                     <div><strong>Status:</strong> {{ alert.status }}</div>
                   </div>
@@ -422,6 +449,7 @@
 {% block extra_scripts %}
 <script>
   document.addEventListener("DOMContentLoaded", function() {
+    // Toggle all alert boxes
     const toggleSwitch = document.getElementById("toggleAllAlerts");
     toggleSwitch.addEventListener("change", function() {
       const detailsBoxes = document.querySelectorAll("details.info-box");
@@ -433,6 +461,7 @@
         }
       });
     });
+    // Refresh alerts
     document.getElementById("refreshAlerts").addEventListener("click", function(e) {
       e.preventDefault();
       e.stopPropagation();
@@ -451,38 +480,55 @@
         alert("Error refreshing alerts: " + err);
       });
     });
-    document.getElementById("createAllAlerts").addEventListener("click", function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      fetch("{{ url_for('alerts_bp.create_all_alerts') }}", { method: "POST" })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          alert("Created " + data.created_alerts.length + " alerts.");
-          window.location.reload();
-        } else {
-          alert("Error creating alerts.");
-        }
-      })
-      .catch(err => {
-        console.error("Error creating all alerts:", err);
-        alert("Error creating alerts: " + err);
+    // Create alerts dropdown selections
+    document.querySelectorAll('[data-add-type]').forEach(item => {
+      item.addEventListener("click", function(e) {
+        e.preventDefault();
+        let addType = this.getAttribute("data-add-type");
+        fetch("{{ url_for('alerts_bp.create_all_alerts') }}", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ add_type: addType })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            alert(data.message);
+            window.location.reload();
+          } else {
+            alert("Error creating alerts: " + data.error);
+          }
+        })
+        .catch(err => {
+          console.error("Error creating alerts:", err);
+          alert("Error creating alerts: " + err);
+        });
       });
     });
-    document.getElementById("deleteAllAlerts").addEventListener("click", function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      if (!confirm("Are you sure you want to delete all alerts?")) return;
-      fetch("{{ url_for('alerts_bp.delete_all_alerts') }}", { method: "POST" })
-      .then(response => {
-          console.log("HTTP status:", response.status);
-          return response.text();
-      })
-      .then(text => {
-          console.log("Response text:", text);
-      })
-      .catch(err => {
-          console.error("Error deleting all alerts:", err);
+    // Delete alerts dropdown selections
+    document.querySelectorAll('[data-delete-type]').forEach(item => {
+      item.addEventListener("click", function(e) {
+        e.preventDefault();
+        let deleteType = this.getAttribute("data-delete-type");
+        if (!confirm("Are you sure you want to delete " + deleteType + "?")) return;
+        fetch("{{ url_for('alerts_bp.delete_all_alerts') }}", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ delete_type: deleteType })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            alert(data.message);
+            window.location.reload();
+          } else {
+            alert("Error deleting alerts: " + data.error);
+          }
+        })
+        .catch(err => {
+          console.error("Error deleting alerts:", err);
+          alert("Error deleting alerts: " + err);
+        });
       });
     });
   });

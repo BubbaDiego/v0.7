@@ -17,10 +17,11 @@
         #4a90e2 70%,
         #4a90e2 100%
       );
+      /* Only a border-bottom to separate the title bar from the body */
+      border-bottom: 2px solid white;
     }
 
-    /* Remove white boxes around nav items */
-    /* Keeping existing styling otherwise */
+    /* Asset panels (the price ellipses) with thicker white border */
     .asset-panel {
       display: flex;
       align-items: center;
@@ -29,6 +30,7 @@
       background-color: #f8f9fa;
       border-radius: 999px;
       color: #000 !important;
+      border: 2px solid white;
     }
     .asset-panel img {
       width: 20px;
@@ -51,12 +53,12 @@
       flex-direction: row;
     }
 
-    /* Unified update button styles (slightly smaller than before) */
+    /* Unified update button styles */
     .update-btn {
       border: none;
       background: none;
       cursor: pointer;
-      padding: 0.2rem; /* smaller padding */
+      padding: 0.2rem;
     }
     .update-icon {
       display: inline-flex;
@@ -65,22 +67,23 @@
       width: 32px;
       height: 32px;
       border-radius: 50%;
-      /* increased font-size for text icons like $ and 🌀 */
-      font-size: 24px;
+      font-size: 32px;  /* Larger icons */
       font-weight: bold;
       background-color: #f8f9fa;
-      background-size: 80%;
+      background-size: 100%;
       background-position: center;
       background-repeat: no-repeat;
+      border: 2px solid white;  /* Thicker border for update icons */
     }
     /* Make the Jupiter image a little bigger without increasing the circle size */
     #updateJupiterBtn .update-icon {
-      background-size: 90%;
+      background-size: 100%;
     }
 
-    /* Timer box: now light grey with black text */
+    /* Timer box: light grey with black text and thicker white border */
     .timer-box {
       background-color: #ddd;
+      border: 2px solid white;
       border-radius: 4px;
       padding: 0.25rem 0.5rem;
       display: flex;
@@ -287,21 +290,21 @@
         .then(data => {
           document.getElementById('btcPrice').textContent =
             '$' + data.bitcoin.usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-          const btcChange = data.bitcoin.usd_24h_change.toFixed(2);
+          const btcChange = data.bitcoin.usd_24hr_change.toFixed(2);
           const btcChangeElem = document.getElementById('btcChange');
           btcChangeElem.textContent = btcChange + '%';
           btcChangeElem.style.color = btcChange >= 0 ? 'green' : 'red';
 
           document.getElementById('ethPrice').textContent =
             '$' + data.ethereum.usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-          const ethChange = data.ethereum.usd_24h_change.toFixed(2);
+          const ethChange = data.ethereum.usd_24hr_change.toFixed(2);
           const ethChangeElem = document.getElementById('ethChange');
           ethChangeElem.textContent = ethChange + '%';
           ethChangeElem.style.color = ethChange >= 0 ? 'green' : 'red';
 
           document.getElementById('solPrice').textContent =
             '$' + data.solana.usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-          const solChange = data.solana.usd_24h_change.toFixed(2);
+          const solChange = data.solana.usd_24hr_change.toFixed(2);
           const solChangeElem = document.getElementById('solChange');
           solChangeElem.textContent = solChange + '%';
           solChangeElem.style.color = solChange >= 0 ? 'green' : 'red';

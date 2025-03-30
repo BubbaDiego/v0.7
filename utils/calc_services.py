@@ -255,7 +255,7 @@ class CalcServices:
         """
         For each position in `positions`, compute travel percent,
         liquidation distance, value, leverage, and heat index.
-        Also updates the DB with the new current_travel_percent, liquidation_distance,
+        Also updates the DB with the new travel_percent, liquidation_distance,
         heat_index, current_heat_index, and current_price.
         After the update, it performs a read to confirm the updated values.
         """
@@ -272,14 +272,13 @@ class CalcServices:
             collateral = float(pos.get("collateral", 0.0))
             size = float(pos.get("size", 0.0))
 
-            # Calculate travel percent (using a version with no profit anchor)
-            travel_percent = self.calculate_travel_percent_no_profit(
+            travel_percent = self.calculate_travel_percent(
                 position_type,
                 entry_price,
                 current_price,
                 liquidation_price
             )
-            pos["current_travel_percent"] = travel_percent
+            pos["travel_percent"] = travel_percent
 
             # Calculate liquidation distance
             liq_distance = self.calculate_liquid_distance(
@@ -291,7 +290,7 @@ class CalcServices:
             # Update travel percent in DB
             try:
                 cursor.execute(
-                    "UPDATE positions SET current_travel_percent = ? WHERE id = ?",
+                    "UPDATE positions SET travel_percent = ? WHERE id = ?",
                     (travel_percent, pos["id"])
                 )
             except Exception as e:
@@ -441,7 +440,7 @@ class CalcServices:
             size = float(pos.get("size", 0.0))
             liquidation_price = float(pos.get("liquidation_price", 0.0))
 
-            pos["current_travel_percent"] = self.calculate_travel_percent(
+            pos["travel_percent"] = self.calculate_travel_percent(
                 position_type,
                 entry_price,
                 current_price,
@@ -449,7 +448,7 @@ class CalcServices:
             )
 
             print(
-                f"[DEBUG] Normalized => type={position_type}, entry={entry_price}, current={current_price}, collat={collateral}, size={size}, travel_percent={pos['current_travel_percent']}")
+                f"[DEBUG] Normalized => type={position_type}, entry={entry_price}, current={current_price}, collat={collateral}, size={size}, travel_percent={pos['travel_percent']}")
 
             if entry_price <= 0:
                 pnl = 0.0
@@ -488,7 +487,7 @@ class CalcServices:
             value = float(pos.get("value") or 0.0)
             collateral = float(pos.get("collateral") or 0.0)
             leverage = float(pos.get("leverage") or 0.0)
-            travel_percent = float(pos.get("current_travel_percent") or 0.0)
+            travel_percent = float(pos.get("travel_percent") or 0.0)
             heat_index = float(pos.get("heat_index") or 0.0)
 
             total_size += size

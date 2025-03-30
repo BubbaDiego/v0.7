@@ -3,6 +3,7 @@ import time
 from config.unified_config_manager import UnifiedConfigManager
 from config.config_constants import CONFIG_PATH
 from utils.unified_logger import UnifiedLogger
+from utils.calc_services import CalcServices
 from alerts.alert_enrichment import enrich_alert_data
 from data.models import Alert, AlertType, AlertClass, NotificationType, Status
 from uuid import uuid4
@@ -17,6 +18,7 @@ class AlertEvaluator:
         """
         self.config = config
         self.data_locker = data_locker
+        self.calc_services = CalcServices()
         # For cooldown management (in seconds)
         self.cooldown = self.config.get("alert_cooldown_seconds", 900)
         self.last_triggered = {}
@@ -35,229 +37,122 @@ class AlertEvaluator:
     # -------------------------
     # Subordinate Evaluation Methods
     # -------------------------
-    def evaluate_travel_alert(self, pos: dict):
-        """
-        Evaluate the travel percent alert based on configuration thresholds.
-        Returns a tuple (level, evaluated_value) or None if evaluation cannot be done.
-        """
-        tp_config = self.config.get("alert_ranges", {}).get("travel_percent_liquid_ranges", {})
-        if not tp_config.get("enabled", False):
-            return None
+    async def run_update_evaluated_value(self):
+        self.logger.info("Updating Evaluated Values for Alerts...")
         try:
-            low_threshold = float(tp_config.get("low", -4.0))
-            medium_threshold = float(tp_config.get("medium", -7.0))
-            high_threshold = float(tp_config.get("high", -10.0))
-        except Exception as e:
-            u_logger.log_operation(
-                operation_type="Alert Evaluation Error",
-                primary_text=f"Error parsing travel thresholds: {e}",
-                source="AlertEvaluator",
-                file="alert_evaluator.py"
+            await asyncio.to_thread(self.alert_evaluator.update_alerts_evaluated_value)
+            self.u_logger.log_cyclone(
+                operation_type="Update Evaluated Value",
+                primary_text="Alert evaluated values updated successfully",
+                source="Cyclone",
+                file="cyclone.py"
             )
-            return None
-        try:
-            current_val = float(pos.get("travel_percent", 0.0))
+            print("Alert evaluated values updated.")
         except Exception as e:
-            u_logger.log_operation(
-                operation_type="Alert Evaluation Error",
-                primary_text=f"Error parsing travel percent: {e}",
-                source="AlertEvaluator",
-                file="alert_evaluator.py"
+            self.logger.error(f"Updating evaluated values failed: {e}")
+            self.u_logger.log_cyclone(
+                operation_type="Update Evaluated Value",
+                primary_text=f"Failed: {e}",
+                source="Cyclone",
+                file="cyclone.py"
             )
-            return None
-
-        before_log = (f"[Travel Alert] BEFORE: travel_percent = {current_val}, "
-                      f"thresholds -> low: {low_threshold}, medium: {medium_threshold}, high: {high_threshold}")
-        print("\033[94m" + before_log + "\033[0m")
-        u_logger.log_operation(
-            operation_type="Alert Evaluation",
-            primary_text=before_log,
-            source="AlertEvaluator",
-            file="alert_evaluator.py"
-        )
-
-        # Determine level based on thresholds
-        if current_val >= 0:
-            level = "Normal"
-            color = "\033[0m"
-        elif current_val <= high_threshold:
-            level = "High"
-            color = "\033[91m"
-        elif current_val <= medium_threshold:
-            level = "Medium"
-            color = "\033[93m"
-        elif current_val <= low_threshold:
-            level = "Low"
-            color = "\033[92m"
-        else:
-            level = "Normal"
-            color = "\033[0m"
-
-        after_log = f"[Travel Alert] AFTER: Evaluated level = '{level}' for travel_percent = {current_val}"
-        print(color + after_log + "\033[0m")
-        u_logger.log_operation(
-            operation_type="Alert Evaluation",
-            primary_text=after_log,
-            source="AlertEvaluator",
-            file="alert_evaluator.py"
-        )
-
-        return level, current_val
 
     def evaluate_profit_alert(self, pos: dict) -> str:
-        """
-        Evaluate profit alert for a position.
-        Returns a message if triggered, else an empty string.
-        """
-        asset_code = pos.get("asset_type", "???").upper()
-        asset_full = asset_code
-        position_type = pos.get("position_type", "").capitalize()
-        position_id = pos.get("position_id") or pos.get("id") or "unknown"
-        try:
-            profit_val = float(pos.get("profit", 0.0))
-        except Exception:
-            return ""
-        self._debug_log(f"[Profit Alert] Initial profit value: {profit_val} for position {position_id}")
-
-        if profit_val <= 0:
-            self._debug_log(f"[Profit Alert] Profit value <= 0. Setting level to Normal for position {position_id}")
-            self._update_alert_level(pos, "Normal", evaluated_value=profit_val)
-            return ""
-        profit_config = self.config.get("alert_ranges", {}).get("profit_ranges", {})
-        if not profit_config.get("enabled", False):
-            return ""
-        try:
-            low_thresh = float(profit_config.get("low", 46.23))
-            med_thresh = float(profit_config.get("medium", 101.3))
-            high_thresh = float(profit_config.get("high", 202.0))
-        except Exception:
-            return ""
-
-        self._debug_log(
-            f"[Profit Alert] profit: {profit_val}, thresholds -> low: {low_thresh}, medium: {med_thresh}, high: {high_thresh}")
-
-        if profit_val < low_thresh:
-            self._debug_log(
-                f"[Profit Alert] Profit {profit_val} is below low threshold {low_thresh}. Setting level to Normal.")
-            self._update_alert_level(pos, "Normal", evaluated_value=profit_val)
-            return ""
-        elif profit_val < med_thresh:
-            current_level = "Low"
-        elif profit_val < high_thresh:
-            current_level = "Medium"
+        asset = pos.get("asset_type", "BTC")
+        price_record = self.data_locker.get_latest_price(asset)
+        if price_record and "current_price" in price_record:
+            current_price = float(price_record["current_price"])
         else:
-            current_level = "High"
+            self._debug_log(f"[Profit Alert] Error: latest price not available for asset {asset}")
+            current_price = 0.0
 
-        self._debug_log(f"[Profit Alert] Evaluated level: {current_level} for profit value: {profit_val}")
-        self._update_alert_level(pos, current_level, evaluated_value=profit_val)
-        profit_key = f"profit-{asset_full}-{position_type}-{position_id}"
-        now = time.time()
-        last_time = self.last_triggered.get(profit_key, 0)
-        if now - last_time < self.cooldown:
-            self.suppressed_count += 1
-            self._debug_log(f"[Profit Alert] Alert for {position_id} suppressed due to cooldown.")
+        try:
+            entry_price = float(pos.get("entry_price", 0.0))
+            size = float(pos.get("size", 0.0))
+        except Exception as e:
+            self._debug_log(f"[Profit Alert] Error parsing price/size fields: {e}")
             return ""
-        self.last_triggered[profit_key] = now
-        msg = f"Profit ALERT: {asset_full} {position_type} profit of {profit_val:.2f} (Level: {current_level})"
-        self._debug_log(f"[Profit Alert] Final message: {msg}")
-        return msg
+
+        position_type = pos.get("position_type", "LONG").upper()
+        if entry_price == 0:
+            profit_val = 0.0
+        elif position_type == "LONG":
+            profit_val = (current_price - entry_price) * (size / entry_price)
+        else:
+            profit_val = (entry_price - current_price) * (size / entry_price)
+
+        self._debug_log(f"[Profit Alert] Calculated profit: {profit_val} for position {pos.get('id')}")
+        # Continue with threshold comparisons and updating alerts…
+        return f"Profit ALERT: Position {pos.get('id')} profit {profit_val:.2f}"
 
     def evaluate_swing_alert(self, pos: dict) -> str:
-        """
-        Evaluate swing alert for a position.
-        Returns a message if triggered, else an empty string.
-        """
-        swing_config = self.config.get("alert_ranges", {}).get("swing_alerts",
-                                                               {"enabled": True, "notifications": {"call": True}})
-        if not swing_config.get("enabled", True):
-            return ""
-        asset = pos.get("asset_type", "???").upper()
-        asset_full = asset
-        position_type = pos.get("position_type", "").capitalize()
-        position_id = pos.get("position_id") or pos.get("id") or "unknown"
+        asset = pos.get("asset_type", "BTC")
+        price_record = self.data_locker.get_latest_price(asset)
+        if price_record and "current_price" in price_record:
+            current_price = float(price_record["current_price"])
+        else:
+            self._debug_log(f"[Swing Alert] Error: latest price not available for asset {asset}")
+            current_price = 0.0
+
         try:
-            current_value = float(pos.get("liquidation_distance", 0.0))
-        except Exception:
+            liquidation_price = float(pos.get("liquidation_price", 0.0))
+        except Exception as e:
+            self._debug_log(f"[Swing Alert] Error parsing liquidation_price: {e}")
             return ""
-        hardcoded_swing_thresholds = {"BTC": 6.24, "ETH": 8.0, "SOL": 13.0}
-        swing_threshold = hardcoded_swing_thresholds.get(asset, 0)
-        self._debug_log(
-            f"[Swing Alert] liquidation_distance: {current_value}, threshold for {asset}: {swing_threshold}")
-        if current_value >= swing_threshold:
-            self._debug_log(
-                f"[Swing Alert] Condition met. Updating alert level to 'High' for position {position_id} with value {current_value}")
-            self._update_alert_level(pos, "High", evaluated_value=current_value)
-            key = f"swing-{asset_full}-{position_type}-{position_id}"
-            now = time.time()
-            last_time = self.last_triggered.get(key, 0)
-            if now - last_time >= self.cooldown:
-                self.last_triggered[key] = now
-                msg = (f"Average Daily Swing ALERT: {asset_full} {position_type} (ID: {position_id}) - "
-                       f"Actual Value = {current_value:.2f} exceeds threshold {swing_threshold:.2f}")
-                self._debug_log(f"[Swing Alert] Final message: {msg}")
-                return msg
-        return ""
+
+        current_value = self.calc_services.calculate_liquid_distance(current_price, liquidation_price)
+        self._debug_log(f"[Swing Alert] Calculated liquidation_distance: {current_value} for asset {asset}")
+        # Continue with threshold comparisons and alert updates…
+        return f"Swing ALERT: Position {pos.get('id')} liquidation distance {current_value:.2f}"
 
     def evaluate_blast_alert(self, pos: dict) -> str:
-        """
-        Evaluate blast alert for a position.
-        Returns a message if triggered, else an empty string.
-        """
-        blast_config = self.config.get("alert_ranges", {}).get("blast_alerts",
-                                                               {"enabled": True, "notifications": {"call": True}})
-        if not blast_config.get("enabled", True):
-            return ""
-        asset = pos.get("asset_type", "???").upper()
-        asset_full = asset
-        position_type = pos.get("position_type", "").capitalize()
-        position_id = pos.get("position_id") or pos.get("id") or "unknown"
+        asset = pos.get("asset_type", "BTC")
+        price_record = self.data_locker.get_latest_price(asset)
+        if price_record and "current_price" in price_record:
+            current_price = float(price_record["current_price"])
+        else:
+            self._debug_log(f"[Blast Alert] Error: latest price not available for asset {asset}")
+            current_price = 0.0
+
         try:
-            current_value = float(pos.get("liquidation_distance", 0.0))
-        except Exception:
+            liquidation_price = float(pos.get("liquidation_price", 0.0))
+        except Exception as e:
+            self._debug_log(f"[Blast Alert] Error parsing liquidation_price: {e}")
             return ""
-        blast_threshold = 11.2  # Hard-coded for demonstration
-        self._debug_log(f"[Blast Alert] liquidation_distance: {current_value}, blast threshold: {blast_threshold}")
-        if current_value >= blast_threshold:
-            self._debug_log(
-                f"[Blast Alert] Condition met. Updating alert level to 'High' for position {position_id} with value {current_value}")
-            self._update_alert_level(pos, "High", evaluated_value=current_value)
-            key = f"blast-{asset_full}-{position_type}-{position_id}"
-            now = time.time()
-            last_time = self.last_triggered.get(key, 0)
-            if now - last_time >= self.cooldown:
-                self.last_triggered[key] = now
-                msg = (f"One Day Blast Radius ALERT: {asset_full} {position_type} (ID: {position_id}) - "
-                       f"Actual Value = {current_value:.2f} exceeds threshold {blast_threshold:.2f}")
-                self._debug_log(f"[Blast Alert] Final message: {msg}")
-                return msg
-        return ""
+
+        current_value = self.calc_services.calculate_liquid_distance(current_price, liquidation_price)
+        self._debug_log(f"[Blast Alert] Calculated liquidation_distance: {current_value} for asset {asset}")
+        # Continue with threshold comparisons and updating the alert level…
+        return f"Blast ALERT: Position {pos.get('id')} liquidation distance {current_value:.2f}"
 
     def evaluate_heat_index_alert(self, pos: dict) -> str:
-        """
-        Evaluate heat index alert for a position.
-        Returns a message if triggered, else an empty string.
-        """
-        print(f"[DEBUG] evaluate_heat_index_alert: Evaluating position with id: {pos.get('id')}")
+        asset = pos.get("asset_type", "BTC")
+        price_record = self.data_locker.get_latest_price(asset)
+        if price_record and "current_price" in price_record:
+            current_price = float(price_record["current_price"])
+        else:
+            self._debug_log(f"[Heat Alert] Error: latest price not available for asset {asset}")
+            current_price = 0.0
+
         try:
-            current_heat = float(pos.get("current_heat_index", 0.0))
-            print(f"[DEBUG] evaluate_heat_index_alert: current_heat = {current_heat}")
+            pos_updated = pos.copy()
+            pos_updated["current_price"] = current_price
+            current_heat = self.calc_services.calculate_composite_risk_index(pos_updated) or 0.0
         except Exception as e:
-            self._debug_log(f"[Heat Alert] Error parsing heat index: {e}")
+            self._debug_log(f"[Heat Alert] Error calculating composite risk index: {e}")
             return ""
+
         try:
             trigger_value = float(pos.get("heat_index_trigger", 12.0))
-            print(f"[DEBUG] evaluate_heat_index_alert: trigger_value = {trigger_value}")
         except Exception:
             trigger_value = 12.0
-            print(f"[DEBUG] evaluate_heat_index_alert: Using default trigger_value = {trigger_value}")
 
         self._debug_log(f"[Heat Alert] current_heat = {current_heat}, trigger_value = {trigger_value}")
 
         if current_heat <= trigger_value:
-            print(
+            self._debug_log(
                 "[DEBUG] evaluate_heat_index_alert: current_heat is below or equal to trigger, setting level to Normal.")
-            self._update_alert_level(pos, "Normal", evaluated_value=current_heat,
-                                     custom_alert_type=AlertType.HEAT_INDEX.value)
+            self._update_alert_level(pos, "Normal", evaluated_value=current_heat, custom_alert_type="HEAT_INDEX")
             return ""
         if current_heat < trigger_value * 1.5:
             current_level = "Low"
@@ -266,13 +161,11 @@ class AlertEvaluator:
         else:
             current_level = "High"
 
-        print(f"[DEBUG] evaluate_heat_index_alert: Determined alert level as {current_level}")
-        self._update_alert_level(pos, current_level, evaluated_value=current_heat,
-                                 custom_alert_type=AlertType.HEAT_INDEX.value)
+        self._debug_log(f"[DEBUG] evaluate_heat_index_alert: Determined alert level as {current_level}")
+        self._update_alert_level(pos, current_level, evaluated_value=current_heat, custom_alert_type="HEAT_INDEX")
         msg = (f"Heat Index ALERT: Position {pos.get('id')} heat index {current_heat:.2f} "
                f"exceeds trigger {trigger_value} (Level: {current_level})")
         self._debug_log(f"[Heat Alert] {msg}")
-        print(f"[DEBUG] evaluate_heat_index_alert: {msg}")
         return msg
 
     def enrich_alert(self, alert: dict) -> dict:
@@ -392,6 +285,110 @@ class AlertEvaluator:
                 )
                 self._debug_log(f"[System Alert] {msg}")
         return alerts
+
+    def evaluate_travel_alert(self, pos: dict):
+        asset = pos.get("asset_type", "BTC")
+        price_record = self.data_locker.get_latest_price(asset)
+        if price_record and "current_price" in price_record:
+            current_price = float(price_record["current_price"])
+        else:
+            self._debug_log(f"[Travel Alert] Error: latest price not available for asset {asset}")
+            current_price = 0.0
+
+        try:
+            entry_price = float(pos.get("entry_price", 0.0))
+            liquidation_price = float(pos.get("liquidation_price", 0.0))
+            position_type = pos.get("position_type", "LONG")
+        except Exception as e:
+            self.u_logger.log_operation(
+                operation_type="Alert Evaluation Error",
+                primary_text=f"Error parsing price fields for travel alert: {e}",
+                source="AlertEvaluator",
+                file="alert_evaluator.py"
+            )
+            return None
+
+        travel_percent = self.calc_services.calculate_travel_percent(
+            position_type, entry_price, current_price, liquidation_price)
+        current_val = travel_percent
+
+        before_log = (f"[Travel Alert] BEFORE: travel_percent = {current_val}, "
+                      f"thresholds -> low: {self.config.get('alert_ranges', {}).get('travel_percent_liquid_ranges', {}).get('low', -25.0)}, "
+                      f"medium: {self.config.get('alert_ranges', {}).get('travel_percent_liquid_ranges', {}).get('medium', -50.0)}, "
+                      f"high: {self.config.get('alert_ranges', {}).get('travel_percent_liquid_ranges', {}).get('high', -75.0)}")
+        self._debug_log(before_log)
+
+        if current_val >= 0:
+            level = "Normal"
+        elif current_val <= float(
+                self.config.get('alert_ranges', {}).get('travel_percent_liquid_ranges', {}).get('high', -75.0)):
+            level = "High"
+        elif current_val <= float(
+                self.config.get('alert_ranges', {}).get('travel_percent_liquid_ranges', {}).get('medium', -50.0)):
+            level = "Medium"
+        elif current_val <= float(
+                self.config.get('alert_ranges', {}).get('travel_percent_liquid_ranges', {}).get('low', -25.0)):
+            level = "Low"
+        else:
+            level = "Normal"
+
+        after_log = f"[Travel Alert] AFTER: Evaluated level = '{level}' for travel_percent = {current_val}"
+        self._debug_log(after_log)
+        return level, current_val
+
+    def update_alerts_evaluated_value(self):
+        """
+        Updates the evaluated_value for each alert based on its alert type.
+
+        - For PriceThreshold alerts, sets evaluated_value to the latest asset price.
+        - For TravelPercent alerts, sets evaluated_value to the position's travel percent.
+        - For Profit alerts, sets evaluated_value to the position's pnl_after_fees_usd.
+        - For HeatIndex alerts, sets evaluated_value to the position's current_heat_index.
+        """
+        alerts = self.data_locker.get_alerts()
+        positions = self.data_locker.read_positions()
+        pos_lookup = {pos.get("id"): pos for pos in positions}
+
+        for alert in alerts:
+            evaluated_val = 0.0
+            alert_type = alert.get("alert_type", "")
+            if alert_type == AlertType.PRICE_THRESHOLD.value:
+                asset_type = alert.get("asset_type", "BTC")
+                price_data = self.data_locker.get_latest_price(asset_type)
+                if price_data and "current_price" in price_data:
+                    try:
+                        evaluated_val = float(price_data["current_price"])
+                    except Exception as e:
+                        self.logger.error(f"Error converting latest price for asset {asset_type}: {e}", exc_info=True)
+            elif alert_type == AlertType.TRAVEL_PERCENT_LIQUID.value:
+                pos_id = alert.get("position_reference_id") or alert.get("position_id")
+                if pos_id and pos_id in pos_lookup:
+                    try:
+                        # Use "travel_percent" instead of "current_travel_percent"
+                        evaluated_val = float(pos_lookup[pos_id].get("travel_percent", 0))
+                    except Exception as e:
+                        self.logger.error(f"Error retrieving travel percent for position {pos_id}: {e}", exc_info=True)
+            elif alert_type == AlertType.PROFIT.value:
+                pos_id = alert.get("position_reference_id") or alert.get("position_id")
+                if pos_id and pos_id in pos_lookup:
+                    try:
+                        evaluated_val = float(pos_lookup[pos_id].get("pnl_after_fees_usd", 0))
+                    except Exception as e:
+                        self.logger.error(f"Error retrieving pnl for position {pos_id}: {e}", exc_info=True)
+            elif alert_type == AlertType.HEAT_INDEX.value:
+                pos_id = alert.get("position_reference_id") or alert.get("position_id")
+                if pos_id and pos_id in pos_lookup:
+                    try:
+                        evaluated_val = float(pos_lookup[pos_id].get("current_heat_index", 0))
+                    except Exception as e:
+                        self.logger.error(f"Error retrieving heat index for position {pos_id}: {e}", exc_info=True)
+
+            try:
+                self.data_locker.update_alert_conditions(alert.get("id"), {"evaluated_value": evaluated_val})
+                self.logger.info(f"Updated alert {alert.get('id')} evaluated_value to {evaluated_val}")
+            except Exception as update_ex:
+                self.logger.error(f"Failed to update evaluated_value for alert {alert.get('id')}: {update_ex}",
+                                  exc_info=True)
 
     def evaluate_heat_index_alert(self, pos: dict) -> str:
         """

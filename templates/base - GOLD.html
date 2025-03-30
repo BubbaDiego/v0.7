@@ -1,241 +1,87 @@
-{# base.html #}
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>{% block title %}Sonic Dashboard{% endblock %}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="AdminLTE is a Free Bootstrap 5 Admin Dashboard, 30 example pages using Vanilla JS." />
-    <metaname="keywords" content="bootstrap 5, admin dashboard, charts, adminlte" />
-    <meta name="author" content="ColorlibHQ" />
+<head>
+  <meta charset="UTF-8" />
+  <title>Alert Box UI Test</title>
+  <!-- Include Font Awesome (or use your local copy) -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    integrity="sha512-..."
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+  <style>
+    /* Container for the alert box */
+    .info-box {
+      width: 300px;
+      background-color: #dc3545; /* red for "High" */
+      color: #fff;
+      border-radius: 8px;
+      padding: 16px;
+      position: relative;
+      margin: 20px auto; /* centers horizontally on the page */
+      font-family: Arial, sans-serif;
+    }
 
-    <!-- Fonts -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/source-sans-3@5.0.12/index.css" />
+    /* Header with icon/title horizontally centered, plus wallet icon in top-right */
+    .info-box-header {
+      text-align: center;
+      font-weight: bold;
+      margin-bottom: 12px;
+      position: relative; /* so we can absolutely position the wallet icon */
+    }
 
-    <!-- OverlayScrollbars CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.10.1/styles/overlayscrollbars.min.css" />
+    .alert-icon-and-title {
+      display: inline-block; /* ensures text + icon align nicely */
+      font-size: 1.2rem;
+    }
 
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    /* White rocket icon for Travel Percent */
+    .alert-icon-and-title i {
+      margin-right: 8px;
+      color: #fff;
+    }
 
-    <!-- AdminLTE CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='AdminLTE/dist/css/adminlte.css') }}" />
+    /* Smaller wallet icon, in top-right corner */
+    .wallet-icon {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      margin: 4px;
+    }
 
-    {% block extra_styles %}{% endblock %}
+    /* Body content styling */
+    .info-box-body {
+      font-size: 0.9rem;
+    }
+    .info-box-body .label {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
 
-    <!-- Global Theme Config (Passed from Server) -->
-    <script>
-      // The theme configuration is injected by the server as the "theme" variable.
-      console.log("Theme config passed from server:", {{ theme|tojson|safe }});
-    </script>
-
-    <!-- CSS Variables for Theme Colors -->
-    <style>
-      :root {
-        /* Use .get() to safely access theme properties with Blue Ocean defaults */
-        --title-bar-color: {{ theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('title bar', {}).get('color', '#007BFF') }};
-        --side-bar-color: {{ theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('side bar', {}).get('color', '#0056b3') }};
-        --wallpaper-color: {{ theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('wallpaper', {}).get('color', '#E7F1FF') }};
-        {% set cardTitle = theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('card title', {}) %}
-        {% set primary = theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('primary', {}) %}
-        --card-title-color: {{ cardTitle.get('color', primary.get('color', '#FFFFFF')) }};
-        {% set cardBg = theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('card background', {}) %}
-        {% set secondary = theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('secondary', {}) %}
-        --card-background-color: {{ cardBg.get('color', secondary.get('color', '#D0E7FF')) }};
-        --text-color: {{ theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('text', {}).get('color', '#00008B') }};
-        --border-color: {{ theme.get('border_color', '#ccc') }};
-      }
-
-      /* Global application of theme colors */
-      body {
-        color: var(--text-color);
-      }
-      a {
-        color: var(--card-title-color);
-      }
-      a:hover {
-        color: var(--card-background-color);
-      }
-      .btn-primary {
-        background-color: var(--card-title-color);
-        border-color: var(--card-title-color);
-      }
-      .btn-secondary {
-        background-color: var(--card-background-color);
-        border-color: var(--card-background-color);
-      }
-
-      /* Force text color for the sidebar ONLY (white text) */
-      .app-sidebar,
-      .app-sidebar a {
-        color: #ffffff !important;
-      }
-
-      /* Override .card-header and .card background with theme colors */
-      .card-header {
-        background-color: var(--card-title-color) !important;
-        color: var(--text-color) !important;
-      }
-      .card {
-        background-color: var(--card-background-color) !important;
-        color: var(--text-color) !important;
-      }
-    </style>
-  </head>
-
-  <body class="layout-fixed sidebar-expand-lg sidebar-mini sidebar-collapse"
-        style="
-          {% if theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('wallpaper', {}).get('image') %}
-            background-image: url('{{ url_for('static', filename=theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('wallpaper', {}).get('image') ) }}');
-          {% else %}
-            background-color: var(--wallpaper-color);
-          {% endif %}
-        "
-  >
-    <div class="app-wrapper">
-      {# This is where we include our top nav bar (title_bar.html). #}
-      {% include "title_bar.html" %}
-
-      <!-- Sidebar -->
-      <aside class="app-sidebar shadow"
-        style="
-          {% if theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('side bar', {}).get('image') %}
-            background-image: url('{{ url_for('static', filename=theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('side bar', {}).get('image')) }}');
-          {% else %}
-            background-color: var(--side-bar-color);
-          {% endif %}
-        "
-      >
-        <div class="sidebar-brand">
-          <a href="{{ url_for('dashboard.dashboard') }}" class="brand-link">
-            <img src="{{ url_for('static', filename='images/corner_logo_owl.jpg') }}"
-                 alt="Sonic Logo"
-                 class="brand-image rounded-circle shadow" />
-            <span class="brand-text fw-light">Sonic</span>
-          </a>
-        </div>
-        <div class="sidebar-wrapper">
-          <nav class="mt-2">
-            <ul class="nav sidebar-menu flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false">
-              <!-- Example Nav Items -->
-              <li class="nav-item">
-                <a href="{{ url_for('dashboard.dashboard') }}" class="nav-link">
-                  <i class="nav-icon bi bi-speedometer"></i>
-                  <p>Dashboard</p>
-                </a>
-              </li>
-              <li class="nav-item">
-                <a href="{{ url_for('positions.positions_table') }}" class="nav-link">
-                  <i class="nav-icon bi bi-table"></i>
-                  <p>Positions Table</p>
-                </a>
-              </li>
-              <li class="nav-item">
-                <a href="{{ url_for('alerts_bp.alarm_viewer') }}" class="nav-link">
-                  <i class="nav-icon bi bi-bell"></i>
-                  <p>Alerts</p>
-                </a>
-              </li>
-              <!-- Add any other sidebar items here -->
-            </ul>
-          </nav>
-        </div>
-      </aside>
-      <!-- End Sidebar -->
-
-      <!-- Main Content -->
-      <main class="app-main">
-        <div class="app-content-header">
-          <div class="container-fluid">
-            <div class="row">
-              <div class="col-12">
-                <h3 class="mb-0">
-                  {% block page_title %}{% endblock %}
-                </h3>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="app-content">
-          <div class="container-fluid">
-            {% block content %}
-            <!-- Where child templates put their content -->
-            {% endblock %}
-          </div>
-        </div>
-      </main>
-      <!-- End Main Content -->
+<div class="info-box">
+  <div class="info-box-header">
+    <div class="alert-icon-and-title">
+      <i class="fas fa-rocket"></i> Travel Percent
     </div>
-    <!-- End .app-wrapper -->
+    <img
+      class="wallet-icon"
+      src="https://via.placeholder.com/28/09f/fff.png?text=W"
+      alt="Wallet"
+    />
+  </div>
+  <div class="info-box-body">
+    <div><span class="label">Trigger:</span> -75.00%</div>
+    <div><span class="label">Current Value:</span> 3,621.60%</div>
+    <div><span class="label">Level:</span> High</div>
+  </div>
+</div>
 
-    <!-- OverlayScrollbars, Bootstrap, AdminLTE JS -->
-    <script src="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.10.1/browser/overlayscrollbars.browser.es6.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"></script>
-    <script src="{{ url_for('static', filename='AdminLTE/dist/js/adminlte.js') }}"></script>
-
-    <!-- If you need ApexCharts or Chart.js globally, you can add them here -->
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
-
-    <!-- Global Theme Switcher (optional) -->
-    <script>
-      document.addEventListener('DOMContentLoaded', () => {
-        console.log("base.html: DOMContentLoaded fired, theme:", {{ theme|tojson|safe }});
-        document.querySelectorAll('.theme-profile-option').forEach(option => {
-          option.addEventListener('click', e => {
-            e.preventDefault();
-            const selectedProfile = e.currentTarget.dataset.profile;
-            console.log("Switching theme to:", selectedProfile);
-            fetch('{{ url_for("dashboard.save_theme_route") }}', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ profile: selectedProfile, data: {} })
-            })
-            .then(r => r.json())
-            .then(data => {
-              if (data.success) {
-                window.location.reload();
-              } else {
-                alert("Error switching theme: " + data.error);
-              }
-            })
-            .catch(err => {
-              console.error("Theme switch error:", err);
-              alert("Theme switch error: " + err);
-            });
-          });
-        });
-
-        // Jupiter update button logic if you want it globally:
-        const jupiterBtn = document.querySelector('.update-jupiter-button');
-        if (jupiterBtn) {
-          jupiterBtn.addEventListener('click', function() {
-            jupiterBtn.classList.add('spin');
-            fetch("/positions/update_jupiter?source=User", { method: "POST" })
-              .then(response => response.json())
-              .then(() => {
-                jupiterBtn.classList.remove('spin');
-                window.location.reload();
-              })
-              .catch(err => {
-                jupiterBtn.classList.remove('spin');
-                console.error("Jupiter update error:", err);
-              });
-          });
-        }
-      });
-    </script>
-
-    <!-- Additional scripts can be placed in extra_scripts block -->
-    {% block extra_scripts %}{% endblock %}
-
-    <!-- Optional: If your index route should redirect to /dashboard -->
-    {% if request.endpoint == 'index' %}
-    <script>
-      window.location.href = "{{ url_for('dashboard.dashboard') }}";
-    </script>
-    {% endif %}
-  </body>
+</body>
 </html>

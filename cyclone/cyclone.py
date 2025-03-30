@@ -12,6 +12,9 @@ from utils.unified_logger import UnifiedLogger
 from sonic_labs.hedge_manager import HedgeManager  # Import HedgeManager directly
 from positions.position_service import PositionService
 from alerts.alert_controller import AlertController, DummyPositionAlert
+from alerts.alert_evaluator import AlertEvaluator
+from config.unified_config_manager import UnifiedConfigManager
+from config.config_constants import CONFIG_PATH
 
 
 
@@ -30,6 +33,8 @@ class Cyclone:
         self.data_locker = DataLocker.get_instance()
         self.price_monitor = PriceMonitor()  # Market Updates
         self.alert_manager = AlertManager()    # Alert Updates
+        self.config = UnifiedConfigManager(CONFIG_PATH).load_config()
+        #self.alert_evaluator = AlertEvaluator(self.config, self.data_locker)
 
     async def run_market_updates(self):
         self.logger.info("Starting Market Updates")
@@ -277,7 +282,7 @@ class Cyclone:
             "market": self.run_market_updates,
             "position": self.run_position_updates,
             "cleanse_ids": self.run_cleanse_ids,
-            "link_hedges": self.run_cleanse_ids,
+            "link_hedges": self.run_link_hedges,
             "enrichment": self.run_position_enrichment,
             "create_market_alerts": self.run_link_hedges,
             "create_position_alerts": self.run_create_position_alerts,
@@ -285,7 +290,7 @@ class Cyclone:
             "update_evaluated_value": self.run_update_evaluated_value,
             "alert": self.run_alert_updates,
             "system": self.run_system_updates,
-            "link_hedges": self.run_cleanse_ids
+            "link_hedges": self.run_link_hedges
         }
         if steps:
             for step in steps:
@@ -350,7 +355,8 @@ class Cyclone:
     async def run_update_evaluated_value(self):
         self.logger.info("Updating Evaluated Values for Alerts...")
         try:
-            self.alert_manager.update_alerts_evaluated_value()
+            # Delegate the update to the AlertEvaluator instance in AlertManager.
+            await asyncio.to_thread(self.alert_manager.alert_evaluator.update_alerts_evaluated_value)
             self.u_logger.log_cyclone(
                 operation_type="Update Evaluated Value",
                 primary_text="Alert evaluated values updated successfully",
@@ -465,8 +471,9 @@ class Cyclone:
             print(f"Error viewing prices: {e}")
 
     def run_delete_all_data(self):
-        confirm = input("WARNING: This will DELETE ALL alerts, prices, and positions from the database. Are you sure? (yes/no): ").strip().lower()
-        if confirm != "yes":
+        confirm = input(
+            "WARNING: This will DELETE ALL alerts, prices, and positions from the database. Are you sure? (yes/no) [default: yes]: ").strip().lower()
+        if confirm == "no":
             print("Deletion aborted.")
             return
         try:
