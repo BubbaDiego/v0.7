@@ -3,7 +3,7 @@ import sys
 import json
 import logging
 from flask import Blueprint, request, jsonify, render_template, current_app
-from config.config_constants import BASE_DIR, ALERT_LIMITS_PATH
+from config.config_constants import BASE_DIR, ALERT_LIMITS_PATH, R2VAULT_IMAGE
 from pathlib import Path
 from utils.operations_manager import OperationsLogger
 from utils.json_manager import JsonManager, JsonType
@@ -323,9 +323,11 @@ def update_alert_config_route():
 
 @alerts_bp.route('/matrix', methods=['GET'], endpoint="alert_matrix")
 def alert_matrix():
+    from flask import url_for
     from data.data_locker import DataLocker
     from alerts.alert_controller import AlertController
-    from sonic_labs.hedge_manager import HedgeManager  # Import HedgeManager to retrieve hedges
+    from sonic_labs.hedge_manager import HedgeManager
+    from config.config_constants import BTC_LOGO_IMAGE, ETH_LOGO_IMAGE, SOL_LOGO_IMAGE, OBIVAULT_IMAGE, R2VAULT_IMAGE, LANDOVAULT_IMAGE, VADERVAULT_IMAGE
 
     # Set up theme configuration if not already set
     theme_config = current_app.config.get('theme')
@@ -361,12 +363,51 @@ def alert_matrix():
     alert_config = json_manager.load("alert_limits.json", json_type=JsonType.ALERT_LIMITS)
     alert_ranges = alert_config.get("alert_ranges", {})
 
-    # Pass alerts, alert_ranges, and hedges to the template
+    # Create asset images dictionary using config constants
+    asset_images = {
+        "BTC": url_for('static', filename=BTC_LOGO_IMAGE),
+        "ETH": url_for('static', filename=ETH_LOGO_IMAGE),
+        "SOL": url_for('static', filename=SOL_LOGO_IMAGE)
+    }
+    # Define a default wallet image (fallback)
+    wallet_default = url_for('static', filename=OBIVAULT_IMAGE)
+
+    # Define a wallet-to-image mapping using config constants
+    wallet_images = {
+        "R2Vault": url_for('static', filename=R2VAULT_IMAGE),
+        "ObiVault": url_for('static', filename=OBIVAULT_IMAGE),
+        "Landovault": url_for('static', filename=LANDOVAULT_IMAGE),
+        "VaderVault": url_for('static', filename=VADERVAULT_IMAGE)
+    }
+
+    # For each alert, if wallet_image is missing, use its corresponding position's wallet field
+    for alert in alerts:
+        if not alert.get("wallet_image"):
+            pos = next((p for p in positions if p.get("id") == alert.get("position_reference_id")), None)
+            if pos:
+                wallet_name = pos.get("wallet", "").strip()
+                # Use the mapped wallet image, falling back to OBIVAULT_IMAGE if not found
+                alert["wallet_image"] = wallet_images.get(wallet_name, wallet_default)
+            else:
+                alert["wallet_image"] = wallet_default
+
+        # Also assign asset_image if missing, using asset type from the position
+        if not alert.get("asset_image"):
+            pos = next((p for p in positions if p.get("id") == alert.get("position_reference_id")), None)
+            if pos:
+                pos_asset = pos.get("asset_type", "").upper()
+                alert["asset_image"] = asset_images.get(pos_asset, url_for('static', filename='images/asset_default.png'))
+            else:
+                alert["asset_image"] = url_for('static', filename='images/asset_default.png')
+
     return render_template("alert_matrix.html",
                            theme=theme_config,
                            alerts=alerts,
                            alert_ranges=alert_ranges,
-                           hedges=hedges)
+                           hedges=hedges,
+                           asset_images=asset_images,
+                           wallet_default=wallet_default)
+
 
 
 if __name__ == "__main__":

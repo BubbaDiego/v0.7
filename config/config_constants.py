@@ -49,7 +49,7 @@ ETH_LOGO_IMAGE = "images/eth_logo.png"
 SOL_LOGO_IMAGE = "images/sol_logo.png"
 THEME_CONFIG_WALLPAPER = "images/wallpaper_theme_page"
 
-R2VAULT_IMAGE = "images/r2vault.jpg"
+R2VAULT_IMAGE = "images/r2vault.png"
 OBIVAULT_IMAGE = "images/obivault.jpg"
 LANDOVAULT_IMAGE = "images/landovault.jpg"
 VADERVAULT_IMAGE = "images/vadervault.jpg"

@@ -1,219 +1,258 @@
+Alert Module/Subsystem Specification
+This document provides a comprehensive specification for the Alert Module/Subsystem. It outlines the architecture, components, data flow, external integrations, and configuration options.
 
-Sonic Alert Subsystem Specification
-Version: 1.0
-Date: 2025-03-17
+1. Overview
+The Alert Module/Subsystem is designed to monitor various conditions related to market data and trading positions, evaluate alert conditions based on configurable thresholds, and trigger notifications via multiple channels (e.g., email, SMS, Twilio calls). It provides both backend processing (alert creation, enrichment, evaluation, and management) and a web-based UI for configuration and visualization.
 
-Table of Contents
-Overview
-Architecture
-Module Descriptions
-Alert Manager
-Alerts Blueprint
-Heartbeat & Monitoring
-Calculation Services
-JSON Manager
-Detailed Design: Direct Alert Classes and Methods
-Configuration and Dependencies
-Error Handling, Logging & Notifications
-Integration Points & Future Enhancements
-Overview
-The Sonic subsystem is built to monitor positions, calculate key risk and performance metrics, and trigger alerts when conditions are met. It aggregates data from a database, evaluates thresholds defined in JSON configuration files, and uses external services (e.g., Twilio) for notifications. A web interface via Flask also allows viewing and updating alert configurations.
+2. Architecture
+The subsystem is composed of several interrelated components:
 
-Architecture
-The subsystem comprises several tightly integrated modules:
+Data Persistence Layer: Managed by the DataLocker, which handles all SQLite database interactions.
 
-Alert Manager: The core engine that periodically polls data, checks multiple alert conditions, and manages notifications.
-Alerts Blueprint: A Flask-based web interface for viewing alerts and managing alert configurations.
-Heartbeat & Monitoring: Scripts (like the watchdog den_mother and sonic_monitor) that ensure the system’s continuous operation and update a heartbeat file.
-Calculation Services: A collection of functions for computing risk indices, profit classifications, travel percentages, and other position metrics.
-JSON Manager: Manages loading and saving various configuration files (alert limits, themes, etc.).
-Module Descriptions
-Alert Manager
-File: alert_manager.py
+Business Logic Components:
 
-Purpose:
-Central component responsible for:
+Alert Controller: Creates, updates, and initializes alert records.
 
-Polling positions from the database.
-Evaluating alert conditions (profit, travel percent liquid, swing, blast, and price alerts).
-Triggering notifications via Twilio and logging alert events.
-Key Attributes:
+Alert Enrichment: Normalizes and enriches alert data with configuration and external data.
 
-db_path: SQLite DB path.
-poll_interval: Interval (seconds) between alert checks.
-config: System configuration (thresholds, notification settings).
-twilio_config: Contains Twilio credentials and phone numbers.
-cooldown & call_refractory_period: Time controls to avoid duplicate alerts.
-Tracking dictionaries: last_triggered, last_profit, last_call_triggered.
+Alert Evaluator: Evaluates alert conditions (e.g., travel percent, profit, heat index) against predefined thresholds and cooldown periods.
+
+Alert Manager: Orchestrates the entire alert lifecycle (creation, evaluation, notification, and timer management).
+
+Web/API Layer:
+
+Alerts Blueprint: A Flask blueprint exposing REST endpoints and UI routes for alert operations.
+
+UI Templates: HTML views for configuring alert limits and visualizing the alert matrix.
+
+Data Models: Defined in the models module to standardize asset types, alert types, status, levels, and notifications.
+
+3. Components
+3.1 Data Models
+The module uses a set of standardized models and enumerations to maintain consistency across alerts and positions. Key models include:
+
+AssetType, SourceType, Status, AlertLevel, AlertType, AlertClass, NotificationType
+Defined in models.py to standardize values across the system. For example, Alert types include PriceThreshold, TravelPercent (used for travel percent liquidation), Profit, and HeatIndex ​
+.
+
+Price, Alert, Position, Hedge
+These classes encapsulate the properties of pricing data, alert configurations, trading positions, and hedge information.
+
+3.2 Data Persistence – DataLocker
+Database Interaction:
+The DataLocker (in data_locker.py) initializes and maintains a SQLite database with tables for prices, positions, alerts, alert ledger, system variables, brokers, and wallets. It provides APIs for reading, inserting, updating, and deleting records ​
+.
+
+Database Schema Highlights:
+
+Alerts Table: Contains columns like id, created_at, alert_type, alert_class, trigger_value, condition, notification_type, level, last_triggered, status, and more.
+
+Positions Table: Stores trading position details and includes an alert_reference_id to link a position to its corresponding alert.
+
+3.3 Alert Controller
+Responsibilities:
+
+Creating alerts (including price, travel percent, and profit alerts).
+
+Initializing alert defaults and setting correct alert classes based on the type.
+
+Updating alert conditions and linking alerts to trading positions.
+
 Key Methods:
 
-__init__(...): Initializes dependencies, loads configuration, and sets internal state.
-reload_config(): Refreshes the configuration from file/DB.
-run(): Main loop that continuously calls check_alerts().
-check_alerts(source: Optional[str]): Aggregates alerts from different checks and triggers notifications.
-Direct Alert Methods:
-check_profit(pos: dict) -> str: Checks profit against configured thresholds.
-check_travel_percent_liquid(pos: dict) -> str: Monitors travel percent thresholds (liquid alerts).
-check_swing_alert(pos: dict) -> str: Evaluates swing-based alerts using hardcoded thresholds.
-check_blast_alert(pos: dict) -> str: Evaluates blast conditions.
-check_price_alerts() -> List[str]: Iterates over assets (BTC, ETH, SOL) to trigger price alerts.
-handle_price_alert_trigger_config(asset: str, current_price: float, trigger_val: float, condition: str) -> str: Applies cooldown and logging for price alerts.
-send_call(body: str, key: str): Sends out a notification call via Twilio after verifying the refractory period.
-Utility Methods:
-load_json_config(json_path: str) -> dict and save_config(config: dict, json_path: str): For managing configuration files.
-debug_price_alert_details(...): Logs detailed HTML debug info for price alerts.
-External Function:
+create_alert(), create_position_alerts(), create_price_alerts(), create_travel_percent_alerts(), and create_profit_alerts().
 
-trigger_twilio_flow(custom_message: str, twilio_config: dict) -> str:
-Triggers a Twilio Studio Flow to send a call notification, ensuring all required Twilio parameters are present.
-Alerts Blueprint
-File: alerts_bp.py
+These functions also log detailed debug information and integrate with the DataLocker for persistence ​
+.
 
+3.4 Alert Enrichment
 Purpose:
-Provides a Flask blueprint to handle web endpoints for:
-Viewing active alerts (alarm viewer).
-Displaying and updating alert configuration.
-Key Components:
-Endpoints:
-/alerts/viewer: Renders an HTML page with current position alerts.
-/alerts/config: Displays the alert configuration page for adjustments.
-/alerts/update_config: Accepts POST requests to update configuration using a nested form parser.
-Utility Functions:
-deep_merge(source: dict, updates: dict) -> dict: Recursively merges dictionaries.
-convert_types_in_dict(d): Converts string form values to their proper types.
-parse_nested_form(form: dict) -> dict: Transforms flat form data into nested JSON structures.
-format_alert_config_table(alert_ranges: dict) -> str: Generates an HTML table for configuration display.
-Heartbeat & Monitoring
-Files: den_mother.py and sonic_monitor.py
+Functions in alert_enrichment.py normalize the alert type and enrich alert data by:
 
-Den Mother (den_mother.py):
+Converting various alert type formats to standardized values.
 
+Loading additional configuration (e.g., trigger values and notification methods) from JSON configuration.
+
+Populating the evaluated value based on the latest market or position data.
+
+Key Functions:
+
+normalize_alert_type()
+
+populate_evaluated_value_for_alert()
+
+enrich_alert_data() ​
+.
+
+3.5 Alert Evaluator
 Purpose:
-Acts as a watchdog that reads a heartbeat file. If the heartbeat timestamp is stale (beyond a set threshold), it triggers notifications (using Twilio) to alert about a potential system failure.
-Key Function:
-check_heartbeat(): Parses the heartbeat file, compares the timestamp against the current time, and triggers alerts if the heartbeat is too old.
-Sonic Monitor (sonic_monitor.py):
+The Alert Evaluator (in alert_evaluator.py) is responsible for determining if alert conditions are met. It supports evaluation of:
 
-Purpose:
-Runs continuously to:
-Call an update endpoint to refresh positions.
-Write the current UTC timestamp to the heartbeat file.
-Log each loop iteration and update.
-Key Function:
-main(): Executes the monitoring loop, calling call_update_jupiter() and write_heartbeat() periodically.
-Calculation Services
-File: calc_services.py
+Travel Alerts: Based on travel percent thresholds.
 
-Purpose:
-Provides all aggregator and analytics functions for positions:
+Profit Alerts: Evaluated against profit thresholds.
 
-Calculating composite risk indices.
-Determining travel percent (both with and without profit anchors).
-Computing profit alert classes.
-Calculating liquidation distance, heat index, and leverage.
-Prepares position data for display with additional metrics (e.g., color coding based on thresholds).
+Swing, Blast, and Heat Index Alerts: With specific logic and cooldown handling.
+
+Market Alerts: Based on price thresholds.
+
+Cooldown and Suppression:
+A cooldown mechanism ensures that alerts are not triggered repeatedly within a short time frame.
+
 Key Methods:
 
-calculate_composite_risk_index(position: dict) -> Optional[float]
-calculate_travel_percent(position_type: str, entry_price: float, current_price: float, liquidation_price: float) -> float
-get_profit_alert_class(profit, low_thresh, med_thresh, high_thresh): Static method to assign an alert class.
-aggregator_positions(positions: List[dict], db_path: str) -> List[dict]: Updates and persists calculated metrics.
-calculate_liquid_distance(current_price: float, liquidation_price: float) -> float
-calculate_heat_index(position: dict) -> Optional[float]
-prepare_positions_for_display(positions: List[dict]) -> List[dict]
-Additional helper methods for slider values and color coding.
-JSON Manager
-File: json_manager.py
+evaluate_travel_alert(), evaluate_profit_alert(), evaluate_swing_alert(), evaluate_blast_alert(), evaluate_heat_index_alert(), and evaluate_price_alerts().
 
-Purpose:
-Handles reading and writing of JSON configuration files, ensuring that configuration for alert limits, themes, and other settings is managed consistently.
+A master method evaluate_alerts() aggregates results from market, position, and system evaluations ​
+.
 
-Key Components:
+3.6 Alert Manager
+Role:
+Orchestrates the overall alert lifecycle by:
 
-JsonType (Enum):
-Defines types like ALERT_LIMITS, THEME_CONFIG, SONIC_SAUCE, etc., which map to file paths.
-JsonManager Class:
-load(file_path: str, json_type: JsonType = None): Loads a JSON file and performs optional verification.
-save(file_path: str, data, json_type: JsonType = None): Saves the JSON data back to the file with logging of the operation.
-Detailed Design: Direct Alert Classes and Methods
-The core alert functionality is encapsulated in the AlertManager class. Below is an in‑depth look at its direct alert methods:
+Loading configuration settings (from alert_limits.json and a unified config manager).
 
-trigger_twilio_flow(custom_message: str, twilio_config: dict) -> str
-Functionality:
-Initiates a Twilio Studio Flow call using the provided message and configuration. Ensures that all Twilio parameters (account SID, auth token, flow SID, to/from phone numbers) are available.
-Output: Returns the Twilio execution SID.
-check_profit(pos: dict) -> str
-Functionality:
-Converts the profit value from the position to a float.
-Compares it against thresholds defined in the configuration (low, medium, high).
-Uses internal tracking (e.g., last_profit, last_triggered) to manage cooldowns.
-Output: Returns a formatted alert string if the profit condition is met, otherwise returns an empty string.
-check_travel_percent_liquid(pos: dict) -> str
-Functionality:
-Validates and converts the travel percentage.
-Compares the value against negative thresholds configured in alert_ranges.
-Determines the alert level (Low, Medium, High) and checks if the corresponding notifications (call, SMS, email) are enabled.
-Suppresses the alert if within the cooldown period.
-Output: Returns a detailed alert message or an empty string if no alert is triggered.
-check_swing_alert(pos: dict) -> str and check_blast_alert(pos: dict) -> str
-Functionality:
-Evaluates whether the current position’s swing or blast metrics exceed hardcoded or configured thresholds.
-Checks for cooldown conditions and whether notifications are enabled.
-Output: Returns an alert message when triggered.
-check_price_alerts() -> List[str]
-Functionality:
-Iterates over a list of assets (e.g., BTC, ETH, SOL).
-Retrieves asset-specific configuration and the latest price data.
-Compares current price against the trigger value based on conditions (e.g., ABOVE or BELOW).
-Delegates to handle_price_alert_trigger_config if conditions are met.
-Output: Returns a list of alert messages.
-handle_price_alert_trigger_config(asset: str, current_price: float, trigger_val: float, condition: str) -> str
-Functionality:
-Checks the cooldown period to prevent duplicate price alerts.
-Logs the alert (including caller line number) and prepares a formatted alert message.
-Output: Returns the alert message or an empty string if suppressed.
-send_call(body: str, key: str)
-Functionality:
-Checks the time elapsed since the last call notification using the call_refractory_period.
-If the period has passed, triggers the Twilio call notification via trigger_twilio_flow.
-Logs the operation and updates the internal tracking to enforce the refractory period.
-Configuration and Dependencies
-Configuration Files:
+Coordinating alert creation, re-evaluation, and notification.
 
-alert_limits.json: Defines thresholds for various alerts and notification settings.
-sonic_config.json: Contains global settings including Twilio configuration and system controls.
-Additional files (e.g., theme config) are managed via the JSON Manager.
-External Dependencies:
+Handling timers for cooldowns, call refractory periods, and snooze intervals.
 
-Twilio: Used for sending call notifications.
-Flask: Provides the web interface through the Alerts Blueprint.
-SQLite3: Stores position and alert data.
-Standard Python Libraries: Such as logging, JSON, datetime, etc.
-Error Handling, Logging & Notifications
+Triggering notifications via Twilio and updating the alert ledger.
+
+Key Functionalities:
+
+check_alerts(), reevaluate_alerts(), and update_alerts_evaluated_value().
+
+Integrates with both AlertController and AlertEvaluator.
+
+Manages external notifications through methods like send_call() and helper functions to trigger Twilio flows ​
+.
+
+3.7 Alerts Blueprint (Flask API)
+API Endpoints:
+
+/alerts/create_all_alerts: Create all alerts in the system.
+
+/alerts/delete_all_alerts: Remove all alerts.
+
+/alerts/refresh_alerts: Manually trigger re-evaluation of alerts.
+
+/alerts/config & /alerts/update_config: Serve and update the alert configuration.
+
+/alerts/viewer: Render the Alert Matrix UI for visualizing current alerts.
+
+UI Integration:
+The blueprint integrates with HTML templates such as alert_limits.html (for configuration) and alert_matrix.html (for visualization) ​
+, ​
+.
+
+3.8 UI Templates
+Alert Limits Configuration (alert_limits.html):
+Provides an interactive form for setting:
+
+Price alert thresholds and conditions.
+
+Alert timing settings (cooldown, call refractory, snooze countdown).
+
+Notification preferences with inline selectors for call, SMS, and email.
+
+Alert Matrix (alert_matrix.html):
+Displays the current alert statuses in a card-based layout with:
+
+Color-coded levels (Normal, Low, Medium, High).
+
+Icons representing alert types.
+
+Detailed information about each alert (trigger, evaluated value, status).
+
+Both templates support dynamic theming via CSS variables ​
+, ​
+.
+
+4. Configuration
+JSON Configuration (alert_limits.json):
+
+Contains system-level configurations (e.g., API keys, DB paths, logging settings).
+
+Defines alert ranges for different metrics:
+
+Heat Index, Travel Percent Liquid, Profit, Price Alerts (with specific thresholds for assets BTC, ETH, SOL).
+
+Also includes timing settings (alert cooldown, call refractory period, snooze countdown) ​
+.
+
+Dynamic Update via Web UI:
+The /alerts/config route in the Alerts Blueprint allows users to view and update configuration parameters.
+
+5. Notification and External Integrations
+Notification Channels:
+
+Email & SMS: Configured via the notification_config in the JSON file.
+
+Twilio Integration:
+
+Managed in the Alert Manager using trigger_twilio_flow() to initiate calls or alerts.
+
+Requires complete Twilio configuration (account SID, auth token, flow SID, phone numbers) ​
+.
+
+6. Logging and Audit Trail
 Unified Logging:
-All modules utilize a unified logger to capture debug, operation, and error messages.
+Each component (AlertController, AlertEvaluator, AlertManager, DataLocker) uses a unified logger for:
+
+Debug logging of alert operations.
+
+Error and exception logging.
+
+Audit logging via an alert ledger (stored in the alert_ledger table) for tracking changes in alert states.
+
+Operation Logs:
+Detailed logs are generated when alerts are created, updated, or triggered. These logs facilitate troubleshooting and historical audits.
+
+7. Error Handling and Cooldowns
 Error Handling:
-Robust try/except blocks are present in configuration loading, alert checking, and notification sending to prevent subsystem crashes.
-Cooldown & Refractory Mechanisms:
-These mechanisms suppress duplicate alerts within specified time windows.
-Notification Failures:
-Any issues with triggering notifications (e.g., Twilio errors) are logged for further investigation.
-Integration Points & Future Enhancements
-Integration Points:
+Exceptions during alert creation or database operations are caught and logged. For example, SQLite integrity errors are specifically handled in create_alert().
 
-Data Locker: Interface for retrieving positions and latest price data.
-Web Frontend: Provided by the Alerts Blueprint to view and update alert configurations.
-External APIs: Twilio integration for real-time alert notifications.
-Database: SQLite serves as the persistent storage for positions and state tracking.
-Future Enhancements:
+Cooldown Mechanism:
+To avoid excessive notifications, each alert type has a configurable cooldown period. The Alert Evaluator and Manager track the last triggered time and suppress new notifications if within the cooldown window.
 
-Introduce granular alert configurations per asset.
-Modularize calculation logic further.
-Expand web interface analytics with historical trends.
-Implement comprehensive unit testing for each module.
-Enhance retry logic for external API calls.
+8. Database Schema Summary
+Tables:
 
+prices: Stores current and previous asset prices.
 
+positions: Contains trading position details, including alert references.
 
+alerts: Records alert configurations and current state.
 
+alert_ledger: Maintains an audit trail of changes to alerts.
 
+system_vars, brokers, wallets, portfolio_entries, positions_totals_history: Support system-wide settings and snapshots.
+
+DataLocker handles schema creation and migrations on initialization ​
+.
+
+9. External Dependencies
+SQLite:
+Used for persistent storage via DataLocker.
+
+Twilio:
+Integrated for call notifications via the Twilio API.
+
+Flask:
+Provides the web framework for REST endpoints and UI rendering.
+
+Other Utilities:
+JSON management, unified logging, and configuration management utilities ensure consistent behavior across modules.
+
+10. Future Enhancements
+Modularization:
+Consider splitting the evaluation logic further to support additional alert types.
+
+Scalability:
+Evaluate migrating from SQLite to a more scalable database solution.
+
+Real-time Integration:
+Integrate with real-time data feeds and websocket notifications.
+
+Enhanced UI:
+Provide richer dashboards and interactive filtering of alerts.

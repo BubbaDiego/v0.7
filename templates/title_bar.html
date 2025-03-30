@@ -1,6 +1,26 @@
-<nav class="main-header navbar navbar-expand-md navbar-dark" style="background-color: var(--title-bar-color);">
-  <!-- Inline CSS -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Title Bar</title>
+  <!-- Include your Bootstrap CSS here if needed -->
+  <!-- Example: <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"> -->
   <style>
+    /* Updated gradient (Option 3) for a smoother transition */
+    .gradient-navbar {
+      background: linear-gradient(
+        90deg,
+        #7db3f5 0%,
+        #7db3f5 30%,
+        #6f42c1 50%,
+        #4a90e2 70%,
+        #4a90e2 100%
+      );
+    }
+
+    /* Remove white boxes around nav items */
+    /* Keeping existing styling otherwise */
     .asset-panel {
       display: flex;
       align-items: center;
@@ -58,9 +78,9 @@
       background-size: 90%;
     }
 
-    /* Timer box: now purple, bold white text, and shifted slightly to the left */
+    /* Timer box: now light grey with black text */
     .timer-box {
-      background-color: #6f42c1; /* purple */
+      background-color: #ddd;
       border-radius: 4px;
       padding: 0.25rem 0.5rem;
       display: flex;
@@ -69,9 +89,9 @@
       margin-left: -5px; /* shifted left */
     }
     .timer-box span {
-      color: #fff;        /* white text */
-      font-weight: bold;  /* bold */
-      font-size: 1.2em;   /* slightly bigger icons */
+      color: #000;
+      font-weight: bold;
+      font-size: 1.2em; /* slightly bigger icons */
     }
 
     /* Slightly lower the Jupiter button to align with other buttons */
@@ -91,265 +111,269 @@
     }
     .spin { animation: spin 1s linear infinite; }
   </style>
+</head>
+<body>
+  <nav class="main-header navbar navbar-expand-md navbar-dark gradient-navbar">
+    <div class="container">
+      <!-- Navbar Toggler -->
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
+              aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
 
-  <div class="container">
-    <!-- Navbar Toggler -->
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
-            aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
+      <!-- Collapsible Nav Items -->
+      <div class="collapse navbar-collapse" id="navbarCollapse">
+        <!-- Left Items -->
+        <ul class="navbar-nav left-items">
+          <!-- Dashboard -->
+          <li class="nav-item">
+            <a href="{{ url_for('dashboard.dashboard') }}" class="nav-link">
+              <i class="fas fa-home"></i>
+            </a>
+          </li>
+          <!-- Positions Table -->
+          <li class="nav-item">
+            <a href="{{ url_for('positions.positions_table') }}" class="nav-link">
+              <i class="fas fa-table"></i>
+            </a>
+          </li>
+          <!-- Alert Limit Settings -->
+          <li class="nav-item">
+            <a href="{{ url_for('alerts_bp.alert_config_page') }}" class="nav-link">
+              <i class="fas fa-bell"></i>
+            </a>
+          </li>
+          <!-- Alert Matrix -->
+          <li class="nav-item">
+            <a href="{{ url_for('alerts_bp.alert_matrix') }}" class="nav-link">
+              <i class="fas fa-th"></i>
+            </a>
+          </li>
+          <!-- Hedge Calculator -->
+          <li class="nav-item">
+            <a href="{{ url_for('sonic_labs.hedge_calculator') }}" class="nav-link">
+              <span class="hedgehog-icon" style="font-size:1.2em;">🦔</span>
+            </a>
+          </li>
+        </ul>
 
-    <!-- Collapsible Nav Items -->
-    <div class="collapse navbar-collapse" id="navbarCollapse">
-      <!-- Left Items -->
-      <ul class="navbar-nav left-items">
-        <!-- Dashboard -->
-        <li class="nav-item">
-          <a href="{{ url_for('dashboard.dashboard') }}" class="nav-link">
-            <i class="fas fa-home"></i>
-          </a>
-        </li>
-        <!-- Positions Table -->
-        <li class="nav-item">
-          <a href="{{ url_for('positions.positions_table') }}" class="nav-link">
-            <i class="fas fa-table"></i>
-          </a>
-        </li>
-        <!-- Alert Limit Settings -->
-        <li class="nav-item">
-          <a href="{{ url_for('alerts_bp.alert_config_page') }}" class="nav-link">
-            <i class="fas fa-bell"></i>
-          </a>
-        </li>
-        <!-- Alert Matrix -->
-        <li class="nav-item">
-          <a href="{{ url_for('alerts_bp.alert_matrix') }}" class="nav-link">
-            <i class="fas fa-th"></i>
-          </a>
-        </li>
-        <!-- Hedge Calculator -->
-        <li class="nav-item">
-          <a href="{{ url_for('sonic_labs.hedge_calculator') }}" class="nav-link">
-            <span class="hedgehog-icon" style="font-size:1.2em;">🦔</span>
-          </a>
-        </li>
-      </ul>
-
-      <!-- Center Items: Timer, Layout Toggle, and Price Panel -->
-      <ul class="navbar-nav center-timer">
-        <!-- Timer Box -->
-        <li class="nav-item d-none d-md-flex align-items-center">
-          <div class="timer-box">
-            <span id="callTimer">☎ --</span>
-            <span id="snoozeTimer">💤 --</span>
-          </div>
-        </li>
-        <!-- Layout Toggle Button -->
-        <li class="nav-item">
-          <a href="#" class="nav-link" id="layoutToggle" title="Toggle Layout">
-            <i class="fas fa-arrows-alt-h"></i>
-          </a>
-        </li>
-        <!-- Price Panel -->
-        <li class="nav-item d-none d-md-flex align-items-center me-3">
-          <div class="d-flex gap-2">
-            <div class="asset-panel">
-              <img src="https://cryptologos.cc/logos/bitcoin-btc-logo.png?v=023" alt="BTC">
-              <span id="btcPrice">$--.--</span>
-              <small id="btcChange" class="fw-bold">0.00%</small>
+        <!-- Center Items: Timer, Layout Toggle, and Price Panel -->
+        <ul class="navbar-nav center-timer">
+          <!-- Timer Box -->
+          <li class="nav-item d-none d-md-flex align-items-center">
+            <div class="timer-box">
+              <span id="callTimer">☎ --</span>
+              <span id="snoozeTimer">💤 --</span>
             </div>
-            <div class="asset-panel">
-              <img src="https://cryptologos.cc/logos/ethereum-eth-logo.png?v=023" alt="ETH">
-              <span id="ethPrice">$--.--</span>
-              <small id="ethChange" class="fw-bold">0.00%</small>
+          </li>
+          <!-- Layout Toggle Button -->
+          <li class="nav-item">
+            <a href="#" class="nav-link" id="layoutToggle" title="Toggle Layout">
+              <i class="fas fa-arrows-alt-h"></i>
+            </a>
+          </li>
+          <!-- Price Panel -->
+          <li class="nav-item d-none d-md-flex align-items-center me-3">
+            <div class="d-flex gap-2">
+              <div class="asset-panel">
+                <img src="https://cryptologos.cc/logos/bitcoin-btc-logo.png?v=023" alt="BTC">
+                <span id="btcPrice">$--.--</span>
+                <small id="btcChange" class="fw-bold">0.00%</small>
+              </div>
+              <div class="asset-panel">
+                <img src="https://cryptologos.cc/logos/ethereum-eth-logo.png?v=023" alt="ETH">
+                <span id="ethPrice">$--.--</span>
+                <small id="ethChange" class="fw-bold">0.00%</small>
+              </div>
+              <div class="asset-panel">
+                <img src="https://cryptologos.cc/logos/solana-sol-logo.png?v=023" alt="SOL">
+                <span id="solPrice">$--.--</span>
+                <small id="solChange" class="fw-bold">0.00%</small>
+              </div>
             </div>
-            <div class="asset-panel">
-              <img src="https://cryptologos.cc/logos/solana-sol-logo.png?v=023" alt="SOL">
-              <span id="solPrice">$--.--</span>
-              <small id="solChange" class="fw-bold">0.00%</small>
-            </div>
-          </div>
-        </li>
-      </ul>
+          </li>
+        </ul>
 
-      <!-- Right Items: Update Buttons and Gear Dropdown -->
-      <ul class="navbar-nav right-items">
-        <!-- Jupiter Update Button -->
-        <li class="nav-item d-flex align-items-center me-3">
-          <button type="button" class="update-btn" id="updateJupiterBtn" title="Update Positions">
-            <span class="update-icon"
-                  style="background-image: url('{{ url_for('static', filename='images/jupiter.jpg') }}');">
-            </span>
-          </button>
-        </li>
+        <!-- Right Items: Update Buttons and Gear Dropdown -->
+        <ul class="navbar-nav right-items">
+          <!-- Jupiter Update Button -->
+          <li class="nav-item d-flex align-items-center me-3">
+            <button type="button" class="update-btn" id="updateJupiterBtn" title="Update Positions">
+              <span class="update-icon"
+                    style="background-image: url('{{ url_for('static', filename='images/jupiter.jpg') }}');">
+              </span>
+            </button>
+          </li>
 
-        <!-- Prices Update Button -->
-        <li class="nav-item d-flex align-items-center me-3">
-          <button type="button" class="update-btn" id="updatePricesBtn" title="Update Prices">
-            <span class="update-icon" style="color: green;">$</span>
-          </button>
-        </li>
+          <!-- Prices Update Button -->
+          <li class="nav-item d-flex align-items-center me-3">
+            <button type="button" class="update-btn" id="updatePricesBtn" title="Update Prices">
+              <span class="update-icon" style="color: green;">$</span>
+            </button>
+          </li>
 
-        <!-- Full Cycle (Cyclone) Update Button -->
-        <li class="nav-item d-flex align-items-center me-3">
-          <button type="button" class="update-btn" id="updateFullCycleBtn" title="Full Cycle Update">
-            <span class="update-icon">🌀</span>
-          </button>
-        </li>
+          <!-- Full Cycle (Cyclone) Update Button -->
+          <li class="nav-item d-flex align-items-center me-3">
+            <button type="button" class="update-btn" id="updateFullCycleBtn" title="Full Cycle Update">
+              <span class="update-icon">🌀</span>
+            </button>
+          </li>
 
-        <!-- Gear Dropdown -->
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="gearDropdown" role="button"
-             data-bs-toggle="dropdown" aria-expanded="false" title="Navigation">
-            <i class="fas fa-cog"></i>
-          </a>
-          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="gearDropdown">
-            <li>
-              <a class="dropdown-item" href="../cyclone/cyclone.html">
-                <i class="fas fa-cyclone me-1"></i> Cyclone Dashboard
-              </a>
-            </li>
-            <li>
-              <a class="dropdown-item" href="{{ url_for('dashboard.database_viewer') }}">
-                <i class="fas fa-database me-1"></i> Database Viewer
-              </a>
-            </li>
-            <li><hr class="dropdown-divider"></li>
-            <li>
-              <a class="dropdown-item" href="{{ url_for('system_config_page') }}">
-                <i class="fas fa-cog me-1"></i> System Config
-              </a>
-            </li>
-            <li>
-              <a class="dropdown-item" href="{{ url_for('dashboard.theme_setup') }}">
-                <i class="fas fa-palette me-1"></i> Theme Config
-              </a>
-            </li>
-          </ul>
-        </li>
-      </ul>
+          <!-- Gear Dropdown -->
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="gearDropdown" role="button"
+               data-bs-toggle="dropdown" aria-expanded="false" title="Navigation">
+              <i class="fas fa-cog"></i>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="gearDropdown">
+              <li>
+                <a class="dropdown-item" href="../cyclone/cyclone.html">
+                  <i class="fas fa-cyclone me-1"></i> Cyclone Dashboard
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item" href="{{ url_for('dashboard.database_viewer') }}">
+                  <i class="fas fa-database me-1"></i> Database Viewer
+                </a>
+              </li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <a class="dropdown-item" href="{{ url_for('system_config_page') }}">
+                  <i class="fas fa-cog me-1"></i> System Config
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item" href="{{ url_for('dashboard.theme_setup') }}">
+                  <i class="fas fa-palette me-1"></i> Theme Config
+                </a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </div>
     </div>
-  </div>
-</nav>
+  </nav>
 
-<!-- Inline JavaScript -->
-<script>
-  // Timers
-  function getRemaining(start, period) {
-    if (!start) return period;
-    const elapsed = Math.floor(Date.now() / 1000) - start;
-    return Math.max(period - elapsed, 0);
-  }
-  fetch('{{ url_for("dashboard.get_alert_limits") }}')
-    .then(r => r.json())
-    .then(data => {
-      const callPeriod = data.call_refractory_period;
-      const snoozeCount = data.snooze_countdown;
-      const callStart = data.call_refractory_start;
-      const snoozeStart = data.snooze_start;
-      function updateTimers() {
-        document.getElementById('callTimer').textContent =
-          `☎ ${getRemaining(callStart, callPeriod)}`;
-        document.getElementById('snoozeTimer').textContent =
-          `💤 ${getRemaining(snoozeStart, snoozeCount)}`;
-      }
-      updateTimers();
-      setInterval(updateTimers, 1000);
-    })
-    .catch(err => console.error('Timer error:', err));
-
-  // Price Updates
-  function updatePrices() {
-    fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd&include_24hr_change=true')
+  <!-- Inline JavaScript -->
+  <script>
+    // Timers
+    function getRemaining(start, period) {
+      if (!start) return period;
+      const elapsed = Math.floor(Date.now() / 1000) - start;
+      return Math.max(period - elapsed, 0);
+    }
+    fetch('{{ url_for("dashboard.get_alert_limits") }}')
       .then(r => r.json())
       .then(data => {
-        document.getElementById('btcPrice').textContent =
-          '$' + data.bitcoin.usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        const btcChange = data.bitcoin.usd_24h_change.toFixed(2);
-        const btcChangeElem = document.getElementById('btcChange');
-        btcChangeElem.textContent = btcChange + '%';
-        btcChangeElem.style.color = btcChange >= 0 ? 'green' : 'red';
-
-        document.getElementById('ethPrice').textContent =
-          '$' + data.ethereum.usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        const ethChange = data.ethereum.usd_24h_change.toFixed(2);
-        const ethChangeElem = document.getElementById('ethChange');
-        ethChangeElem.textContent = ethChange + '%';
-        ethChangeElem.style.color = ethChange >= 0 ? 'green' : 'red';
-
-        document.getElementById('solPrice').textContent =
-          '$' + data.solana.usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        const solChange = data.solana.usd_24h_change.toFixed(2);
-        const solChangeElem = document.getElementById('solChange');
-        solChangeElem.textContent = solChange + '%';
-        solChangeElem.style.color = solChange >= 0 ? 'green' : 'red';
+        const callPeriod = data.call_refractory_period;
+        const snoozeCount = data.snooze_countdown;
+        const callStart = data.call_refractory_start;
+        const snoozeStart = data.snooze_start;
+        function updateTimers() {
+          document.getElementById('callTimer').textContent =
+            `☎ ${getRemaining(callStart, callPeriod)}`;
+          document.getElementById('snoozeTimer').textContent =
+            `💤 ${getRemaining(snoozeStart, snoozeCount)}`;
+        }
+        updateTimers();
+        setInterval(updateTimers, 1000);
       })
-      .catch(err => console.error('Price fetch error:', err));
-  }
-  updatePrices();
-  setInterval(updatePrices, 60000);
+      .catch(err => console.error('Timer error:', err));
 
-  // Jupiter Update Button
-  const updateJupiterBtn = document.getElementById("updateJupiterBtn");
-  if (updateJupiterBtn) {
-    updateJupiterBtn.addEventListener("click", () => {
-      updateJupiterBtn.querySelector(".update-icon").classList.add("spin");
-      fetch("/positions/update_jupiter?source=User", { method: "POST" })
+    // Price Updates
+    function updatePrices() {
+      fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd&include_24hr_change=true')
         .then(r => r.json())
-        .then(() => window.location.reload())
-        .catch(err => {
-          updateJupiterBtn.querySelector(".update-icon").classList.remove("spin");
-          console.error("Jupiter update error:", err);
-        });
-    });
-  }
-
-  // Prices Update Button
-  const updatePricesBtn = document.getElementById("updatePricesBtn");
-  if (updatePricesBtn) {
-    updatePricesBtn.addEventListener("click", () => {
-      updatePricesBtn.querySelector(".update-icon").classList.add("spin");
-      fetch("/prices/update?source=User", { method: "POST" })
-        .then(r => r.json())
-        .then(() => window.location.reload())
-        .catch(err => {
-          updatePricesBtn.querySelector(".update-icon").classList.remove("spin");
-          console.error("Prices update error:", err);
-        });
-    });
-  }
-
-  // Full Cycle (Cyclone) Update Button - now calls the cyclone bp endpoint
-  const updateFullCycleBtn = document.getElementById("updateFullCycleBtn");
-  if (updateFullCycleBtn) {
-    updateFullCycleBtn.addEventListener("click", () => {
-      updateFullCycleBtn.querySelector(".update-icon").classList.add("spin");
-      fetch("{{ url_for('cyclone.run_full_cycle_api') }}", { method: "POST" })
-        .then(response => response.json())
         .then(data => {
-          updateFullCycleBtn.querySelector(".update-icon").classList.remove("spin");
-          window.location.reload();
-        })
-        .catch(err => {
-          updateFullCycleBtn.querySelector(".update-icon").classList.remove("spin");
-          console.error("Full cycle update error:", err);
-        });
-    });
-  }
+          document.getElementById('btcPrice').textContent =
+            '$' + data.bitcoin.usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          const btcChange = data.bitcoin.usd_24h_change.toFixed(2);
+          const btcChangeElem = document.getElementById('btcChange');
+          btcChangeElem.textContent = btcChange + '%';
+          btcChangeElem.style.color = btcChange >= 0 ? 'green' : 'red';
 
-  // Layout Toggle Switch
-  document.getElementById('layoutToggle').addEventListener('click', function(e) {
-    e.preventDefault();
-    var mode = localStorage.getItem("layoutMode") || "fluid";
-    var newMode = (mode === "fluid") ? "fixed" : "fluid";
-    localStorage.setItem("layoutMode", newMode);
-    window.location.reload();
-  });
-</script>
-<style>
-  @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-  .spin { animation: spin 1s linear infinite; }
-</style>
+          document.getElementById('ethPrice').textContent =
+            '$' + data.ethereum.usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          const ethChange = data.ethereum.usd_24h_change.toFixed(2);
+          const ethChangeElem = document.getElementById('ethChange');
+          ethChangeElem.textContent = ethChange + '%';
+          ethChangeElem.style.color = ethChange >= 0 ? 'green' : 'red';
+
+          document.getElementById('solPrice').textContent =
+            '$' + data.solana.usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          const solChange = data.solana.usd_24h_change.toFixed(2);
+          const solChangeElem = document.getElementById('solChange');
+          solChangeElem.textContent = solChange + '%';
+          solChangeElem.style.color = solChange >= 0 ? 'green' : 'red';
+        })
+        .catch(err => console.error('Price fetch error:', err));
+    }
+    updatePrices();
+    setInterval(updatePrices, 60000);
+
+    // Jupiter Update Button
+    const updateJupiterBtn = document.getElementById("updateJupiterBtn");
+    if (updateJupiterBtn) {
+      updateJupiterBtn.addEventListener("click", () => {
+        updateJupiterBtn.querySelector(".update-icon").classList.add("spin");
+        fetch("/positions/update_jupiter?source=User", { method: "POST" })
+          .then(r => r.json())
+          .then(() => window.location.reload())
+          .catch(err => {
+            updateJupiterBtn.querySelector(".update-icon").classList.remove("spin");
+            console.error("Jupiter update error:", err);
+          });
+      });
+    }
+
+    // Prices Update Button
+    const updatePricesBtn = document.getElementById("updatePricesBtn");
+    if (updatePricesBtn) {
+      updatePricesBtn.addEventListener("click", () => {
+        updatePricesBtn.querySelector(".update-icon").classList.add("spin");
+        fetch("/prices/update?source=User", { method: "POST" })
+          .then(r => r.json())
+          .then(() => window.location.reload())
+          .catch(err => {
+            updatePricesBtn.querySelector(".update-icon").classList.remove("spin");
+            console.error("Prices update error:", err);
+          });
+      });
+    }
+
+    // Full Cycle (Cyclone) Update Button
+    const updateFullCycleBtn = document.getElementById("updateFullCycleBtn");
+    if (updateFullCycleBtn) {
+      updateFullCycleBtn.addEventListener("click", () => {
+        updateFullCycleBtn.querySelector(".update-icon").classList.add("spin");
+        fetch("{{ url_for('cyclone.run_full_cycle_api') }}", { method: "POST" })
+          .then(response => response.json())
+          .then(data => {
+            updateFullCycleBtn.querySelector(".update-icon").classList.remove("spin");
+            window.location.reload();
+          })
+          .catch(err => {
+            updateFullCycleBtn.querySelector(".update-icon").classList.remove("spin");
+            console.error("Full cycle update error:", err);
+          });
+      });
+    }
+
+    // Layout Toggle Switch
+    document.getElementById('layoutToggle').addEventListener('click', function(e) {
+      e.preventDefault();
+      var mode = localStorage.getItem("layoutMode") || "fluid";
+      var newMode = (mode === "fluid") ? "fixed" : "fluid";
+      localStorage.setItem("layoutMode", newMode);
+      window.location.reload();
+    });
+  </script>
+  <style>
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .spin { animation: spin 1s linear infinite; }
+  </style>
+</body>
+</html>

@@ -42,7 +42,7 @@
   /* Base info-box styles with collapsible <details> */
   details.info-box {
     display: inline-block;
-    width: auto; /* initial width based on summary content */
+    width: auto;
     vertical-align: top;
     border-radius: 0.5rem;
     margin-bottom: 1rem;
@@ -51,9 +51,8 @@
     cursor: pointer;
     transition: width 0.3s ease, height 0.3s ease;
   }
-  /* Expand width when open */
   details.info-box[open] {
-    width: 350px; /* adjust as needed */
+    width: 350px;
   }
   /* Color-coded levels */
   .info-box.no-alert {
@@ -91,10 +90,27 @@
     padding: 0.75rem;
     list-style: none;
   }
-  .info-box-icon {
-    font-size: 1.5rem;
+  /* Icon container for stacked images */
+  .icon-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     margin-right: 0.5rem;
   }
+  .icon-container > div {
+    margin-bottom: 8px;
+  }
+  .icon-container i {
+    color: #fff;
+    font-size: 1.5rem;
+  }
+  .icon-container img {
+    width: 36px;
+    height: 36px;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+  /* Info basic container styling */
   .info-basic-container {
     display: flex;
     flex-direction: column;
@@ -142,7 +158,7 @@
   <div class="card" style="border: 1px solid {{ theme.get('border_color', '#ccc') }};">
     <div class="card-header" style="background-color: {{ theme.get('card_header_color', '#007bff') }}; color: {{ theme.get('card_header_text_color', '#fff') }}; position: relative;">
       <h3 class="card-title">Alert Matrix</h3>
-      <!-- Two-toggle switch to expand/collapse all alerts -->
+      <!-- Toggle switch to expand/collapse all alert boxes -->
       <div class="header-toggle">
         <input type="checkbox" id="toggleAllAlerts" title="Toggle All Alerts">
       </div>
@@ -155,10 +171,10 @@
     <div class="card-body" style="background-color: var(--card-background-color); color: var(--text-color);">
       <div class="row">
         {% for alert in alerts %}
-          {% set atype = alert.alert_type|upper %}  {# Normalize to uppercase #}
+          {% set atype = alert.alert_type|upper %}
           <div class="col-auto" style="margin-bottom: 1rem;">
             <details class="info-box
-              {% if atype == 'PRICE_THRESHOLD' and alert.level == 'High' %}
+              {% if atype == 'PRICETHRESHOLD' and alert.level == 'High' %}
                 price-high
               {% elif alert.level == 'Normal' %}
                 no-alert
@@ -172,42 +188,77 @@
                 unknown
               {% endif %} shadow-sm">
               <summary class="info-header">
-                <span class="info-box-icon">
-                  {% if atype in ['TRAVEL_PERCENT_ALERT','TRAVELPERCENTALERT','TRAVELPERCENTLIQUID'] %}
-                    <i class="fas fa-rocket"></i>
-                  {% elif atype in ['HEAT_INDEX_ALERT','HEATINDEXALERT'] %}
-                    <i class="fas fa-fire"></i>
-                  {% elif atype in ['PROFIT','PROFITALERT'] %}
-                    <i class="fas fa-dollar-sign" style="color: red;"></i>
-                  {% elif atype == 'PRICE_THRESHOLD' %}
-                    <i class="fas fa-dollar-sign" style="color: white;"></i>
-                  {% else %}
-                    🔔
-                  {% endif %}
-                </span>
+                <div class="icon-container">
+                  <!-- Alert Icon using updated conditions -->
+                  <div class="alert-icon">
+                    {% if atype == 'TRAVELPERCENT' %}
+                      <i class="fas fa-rocket"></i>
+                    {% elif atype == 'HEATINDEX' %}
+                      <i class="fas fa-fire"></i>
+                    {% elif atype == 'PROFIT' %}
+                      <i class="fas fa-dollar-sign" style="color: white;"></i>
+                    {% elif atype == 'PRICETHRESHOLD' %}
+                      <i class="fas fa-tag"></i>
+                    {% elif atype == 'TIME' %}
+                      <i class="fas fa-clock"></i>
+                    {% elif atype == 'DELTACHANGE' %}
+                      <i class="fas fa-chart-line"></i>
+                    {% else %}
+                      🔔
+                    {% endif %}
+                  </div>
+                  <!-- Asset Image -->
+                  <div class="asset-icon">
+                    {% if alert.asset_image %}
+                      <img src="{{ alert.asset_image }}" alt="Asset">
+                    {% else %}
+                      {% if alert.asset_type in asset_images %}
+                        <img src="{{ asset_images[alert.asset_type] }}" alt="{{ alert.asset_type }} Logo">
+                      {% else %}
+                        <img src="{{ url_for('static', filename='images/asset_default.png') }}" alt="Default Asset">
+                      {% endif %}
+                    {% endif %}
+                  </div>
+                  <!-- Wallet Image -->
+                  <div class="wallet-icon">
+                    {% if alert.wallet_image %}
+                      <img src="{{ alert.wallet_image }}" alt="Wallet">
+                    {% else %}
+                      <img src="{{ wallet_default }}" alt="Default Wallet">
+                    {% endif %}
+                  </div>
+                </div>
                 <div class="info-basic-container">
                   <div class="info-basic-type">
-                    {% if atype in ['TRAVEL_PERCENT_ALERT','TRAVELPERCENTALERT','TRAVELPERCENTLIQUID'] %}
+                    {% if atype == 'TRAVELPERCENT' %}
                       Travel Percent
-                    {% elif atype in ['HEAT_INDEX_ALERT','HEATINDEXALERT'] %}
+                    {% elif atype == 'HEATINDEX' %}
                       Heat Index
-                    {% elif atype in ['PROFIT','PROFITALERT'] %}
+                    {% elif atype == 'PROFIT' %}
                       Profit
-                    {% elif atype == 'PRICE_THRESHOLD' %}
+                    {% elif atype == 'PRICETHRESHOLD' %}
                       Price Threshold
+                    {% elif atype == 'TIME' %}
+                      Time
+                    {% elif atype == 'DELTACHANGE' %}
+                      Delta Change
                     {% else %}
                       {{ alert.alert_type }}
                     {% endif %}
                   </div>
                   <div class="info-basic-trigger">
                     Trigger: <strong>
-                      {% if atype == 'PRICE_THRESHOLD' %}
+                      {% if atype == 'PRICETHRESHOLD' %}
                         ${{ "{:,.2f}".format(alert.trigger_value or 0) }}
-                      {% elif atype in ['TRAVEL_PERCENT_ALERT','TRAVELPERCENTALERT','TRAVELPERCENTLIQUID'] %}
+                      {% elif atype == 'TRAVELPERCENT' %}
                         {{ "{:,.2f}".format(alert.trigger_value or 0) }}%
-                      {% elif atype in ['PROFIT','PROFITALERT'] %}
+                      {% elif atype == 'PROFIT' %}
                         ${{ "{:,.2f}".format(alert.trigger_value or 0) }}
-                      {% elif atype in ['HEAT_INDEX_ALERT','HEATINDEXALERT'] %}
+                      {% elif atype == 'HEATINDEX' %}
+                        {{ "{:,.2f}".format(alert.trigger_value or 0) }}
+                      {% elif atype == 'TIME' %}
+                        {{ alert.trigger_value or "N/A" }}
+                      {% elif atype == 'DELTACHANGE' %}
                         {{ "{:,.2f}".format(alert.trigger_value or 0) }}
                       {% else %}
                         {{ "{:,.2f}".format(alert.trigger_value or 0) }}
@@ -217,13 +268,17 @@
                   <div class="info-basic-current-value">
                     Current Value:
                     <strong>
-                      {% if atype == 'PRICE_THRESHOLD' %}
+                      {% if atype == 'PRICETHRESHOLD' %}
                         ${{ "{:,.2f}".format(alert.evaluated_value or 0) }}
-                      {% elif atype in ['TRAVEL_PERCENT_ALERT','TRAVELPERCENTALERT','TRAVELPERCENTLIQUID'] %}
+                      {% elif atype == 'TRAVELPERCENT' %}
                         {{ "{:,.2f}".format(alert.evaluated_value or 0) }}%
-                      {% elif atype in ['PROFIT','PROFITALERT'] %}
+                      {% elif atype == 'PROFIT' %}
                         ${{ "{:,.2f}".format(alert.evaluated_value or 0) }}
-                      {% elif atype in ['HEAT_INDEX_ALERT','HEATINDEXALERT'] %}
+                      {% elif atype == 'HEATINDEX' %}
+                        {{ "{:,.2f}".format(alert.evaluated_value or 0) }}
+                      {% elif atype == 'TIME' %}
+                        {{ alert.evaluated_value or "N/A" }}
+                      {% elif atype == 'DELTACHANGE' %}
                         {{ "{:,.2f}".format(alert.evaluated_value or 0) }}
                       {% else %}
                         N/A
@@ -240,13 +295,17 @@
                   <div class="alert-details-column">
                     <div><strong>Type:</strong> {{ alert.alert_type }}</div>
                     <div><strong>Trigger:</strong> <strong>
-                      {% if atype == 'PRICE_THRESHOLD' %}
+                      {% if atype == 'PRICETHRESHOLD' %}
                         ${{ "{:,.2f}".format(alert.trigger_value or 0) }}
-                      {% elif atype in ['TRAVEL_PERCENT_ALERT','TRAVELPERCENTALERT','TRAVELPERCENTLIQUID'] %}
+                      {% elif atype == 'TRAVELPERCENT' %}
                         {{ "{:,.2f}".format(alert.trigger_value or 0) }}%
-                      {% elif atype in ['PROFIT','PROFITALERT'] %}
+                      {% elif atype == 'PROFIT' %}
                         ${{ "{:,.2f}".format(alert.trigger_value or 0) }}
-                      {% elif atype in ['HEAT_INDEX_ALERT','HEATINDEXALERT'] %}
+                      {% elif atype == 'HEATINDEX' %}
+                        {{ "{:,.2f}".format(alert.trigger_value or 0) }}
+                      {% elif atype == 'TIME' %}
+                        {{ alert.trigger_value or "N/A" }}
+                      {% elif atype == 'DELTACHANGE' %}
                         {{ "{:,.2f}".format(alert.trigger_value or 0) }}
                       {% else %}
                         {{ "{:,.2f}".format(alert.trigger_value or 0) }}
@@ -283,7 +342,7 @@
                   </div>
                   <div class="alert-range-column">
                     {% if alert_ranges %}
-                      {% if atype == 'PRICE_THRESHOLD' %}
+                      {% if atype == 'PRICETHRESHOLD' %}
                         {% set h = alert.trigger_value or 0 %}
                         {% set m = h * 0.75 %}
                         {% set l = h * 0.5 %}
@@ -293,18 +352,18 @@
                         <div>${{ "{:,.2f}".format(h|default(0)) }}</div>
                       {% else %}
                         {% set range_config = None %}
-                        {% if atype in ['TRAVEL_PERCENT_ALERT','TRAVELPERCENTALERT','TRAVELPERCENTLIQUID'] %}
+                        {% if atype == 'TRAVELPERCENT' %}
                           {% set range_config = alert_ranges.travel_percent_liquid_ranges %}
-                        {% elif atype in ['PROFIT','PROFITALERT'] %}
+                        {% elif atype == 'PROFIT' %}
                           {% set range_config = alert_ranges.profit_ranges %}
-                        {% elif atype in ['HEAT_INDEX_ALERT','HEATINDEXALERT'] %}
+                        {% elif atype == 'HEATINDEX' %}
                           {% set range_config = alert_ranges.heat_index_ranges %}
                         {% endif %}
                         {% if range_config %}
                           <div><strong>Range:</strong></div>
-                          <div>{{ "{:,.2f}".format(range_config.low|float) }}{% if atype in ['TRAVEL_PERCENT_ALERT','TRAVELPERCENTALERT','TRAVELPERCENTLIQUID'] %}%{% endif %}</div>
-                          <div>{{ "{:,.2f}".format(range_config.medium|float) }}{% if atype in ['TRAVEL_PERCENT_ALERT','TRAVELPERCENTALERT','TRAVELPERCENTLIQUID'] %}%{% endif %}</div>
-                          <div>{{ "{:,.2f}".format(range_config.high|float) }}{% if atype in ['TRAVEL_PERCENT_ALERT','TRAVELPERCENTALERT','TRAVELPERCENTLIQUID'] %}%{% endif %}</div>
+                          <div>{{ "{:,.2f}".format(range_config.low|float) }}{% if atype == 'TRAVELPERCENT' %}%{% endif %}</div>
+                          <div>{{ "{:,.2f}".format(range_config.medium|float) }}{% if atype == 'TRAVELPERCENT' %}%{% endif %}</div>
+                          <div>{{ "{:,.2f}".format(range_config.high|float) }}{% if atype == 'TRAVELPERCENT' %}%{% endif %}</div>
                         {% endif %}
                       {% endif %}
                     {% endif %}
@@ -363,7 +422,6 @@
 
 {% block extra_scripts %}
 <script>
-  // Toggle switch to expand/collapse all alert boxes
   document.addEventListener("DOMContentLoaded", function() {
     const toggleSwitch = document.getElementById("toggleAllAlerts");
     toggleSwitch.addEventListener("change", function() {
@@ -376,7 +434,6 @@
         }
       });
     });
-    // Refresh alerts functionality
     document.getElementById("refreshAlerts").addEventListener("click", function(e) {
       e.preventDefault();
       e.stopPropagation();
@@ -395,7 +452,6 @@
         alert("Error refreshing alerts: " + err);
       });
     });
-    // Create all alerts functionality
     document.getElementById("createAllAlerts").addEventListener("click", function(e) {
       e.preventDefault();
       e.stopPropagation();
@@ -414,7 +470,6 @@
         alert("Error creating alerts: " + err);
       });
     });
-    // Delete all alerts functionality with debug output
     document.getElementById("deleteAllAlerts").addEventListener("click", function(e) {
       e.preventDefault();
       e.stopPropagation();

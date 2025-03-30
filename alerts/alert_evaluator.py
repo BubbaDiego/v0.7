@@ -435,15 +435,6 @@ class AlertEvaluator:
 
     def _update_alert_level(self, pos: dict, new_level: str, evaluated_value: float = None,
                             custom_alert_type: str = None):
-        """
-        Updates the alert's level for a given position.
-        If no alert_reference_id is found in the position, creates a new alert record with the specified level.
-
-        :param pos: Dictionary containing the position data, including alert_reference_id.
-        :param new_level: The new alert level to set (e.g., "Normal", "Low", "Medium", "High").
-        :param evaluated_value: The evaluated value from the alert evaluation.
-        :param custom_alert_type: Optional custom alert type to use when creating a new alert.
-        """
         alert_id = pos.get("alert_reference_id")
         if not alert_id:
             u_logger.log_operation(
@@ -473,12 +464,11 @@ class AlertEvaluator:
                 liquidation_price=pos.get("liquidation_price", 0.0),
                 notes="Auto-created alert record",
                 position_reference_id=pos.get("id"),
-                level=new_level,  # Updated: using 'level' with the new level value
+                level=new_level,
                 evaluated_value=evaluated_value or 0.0
             )
             created = self.create_alert(new_alert)
             if created:
-                # Update the in-memory position and persist the alert_reference_id to the database.
                 pos["alert_reference_id"] = new_alert.id
                 conn = self.data_locker.get_db_connection()
                 cursor = conn.cursor()
@@ -503,12 +493,34 @@ class AlertEvaluator:
                 print("[DEBUG] _update_alert_level: Failed to create new alert record.")
                 return
 
-        update_fields = {"level": new_level}  # Updated field: using 'level'
+        update_fields = {"level": new_level}
         if evaluated_value is not None:
             update_fields["evaluated_value"] = evaluated_value
 
         if pos.get("alert_reference_id") and pos.get("id"):
             update_fields["position_reference_id"] = pos.get("id")
+
+        # --- Updated: Set the trigger_value to the next threshold for travel percent alerts ---
+        if custom_alert_type is None or custom_alert_type == AlertType.TRAVEL_PERCENT_LIQUID.value:
+            tp_config = self.config.get("alert_ranges", {}).get("travel_percent_liquid_ranges", {})
+            try:
+                low_threshold = float(tp_config.get("low", -25.0))
+                medium_threshold = float(tp_config.get("medium", -50.0))
+                high_threshold = float(tp_config.get("high", -75.0))
+            except Exception as e:
+                low_threshold, medium_threshold, high_threshold = -25.0, -50.0, -75.0
+            if new_level == "Normal":
+                next_trigger = low_threshold
+            elif new_level == "Low":
+                next_trigger = medium_threshold
+            elif new_level == "Medium":
+                next_trigger = high_threshold
+            elif new_level == "High":
+                next_trigger = high_threshold
+            else:
+                next_trigger = update_fields.get("trigger_value", 0.0)
+            update_fields["trigger_value"] = next_trigger
+        # --- End updated block ---
 
         print(f"[DEBUG] _update_alert_level: Updating alert '{alert_id}' with fields: {update_fields}")
         u_logger.log_operation(
