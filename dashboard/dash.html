@@ -66,18 +66,17 @@
     .box-row {
       display: flex;
       justify-content: space-between;
-      gap: 25px; /* Increased gap between boxes */
+      gap: 25px; /* Gap for first row */
       margin-top: 20px;
     }
-    /* The mini positions table box and others will be 48% width */
+    /* For the second row, increase gap a bit more for better alignment */
+    .box-row.center-row {
+      gap: 35px;
+    }
+    /* The mini positions table box, graph, pie, and liquidation boxes will be 48% width */
     .pie-box, .graph-box, .mini-table-box, .liquidation-box {
       width: 48%;
     }
-    /* For a single box row (mini table row), center the box if needed */
-    .center-row {
-      justify-content: center;
-    }
-
     /* ----------------------------
        Pie Box Styles
     ----------------------------- */
@@ -95,21 +94,19 @@
       margin-bottom: 10px;
       font-weight: bold;
     }
-
     /* ----------------------------
        Graph Box Styles
     ----------------------------- */
     .graph-box {
       overflow: hidden;
     }
-
     /* ----------------------------
        Mini Positions Table Styles
     ----------------------------- */
     .mini-table-box table {
       width: 100%;
       border-collapse: collapse;
-      color: #fff; /* Force table text to be white now */
+      color: #fff;
     }
     .mini-table-box th, .mini-table-box td {
       padding: 0.5rem;
@@ -120,38 +117,31 @@
       font-weight: bold;
       font-size: 1.1rem;
     }
-
     /* ----------------------------
        New Styles for Positions Table Container and Icons
     ----------------------------- */
-    /* Container for positions table */
     .positions-container {
       margin-top: 10px;
       overflow-x: auto;
     }
-    /* Styling for the asset cell to align images side by side */
     .asset-cell {
       display: flex;
       align-items: center;
       gap: 5px;
     }
-    /* Round wallet images */
     .wallet-icon {
       border-radius: 50%;
       width: 32px;
       height: 32px;
       object-fit: cover;
     }
-    /* Asset icon size */
     .asset-icon {
       width: 32px;
       height: 32px;
     }
-    /* Make header cells clickable */
     #positionsTable th {
       cursor: pointer;
     }
-
     /* ----------------------------
        Liquidation Bar Specific Styles
     ----------------------------- */
@@ -194,7 +184,6 @@
     .bg-success { background-color: #198754; }
     .bg-warning { background-color: #ffc107; }
     .bg-danger { background-color: #dc3545; }
-    /* Liquidation row layout */
     .liq-row {
       display: flex;
       align-items: center;
@@ -319,6 +308,9 @@
     <!-- Liquidation Bar Box -->
     <div class="common-box light-mode liquidation-box" id="liquidationBox">
       <div class="chart-label" style="margin-bottom: 15px;">Liquidation Bar</div>
+      {# Quick debug: Show how many liquidation_positions we have.
+         This won't display unless you remove the comment, but it can help you see if data is empty.
+         <div>We have {{ liquidation_positions|length }} liquidation positions</div> #}
       {% for pos in liquidation_positions %}
         <div class="liq-row">
           {# Wallet Image on far left #}
