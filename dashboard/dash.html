@@ -69,11 +69,11 @@
       gap: 25px; /* Gap for first row */
       margin-top: 20px;
     }
-    /* For the second row, increase gap a bit more for better alignment */
+    /* Increase gap in second row */
     .box-row.center-row {
       gap: 35px;
     }
-    /* The mini positions table box, graph, pie, and liquidation boxes will be 48% width */
+    /* All boxes in the row take 48% width */
     .pie-box, .graph-box, .mini-table-box, .liquidation-box {
       width: 48%;
     }
@@ -109,7 +109,7 @@
     .mini-table-box table {
       width: 100%;
       border-collapse: collapse;
-      color: #fff; /* Force table text to be white */
+      color: #fff;
     }
     .mini-table-box th, .mini-table-box td {
       padding: 0.5rem;
@@ -122,16 +122,19 @@
     }
 
     /* ----------------------------
-       New Styles for Positions Table Container and Icons
+       Positions Table Container and Icons
     ----------------------------- */
     .positions-container {
       margin-top: 10px;
       overflow-x: auto;
     }
+    /* Asset column: only the asset icon */
     .asset-cell {
-      display: flex;
-      align-items: center;
-      gap: 5px;
+      text-align: center;
+    }
+    /* Wallet column dedicated for the wallet image */
+    .wallet-cell {
+      text-align: center;
     }
     .wallet-icon {
       border-radius: 50%;
@@ -172,6 +175,11 @@
       position: absolute;
       height: 100%;
       border-radius: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: bold;
     }
     .liquidation-fill.striped {
       background-image: linear-gradient(
@@ -249,7 +257,7 @@
 
   <!-- Second Row: Positions Table Box and Liquidation Bar Box -->
   <div class="box-row center-row">
-    <!-- Positions Table Box -->
+    <!-- Positions Table Box with Dedicated Wallet Column -->
     <div class="common-box light-mode mini-table-box" id="miniTableBox">
       <div class="chart-label" style="margin-bottom: 15px;">Positions</div>
       <div id="positionsContainer" class="positions-container">
@@ -257,16 +265,24 @@
           <thead>
             <tr>
               <th onclick="sortTable('positionsTable', 0)">Asset</th>
-              <th onclick="sortTable('positionsTable', 1)">Heat Index</th>
-              <th onclick="sortTable('positionsTable', 2)">Travel %</th>
-              <th onclick="sortTable('positionsTable', 3)">Leverage</th>
+              <th onclick="sortTable('positionsTable', 1)">Wallet</th>
+              <th onclick="sortTable('positionsTable', 2)">Heat Index</th>
+              <th onclick="sortTable('positionsTable', 3)">Travel %</th>
+              <th onclick="sortTable('positionsTable', 4)">Leverage</th>
             </tr>
           </thead>
           <tbody>
             {% for pos in positions %}
             <tr>
+              <!-- Asset Column -->
               <td class="asset-cell">
-                {# Wallet Image: select based on wallet field #}
+                {% set asset = pos.asset_type | default('BTC') | lower %}
+                <img class="asset-icon"
+                     src="https://cryptoicons.org/api/icon/{{ asset }}/32"
+                     alt="{{ asset|upper }} Icon">
+              </td>
+              <!-- Wallet Column -->
+              <td class="wallet-cell">
                 {% set wallet = pos.wallet | default('ObiVault') %}
                 {% if wallet == 'ObiVault' %}
                   <img class="wallet-icon" src="{{ url_for('static', filename='images/obivault.jpg') }}" alt="ObiVault">
@@ -275,13 +291,8 @@
                 {% else %}
                   <img class="wallet-icon" src="{{ url_for('static', filename='images/obivault.jpg') }}" alt="Wallet">
                 {% endif %}
-                {# Asset Icon: using an online source #}
-                {% set asset = pos.asset_type | default('BTC') | lower %}
-                <img class="asset-icon"
-                     src="https://cryptoicons.org/api/icon/{{ asset }}/32"
-                     onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/default_asset.png') }}';"
-                     alt="{{ asset | upper }} Icon">
               </td>
+              <!-- Heat Index Column -->
               <td>
                 {% if pos.heat_index is defined and pos.heat_index is not none %}
                   {{ "{:,.2f}".format(pos.heat_index) }}
@@ -289,6 +300,7 @@
                   N/A
                 {% endif %}
               </td>
+              <!-- Travel % Column -->
               <td>
                 {% if pos.travel_percent is defined and pos.travel_percent is not none %}
                   {{ "{:,.2f}".format(pos.travel_percent) }}%
@@ -296,6 +308,7 @@
                   N/A
                 {% endif %}
               </td>
+              <!-- Leverage Column -->
               <td>
                 {% if pos.leverage is defined and pos.leverage is not none %}
                   {{ "{:,.2f}".format(pos.leverage) }}
@@ -310,14 +323,13 @@
       </div>
     </div>
 
-    <!-- Liquidation Bar Box -->
+    <!-- Liquidation Bar Box with Overlaid Travel Percent Values -->
     <div class="common-box light-mode liquidation-box" id="liquidationBox">
       <div class="chart-label" style="margin-bottom: 15px;">Liquidation Bar</div>
-      {# Debug: Uncomment the next line to show the number of liquidation positions
+      {# Debug: Uncomment to show number of liquidation positions
          <div style="color: #fff;">We have {{ liquidation_positions|length }} liquidation positions</div> #}
       {% for pos in liquidation_positions %}
         <div class="liq-row">
-          {# Wallet Image on far left #}
           {% set wallet = pos.wallet | default('ObiVault') %}
           {% if wallet == 'ObiVault' %}
             <img class="wallet-icon" src="{{ url_for('static', filename='images/obivault.jpg') }}" alt="ObiVault">
@@ -329,21 +341,22 @@
           <div class="progress liquidation" style="flex: 1; position: relative;">
             {% set travel = pos.travel_percent | float %}
             {% if travel >= 0 %}
-              <div class="liquidation-fill striped bg-success" style="right: 75%; width: calc(({{ travel }} / 25) * 25%);"></div>
-              <img class="asset-icon"
-                   src="{{ url_for('static', filename='images/' ~ (pos.asset_type|default('btc')|lower) ~ '_logo.png') }}"
-                   alt="{{ pos.asset_type|default('btc')|lower }} logo"
-                   style="left: calc(25% - (({{ travel }} / 25) * 25%) - 15px); {% if (pos.asset_type|default('btc')|lower)=='eth' %}background-color: white;{% endif %}">
+              <div class="liquidation-fill striped bg-success"
+                   style="right: 75%; width: calc(({{ travel }} / 25) * 25%);">
+                {{ travel|round(0) }}%
+              </div>
             {% else %}
               {% if travel|abs <= 50 %}
-                <div class="liquidation-fill striped bg-warning" style="left: 25%; width: calc(({{ travel | abs }} / 100) * 75%);"></div>
+                <div class="liquidation-fill striped bg-warning"
+                     style="left: 25%; width: calc(({{ travel|abs }} / 100) * 75%);">
+                  {{ travel|round(0) }}%
+                </div>
               {% else %}
-                <div class="liquidation-fill striped bg-danger" style="left: 25%; width: calc(({{ travel | abs }} / 100) * 75%);"></div>
+                <div class="liquidation-fill striped bg-danger"
+                     style="left: 25%; width: calc(({{ travel|abs }} / 100) * 75%);">
+                  {{ travel|round(0) }}%
+                </div>
               {% endif %}
-              <img class="asset-icon"
-                   src="{{ url_for('static', filename='images/' ~ (pos.asset_type|default('btc')|lower) ~ '_logo.png') }}"
-                   alt="{{ pos.asset_type|default('btc')|lower }} logo"
-                   style="left: calc(25% + (({{ travel | abs }} / 100) * 75%) - 15px); {% if (pos.asset_type|default('btc')|lower)=='eth' %}background-color: white;{% endif %}">
             {% endif %}
           </div>
         </div>
@@ -428,7 +441,14 @@
             style: { fontSize: '20px' },
             formatter: function(val) { return val.toFixed(1) + '%'; }
           },
-          legend: { position: 'bottom' }
+          legend: {
+            position: 'bottom',
+            labels: {
+              colors: '#fff',
+              fontSize: '20px',
+              fontWeight: 700
+            }
+          }
         };
       }
       // Size Pie
@@ -472,7 +492,7 @@
           position: 'top',
           labels: {
             colors: '#fff',
-            fontSize: '18px',
+            fontSize: '20px',
             fontWeight: 700
           }
         },
