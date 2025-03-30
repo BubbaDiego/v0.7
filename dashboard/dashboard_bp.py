@@ -744,6 +744,12 @@ def dash_page():
     formatted_leverage = "{:,.2f}x".format(avg_leverage) if avg_leverage else "N/A"
     formatted_travel_percent = "{:.2f}%".format(avg_travel_percent) if avg_travel_percent else "N/A"
 
+    liquidation_positions = all_positions
+
+    # Debug: print how many liquidation positions you have
+    print(f"liquidation_positions count: {len(liquidation_positions)}")
+    print(f"liquidation_positions data: {liquidation_positions}")
+
     return render_template(
         "dash.html",
         value=formatted_value,
@@ -751,6 +757,7 @@ def dash_page():
         size=formatted_size,
         vc_ratio=vc_ratio,
         travel_percent=formatted_travel_percent,
-        positions=all_positions  # <-- add this
+        positions=all_positions,
+        liquidation_positions=liquidation_positions  # <-- pass it here
     )
 

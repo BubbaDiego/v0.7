@@ -77,6 +77,7 @@
     .pie-box, .graph-box, .mini-table-box, .liquidation-box {
       width: 48%;
     }
+
     /* ----------------------------
        Pie Box Styles
     ----------------------------- */
@@ -94,19 +95,21 @@
       margin-bottom: 10px;
       font-weight: bold;
     }
+
     /* ----------------------------
        Graph Box Styles
     ----------------------------- */
     .graph-box {
       overflow: hidden;
     }
+
     /* ----------------------------
        Mini Positions Table Styles
     ----------------------------- */
     .mini-table-box table {
       width: 100%;
       border-collapse: collapse;
-      color: #fff;
+      color: #fff; /* Force table text to be white */
     }
     .mini-table-box th, .mini-table-box td {
       padding: 0.5rem;
@@ -117,6 +120,7 @@
       font-weight: bold;
       font-size: 1.1rem;
     }
+
     /* ----------------------------
        New Styles for Positions Table Container and Icons
     ----------------------------- */
@@ -142,6 +146,7 @@
     #positionsTable th {
       cursor: pointer;
     }
+
     /* ----------------------------
        Liquidation Bar Specific Styles
     ----------------------------- */
@@ -308,9 +313,8 @@
     <!-- Liquidation Bar Box -->
     <div class="common-box light-mode liquidation-box" id="liquidationBox">
       <div class="chart-label" style="margin-bottom: 15px;">Liquidation Bar</div>
-      {# Quick debug: Show how many liquidation_positions we have.
-         This won't display unless you remove the comment, but it can help you see if data is empty.
-         <div>We have {{ liquidation_positions|length }} liquidation positions</div> #}
+      {# Debug: Uncomment the next line to show the number of liquidation positions
+         <div style="color: #fff;">We have {{ liquidation_positions|length }} liquidation positions</div> #}
       {% for pos in liquidation_positions %}
         <div class="liq-row">
           {# Wallet Image on far left #}
@@ -323,7 +327,7 @@
             <img class="wallet-icon" src="{{ url_for('static', filename='images/obivault.jpg') }}" alt="Wallet">
           {% endif %}
           <div class="progress liquidation" style="flex: 1; position: relative;">
-            {% set travel = pos.current_travel_percent | float %}
+            {% set travel = pos.travel_percent | float %}
             {% if travel >= 0 %}
               <div class="liquidation-fill striped bg-success" style="right: 75%; width: calc(({{ travel }} / 25) * 25%);"></div>
               <img class="asset-icon"
