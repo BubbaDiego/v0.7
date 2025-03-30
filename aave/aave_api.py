@@ -1,30 +1,67 @@
 # aave_api.py
-from web3 import Web3
+import requests
 import config.config_constants as config
 
-# Initialize web3 with the Polygon RPC URL
-web3 = Web3(Web3.HTTPProvider(config.POLYGON_RPC_URL))
 
 def get_user_data(address):
     """
-    Fetches public wallet info for the given user address.
-    Currently returns dummy data for demonstration purposes.
+    Fetches Aave public wallet data for the given user address using TheGraph.
+    The address should be provided as either a lower-case or checksummed address.
     """
-    # For real on-chain calls, you would use the contract call:
-    # data_provider = web3.eth.contract(address=config.DATA_PROVIDER_ADDR, abi=config.UI_POOL_DATA_PROVIDER_ABI)
-    # reserves_data, _ = data_provider.functions.getUserReservesData(config.POOL_PROVIDER_ADDR, address).call()
-    # Process reserves_data here...
-    # For now, return dummy data:
-    assets = [
-        {"asset": "USDC", "supplied": 1000, "debt": 0},
-        {"asset": "DAI", "supplied": 500, "debt": 100},
-    ]
-    position = {
-        "total_supplied": 1500,
-        "total_debt": 100,
-        "health_factor": 3.5,
+    address_lower = address.lower()
+    query = """
+    {
+      user(id: "%s") {
+        id
+        healthFactor
+        totalCollateralUSD
+        totalDebtUSD
+        reserves {
+          reserve {
+            symbol
+          }
+          currentATokenBalance
+          stableDebt
+          variableDebt
+        }
+      }
     }
-    return assets, position
+    """ % address_lower
+    url = "https://api.thegraph.com/subgraphs/name/aave/protocol-v3-polygon"
+    response = requests.post(url, json={'query': query})
+
+    if response.status_code == 200:
+        data = response.json()
+        user_data = data.get("data", {}).get("user")
+        if not user_data:
+            # Return empty data with health_factor set to 0.0 to avoid template errors.
+            return [], {"health_factor": 0.0, "total_supplied": 0, "total_debt": 0}
+        # Parse the values from the subgraph.
+        # Default health_factor to 0.0 if it's missing or None.
+        health_factor = float(user_data["healthFactor"]) if user_data["healthFactor"] is not None else 0.0
+        total_supplied = float(user_data["totalCollateralUSD"]) if user_data["totalCollateralUSD"] else 0
+        total_debt = float(user_data["totalDebtUSD"]) if user_data["totalDebtUSD"] else 0
+        assets = []
+        for res in user_data.get("reserves", []):
+            symbol = res["reserve"]["symbol"]
+            a_token = float(res["currentATokenBalance"]) if res["currentATokenBalance"] else 0
+            stable_debt = float(res["stableDebt"]) if res["stableDebt"] else 0
+            variable_debt = float(res["variableDebt"]) if res["variableDebt"] else 0
+            assets.append({
+                "asset": symbol,
+                "supplied": a_token,
+                "debt": stable_debt + variable_debt
+            })
+        position = {
+            "health_factor": health_factor,
+            "total_supplied": total_supplied,
+            "total_debt": total_debt
+        }
+        return assets, position
+    else:
+        # In case of an error, return empty data with default health_factor.
+        return [], {"health_factor": 0.0, "total_supplied": 0, "total_debt": 0}
+
 
 def supply(asset, amount, user_address, private_key):
     """Placeholder for the supply function."""

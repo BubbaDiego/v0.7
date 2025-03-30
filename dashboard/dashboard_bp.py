@@ -749,7 +749,8 @@ def dash_page():
         value=formatted_value,
         leverage=formatted_leverage,
         size=formatted_size,
-        vc_ratio=vc_ratio,  # This will be either the ratio or "N/A"
-        travel_percent=formatted_travel_percent
+        vc_ratio=vc_ratio,
+        travel_percent=formatted_travel_percent,
+        positions=all_positions  # <-- add this
     )
 

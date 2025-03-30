@@ -7,7 +7,7 @@ from aave import aave_api
 aave_bp = Blueprint("aave", __name__,  template_folder='.')
 
 # Default public wallet address (lower-case version as provided)
-DEFAULT_PUBLIC_ADDRESS = "0x2b763e2edcfc40a03646b073b81a5c889cf1a8fe"
+DEFAULT_PUBLIC_ADDRESS = "0x2B763E2eDcFC40A03646B073B81A5C889cf1a8fe"
 
 
 @aave_bp.route("/", methods=["GET", "POST"])
