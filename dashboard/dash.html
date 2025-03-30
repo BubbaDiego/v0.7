@@ -69,8 +69,8 @@
       gap: 25px; /* Increased gap between boxes */
       margin-top: 20px;
     }
-    /* The mini positions table box will be 48% width and centered if it's alone */
-    .pie-box, .graph-box, .mini-table-box {
+    /* The mini positions table box and others will be 48% width */
+    .pie-box, .graph-box, .mini-table-box, .liquidation-box {
       width: 48%;
     }
     /* For a single box row (mini table row), center the box if needed */
@@ -142,7 +142,7 @@
       height: 32px;
       object-fit: cover;
     }
-    /* Asset icon size; can also round if desired */
+    /* Asset icon size */
     .asset-icon {
       width: 32px;
       height: 32px;
@@ -150,6 +150,55 @@
     /* Make header cells clickable */
     #positionsTable th {
       cursor: pointer;
+    }
+
+    /* ----------------------------
+       Liquidation Bar Specific Styles
+    ----------------------------- */
+    .progress.liquidation {
+      position: relative;
+      background-color: #e9ecef;
+      height: 1.5rem;
+      border-radius: 1rem;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    .progress.liquidation::before {
+      content: "";
+      position: absolute;
+      left: 25%;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background-color: rgba(0,0,0,0.7);
+      z-index: 5;
+    }
+    .liquidation-fill {
+      position: absolute;
+      height: 100%;
+      border-radius: 1rem;
+    }
+    .liquidation-fill.striped {
+      background-image: linear-gradient(
+        45deg,
+        rgba(255,255,255,0.15) 25%,
+        transparent 25%,
+        transparent 50%,
+        rgba(255,255,255,0.15) 50%,
+        rgba(255,255,255,0.15) 75%,
+        transparent 75%,
+        transparent
+      );
+      background-size: 1rem 1rem;
+    }
+    .bg-success { background-color: #198754; }
+    .bg-warning { background-color: #ffc107; }
+    .bg-danger { background-color: #dc3545; }
+    /* Liquidation row layout */
+    .liq-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
     }
   </style>
 {% endblock %}
@@ -204,8 +253,9 @@
     </div>
   </div>
 
-  <!-- Second Row: Mini Positions Table Box -->
+  <!-- Second Row: Positions Table Box and Liquidation Bar Box -->
   <div class="box-row center-row">
+    <!-- Positions Table Box -->
     <div class="common-box light-mode mini-table-box" id="miniTableBox">
       <div class="chart-label" style="margin-bottom: 15px;">Positions</div>
       <div id="positionsContainer" class="positions-container">
@@ -265,6 +315,44 @@
         </table>
       </div>
     </div>
+
+    <!-- Liquidation Bar Box -->
+    <div class="common-box light-mode liquidation-box" id="liquidationBox">
+      <div class="chart-label" style="margin-bottom: 15px;">Liquidation Bar</div>
+      {% for pos in liquidation_positions %}
+        <div class="liq-row">
+          {# Wallet Image on far left #}
+          {% set wallet = pos.wallet | default('ObiVault') %}
+          {% if wallet == 'ObiVault' %}
+            <img class="wallet-icon" src="{{ url_for('static', filename='images/obivault.jpg') }}" alt="ObiVault">
+          {% elif wallet == 'R2Vault' %}
+            <img class="wallet-icon" src="{{ url_for('static', filename='images/r2vault.jpg') }}" alt="R2Vault">
+          {% else %}
+            <img class="wallet-icon" src="{{ url_for('static', filename='images/obivault.jpg') }}" alt="Wallet">
+          {% endif %}
+          <div class="progress liquidation" style="flex: 1; position: relative;">
+            {% set travel = pos.current_travel_percent | float %}
+            {% if travel >= 0 %}
+              <div class="liquidation-fill striped bg-success" style="right: 75%; width: calc(({{ travel }} / 25) * 25%);"></div>
+              <img class="asset-icon"
+                   src="{{ url_for('static', filename='images/' ~ (pos.asset_type|default('btc')|lower) ~ '_logo.png') }}"
+                   alt="{{ pos.asset_type|default('btc')|lower }} logo"
+                   style="left: calc(25% - (({{ travel }} / 25) * 25%) - 15px); {% if (pos.asset_type|default('btc')|lower)=='eth' %}background-color: white;{% endif %}">
+            {% else %}
+              {% if travel|abs <= 50 %}
+                <div class="liquidation-fill striped bg-warning" style="left: 25%; width: calc(({{ travel | abs }} / 100) * 75%);"></div>
+              {% else %}
+                <div class="liquidation-fill striped bg-danger" style="left: 25%; width: calc(({{ travel | abs }} / 100) * 75%);"></div>
+              {% endif %}
+              <img class="asset-icon"
+                   src="{{ url_for('static', filename='images/' ~ (pos.asset_type|default('btc')|lower) ~ '_logo.png') }}"
+                   alt="{{ pos.asset_type|default('btc')|lower }} logo"
+                   style="left: calc(25% + (({{ travel | abs }} / 100) * 75%) - 15px); {% if (pos.asset_type|default('btc')|lower)=='eth' %}background-color: white;{% endif %}">
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
   </div>
 {% endblock %}
 
@@ -277,6 +365,7 @@
     const pieBox = document.getElementById('pieBox');
     const graphBox = document.getElementById('graphBox');
     const miniTableBox = document.getElementById('miniTableBox');
+    const liquidationBox = document.getElementById('liquidationBox');
 
     const sunIcon = `
       <svg viewBox="0 0 24 24" width="16" height="16" fill="white" xmlns="http://www.w3.org/2000/svg">
@@ -308,6 +397,8 @@
         graphBox.classList.add('dark-mode');
         miniTableBox.classList.remove('light-mode');
         miniTableBox.classList.add('dark-mode');
+        liquidationBox.classList.remove('light-mode');
+        liquidationBox.classList.add('dark-mode');
         toggleContainer.innerHTML = sunIcon;
       } else {
         statusBar.classList.remove('dark-mode');
@@ -318,6 +409,8 @@
         graphBox.classList.add('light-mode');
         miniTableBox.classList.remove('dark-mode');
         miniTableBox.classList.add('light-mode');
+        liquidationBox.classList.remove('dark-mode');
+        liquidationBox.classList.add('light-mode');
         toggleContainer.innerHTML = moonIcon;
       }
     });
