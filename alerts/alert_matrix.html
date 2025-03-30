@@ -105,8 +105,8 @@
     font-size: 1.5rem;
   }
   .icon-container img {
-    width: 36px;
-    height: 36px;
+    width: 27px;  /* reduced from 36px to 27px */
+    height: 27px; /* reduced from 36px to 27px */
     object-fit: cover;
     border-radius: 50%;
   }
@@ -266,8 +266,7 @@
                     </strong>
                   </div>
                   <div class="info-basic-current-value">
-                    Current Value:
-                    <strong>
+                    Current: <strong>
                       {% if atype == 'PRICETHRESHOLD' %}
                         ${{ "{:,.2f}".format(alert.evaluated_value or 0) }}
                       {% elif atype == 'TRAVELPERCENT' %}
@@ -286,7 +285,7 @@
                     </strong>
                   </div>
                   <div class="info-basic-state">
-                    Level: {{ alert.level }}
+                    Level: <strong>{{ alert.level }}</strong>
                   </div>
                 </div>
               </summary>
@@ -311,7 +310,7 @@
                         {{ "{:,.2f}".format(alert.trigger_value or 0) }}
                       {% endif %}
                     </strong></div>
-                    <div><strong>Level:</strong> {{ alert.level }}</div>
+                    <div><strong>Level:</strong> <strong>{{ alert.level }}</strong></div>
                     <div><strong>Status:</strong> {{ alert.status }}</div>
                   </div>
                   <div class="alert-id-column">
