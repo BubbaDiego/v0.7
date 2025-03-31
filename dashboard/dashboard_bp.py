@@ -286,10 +286,12 @@ def dashboard():
 def api_graph_data():
     dl = DataLocker.get_instance()
     portfolio_history = dl.get_portfolio_history() or []
-    # Extract timestamps and values. (You may want to format the timestamps as needed.)
     timestamps = [entry.get("snapshot_time") for entry in portfolio_history]
     values = [float(entry.get("total_value", 0)) for entry in portfolio_history]
-    return jsonify({"timestamps": timestamps, "values": values})
+    # Try to get collateral data from each portfolio history entry.
+    collaterals = [float(entry.get("total_collateral", 0)) for entry in portfolio_history]
+    return jsonify({"timestamps": timestamps, "values": values, "collateral": collaterals})
+
 
 @dashboard_bp.route("/dash_performance")
 def dash_performance():
@@ -621,13 +623,19 @@ def api_update_entry():
 
 
 @dashboard_bp.route("/api/collateral_composition")
-def api_collateral_composition():
-    try:
-        series = compute_collateral_composition()
-        return jsonify({"series": series})
-    except Exception as e:
-        logger.error(f"Error in api_collateral_composition: {e}", exc_info=True)
-        return jsonify({"error": str(e)}), 500
+def compute_collateral_composition():
+    positions = PositionService.get_all_positions(DB_PATH) or []
+    long_total = sum(float(p.get("collateral") or p.get("collateral_amount", 0))
+                     for p in positions if p.get("position_type", "").upper() == "LONG")
+    short_total = sum(float(p.get("collateral") or p.get("collateral_amount", 0))
+                      for p in positions if p.get("position_type", "").upper() == "SHORT")
+    total = long_total + short_total
+    if total > 0:
+        series = [round(long_total / total * 100), round(short_total / total * 100)]
+    else:
+        series = [0, 0]
+    return series
+
 
 
 @dashboard_bp.route("/save_theme", methods=["POST"], endpoint="save_theme_route")

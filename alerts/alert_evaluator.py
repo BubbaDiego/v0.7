@@ -4,7 +4,7 @@ from config.unified_config_manager import UnifiedConfigManager
 from config.config_constants import CONFIG_PATH
 from utils.unified_logger import UnifiedLogger
 from utils.calc_services import CalcServices
-from alerts.alert_enrichment import enrich_alert_data
+from alerts.alert_enrichment import enrich_alert_data, update_trigger_value
 from data.models import Alert, AlertType, AlertClass, NotificationType, Status
 from uuid import uuid4
 
@@ -334,6 +334,37 @@ class AlertEvaluator:
 
         after_log = f"[Travel Alert] AFTER: Evaluated level = '{level}' for travel_percent = {current_val}"
         self._debug_log(after_log)
+
+        # --- Update trigger value based on new evaluated level ---
+        tp_config = self.config.get("alert_ranges", {}).get("travel_percent_liquid_ranges", {})
+        try:
+            low_threshold = float(tp_config.get("low", -25.0))
+            medium_threshold = float(tp_config.get("medium", -50.0))
+            high_threshold = float(tp_config.get("high", -75.0))
+        except Exception as e:
+            self._debug_log(f"[Travel Alert] Error parsing trigger thresholds: {e}")
+            low_threshold, medium_threshold, high_threshold = -25.0, -50.0, -75.0
+
+        if level == "Normal":
+            next_trigger = low_threshold
+        elif level == "Low":
+            next_trigger = medium_threshold
+        elif level in ["Medium", "High"]:
+            next_trigger = high_threshold
+        else:
+            next_trigger = low_threshold
+
+        self._debug_log(f"[Travel Alert] Updating trigger value to {next_trigger} based on level {level}")
+
+        alert_id = pos.get("alert_reference_id")
+        if alert_id:
+            update_fields = {"trigger_value": next_trigger}
+            try:
+                self.data_locker.update_alert_conditions(alert_id, update_fields)
+                self._debug_log(f"[Travel Alert] Updated alert {alert_id} trigger_value to {next_trigger}")
+            except Exception as e:
+                self._debug_log(f"[Travel Alert] Failed to update alert {alert_id}: {e}")
+
         return level, current_val
 
     def update_alerts_evaluated_value(self):

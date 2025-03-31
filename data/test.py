@@ -1,153 +1,111 @@
-#!/usr/bin/env python3
+import unittest
 import os
-import sqlite3
+import logging
+from alerts.alert_enrichment import update_trigger_value  # from alert_enrichment.py
 
-def rebuild_database(db_path):
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
+# Define a fake DataLocker that simulates DB behavior.
+class FakeDataLocker:
+    def __init__(self):
+        self.alerts = {}
+        # We'll simulate a DB connection as self for simplicity.
+        self.conn = self
 
-    # --- Step 1: Ensure the 'alerts' table exists ---
-    print("Checking if 'alerts' table exists...")
-    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='alerts'")
-    result = cursor.fetchone()
-    if result is None:
-        print("'alerts' table does not exist. Creating 'alerts' table...")
-        cursor.execute("""
-            CREATE TABLE alerts (
-                id TEXT PRIMARY KEY,
-                created_at TEXT,
-                alert_type TEXT,
-                alert_class TEXT,
-                asset_type TEXT,
-                trigger_value REAL DEFAULT 0,
-                condition TEXT,
-                notification_type TEXT,
-                level TEXT,
-                last_triggered TEXT,
-                status TEXT,
-                frequency INTEGER,
-                counter INTEGER,
-                liquidation_distance REAL,
-                travel_percent REAL,
-                liquidation_price REAL,
-                notes TEXT,
-                description TEXT,
-                position_reference_id TEXT,
-                evaluated_value REAL
-            );
-        """)
-        conn.commit()
-    else:
-        print("'alerts' table exists.")
+    def get_alerts(self):
+        return list(self.alerts.values())
 
-    # --- Step 2: Check for the 'trigger_value' column in 'alerts' table ---
-    print("Checking for 'trigger_value' column in 'alerts' table...")
-    cursor.execute("PRAGMA table_info(alerts)")
-    columns = [row[1] for row in cursor.fetchall()]
-    if "trigger_value" not in columns:
-        print("Column 'trigger_value' not found in 'alerts'. Adding it now...")
-        cursor.execute("ALTER TABLE alerts ADD COLUMN trigger_value REAL DEFAULT 0")
-        conn.commit()
-    else:
-        print("Column 'trigger_value' already exists in 'alerts'.")
+    def update_alert_conditions(self, alert_id, update_fields):
+        if alert_id in self.alerts:
+            # Update the alert with new fields.
+            self.alerts[alert_id].update(update_fields)
+            return 1  # simulate one row updated
+        return 0
 
-    # --- Step 3: Drop all other tables (excluding SQLite internal tables and 'alerts') ---
-    print("Dropping all tables except 'alerts' and SQLite internals...")
-    cursor.execute("""
-        SELECT name FROM sqlite_master 
-        WHERE type='table' 
-          AND name NOT LIKE 'sqlite_%'
-          AND name != 'alerts'
-    """)
-    tables = cursor.fetchall()
-    for (table_name,) in tables:
-        print(f"Dropping table: {table_name}")
-        cursor.execute(f"DROP TABLE IF EXISTS {table_name}")
-    conn.commit()
+    def get_alert(self, alert_id):
+        return self.alerts.get(alert_id)
 
-    # --- Step 4: Rebuild the other tables ---
-    # Adjust the following CREATE TABLE statements to match your actual schema.
-    print("Rebuilding dropped tables...")
+    def read_positions(self):
+        # For our tests, positions are not needed.
+        return []
 
-    create_tables_sql = {
-        "prices": """
-            CREATE TABLE prices (
-                id TEXT PRIMARY KEY,
-                asset_type TEXT,
-                current_price REAL,
-                previous_price REAL,
-                created_at TEXT
-            );
-        """,
-        "positions": """
-            CREATE TABLE positions (
-                id TEXT PRIMARY KEY,
-                asset_type TEXT,
-                entry_price REAL,
-                liquidation_price REAL,
-                travel_percent REAL,
-                alert_reference_id TEXT,
-                created_at TEXT
-            );
-        """,
-        "alert_ledger": """
-            CREATE TABLE alert_ledger (
-                id TEXT PRIMARY KEY,
-                alert_id TEXT,
-                updated_by TEXT,
-                reason TEXT,
-                old_value TEXT,
-                new_value TEXT,
-                updated_at TEXT
-            );
-        """,
-        "system_vars": """
-            CREATE TABLE system_vars (
-                key TEXT PRIMARY KEY,
-                value TEXT
-            );
-        """,
-        "brokers": """
-            CREATE TABLE brokers (
-                id TEXT PRIMARY KEY,
-                name TEXT,
-                config TEXT
-            );
-        """,
-        "wallets": """
-            CREATE TABLE wallets (
-                id TEXT PRIMARY KEY,
-                address TEXT,
-                balance REAL,
-                asset_type TEXT
-            );
-        """,
-        "portfolio_entries": """
-            CREATE TABLE portfolio_entries (
-                id TEXT PRIMARY KEY,
-                asset_type TEXT,
-                amount REAL,
-                created_at TEXT
-            );
-        """,
-        "positions_totals_history": """
-            CREATE TABLE positions_totals_history (
-                id TEXT PRIMARY KEY,
-                total_positions REAL,
-                snapshot_date TEXT
-            );
-        """
+    def add_alert(self, alert):
+        # Store a copy of the alert dictionary keyed by its id.
+        self.alerts[alert["id"]] = alert.copy()
+
+# Default configuration for travel percent alerts.
+DEFAULT_CONFIG = {
+    "alert_ranges": {
+        "travel_percent_liquid_ranges": {
+            "low": -25.0,
+            "medium": -50.0,
+            "high": -75.0,
+            "enabled": True
+        }
     }
+}
 
-    for table_name, create_sql in create_tables_sql.items():
-        print(f"Creating table: {table_name}")
-        cursor.execute(create_sql)
+# Setup a simple logger.
+logger = logging.getLogger("TestLogger")
+logger.setLevel(logging.DEBUG)
+if not logger.handlers:
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
 
-    conn.commit()
-    conn.close()
-    print("Database rebuild complete.")
+# Our tests for update_trigger_value function.
+class TestUpdateTriggerValue(unittest.TestCase):
+    def setUp(self):
+        # Initialize fake data locker and add several travel percent alerts.
+        self.data_locker = FakeDataLocker()
+        # Create alerts with type "TravelPercent" (normalized value expected from enrichment)
+        self.alerts = [
+            {"id": "a1", "alert_type": "TravelPercent", "level": "Normal", "trigger_value": -10.0},
+            {"id": "a2", "alert_type": "TravelPercent", "level": "Low", "trigger_value": -10.0},
+            {"id": "a3", "alert_type": "TravelPercent", "level": "Medium", "trigger_value": -10.0},
+            {"id": "a4", "alert_type": "TravelPercent", "level": "High", "trigger_value": -10.0},
+        ]
+        for alert in self.alerts:
+            self.data_locker.add_alert(alert)
 
-if __name__ == "__main__":
-    # Use the DB_PATH environment variable if set, or default to 'alerts.db'
-    db_path = os.getenv("DB_PATH", "alerts.db")
-    rebuild_database(db_path)
+    def test_normal_level_update(self):
+        # For level "Normal", trigger should update to low_threshold (-25.0)
+        update_trigger_value(self.data_locker, DEFAULT_CONFIG, logger, report_path="report_normal.html")
+        alert = self.data_locker.get_alert("a1")
+        self.assertEqual(float(alert["trigger_value"]), -25.0)
+
+    def test_low_level_update(self):
+        # For level "Low", trigger should update to medium_threshold (-50.0)
+        update_trigger_value(self.data_locker, DEFAULT_CONFIG, logger, report_path="report_low.html")
+        alert = self.data_locker.get_alert("a2")
+        self.assertEqual(float(alert["trigger_value"]), -50.0)
+
+    def test_medium_level_update(self):
+        # For level "Medium", trigger should update to high_threshold (-75.0)
+        update_trigger_value(self.data_locker, DEFAULT_CONFIG, logger, report_path="report_medium.html")
+        alert = self.data_locker.get_alert("a3")
+        self.assertEqual(float(alert["trigger_value"]), -75.0)
+
+    def test_high_level_update(self):
+        # For level "High", trigger should also update to high_threshold (-75.0)
+        update_trigger_value(self.data_locker, DEFAULT_CONFIG, logger, report_path="report_high.html")
+        alert = self.data_locker.get_alert("a4")
+        self.assertEqual(float(alert["trigger_value"]), -75.0)
+
+    def test_updated_count(self):
+        # Ensure update_trigger_value returns the correct count of updated alerts.
+        updated_count = update_trigger_value(self.data_locker, DEFAULT_CONFIG, logger, report_path="report_count.html")
+        # All four alerts should be updated because initial trigger (-10.0) is different from expected.
+        self.assertEqual(updated_count, 4)
+
+if __name__ == '__main__':
+    # Use HTMLTestRunner to generate an HTML report.
+    import HtmlTestRunner
+    report_dir = os.path.join(os.getcwd(), "reports")
+    os.makedirs(report_dir, exist_ok=True)
+    runner = HtmlTestRunner.HTMLTestRunner(
+        output=report_dir,
+        report_title="Trigger Value Update Test Report",
+        descriptions="Automated tests verifying that the trigger value is correctly updated for travel percent alerts."
+    )
+    unittest.main(testRunner=runner, verbosity=2)
