@@ -39,7 +39,7 @@ class CycloneConsoleHelper:
                 print("Clearing stale IDs...")
                 asyncio.run(self.cyclone.run_cleanse_ids())
             elif choice == "8":
-                self.cyclone.run_wallets_menu()
+                self.run_wallets_menu()
             elif choice == "9":
                 print("Generating cycle report...")
                 try:
@@ -143,7 +143,7 @@ class CycloneConsoleHelper:
             print("\n--- Positions Menu ---")
             print("1) 👁 View Positions")
             print("2) 🔄 Positions Updates")
-            print("3) ✨ Position Data Enrichment")
+            print("3) ✨ Enrich Positions")  # Renamed option for clarity
             print("4) 🧹 Clear Positions")
             print("5) ↩️ Back to Main Menu")
             choice = input("Enter your choice (1-5): ").strip()
@@ -155,9 +155,10 @@ class CycloneConsoleHelper:
                 asyncio.run(self.cyclone.run_cycle(steps=["position"]))
                 print("Position Updates completed.")
             elif choice == "3":
-                print("Running Position Data Enrichment...")
-                asyncio.run(self.cyclone.run_cycle(steps=["enrichment"]))
-                print("Position Data Enrichment completed.")
+                print("Running Enrich Positions...")
+                # Updated step key from "enrichment" to "enrich positions"
+                asyncio.run(self.cyclone.run_cycle(steps=["enrich positions"]))
+                print("Enrich Positions completed.")
             elif choice == "4":
                 print("Clearing Positions...")
                 self.cyclone.clear_positions_backend()
@@ -173,13 +174,14 @@ class CycloneConsoleHelper:
             print("2) 💵 Create Market Alerts")
             print("3) 📌 Create Position Alerts")
             print("4) 🖥 Create System Alerts")
-            print("5) 🔄 Update Evaluated Value")
-            print("6) 🔍 Alert Evaluations")
-            print("7) 🧹 Clear Alerts")
-            print("8) ♻️ Refresh Alerts")
-            print("9) 🧹 Clear Alert Ledger")  # New option added here
-            print("10) ↩️ Back to Main Menu")
-            choice = input("Enter your choice (1-10): ").strip()
+            print("5) ✨ Enrich Alerts")   # New option for alert enrichment
+            print("6) 🔄 Update Evaluated Value")
+            print("7) 🔍 Alert Evaluations")
+            print("8) 🧹 Clear Alerts")
+            print("9) ♻️ Refresh Alerts")
+            print("10) 🧹 Clear Alert Ledger")
+            print("11) ↩️ Back to Main Menu")
+            choice = input("Enter your choice (1-11): ").strip()
             if choice == "1":
                 print("Viewing Alerts...")
                 self.cyclone.view_alerts_backend()
@@ -193,24 +195,28 @@ class CycloneConsoleHelper:
                 print("Creating System Alerts...")
                 asyncio.run(self.cyclone.run_cycle(steps=["create_system_alerts"]))
             elif choice == "5":
+                print("Running Enrich Alerts...")
+                asyncio.run(self.cyclone.run_alert_enrichment())
+                print("Enrich Alerts completed.")
+            elif choice == "6":
                 print("Updating Evaluated Values for Alerts...")
                 asyncio.run(self.cyclone.run_cycle(steps=["update_evaluated_value"]))
-            elif choice == "6":
+            elif choice == "7":
                 print("Running Alert Evaluations...")
                 asyncio.run(self.cyclone.run_cycle(steps=["alert"]))
                 print("Alert Evaluations completed.")
-            elif choice == "7":
+            elif choice == "8":
                 print("Clearing Alerts...")
                 self.cyclone.clear_alerts_backend()
-            elif choice == "8":
+            elif choice == "9":
                 print("Refreshing Alerts...")
                 ac = AlertController()
                 count = ac.refresh_all_alerts()
                 print(f"Refreshed and confirmed {count} alert(s).")
-            elif choice == "9":
+            elif choice == "10":
                 print("Clearing Alert Ledger...")
                 self.cyclone.clear_alert_ledger_backend()
-            elif choice == "10":
+            elif choice == "11":
                 break
             else:
                 print("Invalid choice, please try again.")
@@ -279,7 +285,6 @@ class CycloneConsoleHelper:
             else:
                 print("Invalid choice, please try again.")
 
-
     def run_wallets_menu(self):
         while True:
             print("\n--- Wallets Menu ---")
@@ -301,3 +306,9 @@ class CycloneConsoleHelper:
                 break
             else:
                 print("Invalid choice, please try again.")
+
+if __name__ == "__main__":
+    from cyclone import Cyclone
+    cyclone = Cyclone(poll_interval=60)
+    helper = CycloneConsoleHelper(cyclone)
+    helper.run()

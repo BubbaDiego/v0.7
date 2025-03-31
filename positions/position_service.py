@@ -260,7 +260,16 @@ class PositionService:
             raise
 
     @staticmethod
-    def update_jupiter_positions(db_path: str = DB_PATH) -> Dict[str, Any]:
+    def update_jupiter_positions(db_path: str = DB_PATH) -> dict:
+        """
+        Updates positions from the Jupiter API without deleting existing positions.
+        Each position from Jupiter is identified by a unique positionPubkey.
+        If a position with that ID already exists in the database, it is skipped.
+        Logs the processing of each position (its unique ID) for debugging purposes.
+
+        Returns:
+            A dictionary with a message and counts of imported and skipped (duplicate) positions.
+        """
         logger.info("Jupiter: Updating positions from Jupiter API...")
         try:
             dl = DataLocker.get_instance(db_path)
@@ -291,13 +300,19 @@ class PositionService:
                         if not pos_pubkey:
                             logger.warning(f"Skipping item for wallet {w['name']} due to missing positionPubkey")
                             continue
+
+                        # Log the Jupiter position ID being processed:
+                        logger.debug(f"Processing Jupiter position with ID: {pos_pubkey}")
+
                         epoch_time = float(item.get("updatedTime", 0))
                         updated_dt = datetime.fromtimestamp(epoch_time)
                         mint = item.get("marketMint", "")
+                        # Map the mint to an asset type; fallback to "BTC" if unknown.
                         asset_type = PositionService.MINT_TO_ASSET.get(mint, "BTC")
                         side = item.get("side", "short").capitalize()
                         travel_pct_value = item.get("pnlChangePctAfterFees")
                         travel_percent = float(travel_pct_value) if travel_pct_value is not None else 0.0
+
                         pos_dict = {
                             "id": pos_pubkey,
                             "asset_type": asset_type,
@@ -320,17 +335,20 @@ class PositionService:
             new_count = 0
             duplicate_count = 0
             for p in new_positions:
+                logger.debug(f"Checking Jupiter position with ID: {p['id']}")
                 cursor = dl.conn.cursor()
                 cursor.execute("SELECT COUNT(*) FROM positions WHERE id = ?", (p["id"],))
-                dup_count = cursor.fetchone()
+                dup_count = cursor.fetchone()[0]
                 cursor.close()
-                if dup_count[0] == 0:
+                if dup_count == 0:
                     dl.create_position(p)
                     new_count += 1
+                    logger.debug(f"Imported new Jupiter position: {p['id']}")
                 else:
                     duplicate_count += 1
                     logger.info(f"Skipping duplicate Jupiter position: {p['id']}")
 
+            # (Optionally) update hedges if needed:
             hedges = PositionService.find_hedges(db_path)
             msg = "Jupiter positions updated successfully."
             return {"message": msg, "imported": new_count, "skipped": duplicate_count}

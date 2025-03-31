@@ -66,14 +66,12 @@
     .box-row {
       display: flex;
       justify-content: space-between;
-      gap: 25px; /* Gap for first row */
+      gap: 25px;
       margin-top: 20px;
     }
-    /* Increase gap in second row */
     .box-row.center-row {
       gap: 35px;
     }
-    /* All boxes in the row take 48% width */
     .mini-table-box, .liquidation-box, .graph-box, .pie-box {
       width: 48%;
     }
@@ -148,13 +146,20 @@
     /* ----------------------------
        Liquidation Bar Specific Styles
     ----------------------------- */
+    .liquidation-box {
+      position: relative;
+      min-height: 150px;
+    }
+
+    /* Use a fixed width to extend the bar more */
     .progress.liquidation {
       position: relative;
       background-color: #e9ecef;
       height: 1.5rem;
       border-radius: 1rem;
-      overflow: hidden;
-      margin-bottom: 10px;
+      /* Extend the bar by setting a width */
+      width: 90%;
+      flex: 1;
     }
     .progress.liquidation::before {
       content: "";
@@ -197,10 +202,40 @@
       align-items: center;
       margin-bottom: 10px;
     }
+    .liq-row .wallet-icon {
+      margin-top: -5px;
+    }
+
+    /* Heat Index Circle: pinned to the far end of the bar */
+    .heat-index-circle {
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background-color: #ff5733;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: bold;
+      font-size: 0.9rem;
+      z-index: 6;
+      box-shadow: 0 0 3px rgba(0,0,0,0.3);
+    }
+
+    /* Flame icon outside the bar, now positioned at the top */
+    .flame-icon-pos {
+      position: absolute;
+      right: -30px;
+      top: -20px;
+      font-size: 28px;
+      z-index: 10;
+    }
   </style>
 {% endblock %}
-
-{% block page_title %}{% endblock %}
 
 {% block content %}
   <!-- Status Bar -->
@@ -256,7 +291,8 @@
                 {% set asset = pos.asset_type | default('BTC') | lower %}
                 <img class="asset-icon"
                      src="https://cryptoicons.org/api/icon/{{ asset }}/32"
-                     alt="{{ asset|upper }} Icon">
+                     alt="{{ asset|upper }} Icon"
+                     onerror="this.onerror=null;this.src='https://via.placeholder.com/32';">
               </td>
               <!-- Wallet Column -->
               <td class="wallet-cell">
@@ -269,10 +305,10 @@
                   <img class="wallet-icon" src="{{ url_for('static', filename='images/obivault.jpg') }}" alt="Wallet">
                 {% endif %}
               </td>
-              <!-- Heat Index Column -->
+              <!-- Heat Index Column (no decimals) -->
               <td>
                 {% if pos.heat_index is defined and pos.heat_index is not none %}
-                  {{ "{:,.2f}".format(pos.heat_index) }}
+                  {{ pos.heat_index|int }}
                 {% else %}
                   N/A
                 {% endif %}
@@ -313,7 +349,7 @@
           {% else %}
             <img class="wallet-icon" src="{{ url_for('static', filename='images/obivault.jpg') }}" alt="Wallet">
           {% endif %}
-          <div class="progress liquidation" style="flex: 1; position: relative;">
+          <div class="progress liquidation">
             {% set travel = pos.travel_percent | float %}
             {% if travel >= 0 %}
               <div class="liquidation-fill striped bg-success"
@@ -333,6 +369,16 @@
                 </div>
               {% endif %}
             {% endif %}
+            <!-- Heat Index Circle pinned at bar's right edge -->
+            <div class="heat-index-circle">
+              {% if pos.heat_index is defined and pos.heat_index is not none %}
+                {{ pos.heat_index|int }}
+              {% else %}
+                N/A
+              {% endif %}
+            </div>
+            <!-- Flame icon outside the bar, now positioned at the top -->
+            <div class="flame-icon-pos">🔥</div>
           </div>
         </div>
       {% endfor %}
@@ -341,12 +387,9 @@
 
   <!-- Row 2: Graph Box (left) and Pie Box (right) -->
   <div class="box-row">
-    <!-- Graph Box -->
     <div class="common-box light-mode graph-box" id="graphBox">
       <div id="graphChart" style="height: 300px;"></div>
     </div>
-
-    <!-- Pie Box -->
     <div class="common-box light-mode pie-box" id="pieBox">
       <div class="pie-row">
         <div class="pie-col">
@@ -364,7 +407,6 @@
 
 {% block extra_scripts %}
   {{ super() }}
-  <!-- Toggle Script: Syncs light/dark mode for all boxes -->
   <script>
     const statusBar = document.getElementById('statusBar');
     const toggleContainer = document.getElementById('toggleContainer');
@@ -388,7 +430,7 @@
     `;
     const moonIcon = `
       <svg viewBox="0 0 24 24" width="16" height="16" fill="white" xmlns="http://www.w3.org/2000/svg">
-        <path d="M21 12.79A9 9 0 0 1 11.21 3 7 7 0 0 0 12 17a7 7 0 0 0 9-4.21z"/>
+        <path d="M21 12.79A9 9 0 0 1 11.21 3 A7 7 0 0 0 12 17 a7 7 0 0 0 9 -4.21 z"/>
       </svg>
     `;
     toggleContainer.innerHTML = moonIcon;
@@ -422,10 +464,8 @@
     });
   </script>
 
-  <!-- Load ApexCharts Library -->
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
   <script>
-    // Pie Charts
     function renderPieCharts(seriesSize, seriesCollateral) {
       function createPieOptions(seriesData) {
         return {
@@ -443,30 +483,32 @@
           }
         };
       }
-      // Render Size Pie
       const optionsSize = createPieOptions(seriesSize);
       const chartSize = new ApexCharts(document.querySelector("#pieChartSize"), optionsSize);
       chartSize.render();
 
-      // Render Collateral Pie
       const optionsCollateral = createPieOptions(seriesCollateral);
       const chartCollateral = new ApexCharts(document.querySelector("#pieChartCollateral"), optionsCollateral);
       chartCollateral.render();
     }
 
-    // Graph Chart: Plot both "Value" and "Collateral" lines with x-axis labels as time-of-day (top of the hour)
     function renderGraphChart(timestamps, valueData, collateralData) {
       const formattedTimestamps = timestamps.map(ts => {
         const dateObj = new Date(ts);
         const hour = dateObj.getHours();
-        const formatted = ((hour % 12) === 0 ? 12 : (hour % 12)) + ":00 " + (hour < 12 ? "AM" : "PM");
-        return formatted;
+        return ((hour % 12) === 0 ? 12 : (hour % 12)) + ":00 " + (hour < 12 ? "AM" : "PM");
       });
+
       const optionsGraph = {
         chart: { type: 'line', height: 300 },
         xaxis: {
           categories: formattedTimestamps,
-          labels: { style: { colors: '#fff' } }
+          tickAmount: 6,
+          labels: {
+            style: { colors: '#fff' },
+            showDuplicates: false,
+            hideOverlappingLabels: true
+          }
         },
         yaxis: {
           labels: {
@@ -495,7 +537,6 @@
       chartGraph.render();
     }
 
-    // Fetch data for the pie charts
     fetch('/api/size_composition')
       .then(r => r.json())
       .then(data => {
@@ -510,11 +551,9 @@
       })
       .catch(err => console.error("Error fetching size composition:", err));
 
-    // Fetch graph data and render the chart
     fetch('/api/graph_data')
       .then(r => r.json())
       .then(data => {
-        // Expecting data.timestamps, data.values, and data.collateral; if collateral is missing, default to zeroes.
         let collateralData = data.collateral;
         if (!collateralData) {
           collateralData = data.values.map(v => 0);
@@ -523,7 +562,6 @@
       })
       .catch(err => console.error("Error fetching graph data:", err));
 
-    // Table Sorting Script
     function sortTable(tableId, colIndex) {
       var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
       table = document.getElementById(tableId);

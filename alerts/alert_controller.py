@@ -613,7 +613,7 @@ class AlertController:
         for pos in positions:
             asset = pos.get("asset_type", "BTC")
             try:
-                profit_val = float(pos.get("profit", 0.0))
+                profit_val = float(pos.get("pnl_after_fees_usd", 0.0))
             except Exception:
                 continue
             if profit_val <= 0:

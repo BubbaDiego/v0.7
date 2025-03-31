@@ -588,6 +588,15 @@ class DataLocker:
             print(f"[ERROR] Unexpected error in create_alert: {ex}")
             raise
 
+    def get_alert(self, alert_id: str) -> Optional[dict]:
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT * FROM alerts WHERE id=?", (alert_id,))
+        row = cursor.fetchone()
+        cursor.close()
+        if row:
+            return dict(row)
+        return None
+
     def update_alert_conditions(self, alert_id: str, update_fields: dict) -> int:
         try:
             cursor = self.conn.cursor()

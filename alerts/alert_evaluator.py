@@ -4,7 +4,7 @@ from config.unified_config_manager import UnifiedConfigManager
 from config.config_constants import CONFIG_PATH
 from utils.unified_logger import UnifiedLogger
 from utils.calc_services import CalcServices
-from alerts.alert_enrichment import enrich_alert_data, update_trigger_value
+from alerts.alert_enrichment import enrich_alert_data, update_trigger_value_FUCK_ME
 from data.models import Alert, AlertType, AlertClass, NotificationType, Status
 from uuid import uuid4
 
@@ -287,18 +287,40 @@ class AlertEvaluator:
         return alerts
 
     def evaluate_travel_alert(self, pos: dict):
+        """
+        Evaluate the Travel Percent for a position, determining its level based on
+        absolute value thresholds. Writes extensive debug info to both console and tp_level.txt.
+        Updates both trigger_value and level in the alert record.
+        """
+        debug_file = "tp_level.txt"
+
+        # Helper function for debug logging.
+        def dbg(message: str):
+            print(message)
+            try:
+                with open(debug_file, "a", encoding="utf-8") as f:
+                    f.write(message + "\n")
+            except Exception as e:
+                print(f"[DEBUG ERROR] Could not write to {debug_file}: {e}")
+
+        dbg("=============================================================")
+        dbg(f"[Travel Alert] evaluate_travel_alert called for position ID: {pos.get('id', 'UNKNOWN')}")
+        dbg(f"[Travel Alert] Position data: {pos}")
+
         asset = pos.get("asset_type", "BTC")
         price_record = self.data_locker.get_latest_price(asset)
         if price_record and "current_price" in price_record:
             current_price = float(price_record["current_price"])
+            dbg(f"[Travel Alert] Latest price for {asset}: {current_price}")
         else:
-            self._debug_log(f"[Travel Alert] Error: latest price not available for asset {asset}")
+            dbg(f"[Travel Alert] Error: no latest price available for asset {asset}. Defaulting to 0.")
             current_price = 0.0
 
         try:
             entry_price = float(pos.get("entry_price", 0.0))
             liquidation_price = float(pos.get("liquidation_price", 0.0))
-            position_type = pos.get("position_type", "LONG")
+            position_type = pos.get("position_type", "LONG").upper()
+            dbg(f"[Travel Alert] entry_price={entry_price}, liquidation_price={liquidation_price}, position_type={position_type}")
         except Exception as e:
             self.u_logger.log_operation(
                 operation_type="Alert Evaluation Error",
@@ -306,65 +328,83 @@ class AlertEvaluator:
                 source="AlertEvaluator",
                 file="alert_evaluator.py"
             )
+            dbg(f"[Travel Alert] Exception reading position fields: {e}")
             return None
 
+        # 1) Calculate travel_percent.
         travel_percent = self.calc_services.calculate_travel_percent(
-            position_type, entry_price, current_price, liquidation_price)
+            position_type, entry_price, current_price, liquidation_price
+        )
+        dbg(f"[Travel Alert] Computed travel_percent = {travel_percent}")
         current_val = travel_percent
+        abs_val = abs(current_val)
+        dbg(f"[Travel Alert] Absolute value of travel_percent = {abs_val}")
 
-        before_log = (f"[Travel Alert] BEFORE: travel_percent = {current_val}, "
-                      f"thresholds -> low: {self.config.get('alert_ranges', {}).get('travel_percent_liquid_ranges', {}).get('low', -25.0)}, "
-                      f"medium: {self.config.get('alert_ranges', {}).get('travel_percent_liquid_ranges', {}).get('medium', -50.0)}, "
-                      f"high: {self.config.get('alert_ranges', {}).get('travel_percent_liquid_ranges', {}).get('high', -75.0)}")
-        self._debug_log(before_log)
-
-        if current_val >= 0:
-            level = "Normal"
-        elif current_val <= float(
-                self.config.get('alert_ranges', {}).get('travel_percent_liquid_ranges', {}).get('high', -75.0)):
-            level = "High"
-        elif current_val <= float(
-                self.config.get('alert_ranges', {}).get('travel_percent_liquid_ranges', {}).get('medium', -50.0)):
-            level = "Medium"
-        elif current_val <= float(
-                self.config.get('alert_ranges', {}).get('travel_percent_liquid_ranges', {}).get('low', -25.0)):
-            level = "Low"
-        else:
-            level = "Normal"
-
-        after_log = f"[Travel Alert] AFTER: Evaluated level = '{level}' for travel_percent = {current_val}"
-        self._debug_log(after_log)
-
-        # --- Update trigger value based on new evaluated level ---
+        # 2) Retrieve thresholds from config, converting them to positive values.
         tp_config = self.config.get("alert_ranges", {}).get("travel_percent_liquid_ranges", {})
         try:
-            low_threshold = float(tp_config.get("low", -25.0))
-            medium_threshold = float(tp_config.get("medium", -50.0))
-            high_threshold = float(tp_config.get("high", -75.0))
+            low_threshold = abs(float(tp_config.get("low", -25.0)))
+            medium_threshold = abs(float(tp_config.get("medium", -50.0)))
+            high_threshold = abs(float(tp_config.get("high", -75.0)))
+            dbg(f"[Travel Alert] Thresholds (positive) => Low={low_threshold}, Medium={medium_threshold}, High={high_threshold}")
         except Exception as e:
-            self._debug_log(f"[Travel Alert] Error parsing trigger thresholds: {e}")
-            low_threshold, medium_threshold, high_threshold = -25.0, -50.0, -75.0
+            dbg(f"[Travel Alert] Error parsing threshold config: {e}")
+            low_threshold, medium_threshold, high_threshold = 25.0, 50.0, 75.0
+
+        # 3) Determine alert level based on the absolute travel percent.
+        if current_val >= 0:
+            level = "Normal"
+            dbg("[Travel Alert] current_val >= 0 => level=Normal")
+        else:
+            if abs_val < low_threshold:
+                level = "Normal"
+                dbg(f"[Travel Alert] abs_val < {low_threshold} => level=Normal")
+            elif abs_val < medium_threshold:
+                level = "Low"
+                dbg(f"[Travel Alert] abs_val < {medium_threshold} => level=Low")
+            elif abs_val < high_threshold:
+                level = "Medium"
+                dbg(f"[Travel Alert] abs_val < {high_threshold} => level=Medium")
+            else:
+                level = "High"
+                dbg(f"[Travel Alert] abs_val >= {high_threshold} => level=High")
+
+        dbg(f"[Travel Alert] Final determined level: {level}")
+
+        # 4) Determine the next negative trigger value from the config.
+        try:
+            neg_low = float(tp_config.get("low", -25.0))
+            neg_med = float(tp_config.get("medium", -50.0))
+            neg_high = float(tp_config.get("high", -75.0))
+            dbg(f"[Travel Alert] Negative thresholds => Low={neg_low}, Medium={neg_med}, High={neg_high}")
+        except Exception as e:
+            dbg(f"[Travel Alert] Error retrieving negative thresholds: {e}")
+            neg_low, neg_med, neg_high = -25.0, -50.0, -75.0
 
         if level == "Normal":
-            next_trigger = low_threshold
+            next_trigger = neg_low
         elif level == "Low":
-            next_trigger = medium_threshold
-        elif level in ["Medium", "High"]:
-            next_trigger = high_threshold
-        else:
-            next_trigger = low_threshold
+            next_trigger = neg_med
+        else:  # For Medium or High levels.
+            next_trigger = neg_high
 
-        self._debug_log(f"[Travel Alert] Updating trigger value to {next_trigger} based on level {level}")
+        dbg(f"[Travel Alert] Next trigger value set to {next_trigger} based on level={level}")
 
+        # 5) Update the alert record's trigger_value and level if an alert_reference_id exists.
         alert_id = pos.get("alert_reference_id")
         if alert_id:
-            update_fields = {"trigger_value": next_trigger}
+            update_fields = {"trigger_value": next_trigger, "level": level}
+            dbg(f"[Travel Alert] Attempting to update alert {alert_id} with {update_fields}")
             try:
                 self.data_locker.update_alert_conditions(alert_id, update_fields)
-                self._debug_log(f"[Travel Alert] Updated alert {alert_id} trigger_value to {next_trigger}")
+                dbg(f"[Travel Alert] Successfully updated alert {alert_id} with trigger_value {next_trigger} and level {level}")
             except Exception as e:
-                self._debug_log(f"[Travel Alert] Failed to update alert {alert_id}: {e}")
+                dbg(f"[Travel Alert] Failed to update alert {alert_id}: {e}")
+        else:
+            dbg("[Travel Alert] No alert_reference_id found; skipping trigger_value and level update.")
 
+        dbg(f"[Travel Alert] Returning => (level={level}, travel_percent={current_val})")
+        dbg("=============================================================\n")
         return level, current_val
 
     def update_alerts_evaluated_value(self):

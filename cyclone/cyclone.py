@@ -16,10 +16,6 @@ from alerts.alert_evaluator import AlertEvaluator
 from config.unified_config_manager import UnifiedConfigManager
 from config.config_constants import CONFIG_PATH
 
-
-
-
-
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 class Cyclone:
@@ -74,7 +70,26 @@ class Cyclone:
                 file="cyclone.py"
             )
 
-    async def run_position_enrichment(self):
+    async def run_enrich_positions(self):
+        self.logger.info("Starting Position Enrichment")
+        try:
+            enriched_positions = PositionService.get_all_positions()
+            count = len(enriched_positions)
+            self.u_logger.log_cyclone(
+                operation_type="Position Enrichment",
+                primary_text=f"Enriched {count} positions",
+                source="Cyclone",
+                file="cyclone.py"
+            )
+            print(f"Enriched {count} positions.")
+        except Exception as e:
+            self.logger.error(f"Position Enrichment failed: {e}")
+            self.u_logger.log_cyclone(
+                operation_type="Position Enrichment",
+                primary_text=f"Failed: {e}",
+                source="Cyclone",
+                file="cyclone.py"
+            )
         self.logger.info("Starting Position Data Enrichment")
         try:
             enriched_positions = PositionService.get_all_positions()
@@ -194,16 +209,42 @@ class Cyclone:
                 file="cyclone.py"
             )
 
+    # Updated async method to clear all data non-interactively (no input prompt)
+    async def run_clear_all_data(self):
+        self.logger.info("Starting Clear All Data (non-interactive)")
+        try:
+            await asyncio.to_thread(self.clear_alerts_backend)
+            await asyncio.to_thread(self.clear_prices_backend)
+            await asyncio.to_thread(self.clear_positions_backend)
+            self.u_logger.log_cyclone(
+                operation_type="Clear All Data",
+                primary_text="All alerts, prices, and positions have been deleted.",
+                source="Cyclone",
+                file="cyclone.py"
+            )
+            print("All alerts, prices, and positions have been deleted.")
+        except Exception as e:
+            self.logger.error(f"Clear All Data failed: {e}", exc_info=True)
+            self.u_logger.log_cyclone(
+                operation_type="Clear All Data",
+                primary_text=f"Failed: {e}",
+                source="Cyclone",
+                file="cyclone.py"
+            )
+
     async def run_cycle(self, steps=None):
         """
         Master run_cycle method to run various steps.
-        New step "cleanse_ids" is added to clear stale IDs.
+        New default ordering includes "enrich alerts" and renames the position enrichment step.
         """
         available_steps = {
+            "clear_all_data": self.run_clear_all_data,
             "market": self.run_market_updates,
             "position": self.run_position_updates,
-            "cleanse_ids": self.run_cleanse_ids,  # NEW step
-            "enrichment": self.run_position_enrichment,
+            "cleanse_ids": self.run_cleanse_ids,
+            "link_hedges": self.run_link_hedges,
+            "enrich positions": self.run_enrich_positions,  # Renamed step for positions
+            "enrich alerts": self.run_alert_enrichment,  # New step for alert enrichment
             "create_market_alerts": self.run_create_market_alerts,
             "create_position_alerts": self.run_create_position_alerts,
             "create_system_alerts": self.run_create_system_alerts,
@@ -219,10 +260,10 @@ class Cyclone:
                     self.logger.warning(f"Unknown step requested: {step}")
         else:
             for step in [
-                "market", "position", "cleanse_ids", "enrichment",
-                "create_market_alerts", "create_position_alerts",
-                "create_system_alerts", "update_evaluated_value",
-                "alert", "system"
+                "clear_all_data", "market", "position", "cleanse_ids",
+                "enrich positions", "enrich alerts", "create_market_alerts",
+                "create_position_alerts", "create_system_alerts", "update_evaluated_value",
+                "alert", "system", "link_hedges"
             ]:
                 await available_steps[step]()
 
@@ -245,6 +286,90 @@ class Cyclone:
             self.logger.error(f"Error cleansing IDs: {e}", exc_info=True)
             print(f"Error cleansing IDs: {e}")
 
+    # --- New Method: run_alert_enrichment ---
+    async def run_alert_enrichment(self):
+        self.logger.info("Starting Alert Data Enrichment")
+        try:
+            alerts = self.data_locker.get_alerts()
+            count = 0
+            from alerts.alert_enrichment import enrich_alert_data  # Import the enrichment function
+            for alert in alerts:
+                enriched_alert = enrich_alert_data(alert, self.data_locker, self.logger)
+                count += 1
+            self.u_logger.log_cyclone(
+                operation_type="Alert Enrichment",
+                primary_text=f"Enriched {count} alerts",
+                source="Cyclone",
+                file="cyclone.py"
+            )
+            print(f"Enriched {count} alerts.")
+        except Exception as e:
+            self.logger.error(f"Alert Data Enrichment failed: {e}", exc_info=True)
+            self.u_logger.log_cyclone(
+                operation_type="Alert Enrichment",
+                primary_text=f"Failed: {e}",
+                source="Cyclone",
+                file="cyclone.py"
+            )
+
+    # --- Renamed Method: run_enrich_positions ---
+    async def run_enrich_positions(self):
+        self.logger.info("Starting Position Enrichment")
+        try:
+            enriched_positions = PositionService.get_all_positions()
+            count = len(enriched_positions)
+            self.u_logger.log_cyclone(
+                operation_type="Position Enrichment",
+                primary_text=f"Enriched {count} positions",
+                source="Cyclone",
+                file="cyclone.py"
+            )
+            print(f"Enriched {count} positions.")
+        except Exception as e:
+            self.logger.error(f"Position Enrichment failed: {e}")
+            self.u_logger.log_cyclone(
+                operation_type="Position Enrichment",
+                primary_text=f"Failed: {e}",
+                source="Cyclone",
+                file="cyclone.py"
+            )
+
+    # --- Updated run_cycle() Mapping ---
+    async def run_cycle(self, steps=None):
+        """
+        Master run_cycle method to run various steps.
+        New default ordering includes "enrich alerts" and renames the position enrichment step.
+        """
+        available_steps = {
+            "clear_all_data": self.run_clear_all_data,
+            "market": self.run_market_updates,
+            "position": self.run_position_updates,
+            "cleanse_ids": self.run_cleanse_ids,
+            "link_hedges": self.run_link_hedges,
+            "enrich positions": self.run_enrich_positions,  # Renamed step for positions
+            "enrich alerts": self.run_alert_enrichment,  # New step for alert enrichment
+            "create_market_alerts": self.run_create_market_alerts,
+            "create_position_alerts": self.run_create_position_alerts,
+            "create_system_alerts": self.run_create_system_alerts,
+            "update_evaluated_value": self.run_update_evaluated_value,
+            "alert": self.run_alert_updates,
+            "system": self.run_system_updates
+        }
+        if steps:
+            for step in steps:
+                if step in available_steps:
+                    await available_steps[step]()
+                else:
+                    self.logger.warning(f"Unknown step requested: {step}")
+        else:
+            for step in [
+                "clear_all_data", "market", "position", "cleanse_ids",
+                "enrich positions", "enrich alerts", "create_market_alerts",
+                "create_position_alerts", "create_system_alerts", "update_evaluated_value",
+                "alert", "system", "link_hedges"
+            ]:
+                await available_steps[step]()
+
     async def run_link_hedges(self):
         """
         Links hedge associations by scanning raw positions using HedgeManager.find_hedges.
@@ -253,7 +378,6 @@ class Cyclone:
         """
         self.logger.info("Starting Link Hedges step")
         try:
-            # Call the static method to find (and update) hedge associations.
             hedge_groups = HedgeManager.find_hedges()
             count = len(hedge_groups)
             msg = f"Linked hedges: {count} hedge group(s) found."
@@ -273,40 +397,6 @@ class Cyclone:
                 file="cyclone.py"
             )
 
-    async def run_cycle(self, steps=None):
-        """
-        Master run_cycle method to run various steps.
-        New step "cleanse_ids" is added to clear stale IDs.
-        """
-        available_steps = {
-            "market": self.run_market_updates,
-            "position": self.run_position_updates,
-            "cleanse_ids": self.run_cleanse_ids,
-            "link_hedges": self.run_link_hedges,
-            "enrichment": self.run_position_enrichment,
-            "create_market_alerts": self.run_link_hedges,
-            "create_position_alerts": self.run_create_position_alerts,
-            "create_system_alerts": self.run_create_system_alerts,
-            "update_evaluated_value": self.run_update_evaluated_value,
-            "alert": self.run_alert_updates,
-            "system": self.run_system_updates,
-            "link_hedges": self.run_link_hedges
-        }
-        if steps:
-            for step in steps:
-                if step in available_steps:
-                    await available_steps[step]()
-                else:
-                    self.logger.warning(f"Unknown step requested: {step}")
-        else:
-            for step in [
-                "market", "position", "cleanse_ids", "enrichment",
-                "create_market_alerts", "create_position_alerts",
-                "create_system_alerts", "update_evaluated_value",
-                "alert", "system", "link_hedges"  # Added here so it runs by default if no steps provided
-            ]:
-                await available_steps[step]()
-
     async def run_create_position_alerts(self):
         self.logger.info("Creating Position Alerts using AlertManager linking")
         try:
@@ -316,21 +406,16 @@ class Cyclone:
                 return
 
             created_count = 0
-            # Iterate over all positions and create a position alert if one isn't already linked.
             for pos in positions:
                 pos_dict = dict(pos)
-                # Check if the position already has an alert_reference_id
                 if not pos_dict.get("alert_reference_id"):
-                    # Create and link a new alert for this position.
-                    # Here we're creating a TravelPercent alert as an example.
                     result = self.alert_manager.create_and_link_alert(
                         position=pos_dict,
                         alert_type="TravelPercent",
-                        # Alternatively, use AlertType.TRAVEL_PERCENT_LIQUID.value if imported
                         trigger_value=-4.0,
                         condition="BELOW",
-                        notification_type="Action",  # Alternatively, use NotificationType.ACTION.value if imported
-                        level="Normal"  # updated parameter: using "level" instead of "state"
+                        notification_type="Action",
+                        level="Normal"
                     )
                     if result is not None:
                         created_count += 1
@@ -346,16 +431,13 @@ class Cyclone:
             print(f"Error creating position alerts: {e}")
             self.logger.error(f"Error creating position alerts: {e}", exc_info=True)
 
-
     async def run_create_system_alerts(self):
         self.logger.info("Creating System Alerts")
-        # (Placeholder – no system alert creation code provided)
         return
 
     async def run_update_evaluated_value(self):
         self.logger.info("Updating Evaluated Values for Alerts...")
         try:
-            # Delegate the update to the AlertEvaluator instance in AlertManager.
             await asyncio.to_thread(self.alert_manager.alert_evaluator.update_alerts_evaluated_value)
             self.u_logger.log_cyclone(
                 operation_type="Update Evaluated Value",
@@ -454,7 +536,6 @@ class Cyclone:
                 file="cyclone.py"
             )
 
-    # Backend methods (for viewing and clearing data) remain part of the core class.
     def view_prices_backend(self):
         try:
             from pprint import pprint
