@@ -1,111 +1,61 @@
-import unittest
+#!/usr/bin/env python3
+import sqlite3
+import json
 import os
-import logging
-from alerts.alert_enrichment import update_trigger_value  # from alert_enrichment.py
+from config.config_constants import DB_PATH
 
-# Define a fake DataLocker that simulates DB behavior.
-class FakeDataLocker:
-    def __init__(self):
-        self.alerts = {}
-        # We'll simulate a DB connection as self for simplicity.
-        self.conn = self
+def create_wallets_table(conn):
+    # Create the wallets table if it doesn't exist.
+    create_table_query = """
+    CREATE TABLE IF NOT EXISTS wallets (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT,
+        public_address TEXT,
+        private_address TEXT,
+        image_path TEXT,
+        balance REAL
+    );
+    """
+    conn.execute(create_table_query)
+    conn.commit()
 
-    def get_alerts(self):
-        return list(self.alerts.values())
+def insert_wallets(conn, wallets):
+    cursor = conn.cursor()
+    insert_query = """
+    INSERT INTO wallets (name, public_address, private_address, image_path, balance)
+    VALUES (?, ?, ?, ?, ?);
+    """
+    for wallet in wallets:
+        name = wallet.get("name", "")
+        public_address = wallet.get("public_address", "")
+        private_address = wallet.get("private_address", "")
+        image_path = wallet.get("image_path", "")
+        balance = wallet.get("balance", 0)
+        cursor.execute(insert_query, (name, public_address, private_address, image_path, balance))
+    conn.commit()
 
-    def update_alert_conditions(self, alert_id, update_fields):
-        if alert_id in self.alerts:
-            # Update the alert with new fields.
-            self.alerts[alert_id].update(update_fields)
-            return 1  # simulate one row updated
-        return 0
-
-    def get_alert(self, alert_id):
-        return self.alerts.get(alert_id)
-
-    def read_positions(self):
-        # For our tests, positions are not needed.
-        return []
-
-    def add_alert(self, alert):
-        # Store a copy of the alert dictionary keyed by its id.
-        self.alerts[alert["id"]] = alert.copy()
-
-# Default configuration for travel percent alerts.
-DEFAULT_CONFIG = {
-    "alert_ranges": {
-        "travel_percent_liquid_ranges": {
-            "low": -25.0,
-            "medium": -50.0,
-            "high": -75.0,
-            "enabled": True
-        }
-    }
-}
-
-# Setup a simple logger.
-logger = logging.getLogger("TestLogger")
-logger.setLevel(logging.DEBUG)
-if not logger.handlers:
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
-
-# Our tests for update_trigger_value function.
-class TestUpdateTriggerValue(unittest.TestCase):
-    def setUp(self):
-        # Initialize fake data locker and add several travel percent alerts.
-        self.data_locker = FakeDataLocker()
-        # Create alerts with type "TravelPercent" (normalized value expected from enrichment)
-        self.alerts = [
-            {"id": "a1", "alert_type": "TravelPercent", "level": "Normal", "trigger_value": -10.0},
-            {"id": "a2", "alert_type": "TravelPercent", "level": "Low", "trigger_value": -10.0},
-            {"id": "a3", "alert_type": "TravelPercent", "level": "Medium", "trigger_value": -10.0},
-            {"id": "a4", "alert_type": "TravelPercent", "level": "High", "trigger_value": -10.0},
-        ]
-        for alert in self.alerts:
-            self.data_locker.add_alert(alert)
-
-    def test_normal_level_update(self):
-        # For level "Normal", trigger should update to low_threshold (-25.0)
-        update_trigger_value(self.data_locker, DEFAULT_CONFIG, logger, report_path="report_normal.html")
-        alert = self.data_locker.get_alert("a1")
-        self.assertEqual(float(alert["trigger_value"]), -25.0)
-
-    def test_low_level_update(self):
-        # For level "Low", trigger should update to medium_threshold (-50.0)
-        update_trigger_value(self.data_locker, DEFAULT_CONFIG, logger, report_path="report_low.html")
-        alert = self.data_locker.get_alert("a2")
-        self.assertEqual(float(alert["trigger_value"]), -50.0)
-
-    def test_medium_level_update(self):
-        # For level "Medium", trigger should update to high_threshold (-75.0)
-        update_trigger_value(self.data_locker, DEFAULT_CONFIG, logger, report_path="report_medium.html")
-        alert = self.data_locker.get_alert("a3")
-        self.assertEqual(float(alert["trigger_value"]), -75.0)
-
-    def test_high_level_update(self):
-        # For level "High", trigger should also update to high_threshold (-75.0)
-        update_trigger_value(self.data_locker, DEFAULT_CONFIG, logger, report_path="report_high.html")
-        alert = self.data_locker.get_alert("a4")
-        self.assertEqual(float(alert["trigger_value"]), -75.0)
-
-    def test_updated_count(self):
-        # Ensure update_trigger_value returns the correct count of updated alerts.
-        updated_count = update_trigger_value(self.data_locker, DEFAULT_CONFIG, logger, report_path="report_count.html")
-        # All four alerts should be updated because initial trigger (-10.0) is different from expected.
-        self.assertEqual(updated_count, 4)
+def main():
+    try:
+        # Connect to the SQLite database using the DB_PATH from config_constants.py
+        conn = sqlite3.connect(str(DB_PATH))
+        conn.row_factory = sqlite3.Row
+        
+        # Create the wallets table if it doesn't exist
+        create_wallets_table(conn)
+        
+        # Assume wallets_backup.json is in the same directory as this script
+        json_path = os.path.join(os.path.dirname(__file__), "wallets_backup.json")
+        with open(json_path, "r", encoding="utf-8") as f:
+            wallets = json.load(f)
+        
+        # Insert the wallets into the DB
+        insert_wallets(conn, wallets)
+        print("Successfully injected wallets into the database.")
+    except Exception as e:
+        print(f"Error injecting wallets: {e}")
+    finally:
+        if conn:
+            conn.close()
 
 if __name__ == '__main__':
-    # Use HTMLTestRunner to generate an HTML report.
-    import HtmlTestRunner
-    report_dir = os.path.join(os.getcwd(), "reports")
-    os.makedirs(report_dir, exist_ok=True)
-    runner = HtmlTestRunner.HTMLTestRunner(
-        output=report_dir,
-        report_title="Trigger Value Update Test Report",
-        descriptions="Automated tests verifying that the trigger value is correctly updated for travel percent alerts."
-    )
-    unittest.main(testRunner=runner, verbosity=2)
+    main()

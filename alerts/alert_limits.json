@@ -66,17 +66,17 @@
     },
     "price_alerts": {
       "BTC": {
-        "enabled": true,
+        "enabled": false,
         "condition": "ABOVE",
         "trigger_value": 77667
       },
       "ETH": {
-        "enabled": true,
+        "enabled": false,
         "condition": "ABOVE",
         "trigger_value": 1926.84
       },
       "SOL": {
-        "enabled": true,
+        "enabled": false,
         "condition": "BELOW",
         "trigger_value": 133.9
       }

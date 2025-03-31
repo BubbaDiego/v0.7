@@ -256,12 +256,12 @@ class AlertManager:
         self.reevaluate_alerts()
 
         alerts = self.data_locker.get_alerts()
-        triggered_alerts = [a for a in alerts if a.get("state", "Normal") != "Normal"]
+        triggered_alerts = [a for a in alerts if a.get("level", "Normal") != "Normal"]
 
         if triggered_alerts:
             combined_message = "\n".join(
                 f"{a.get('alert_type', 'Alert')} ALERT for {a.get('asset_type', 'Asset')} - "
-                f"State: {a.get('state')}, Value: {a.get('evaluated_value')}"
+                f"Level: {a.get('level')}, Value: {a.get('evaluated_value')}"
                 for a in triggered_alerts
             )
             u_logger.log_alert(

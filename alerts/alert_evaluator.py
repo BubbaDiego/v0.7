@@ -289,12 +289,14 @@ class AlertEvaluator:
     def evaluate_travel_alert(self, pos: dict):
         """
         Evaluate the Travel Percent for a position, determining its level based on
-        absolute value thresholds. Writes extensive debug info to both console and tp_level.txt.
-        Updates both trigger_value and level in the alert record.
+        absolute value thresholds. Writes detailed debug info to both console and tp_level.txt.
+        Updates both the alert record (trigger_value and level) and the position record (travel_percent)
+        using the DataLocker’s DB connection, updates the in-memory position dictionary, and
+        reads back both the position and alert records for verification.
         """
         debug_file = "tp_level.txt"
+        readback_file = "level_test.txt"
 
-        # Helper function for debug logging.
         def dbg(message: str):
             print(message)
             try:
@@ -302,6 +304,13 @@ class AlertEvaluator:
                     f.write(message + "\n")
             except Exception as e:
                 print(f"[DEBUG ERROR] Could not write to {debug_file}: {e}")
+
+        def dbg_readback(message: str):
+            try:
+                with open(readback_file, "a", encoding="utf-8") as f:
+                    f.write(message + "\n")
+            except Exception as e:
+                print(f"[READBACK DEBUG ERROR] Could not write to {readback_file}: {e}")
 
         dbg("=============================================================")
         dbg(f"[Travel Alert] evaluate_travel_alert called for position ID: {pos.get('id', 'UNKNOWN')}")
@@ -400,8 +409,48 @@ class AlertEvaluator:
                 dbg(f"[Travel Alert] Successfully updated alert {alert_id} with trigger_value {next_trigger} and level {level}")
             except Exception as e:
                 dbg(f"[Travel Alert] Failed to update alert {alert_id}: {e}")
+            # Read back alert record
+            try:
+                cursor = self.data_locker.conn.cursor()
+                cursor.execute("SELECT level, trigger_value FROM alerts WHERE id=?", (alert_id,))
+                alert_row = cursor.fetchone()
+                if alert_row:
+                    dbg(f"[Travel Alert] Read-back alert: level = {alert_row['level']}, trigger_value = {alert_row['trigger_value']}")
+                    dbg_readback(
+                        f"Alert {alert_id}: level = {alert_row['level']}, trigger_value = {alert_row['trigger_value']}")
+                else:
+                    dbg("[Travel Alert] Read-back: No alert record found.")
+                    dbg_readback(f"Alert {alert_id}: No record found during read-back")
+            except Exception as e:
+                dbg(f"[Travel Alert] Exception during alert record read-back: {e}")
+                dbg_readback(f"Alert {alert_id}: Exception during read-back: {e}")
         else:
-            dbg("[Travel Alert] No alert_reference_id found; skipping trigger_value and level update.")
+            dbg("[Travel Alert] No alert_reference_id found; skipping alert record update.")
+
+        # 6) Update the position record with the newly computed travel_percent.
+        try:
+            cursor = self.data_locker.conn.cursor()
+            cursor.execute("UPDATE positions SET travel_percent=? WHERE id=?", (current_val, pos.get("id")))
+            self.data_locker.conn.commit()
+            pos["travel_percent"] = current_val
+            dbg(f"[Travel Alert] Successfully updated position {pos.get('id')} travel_percent to {current_val}")
+        except Exception as e:
+            dbg(f"[Travel Alert] Failed to update position travel_percent: {e}")
+
+        # 7) Read back from DB for position verification.
+        try:
+            cursor.execute("SELECT travel_percent FROM positions WHERE id=?", (pos.get("id"),))
+            row = cursor.fetchone()
+            if row:
+                readback_value = row["travel_percent"]
+                dbg(f"[Travel Alert] Read-back: DB travel_percent for {pos.get('id')} = {readback_value}")
+                dbg_readback(f"Position {pos.get('id')}: travel_percent = {readback_value}")
+            else:
+                dbg("[Travel Alert] Read-back: No row found for position update.")
+                dbg_readback(f"Position {pos.get('id')}: No row found during read-back")
+        except Exception as e:
+            dbg(f"[Travel Alert] Exception during position read-back: {e}")
+            dbg_readback(f"Position {pos.get('id')}: Exception during read-back: {e}")
 
         dbg(f"[Travel Alert] Returning => (level={level}, travel_percent={current_val})")
         dbg("=============================================================\n")
