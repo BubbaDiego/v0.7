@@ -439,134 +439,110 @@
           labels: ['Long', 'Short'],
           dataLabels: {
             enabled: true,
-            offset: -20,
             style: { fontSize: '20px', colors: ['#fff'] },
             formatter: function(val) { return Math.round(val) + '%'; }
           },
           legend: {
             position: 'bottom',
             labels: {
-              colors: '#fff',
+              colors: ['#fff'],
               fontSize: '20px',
               fontWeight: 700
             }
           }
         };
       }
-      // Render Size Pie
+      // Size Pie
       const optionsSize = createPieOptions(seriesSize);
       const chartSize = new ApexCharts(document.querySelector("#pieChartSize"), optionsSize);
       chartSize.render();
 
-      // Render Collateral Pie
+      // Collateral Pie
       const optionsCollateral = createPieOptions(seriesCollateral);
       const chartCollateral = new ApexCharts(document.querySelector("#pieChartCollateral"), optionsCollateral);
       chartCollateral.render();
     }
 
-    // Graph Chart: Fetch dynamic data from backend
-    function renderGraphChart() {
-      // Fetch dynamic graph data from the backend
-      fetch('/api/graph_data')
-        .then(response => response.json())
-        .then(data => {
-          // Assuming the API returns an array of ISO timestamps and corresponding values:
-          const timestamps = data.timestamps;
-          const values = data.values;
-          // Convert timestamps to hour labels
-          const hours = timestamps.map(ts => {
-            let date = new Date(ts);
-            return date.getHours() + "h";
-          });
-
-          const optionsGraph = {
-            chart: {
-              type: 'area',
-              height: 300,
-              foreColor: '#fff'
-            },
-            xaxis: {
-              categories: hours,
-              labels: {
-                style: {
-                  colors: '#fff'
-                }
-              }
-            },
-            yaxis: {
-              labels: {
-                formatter: function(value) { return Math.round(value); },
-                style: {
-                  colors: '#fff'
-                }
-              }
-            },
-            series: [
-              { name: 'Portfolio Value', data: values }
-            ],
-            colors: ['#34a853'],
-            stroke: { curve: 'smooth', width: 2 },
-            fill: {
-              type: 'gradient',
-              gradient: {
-                shade: 'light',
-                shadeIntensity: 0.6,
-                opacityFrom: 0.5,
-                opacityTo: 0.2
-              }
-            },
-            dataLabels: { enabled: false },
-            legend: {
-              position: 'top',
-              labels: {
-                colors: '#fff',
-                fontSize: '20px',
-                fontWeight: 700
-              }
-            },
-            tooltip: {
-              theme: 'dark',
-              style: {
-                fontSize: '16px',
-                fontWeight: 'bold',
-                color: '#fff'
-              },
-              y: {
-                formatter: function(value) {
-                  return Math.round(value);
-                }
-              }
-            }
-          };
-
-          const chartGraph = new ApexCharts(document.querySelector("#graphChart"), optionsGraph);
-          chartGraph.render();
-        })
-        .catch(err => console.error("Error fetching graph data:", err));
+    // Graph Chart
+    function renderGraphChart(timestamps, valueData, collateralData) {
+      // Convert timestamps to time-of-day labels
+      const formattedTimestamps = timestamps.map(ts => {
+        const dateObj = new Date(ts);
+        return dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+      });
+      const optionsGraph = {
+        chart: { type: 'line', height: 300 },
+        xaxis: {
+          categories: formattedTimestamps,
+          labels: { style: { colors: '#fff' } }
+        },
+        yaxis: {
+          labels: {
+            formatter: function(val) { return Math.round(val); },
+            style: { colors: '#fff' }
+          }
+        },
+        series: [
+          { name: 'Value', data: valueData.map(v => Math.round(v)) },
+          { name: 'Collateral', data: collateralData.map(v => Math.round(v)) }
+        ],
+        colors: ['#34a853', '#6234da'],
+        stroke: { curve: 'smooth', width: 2 },
+        dataLabels: {
+          enabled: false,
+          formatter: function(val) { return Math.round(val); }
+        },
+        legend: {
+          position: 'top',
+          labels: { colors: '#fff', fontSize: '20px', fontWeight: 700 }
+        },
+        tooltip: {
+          theme: 'dark',
+          style: { fontSize: '16px', fontWeight: 'bold', color: '#fff' },
+          y: { formatter: function(val) { return Math.round(val); } }
+        }
+      };
+      const chartGraph = new ApexCharts(document.querySelector("#graphChart"), optionsGraph);
+      chartGraph.render();
     }
 
-    // Use dynamic pie chart data passed from backend, defaulting to empty arrays if not provided.
-    var sizeSeries = {{ size_series | default("[]") | tojson | safe }};
-    var collateralSeries = {{ collateral_series | default("[]") | tojson | safe }};
-    renderPieCharts(sizeSeries, collateralSeries);
+    // Fetch data for the pie charts
+    fetch('/api/size_composition')
+      .then(r => r.json())
+      .then(data => {
+        const sizeSeries = data.series;
+        fetch('/api/collateral_composition')
+          .then(r => r.json())
+          .then(data2 => {
+            const collateralSeries = data2.series;
+            renderPieCharts(sizeSeries, collateralSeries);
+          })
+          .catch(err => console.error("Error fetching collateral composition:", err));
+      })
+      .catch(err => console.error("Error fetching size composition:", err));
 
-    // Render the 24-hour graph chart
-    renderGraphChart();
-  </script>
+    // Fetch graph data and render the chart
+    fetch('/api/graph_data')
+      .then(r => r.json())
+      .then(data => {
+        // Expecting data.timestamps, data.values, and data.collateral
+        let collateralData = data.collateral;
+        if (!collateralData) {
+          collateralData = data.values.map(v => 0);
+        }
+        renderGraphChart(data.timestamps, data.values, collateralData);
+      })
+      .catch(err => console.error("Error fetching graph data:", err));
 
-  <!-- Table Sorting Script -->
-  <script>
-    // Basic table sorting function
+    // Table Sorting Script
     function sortTable(tableId, colIndex) {
       var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
       table = document.getElementById(tableId);
       switching = true;
-      // Set the sorting direction to ascending:
       dir = "asc";
       while (switching) {
         switching = false;
         rows = table.rows;
-        // Loop through all table rows (except the header)
         for (i = 1; i < (rows.length - 1); i++) {
           shouldSwitch = false;
           x = rows[i].getElementsByTagName("TD")[colIndex];

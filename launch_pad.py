@@ -102,7 +102,10 @@ if "dashboard.index" in app.view_functions:
 @app.route("/")
 def index():
     # Currently redirects to dashboard.html
-    return redirect(url_for('dashboard.dashboard'))
+
+    return redirect(url_for('dashboard.dash_page'))
+
+    #return redirect(url_for('dashboard.dashboard'))  # OLD AND BUSTED
 
 
 @app.route("/2")
