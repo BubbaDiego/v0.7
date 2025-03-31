@@ -634,8 +634,7 @@ def compute_collateral_composition():
         series = [round(long_total / total * 100), round(short_total / total * 100)]
     else:
         series = [0, 0]
-    return series
-
+    return jsonify({"series": series})
 
 
 @dashboard_bp.route("/save_theme", methods=["POST"], endpoint="save_theme_route")
