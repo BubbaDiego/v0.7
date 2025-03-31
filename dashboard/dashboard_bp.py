@@ -71,6 +71,7 @@ def get_strategy_performance():
         }
 
 
+
 # Helper: Convert ISO timestamp to PST formatted string.
 def _convert_iso_to_pst(iso_str):
     if not iso_str or iso_str == "N/A":
@@ -279,6 +280,16 @@ def dashboard():
             system_feed_entries='<div class="alert alert-secondary p-1 mb-1" role="alert">No feed data available</div>',
             alert_entries='<div class="alert alert-secondary p-1 mb-1" role="alert">No alert data available</div>'
         )
+
+
+@dashboard_bp.route("/api/graph_data")
+def api_graph_data():
+    dl = DataLocker.get_instance()
+    portfolio_history = dl.get_portfolio_history() or []
+    # Extract timestamps and values. (You may want to format the timestamps as needed.)
+    timestamps = [entry.get("snapshot_time") for entry in portfolio_history]
+    values = [float(entry.get("total_value", 0)) for entry in portfolio_history]
+    return jsonify({"timestamps": timestamps, "values": values})
 
 @dashboard_bp.route("/dash_performance")
 def dash_performance():

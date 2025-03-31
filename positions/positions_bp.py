@@ -784,10 +784,10 @@ def update_jupiter():
     # Step 8: Log updated totals.
     try:
         logger.debug("Step 8: Logging updated totals...")
-        updated_totals = dl.get_balance_vars()
-        pst_timestamp = _convert_iso_to_pst(now.isoformat())
-        print(f"[DEBUG] Jupiter Update Complete: Totals = {updated_totals} at {pst_timestamp}")
-        logger.debug(f"Jupiter Update Complete: Totals = {updated_totals} at {pst_timestamp}")
+     #   updated_totals = dl.get_balance_vars()
+       # pst_timestamp = _convert_iso_to_pst(now.isoformat())
+       # print(f"[DEBUG] Jupiter Update Complete: Totals = {updated_totals} at {pst_timestamp}")
+      #  logger.debug(f"Jupiter Update Complete: Totals = {updated_totals} at {pst_timestamp}")
     except Exception as e:
         logger.error(f"Exception logging updated totals: {e}", exc_info=True)
         print(f"[ERROR] Exception logging updated totals: {e}")

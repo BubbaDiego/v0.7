@@ -211,9 +211,9 @@
   <!-- Status Bar -->
   <div class="status-bar common-box light-mode" id="statusBar">
     <div>
-    <span class="status-label">🔥 Heat</span>
-    <span class="status-value">{{ total_heat_index | default("N/A") }}</span>
-  </div>
+      <span class="status-label">🔥 Heat</span>
+      <span class="status-value">{{ total_heat_index | default("N/A") }}</span>
+    </div>
     <div>
       <span class="status-label">💰 Value</span>
       <span class="status-value">{{ value | default("$0.00") }}</span>
@@ -253,7 +253,7 @@
       </div>
     </div>
 
-    <!-- Graph Box (24-hour timescale, Variation 3) -->
+    <!-- Graph Box -->
     <div class="common-box light-mode graph-box" id="graphBox">
       <div id="graphChart" style="height: 300px;"></div>
     </div>
@@ -330,8 +330,6 @@
     <!-- Liquidation Bar Box with Overlaid Travel Percent Values -->
     <div class="common-box light-mode liquidation-box" id="liquidationBox">
       <div class="chart-label" style="margin-bottom: 15px;">Liquidation Bar</div>
-      {# Debug: Uncomment to show number of liquidation positions
-         <div style="color: #fff;">We have {{ liquidation_positions|length }} liquidation positions</div> #}
       {% for pos in liquidation_positions %}
         <div class="liq-row">
           {% set wallet = pos.wallet | default('ObiVault') %}
@@ -442,8 +440,8 @@
           dataLabels: {
             enabled: true,
             offset: -20,
-            style: { fontSize: '20px' },
-            formatter: function(val) { return val.toFixed(1) + '%'; }
+            style: { fontSize: '20px', colors: ['#fff'] },
+            formatter: function(val) { return Math.round(val) + '%'; }
           },
           legend: {
             position: 'bottom',
@@ -455,78 +453,102 @@
           }
         };
       }
-      // Size Pie
+      // Render Size Pie
       const optionsSize = createPieOptions(seriesSize);
       const chartSize = new ApexCharts(document.querySelector("#pieChartSize"), optionsSize);
       chartSize.render();
 
-      // Collateral Pie
+      // Render Collateral Pie
       const optionsCollateral = createPieOptions(seriesCollateral);
       const chartCollateral = new ApexCharts(document.querySelector("#pieChartCollateral"), optionsCollateral);
       chartCollateral.render();
     }
 
-    // Graph Chart (Variation 3, 24-hour timescale, updated legend and tooltip)
+    // Graph Chart: Fetch dynamic data from backend
     function renderGraphChart() {
-      const hours = Array.from({length: 24}, (_, i) => i + 'h');
-      // Example data
-      const collateralData = [40, 45, 42, 43, 46, 55, 60, 58, 62, 64, 60, 59, 58, 66, 67, 70, 65, 63, 61, 62, 64, 66, 68, 72];
-      const valueData      = [35, 40, 38, 50, 45, 55, 65, 60, 75, 70, 72, 68, 65, 78, 80, 76, 70, 66, 64, 67, 69, 72, 75, 80];
+      // Fetch dynamic graph data from the backend
+      fetch('/api/graph_data')
+        .then(response => response.json())
+        .then(data => {
+          // Assuming the API returns an array of ISO timestamps and corresponding values:
+          const timestamps = data.timestamps;
+          const values = data.values;
+          // Convert timestamps to hour labels
+          const hours = timestamps.map(ts => {
+            let date = new Date(ts);
+            return date.getHours() + "h";
+          });
 
-      const optionsGraph = {
-        chart: { type: 'area', height: 300 },
-        xaxis: { categories: hours },
-        series: [
-          { name: 'Collateral', data: collateralData },
-          { name: 'Value', data: valueData }
-        ],
-        colors: ['#34a853', '#6234da'],
-        stroke: { curve: 'smooth', width: 2 },
-        fill: {
-          type: 'gradient',
-          gradient: {
-            shade: 'light',
-            shadeIntensity: 0.6,
-            opacityFrom: 0.5,
-            opacityTo: 0.2
-          }
-        },
-        dataLabels: { enabled: false },
-        legend: {
-          position: 'top',
-          labels: {
-            colors: '#fff',
-            fontSize: '20px',
-            fontWeight: 700
-          }
-        },
-        tooltip: {
-          theme: 'light',
-          style: {
-            fontSize: '16px',
-            fontWeight: 'bold',
-            color: '#000'
-          }
-        }
-      };
-      const chartGraph = new ApexCharts(document.querySelector("#graphChart"), optionsGraph);
-      chartGraph.render();
+          const optionsGraph = {
+            chart: {
+              type: 'area',
+              height: 300,
+              foreColor: '#fff'
+            },
+            xaxis: {
+              categories: hours,
+              labels: {
+                style: {
+                  colors: '#fff'
+                }
+              }
+            },
+            yaxis: {
+              labels: {
+                formatter: function(value) { return Math.round(value); },
+                style: {
+                  colors: '#fff'
+                }
+              }
+            },
+            series: [
+              { name: 'Portfolio Value', data: values }
+            ],
+            colors: ['#34a853'],
+            stroke: { curve: 'smooth', width: 2 },
+            fill: {
+              type: 'gradient',
+              gradient: {
+                shade: 'light',
+                shadeIntensity: 0.6,
+                opacityFrom: 0.5,
+                opacityTo: 0.2
+              }
+            },
+            dataLabels: { enabled: false },
+            legend: {
+              position: 'top',
+              labels: {
+                colors: '#fff',
+                fontSize: '20px',
+                fontWeight: 700
+              }
+            },
+            tooltip: {
+              theme: 'dark',
+              style: {
+                fontSize: '16px',
+                fontWeight: 'bold',
+                color: '#fff'
+              },
+              y: {
+                formatter: function(value) {
+                  return Math.round(value);
+                }
+              }
+            }
+          };
+
+          const chartGraph = new ApexCharts(document.querySelector("#graphChart"), optionsGraph);
+          chartGraph.render();
+        })
+        .catch(err => console.error("Error fetching graph data:", err));
     }
 
-    // Fetch data for the pie charts from your backend
-    fetch('/api/size_composition')
-      .then(r => r.json())
-      .then(data => {
-        const sizeSeries = data.series;
-        fetch('/api/collateral_composition')
-          .then(r => r.json())
-          .then(data2 => {
-            const collateralSeries = data2.series;
-            renderPieCharts(sizeSeries, collateralSeries);
-          })
-          .catch(err => console.error("Error fetching collateral composition:", err));
-      })
-      .catch(err => console.error("Error fetching size composition:", err));
+    // Use dynamic pie chart data passed from backend, defaulting to empty arrays if not provided.
+    var sizeSeries = {{ size_series | default("[]") | tojson | safe }};
+    var collateralSeries = {{ collateral_series | default("[]") | tojson | safe }};
+    renderPieCharts(sizeSeries, collateralSeries);
 
     // Render the 24-hour graph chart
     renderGraphChart();

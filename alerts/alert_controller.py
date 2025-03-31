@@ -541,40 +541,64 @@ class AlertController:
 
     def create_travel_percent_alerts(self):
         created_alerts = []
-        cursor = self.data_locker.conn.cursor()
-        positions = cursor.execute("SELECT * FROM positions").fetchall()
-        cursor.close()
+        positions = self.data_locker.read_positions()  # Consistent data retrieval
+        self.logger.debug(f"Retrieved {len(positions)} positions for travel percent alert creation.")
+
         for pos in positions:
-            pos_dict = dict(pos)
-            if not pos_dict.get("alert_reference_id"):
-                asset = pos_dict.get("asset_type", "BTC")
-                try:
-                    trigger_value = float(-4.0)
-                except Exception:
-                    trigger_value = -4.0
+            pos_id = pos.get("id")
+            # Only create an alert if one isn't already linked
+            if not pos.get("alert_reference_id"):
+                asset = pos.get("asset_type", "BTC")
+                # Set trigger_value to 0.0 so that enrichment will pick up and assign the real config threshold (e.g., -25.0)
+                trigger_value = 0.0
                 condition = "BELOW"
                 notification_type = "Call"
-                position_id = pos_dict.get("id")
-                alert_obj = DummyPositionAlert(AlertType.TRAVEL_PERCENT_LIQUID.value, asset, trigger_value, condition, notification_type, position_id)
+                self.logger.debug(
+                    f"Creating travel percent alert for position {pos_id} with trigger_value {trigger_value}.")
+
+                alert_obj = DummyPositionAlert(
+                    AlertType.TRAVEL_PERCENT_LIQUID.value,
+                    asset,
+                    trigger_value,
+                    condition,
+                    notification_type,
+                    pos_id
+                )
+
                 if self.create_alert(alert_obj):
                     created_alerts.append(alert_obj.to_dict())
                     UnifiedLogger().log_operation(
                         operation_type="Create Travel Percent Alert",
-                        primary_text=f"Created travel percent alert for position {position_id} ({asset}).",
+                        primary_text=f"Created travel percent alert for position {pos_id} ({asset}).",
                         source="AlertController",
                         file="alert_controller.py"
                     )
-                    conn = self.data_locker.get_db_connection()
-                    cursor = conn.cursor()
-                    cursor.execute("UPDATE positions SET alert_reference_id=? WHERE id=?", (alert_obj.id, position_id))
-                    conn.commit()
+                    try:
+                        conn = self.data_locker.get_db_connection()
+                        cursor = conn.cursor()
+                        cursor.execute("UPDATE positions SET alert_reference_id=? WHERE id=?", (alert_obj.id, pos_id))
+                        conn.commit()
+                        self.logger.debug(f"Updated position {pos_id} with alert_reference_id {alert_obj.id}.")
+                    except Exception as e:
+                        self.logger.error(f"Error updating position {pos_id} with alert_reference_id: {e}")
+                        UnifiedLogger().log_operation(
+                            operation_type="Update Position Alert ID Failed",
+                            primary_text=f"Failed to update position {pos_id} with alert_reference_id: {e}",
+                            source="AlertController",
+                            file="alert_controller.py"
+                        )
                 else:
+                    self.logger.error(f"Failed to create travel percent alert for position {pos_id}.")
                     UnifiedLogger().log_operation(
                         operation_type="Create Travel Percent Alert Failed",
-                        primary_text=f"Failed to create travel percent alert for position {position_id}.",
+                        primary_text=f"Failed to create travel percent alert for position {pos_id}.",
                         source="AlertController",
                         file="alert_controller.py"
                     )
+            else:
+                self.logger.debug(f"Position {pos_id} already has an alert_reference_id; skipping alert creation.")
+
+        self.logger.debug(f"create_travel_percent_alerts completed. Created {len(created_alerts)} alerts.")
         return created_alerts
 
     def create_profit_alerts(self):

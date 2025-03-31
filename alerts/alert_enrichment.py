@@ -52,6 +52,7 @@ def normalize_alert_type(alert: dict) -> dict:
 
 
 def populate_evaluated_value_for_alert(alert: dict, data_locker, logger: logging.Logger) -> float:
+    logger.debug("Exiting populate_evaluated_value_for_alert with evaluated_value: %f", 0.0)
     logger.debug("Entering populate_evaluated_value_for_alert with alert: %s", alert)
     evaluated_value = 0.0
     alert_type = alert.get("alert_type")
@@ -128,16 +129,119 @@ def populate_evaluated_value_for_alert(alert: dict, data_locker, logger: logging
     return evaluated_value
 
 
+def update_trigger_value(data_locker, config, logger, report_path="trigger_update_report.html"):
+    """
+    Update the trigger value for all travel percent alerts based on current alert levels.
+    Writes a detailed HTML report of evaluations and prints debug info to console.
+
+    Parameters:
+        data_locker: The DataLocker instance (for DB operations)
+        config: The configuration dictionary (loaded from alert_limits.json, etc.)
+        logger: A logging.Logger instance for logging debug/info messages
+        report_path: Path to write the HTML report
+
+    Returns:
+        The count of alerts updated.
+    """
+    # Retrieve all alerts
+    alerts = data_locker.get_alerts()
+    updated_count = 0
+
+    report_lines = []
+    report_lines.append("<html><head><title>Trigger Update Report</title></head><body>")
+    report_lines.append("<h1>Trigger Update Report</h1>")
+    report_lines.append("<table border='1' style='border-collapse: collapse;'>")
+    report_lines.append("<tr>"
+                        "<th>Alert ID</th>"
+                        "<th>Type</th>"
+                        "<th>Current Level</th>"
+                        "<th>Old Trigger Value</th>"
+                        "<th>New Trigger Value</th>"
+                        "<th>Config Low</th>"
+                        "<th>Config Medium</th>"
+                        "<th>Config High</th>"
+                        "</tr>")
+
+    tp_config = config.get("alert_ranges", {}).get("travel_percent_liquid_ranges", {})
+    try:
+        low_threshold = float(tp_config.get("low", -25.0))
+        medium_threshold = float(tp_config.get("medium", -50.0))
+        high_threshold = float(tp_config.get("high", -75.0))
+    except Exception as e:
+        logger.error("Error parsing travel percent thresholds: %s", e)
+        low_threshold, medium_threshold, high_threshold = -25.0, -50.0, -75.0
+
+    for alert in alerts:
+        if alert.get("alert_type") == "TravelPercent":  # Assuming normalization already happened
+            alert_id = alert.get("id")
+            old_trigger = float(alert.get("trigger_value", 0.0))
+            current_level = alert.get("level", "Normal")
+
+            # Determine new trigger based on current level
+            if current_level == "Normal":
+                new_trigger = low_threshold
+            elif current_level == "Low":
+                new_trigger = medium_threshold
+            elif current_level in ["Medium", "High"]:
+                new_trigger = high_threshold
+            else:
+                new_trigger = old_trigger  # fallback if level unrecognized
+
+            # Debug print
+            debug_msg = (f"Alert {alert_id}: type={alert.get('alert_type')}, level={current_level}, "
+                         f"old trigger={old_trigger}, new trigger={new_trigger}")
+            print(debug_msg)
+            logger.debug(debug_msg)
+
+            # Only update if there is a change
+            if new_trigger != old_trigger:
+                update_fields = {"trigger_value": new_trigger}
+                try:
+                    num_updated = data_locker.update_alert_conditions(alert_id, update_fields)
+                    logger.info("Updated alert %s: new trigger value set to %s (rows affected: %s)", alert_id,
+                                new_trigger, num_updated)
+                    # Re-read alert from DB to verify update
+                    updated_alert = data_locker.get_alert(alert_id)
+                    if updated_alert:
+                        logger.debug("Re-read alert %s: trigger_value now %s", alert_id,
+                                     updated_alert.get("trigger_value"))
+                        old_trigger = float(alert.get("trigger_value", 0.0))
+                        # Replace our local alert's trigger_value with updated one
+                        alert["trigger_value"] = float(updated_alert.get("trigger_value", 0.0))
+                    updated_count += 1
+                except Exception as e:
+                    logger.error("Error updating alert %s: %s", alert_id, e)
+            else:
+                logger.debug("Alert %s trigger value remains unchanged.", alert_id)
+
+            report_lines.append(
+                f"<tr><td>{alert_id}</td><td>{alert.get('alert_type')}</td><td>{current_level}</td>"
+                f"<td>{old_trigger}</td><td>{new_trigger}</td>"
+                f"<td>{low_threshold}</td><td>{medium_threshold}</td><td>{high_threshold}</td></tr>"
+            )
+
+    report_lines.append("</table>")
+    report_lines.append(f"<p>Total alerts updated: {updated_count}</p>")
+    report_lines.append("</body></html>")
+
+    try:
+        with open(report_path, "w", encoding="utf-8") as f:
+            f.write("\n".join(report_lines))
+        logger.info("Trigger update report written to %s", report_path)
+    except Exception as e:
+        logger.error("Error writing trigger update report: %s", e)
+
+    return updated_count
+
+
 def enrich_alert_data(alert: dict, data_locker, logger: 'logging.Logger') -> dict:
     logger.debug("Starting enrich_alert_data with alert: %s", alert)
     try:
-        # Normalize alert type using our new function.
         alert = normalize_alert_type(alert)
     except ValueError as e:
         logger.error("Error normalizing alert type: %s", e)
         return alert
 
-    # Set alert class based on normalized type.
     if alert["alert_type"] in [AlertType.TRAVEL_PERCENT_LIQUID.value, AlertType.PROFIT.value, AlertType.HEAT_INDEX.value]:
         alert["alert_class"] = "Position"
         if not alert.get("position_reference_id"):
@@ -147,7 +251,6 @@ def enrich_alert_data(alert: dict, data_locker, logger: 'logging.Logger') -> dic
     else:
         logger.error("Unrecognized alert type: %s", alert["alert_type"])
 
-    # Load alert limits configuration.
     jm = JsonManager()
     alert_limits = jm.load("", JsonType.ALERT_LIMITS)
     logger.debug("Loaded alert_limits: %s", alert_limits)
@@ -165,15 +268,24 @@ def enrich_alert_data(alert: dict, data_locker, logger: 'logging.Logger') -> dic
         else:
             logger.error("No configuration found for price alert asset %s.", asset)
             alert["notification_type"] = "Email"
+
     elif alert["alert_type"] == AlertType.TRAVEL_PERCENT_LIQUID.value:
         config = alert_limits.get("alert_ranges", {}).get("travel_percent_liquid_ranges", {})
         logger.debug("Travel alert config: %s", config)
         if config.get("enabled", False):
-            if float(alert.get("trigger_value", 0.0)) == 0.0:
-                alert["trigger_value"] = float(config.get("low", -4.0))
+            # Instead of directly assigning the trigger, call update_trigger_value() to update all travel alerts
+            update_trigger_value(data_locker, alert_limits, logger, report_path="trigger_update_report.html")
+            # Re-read this alert from the database to fetch its updated trigger_value
+            updated_alert = data_locker.get_alert(alert.get("id"))
+            if updated_alert:
+                alert["trigger_value"] = updated_alert.get("trigger_value")
+            else:
+                # Fallback: assign from config directly
+                alert["trigger_value"] = float(config.get("low", -25.0))
             alert["condition"] = "BELOW"
         if not alert.get("notification_type"):
             alert["notification_type"] = "Email"
+
     elif alert["alert_type"] == AlertType.PROFIT.value:
         config = alert_limits.get("alert_ranges", {}).get("profit_ranges", {})
         logger.debug("Profit alert config: %s", config)
@@ -183,6 +295,7 @@ def enrich_alert_data(alert: dict, data_locker, logger: 'logging.Logger') -> dic
             alert["condition"] = config.get("condition", "ABOVE")
         if not alert.get("notification_type"):
             alert["notification_type"] = "Email"
+
     elif alert["alert_type"] == AlertType.HEAT_INDEX.value:
         config = alert_limits.get("alert_ranges", {}).get("heat_index_ranges", {})
         logger.debug("Heat index alert config: %s", config)
@@ -196,7 +309,6 @@ def enrich_alert_data(alert: dict, data_locker, logger: 'logging.Logger') -> dic
         if not alert.get("notification_type"):
             alert["notification_type"] = "Email"
 
-    # For position alerts, enrich with additional position data.
     if alert.get("alert_class") == "Position":
         pos_id = alert.get("position_reference_id")
         logger.debug("For Position alert, pos_id: %s", pos_id)
@@ -217,7 +329,6 @@ def enrich_alert_data(alert: dict, data_locker, logger: 'logging.Logger') -> dic
     alert["evaluated_value"] = populate_evaluated_value_for_alert(alert, data_locker, logger)
     logger.debug("After populating evaluated value: %s", alert)
 
-    # Validate and normalize the alert level (must be one of the allowed levels)
     valid_levels = ["Normal", "Low", "Medium", "High"]
     current_level = alert.get("level", "Normal")
     current_level_normalized = current_level.capitalize()
@@ -246,5 +357,3 @@ def enrich_alert_data(alert: dict, data_locker, logger: 'logging.Logger') -> dic
     except Exception as e:
         logger.error("Error persisting enriched alert %s: %s", alert["id"], e, exc_info=True)
     return alert
-
-

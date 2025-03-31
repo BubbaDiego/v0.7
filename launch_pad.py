@@ -95,12 +95,18 @@ app.json_manager = JsonManager(logger=unified_logger)
 
 # --- Alias endpoints if needed ---
 if "dashboard.index" in app.view_functions:
-    app.add_url_rule("/dashboard", endpoint="dashboard", view_func=app.view_functions["dashboard.index"])
+    app.add_url_rule("/dashboard", endpoint="dash", view_func=app.view_functions["dashboard.index"])
 
 # Global Routes for non-dashboard-specific functionality
 
 @app.route("/")
 def index():
+    # Currently redirects to dashboard.html
+    return redirect(url_for('dashboard.dashboard'))
+
+
+@app.route("/2")
+def index2():
     # Extract the new theme configuration from the config file.
     theme = {}
     theme_config = config.get("theme_config", {})
