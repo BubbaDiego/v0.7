@@ -74,7 +74,7 @@
       gap: 35px;
     }
     /* All boxes in the row take 48% width */
-    .pie-box, .graph-box, .mini-table-box, .liquidation-box {
+    .mini-table-box, .liquidation-box, .graph-box, .pie-box {
       width: 48%;
     }
 
@@ -128,12 +128,7 @@
       margin-top: 10px;
       overflow-x: auto;
     }
-    /* Asset column: only the asset icon */
-    .asset-cell {
-      text-align: center;
-    }
-    /* Wallet column dedicated for the wallet image */
-    .wallet-cell {
+    .asset-cell, .wallet-cell {
       text-align: center;
     }
     .wallet-icon {
@@ -237,31 +232,9 @@
     <div class="toggle-container" id="toggleContainer"></div>
   </div>
 
-  <!-- First Row: Pie Box and Graph Box -->
+  <!-- Row 1: Positions Table Box (left) and Liquidation Bar Box (right) -->
   <div class="box-row">
-    <!-- Pie Box -->
-    <div class="common-box light-mode pie-box" id="pieBox">
-      <div class="pie-row">
-        <div class="pie-col">
-          <div class="chart-label">Size</div>
-          <div id="pieChartSize" style="height: 200px;"></div>
-        </div>
-        <div class="pie-col">
-          <div class="chart-label">Collateral</div>
-          <div id="pieChartCollateral" style="height: 200px;"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Graph Box -->
-    <div class="common-box light-mode graph-box" id="graphBox">
-      <div id="graphChart" style="height: 300px;"></div>
-    </div>
-  </div>
-
-  <!-- Second Row: Positions Table Box and Liquidation Bar Box -->
-  <div class="box-row center-row">
-    <!-- Positions Table Box with Dedicated Wallet Column -->
+    <!-- Positions Table Box -->
     <div class="common-box light-mode mini-table-box" id="miniTableBox">
       <div class="chart-label" style="margin-bottom: 15px;">Positions</div>
       <div id="positionsContainer" class="positions-container">
@@ -327,7 +300,7 @@
       </div>
     </div>
 
-    <!-- Liquidation Bar Box with Overlaid Travel Percent Values -->
+    <!-- Liquidation Bar Box -->
     <div class="common-box light-mode liquidation-box" id="liquidationBox">
       <div class="chart-label" style="margin-bottom: 15px;">Liquidation Bar</div>
       {% for pos in liquidation_positions %}
@@ -363,6 +336,28 @@
           </div>
         </div>
       {% endfor %}
+    </div>
+  </div>
+
+  <!-- Row 2: Graph Box (left) and Pie Box (right) -->
+  <div class="box-row">
+    <!-- Graph Box -->
+    <div class="common-box light-mode graph-box" id="graphBox">
+      <div id="graphChart" style="height: 300px;"></div>
+    </div>
+
+    <!-- Pie Box -->
+    <div class="common-box light-mode pie-box" id="pieBox">
+      <div class="pie-row">
+        <div class="pie-col">
+          <div class="chart-label">Size</div>
+          <div id="pieChartSize" style="height: 200px;"></div>
+        </div>
+        <div class="pie-col">
+          <div class="chart-label">Collateral</div>
+          <div id="pieChartCollateral" style="height: 200px;"></div>
+        </div>
+      </div>
     </div>
   </div>
 {% endblock %}
@@ -444,31 +439,28 @@
           },
           legend: {
             position: 'bottom',
-            labels: {
-              colors: ['#fff'],
-              fontSize: '20px',
-              fontWeight: 700
-            }
+            labels: { colors: ['#fff'], fontSize: '20px', fontWeight: 700 }
           }
         };
       }
-      // Size Pie
+      // Render Size Pie
       const optionsSize = createPieOptions(seriesSize);
       const chartSize = new ApexCharts(document.querySelector("#pieChartSize"), optionsSize);
       chartSize.render();
 
-      // Collateral Pie
+      // Render Collateral Pie
       const optionsCollateral = createPieOptions(seriesCollateral);
       const chartCollateral = new ApexCharts(document.querySelector("#pieChartCollateral"), optionsCollateral);
       chartCollateral.render();
     }
 
-    // Graph Chart
+    // Graph Chart: Plot both "Value" and "Collateral" lines with x-axis labels as time-of-day (top of the hour)
     function renderGraphChart(timestamps, valueData, collateralData) {
-      // Convert timestamps to time-of-day labels
       const formattedTimestamps = timestamps.map(ts => {
         const dateObj = new Date(ts);
-        return dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        const hour = dateObj.getHours();
+        const formatted = ((hour % 12) === 0 ? 12 : (hour % 12)) + ":00 " + (hour < 12 ? "AM" : "PM");
+        return formatted;
       });
       const optionsGraph = {
         chart: { type: 'line', height: 300 },
@@ -488,10 +480,7 @@
         ],
         colors: ['#34a853', '#6234da'],
         stroke: { curve: 'smooth', width: 2 },
-        dataLabels: {
-          enabled: false,
-          formatter: function(val) { return Math.round(val); }
-        },
+        dataLabels: { enabled: false },
         legend: {
           position: 'top',
           labels: { colors: '#fff', fontSize: '20px', fontWeight: 700 }
@@ -525,7 +514,7 @@
     fetch('/api/graph_data')
       .then(r => r.json())
       .then(data => {
-        // Expecting data.timestamps, data.values, and data.collateral
+        // Expecting data.timestamps, data.values, and data.collateral; if collateral is missing, default to zeroes.
         let collateralData = data.collateral;
         if (!collateralData) {
           collateralData = data.values.map(v => 0);
