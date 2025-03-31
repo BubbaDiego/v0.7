@@ -2,7 +2,6 @@
 import os
 import time
 from uuid import uuid4
-
 from time import time as current_time
 import json
 import logging
@@ -17,10 +16,16 @@ from pathlib import Path
 import inspect
 from utils.unified_logger import UnifiedLogger
 from data.models import NotificationType, Status, Alert, Position
-from utils.unified_logger import UnifiedLogger
-from alerts.alert_controller import AlertController
-from alerts.alert_evaluator import AlertEvaluator
-from data.models import AlertType, Alert, AlertClass  # Imported to standardize alert type checks
+from data.models import AlertType, Alert, AlertClass  # for standardizing alert types
+from xcom.xcom import send_sms
+
+# Use relative import for AlertController when running as a module.
+try:
+    from .alert_controller import AlertController
+except ImportError:
+    # Fallback for running directly as a script; assumes alert_controller.py is in the same directory.
+    from alert_controller import AlertController
+
 
 # Instantiate the unified logger
 u_logger = UnifiedLogger()
@@ -85,7 +90,7 @@ class AlertManager:
         self.u_logger = u_logger
         self.last_profit: Dict[str, str] = {}
         self.last_triggered: Dict[str, float] = {}
-        self.last_call_triggered: Dict[str, float] = {}
+        self.last_call_triggered: Dict[str, float] = {}  # reused for SMS as well
         self.suppressed_count = 0
 
         print("Initializing AlertManager...")  # Debug print
@@ -96,7 +101,6 @@ class AlertManager:
         self.calc_services = CalcServices()
 
         db_conn = self.data_locker.get_db_connection()
-        from config.unified_config_manager import UnifiedConfigManager
         config_manager = UnifiedConfigManager(self.config_path, db_conn=db_conn)
 
         self.logger = logging.getLogger("AlertManagerLogger")
@@ -164,7 +168,6 @@ class AlertManager:
         )
 
         self.alert_controller = AlertController(db_path=self.db_path)
-        # Instantiate AlertEvaluator and delegate detailed evaluations to it.
         from alerts.alert_evaluator import AlertEvaluator
         self.alert_evaluator = AlertEvaluator(self.config, self.data_locker)
 
@@ -203,7 +206,7 @@ class AlertManager:
             self.logger.warning("No alert identifier found; update skipped.")
             return
 
-        update_fields = {"level": new_level}  # Using "level" now instead of "state"
+        update_fields = {"level": new_level}
         if evaluated_value is not None:
             update_fields["evaluated_value"] = evaluated_value
         if pos.get("alert_reference_id") and pos.get("id"):
@@ -227,20 +230,53 @@ class AlertManager:
     def reevaluate_alerts(self):
         """
         Reevaluate all alert conditions by delegating evaluation to AlertEvaluator.
-        This replaces the previous calls to check_profit, check_travel_percent_liquid, etc.
         """
         positions = self.data_locker.read_positions()
-        # Delegate evaluation to AlertEvaluator:
         evaluation_results = self.alert_evaluator.evaluate_alerts(positions=positions)
-        # Optionally, you can log the aggregated results here.
         self.logger.debug(f"Reevaluation completed. Position Alerts: {evaluation_results.get('position')}, "
                           f"Market Alerts: {evaluation_results.get('market')}, "
                           f"System Alerts: {evaluation_results.get('system')}")
 
+    def send_sms_alert(self, message: str, key: str):
+        """
+        Sends an SMS alert using the xCom module.
+        Implements a refractory period to suppress duplicate alerts.
+        """
+        now = current_time()
+        last_sms_time = self.last_call_triggered.get(key, 0)
+        if now - last_sms_time < self.call_refractory_period:
+            self.logger.info("SMS alert '%s' suppressed.", key)
+            u_logger.log_operation(
+                operation_type="Alert Silenced",
+                primary_text=f"SMS Alert Silenced: {key}",
+                source="AlertManager",
+                file="alert_manager.py",
+                extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
+            )
+            return
+
+        result = send_sms("", message)
+        if result:
+            self.last_call_triggered[key] = now
+            u_logger.log_operation(
+                operation_type="SMS Sent",
+                primary_text=f"SMS alert sent: {key}",
+                source="AlertManager",
+                file="alert_manager.py",
+                extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
+            )
+        else:
+            u_logger.log_operation(
+                operation_type="SMS Failed",
+                primary_text=f"Failed to send SMS alert: {key}",
+                source="AlertManager",
+                file="alert_manager.py",
+                extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
+            )
+
     def check_alerts(self, source: Optional[str] = None):
         """
-        Called typically by the 'Refresh' route or background loop.
-        Reevaluate conditions, retrieve updated alerts from DB,
+        Reevaluate alert conditions, retrieve updated alerts from DB,
         and trigger notifications if needed.
         """
         if not self.monitor_enabled:
@@ -271,7 +307,8 @@ class AlertManager:
                 file="alert_manager.py",
                 extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
             )
-            self.send_call(combined_message, "all_alerts")
+            # Use xCom to send an SMS alert instead of a voice call
+            self.send_sms_alert(combined_message, "all_alerts")
         elif self.suppressed_count > 0:
             u_logger.log_alert(
                 operation_type="Alert Silenced",
@@ -288,7 +325,6 @@ class AlertManager:
                 file="alert_manager.py",
                 extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
             )
-
 
     def update_timer_states(self):
         now = current_time()
@@ -373,7 +409,6 @@ class AlertManager:
             )
             self.logger.error("Error sending call for '%s': %s", key, e, exc_info=True)
 
-
     def trigger_snooze(self):
         now = current_time()
         self.config["snooze_start"] = now
@@ -397,22 +432,6 @@ class AlertManager:
             extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
         )
 
-    def run(self):
-        """
-        Background loop if run as a main script.
-        """
-        u_logger.log_operation(
-            operation_type="Monitor Loop",
-            primary_text="Starting alert monitoring loop",
-            source="AlertManager",
-            file="alert_manager.py",
-            extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
-        )
-        while True:
-            self.update_timer_states()
-            self.check_alerts()
-            time.sleep(self.poll_interval)
-
     def load_json_config(self, json_path: str) -> dict:
         try:
             with open(json_path, 'r', encoding='utf-8') as f:
@@ -433,14 +452,9 @@ class AlertManager:
                               condition: str = "BELOW",
                               notification_type: str = NotificationType.ACTION.value,
                               level: str = "Normal") -> dict:
-        """
-        Creates a new alert for a given position and updates the position's
-        alert_reference_id to link to the new alert.
-        """
         from uuid import uuid4
         from datetime import datetime
 
-        # Create a new Alert instance using the new "level" parameter.
         new_alert = Alert(
             id=str(uuid4()),
             alert_type=alert_type,
@@ -456,11 +470,10 @@ class AlertManager:
             liquidation_price=position.get("liquidation_price", 0.0),
             notes="Auto-created alert for position",
             position_reference_id=position.get("id"),
-            level=level,  # now using level instead of state
+            level=level,
             evaluated_value=0.0
         )
 
-        # Convert to dictionary and ensure required fields are set.
         alert_dict = new_alert.__dict__
         alert_dict.setdefault("asset_type", position.get("asset_type", "BTC"))
         alert_dict.setdefault("condition", condition)
@@ -469,10 +482,8 @@ class AlertManager:
             alert_dict["created_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         try:
-            # Patch DataLocker if needed...
             if not hasattr(self.data_locker, "initialize_alert_data"):
-                self.data_locker.initialize_alert_data = lambda x: {**x, "created_at": datetime.now().strftime(
-                    "%Y-%m-%d %H:%M:%S")}
+                self.data_locker.initialize_alert_data = lambda x: {**x, "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
             if not hasattr(self.data_locker, "enrich_alert"):
                 self.data_locker.enrich_alert = lambda x: x
 
@@ -480,8 +491,7 @@ class AlertManager:
             if success:
                 conn = self.data_locker.get_db_connection()
                 cursor = conn.cursor()
-                cursor.execute("UPDATE positions SET alert_reference_id=? WHERE id=?",
-                               (new_alert.id, position.get("id")))
+                cursor.execute("UPDATE positions SET alert_reference_id=? WHERE id=?", (new_alert.id, position.get("id")))
                 conn.commit()
                 cursor.close()
 
@@ -510,14 +520,10 @@ class AlertManager:
             return None
 
     def update_alert_link(self, position: dict, new_alert_id: str) -> bool:
-        """
-        Updates the position's alert_reference_id to link to a given alert.
-        """
         try:
             conn = self.data_locker.get_db_connection()
             cursor = conn.cursor()
-            cursor.execute("UPDATE positions SET alert_reference_id=? WHERE id=?",
-                           (new_alert_id, position.get("id")))
+            cursor.execute("UPDATE positions SET alert_reference_id=? WHERE id=?", (new_alert_id, position.get("id")))
             conn.commit()
             cursor.close()
             self.logger.log_operation(
@@ -537,68 +543,10 @@ class AlertManager:
             return False
 
     def clear_alert_link(self, position: dict) -> bool:
-        """
-        Clears the alert_reference_id for a position.
-        """
         try:
             conn = self.data_locker.get_db_connection()
             cursor = conn.cursor()
-            cursor.execute("UPDATE positions SET alert_reference_id=NULL WHERE id=?",
-                           (position.get("id"),))
-            conn.commit()
-            cursor.close()
-            self.logger.log_operation(
-                operation_type="Alert Link Cleared",
-                primary_text=f"Cleared alert link for position {position.get('id')}",
-                source="AlertManager",
-                file="alert_manager.py"
-            )
-            return True
-        except Exception as e:
-            self.logger.log_operation(
-                operation_type="Clear Alert Link Error",
-                primary_text=f"Error clearing alert link for position {position.get('id')}: {e}",
-                source="AlertManager",
-                file="alert_manager.py"
-            )
-            return False
-
-    def update_alert_link(self, position: dict, new_alert_id: str) -> bool:
-        """
-        Updates the position's alert_reference_id to link to a given alert.
-        """
-        try:
-            conn = self.data_locker.get_db_connection()
-            cursor = conn.cursor()
-            cursor.execute("UPDATE positions SET alert_reference_id=? WHERE id=?",
-                           (new_alert_id, position.get("id")))
-            conn.commit()
-            cursor.close()
-            self.logger.log_operation(
-                operation_type="Alert Link Update",
-                primary_text=f"Updated alert link for position {position.get('id')} to alert {new_alert_id}",
-                source="AlertManager",
-                file="alert_manager.py"
-            )
-            return True
-        except Exception as e:
-            self.logger.log_operation(
-                operation_type="Alert Link Update Error",
-                primary_text=f"Error updating alert link for position {position.get('id')}: {e}",
-                source="AlertManager",
-                file="alert_manager.py"
-            )
-            return False
-
-    def clear_alert_link(self, position: dict) -> bool:
-        """
-        Clears the alert_reference_id for a position.
-        """
-        try:
-            conn = self.data_locker.get_db_connection()
-            cursor = conn.cursor()
-            cursor.execute("UPDATE positions SET alert_reference_id=NULL WHERE id=?",
-                           (position.get("id"),))
+            cursor.execute("UPDATE positions SET alert_reference_id=NULL WHERE id=?", (position.get("id"),))
             conn.commit()
             cursor.close()
             self.logger.log_operation(
@@ -618,16 +566,6 @@ class AlertManager:
             return False
 
     def clear_stale_alerts(self):
-        """
-        Clear stale IDs in three steps:
-          1) For each alert record that has a position_reference_id, check if the referenced position exists.
-             If not, delete that alert.
-          2) For each position record that has an alert_reference_id, check if that alert exists.
-             If not, clear the alert_reference_id.
-          3) Instruct the HedgeManager to clear its hedge associations.
-        Prints the number of alerts deleted and positions updated.
-        """
-        # Step 1: Check alerts whose referenced positions no longer exist.
         alerts = self.data_locker.get_alerts()
         positions = self.data_locker.read_positions()
         valid_position_ids = {pos.get("id") for pos in positions}
@@ -636,13 +574,11 @@ class AlertManager:
         for alert in alerts:
             pos_id = alert.get("position_reference_id")
             if pos_id and pos_id not in valid_position_ids:
-                # Delete this stale alert.
                 if self.alert_controller.delete_alert(alert["id"]):
                     deleted_alerts += 1
 
         print(f"Deleted {deleted_alerts} stale alert(s) referencing non-existent positions.")
 
-        # Step 2: Check positions whose alert_reference_id no longer exists.
         alerts = self.data_locker.get_alerts()  # updated alerts list
         valid_alert_ids = {alert.get("id") for alert in alerts}
         updated_positions = 0
@@ -657,15 +593,29 @@ class AlertManager:
 
         print(f"Cleared stale alert references in {updated_positions} position(s).")
 
-        # Step 3: Ask the HedgeManager to clear its hedge associations.
         try:
             from sonic_labs.hedge_manager import HedgeManager
-            HedgeManager.clear_hedge_data()  # This static method clears hedge_buddy_id from positions.
+            HedgeManager.clear_hedge_data()
             print("Cleared hedge associations in positions.")
         except Exception as e:
             print(f"Error clearing hedge data: {e}")
 
 
+    def run(self):
+        """
+        Background loop if run as a main script.
+        """
+        u_logger.log_operation(
+            operation_type="Monitor Loop",
+            primary_text="Starting alert monitoring loop",
+            source="AlertManager",
+            file="alert_manager.py",
+            extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
+        )
+        while True:
+            self.update_timer_states()
+            self.check_alerts()
+            time.sleep(self.poll_interval)
 
 # Create a global AlertManager instance for use in other modules.
 manager = AlertManager(
@@ -673,6 +623,10 @@ manager = AlertManager(
     poll_interval=60,
     config_path=str(CONFIG_PATH)
 )
+
+
+
+
 
 if __name__ == "__main__":
     import logging
