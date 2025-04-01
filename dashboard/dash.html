@@ -5,6 +5,36 @@
 {% block extra_styles %}
   {{ super() }}
   <style>
+    /* --------------------------------------------------
+       Color Setting Variables (Light & Dark Mode)
+    ----------------------------------------------------- */
+    :root {
+      /* For dashboard boxes */
+      --light-bg-color: #7db3f5;
+      --light-border-color: #fff;
+      --light-text-color: #fff;
+
+      --dark-bg-color: #1b1919;  /* Darker grey for night mode */
+      --dark-border-color: #444;
+      --dark-text-color: #ddd;
+
+      /* For overall page background */
+      --light-page-bg-color: #f5f5f5;
+      --light-page-text-color: #000;
+      --dark-page-bg-color: #706b6b;
+      --dark-page-text-color: #eae2e2;
+    }
+
+    /* Overall page background styles */
+    body.light-bg {
+      background-color: var(--light-page-bg-color);
+      color: var(--light-page-text-color);
+    }
+    body.dark-bg {
+      background-color: var(--dark-page-bg-color);
+      color: var(--dark-page-text-color);
+    }
+
     /* ----------------------------
        Common Style Settings
     ----------------------------- */
@@ -16,14 +46,14 @@
     }
     /* Light and Dark mode classes for boxes */
     .light-mode {
-      background-color: #7db3f5;
-      border-color: #fff;
-      color: #fff;
+      background-color: var(--light-bg-color);
+      border-color: var(--light-border-color);
+      color: var(--light-text-color);
     }
     .dark-mode {
-      background-color: #2b2b2b;
-      border-color: #444;
-      color: #ddd;
+      background-color: var(--dark-bg-color);
+      border-color: var(--dark-border-color);
+      color: var(--dark-text-color);
     }
 
     /* ----------------------------
@@ -460,6 +490,14 @@
         liquidationBox.classList.remove('dark-mode');
         liquidationBox.classList.add('light-mode');
         toggleContainer.innerHTML = moonIcon;
+      }
+      // Toggle overall page background
+      if (document.body.classList.contains('light-bg')) {
+        document.body.classList.remove('light-bg');
+        document.body.classList.add('dark-bg');
+      } else {
+        document.body.classList.remove('dark-bg');
+        document.body.classList.add('light-bg');
       }
     });
   </script>

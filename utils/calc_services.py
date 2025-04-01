@@ -287,12 +287,19 @@ class CalcServices:
             )
             pos["liquidation_distance"] = liq_distance
 
+            self.logger.debug(f"Storing travel_percent {travel_percent} for position {pos['id']} in the database.")
+
             # Update travel percent in DB
             try:
                 cursor.execute(
                     "UPDATE positions SET travel_percent = ? WHERE id = ?",
                     (travel_percent, pos["id"])
                 )
+
+                # After successful update
+                self.logger.debug(
+                f"Successfully stored travel_percent {travel_percent} for position {pos['id']} in the database.")
+
             except Exception as e:
                 print(f"Error updating travel_percent for position {pos['id']}: {e}")
 

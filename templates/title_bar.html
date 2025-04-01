@@ -273,10 +273,15 @@
         const callStart = data.call_refractory_start;
         const snoozeStart = data.snooze_start;
         function updateTimers() {
-          document.getElementById('callTimer').textContent =
-            `☎ ${getRemaining(callStart, callPeriod)}`;
-          document.getElementById('snoozeTimer').textContent =
-            `💤 ${getRemaining(snoozeStart, snoozeCount)}`;
+          // For call timer: show "☎" if >5 seconds, else "⏰"
+          const callRemaining = getRemaining(callStart, callPeriod);
+          const callIcon = callRemaining > 5 ? '☎' : '⏰';
+          document.getElementById('callTimer').textContent = `${callIcon} ${callRemaining}`;
+
+          // For snooze timer: show "💤" if >5 seconds, else "😴"
+          const snoozeRemaining = getRemaining(snoozeStart, snoozeCount);
+          const snoozeIcon = snoozeRemaining > 5 ? '💤' : '😴';
+          document.getElementById('snoozeTimer').textContent = `${snoozeIcon} ${snoozeRemaining}`;
         }
         updateTimers();
         setInterval(updateTimers, 1000);

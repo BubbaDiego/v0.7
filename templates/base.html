@@ -26,6 +26,12 @@
       --wallpaper-color: {{ theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('wallpaper', {}).get('color', '#E7F1FF') }};
       --card-title-color: {{ theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('card title', {}).get('color', '#FFFFFF') }};
       --card-background-color: {{ theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('card background', {}).get('color', '#D0E7FF') }};
+
+      /* Additional CSS variables for dark/light page backgrounds */
+      --light-page-bg-color: #f5f5f5;
+      --light-page-text-color: #000;
+      --dark-page-bg-color: #3a3838;
+      --dark-page-text-color: #ddd;
     }
     body {
       color: var(--text-color) !important;
@@ -36,9 +42,23 @@
       {% endif %}
     }
   </style>
+
+  <!-- Additional styles for dark/light page backgrounds -->
+  <style>
+    body.light-bg {
+      background-color: var(--light-page-bg-color) !important;
+      color: var(--light-page-text-color) !important;
+      background-image: none !important;
+    }
+    body.dark-bg {
+      background-color: var(--dark-page-bg-color) !important;
+      color: var(--dark-page-text-color) !important;
+      background-image: none !important;
+    }
+  </style>
 </head>
 
-<body class="hold-transition layout-top-nav">
+<body class="hold-transition layout-top-nav light-bg">
   <div class="wrapper">
     {% include "title_bar.html" %}
 

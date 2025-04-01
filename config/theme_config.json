@@ -3,27 +3,27 @@
     "blueTheme": {
       "name": "Blue Ocean",
       "title bar": {
-        "color": "#adb5bd",
+        "color": "#007BFF",
         "image": null
       },
       "side bar": {
-        "color": "#cfd1d3",
+        "color": "#0056b3",
         "image": null
       },
       "wallpaper": {
-        "color": "#e7f1ff",
+        "color": "#E7F1FF",
         "image": null
       },
       "card title": {
-        "color": "#ffffff",
+        "color": "#FFFFFF",
         "image": null
       },
       "card background": {
-        "color": "#d0e7ff",
+        "color": "#D0E7FF",
         "image": null
       },
       "text": {
-        "color": "#ffffff",
+        "color": "#FFFFFF",
         "image": null
       }
     },
@@ -84,27 +84,27 @@
     "purpleTheme": {
       "name": "Royal Purple",
       "title bar": {
-        "color": "#6F42C1",
+        "color": "#6f42c1",
         "image": null
       },
       "side bar": {
-        "color": "#5A32A3",
+        "color": "#5a32a3",
         "image": null
       },
       "wallpaper": {
-        "color": "#E2D4F0",
+        "color": "#e2d4f0",
         "image": null
       },
       "card title": {
-        "color": "#FFFFFF",
+        "color": "#ffffff",
         "image": null
       },
       "card background": {
-        "color": "#D1B3E1",
+        "color": "#d1b3e1",
         "image": null
       },
       "text": {
-        "color": "#FFFFFF",
+        "color": "#ffffff",
         "image": null
       }
     },
@@ -235,5 +235,5 @@
       }
     }
   },
-  "selected_profile": "blueTheme"
+  "selected_profile": "purpleTheme"
 }

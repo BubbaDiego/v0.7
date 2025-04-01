@@ -214,7 +214,7 @@ class Cyclone:
         self.logger.info("Starting Clear All Data (non-interactive)")
         try:
             await asyncio.to_thread(self.clear_alerts_backend)
-            await asyncio.to_thread(self.clear_prices_backend)
+           # await asyncio.to_thread(self.clear_prices_backend)
             await asyncio.to_thread(self.clear_positions_backend)
             self.u_logger.log_cyclone(
                 operation_type="Clear All Data",
@@ -266,6 +266,28 @@ class Cyclone:
                 "alert", "system", "link_hedges"
             ]:
                 await available_steps[step]()
+
+    def delete_all_data_api(self):
+        """
+        Non-interactive method to delete all alerts, prices, and positions.
+        This method is intended for API use and does not require user confirmation.
+        """
+        try:
+            self.clear_alerts_backend()
+            self.clear_prices_backend()
+            self.clear_positions_backend()
+            self.u_logger.log_cyclone(
+                operation_type="Delete All Data",
+                primary_text="All alerts, prices, and positions have been deleted via API.",
+                source="Cyclone",
+                file="cyclone.py"
+            )
+            print("All alerts, prices, and positions have been deleted via API.")
+            return True, "All alerts, prices, and positions have been deleted."
+        except Exception as e:
+            self.logger.error(f"Error deleting all data via API: {e}", exc_info=True)
+            return False, str(e)
+
 
     async def run_cleanse_ids(self):
         """

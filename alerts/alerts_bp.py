@@ -8,6 +8,7 @@ from pathlib import Path
 from utils.operations_manager import OperationsLogger
 from utils.json_manager import JsonManager, JsonType
 from sonic_labs.hedge_manager import HedgeManager
+from cyclone.cyclone import Cyclone
 from time import time
 
 # Ensure the current directory is in sys.path so we can import alert_manager.py
@@ -136,6 +137,27 @@ def create_all_alerts():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+def delete_all_data_api(self):
+    """
+    Non-interactive method to delete all alerts, prices, and positions.
+    This method is intended for API use and does not require user confirmation.
+    """
+    try:
+        self.clear_alerts_backend()
+        self.clear_prices_backend()
+        self.clear_positions_backend()
+        self.u_logger.log_cyclone(
+            operation_type="Delete All Data",
+            primary_text="All alerts, prices, and positions have been deleted via API.",
+            source="Cyclone",
+            file="cyclone.py"
+        )
+        print("All alerts, prices, and positions have been deleted via API.")
+        return True, "All alerts, prices, and positions have been deleted."
+    except Exception as e:
+        self.logger.error(f"Error deleting all data via API: {e}", exc_info=True)
+        return False, str(e)
+
 @alerts_bp.route('/delete_all_alerts', methods=['POST'], endpoint="delete_all_alerts")
 def delete_all_alerts():
     delete_type = (request.json.get("delete_type") or request.form.get("delete_type", "alerts")).lower()
@@ -149,15 +171,16 @@ def delete_all_alerts():
             cyc.clear_alerts_backend()
             return jsonify({"success": True, "message": "Alerts cleared."})
         elif delete_type == "all":
-            cyc.clear_prices_backend()
-            cyc.clear_alerts_backend()
-            return jsonify({"success": True, "message": "Deleted alerts and cleared price data."})
+            success, msg = cyc.delete_all_data_api()  # Call the new API method
+            if success:
+                return jsonify({"success": True, "message": msg})
+            else:
+                return jsonify({"success": False, "error": msg}), 500
         else:
             return jsonify({"success": False, "error": "Invalid delete type."}), 400
     except Exception as e:
         logger.error("Error deleting alerts: %s", str(e))
         return jsonify({"success": False, "error": str(e)}), 500
-
 
 
 def format_alert_config_table(alert_ranges: dict) -> str:

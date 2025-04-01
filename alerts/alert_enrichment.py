@@ -2,7 +2,6 @@ import logging
 from utils.json_manager import JsonManager, JsonType
 from data.models import AlertType  # Import the model for consistent alert type values
 
-
 def normalize_alert_type(alert: dict) -> dict:
     """
     Normalize the alert_type field in the alert dictionary.
