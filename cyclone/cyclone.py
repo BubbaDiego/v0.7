@@ -238,7 +238,7 @@ class Cyclone:
         New default ordering includes "enrich alerts" and renames the position enrichment step.
         """
         available_steps = {
-            "clear_all_data": self.run_clear_all_data,
+            "clear_all_data": self.run_clear_all_data,  # this is modified for testing
             "market": self.run_market_updates,
             "position": self.run_position_updates,
             "cleanse_ids": self.run_cleanse_ids,
