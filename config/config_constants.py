@@ -38,7 +38,7 @@ COM_CONFIG_PATH = BASE_DIR / "config" / COM_CONFIG_FILENAME
 THEME_CONFIG_FILENAME = os.getenv("THEME_CONFIG_FILENAME", "theme_config.json")
 THEME_CONFIG_PATH = BASE_DIR / "config" / THEME_CONFIG_FILENAME
 
-HEARTBEAT_FILE = os.getenv("HEARTBEAT_FILE", os.path.join(BASE_DIR, "monitor", "heartbeat.txt"))
+HEARTBEAT_FILE = os.getenv("HEARTBEAT_FILE", os.path.join(BASE_DIR, "monitor", "sonic_ledger.json"))
 # HEARTBEAT_FILE = os.getenv("HEARTBEAT_FILE", "/home/BubbaDiego/v0.7/monitor/heartbeat.txt")
 
 # Image asset paths

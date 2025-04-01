@@ -50,7 +50,7 @@ system_config = sonic_config.get("system_config", {})
 alert_monitor_enabled = system_config.get("alert_monitor_enabled", True)
 
 # Set threshold (in minutes) for considering the monitor as down
-THRESHOLD_MINUTES = 5
+THRESHOLD_MINUTES = 35
 
 # Create an instance of the UnifiedLogger
 unified_logger = UnifiedLogger()
