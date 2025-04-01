@@ -3,7 +3,7 @@
 unified_logger.py
 
 This module implements a unified logger for the application.
-It writes logs in JSON format to separate files for operations, alerts, and now cyclone events,
+It writes logs in JSON format to separate files for operations, alerts, and cyclone events,
 and also outputs logs to the console.
 The log records include custom fields such as source, operation type, file name,
 and an optional 'json_type' field.
@@ -103,8 +103,6 @@ class UnifiedLogger:
         self.logger.addHandler(console_handler)
 
     def log_operation(self, operation_type: str, primary_text: str, source: str = "", file: str = "", extra_data: dict = None):
-        self.logger.debug("About to log operation: operation_type=%s, primary_text=%s, source=%s, file=%s",
-                          operation_type, primary_text, source, file)
         extra = {
             "source": source,
             "operation_type": operation_type,
@@ -114,11 +112,8 @@ class UnifiedLogger:
         if extra_data:
             extra.update(extra_data)
         self.logger.info(primary_text, extra=extra)
-        self.logger.debug("Logged operation entry with operation_type=%s", operation_type)
 
     def log_alert(self, operation_type: str, primary_text: str, source: str = "", file: str = "", extra_data: dict = None):
-        self.logger.debug("About to log alert: operation_type=%s, primary_text=%s, source=%s, file=%s",
-                          operation_type, primary_text, source, file)
         extra = {
             "source": source,
             "operation_type": operation_type,
@@ -128,11 +123,8 @@ class UnifiedLogger:
         if extra_data:
             extra.update(extra_data)
         self.logger.info(primary_text, extra=extra)
-        self.logger.debug("Logged alert entry with operation_type=%s", operation_type)
 
     def log_cyclone(self, operation_type: str, primary_text: str, source: str = "", file: str = "", extra_data: dict = None):
-        self.logger.debug("About to log cyclone event: operation_type=%s, primary_text=%s, source=%s, file=%s",
-                          operation_type, primary_text, source, file)
         extra = {
             "source": source,
             "operation_type": operation_type,
@@ -142,7 +134,6 @@ class UnifiedLogger:
         if extra_data:
             extra.update(extra_data)
         self.logger.info(primary_text, extra=extra)
-        self.logger.debug("Logged cyclone entry with operation_type=%s", operation_type)
 
 # Example usage:
 if __name__ == "__main__":

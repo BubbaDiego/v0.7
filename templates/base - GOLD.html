@@ -1,686 +1,197 @@
-{% extends "base.html" %}
-
-{% block title %}Dashboard{% endblock %}
-
-{% block extra_styles %}
-  {{ super() }}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Notepad UI Concepts</title>
   <style>
-    /* --------------------------------------------------
-       Color Setting Variables (Light & Dark Mode)
-    ----------------------------------------------------- */
-    :root {
-      /* For dashboard boxes */
-      --light-bg-color: #7db3f5;
-      --light-border-color: #fff;
-      --light-text-color: #fff;
+    /* Global Styles */
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+    .navbar { background-color: #4a90e2; color: white; padding: 1em; text-align: center; }
+    .nav-tabs { display: flex; justify-content: center; margin: 1em 0; }
+    .nav-tab { margin: 0 1em; cursor: pointer; padding: 0.5em 1em; border: 1px solid #ccc; border-radius: 5px; }
+    .nav-tab.active { background-color: #4a90e2; color: white; }
+    .section { display: none; padding: 1em; }
+    .section.active { display: block; }
+    .pencil-icon { cursor: pointer; font-size: 24px; margin-right: 0.5em; }
+    .notepad { border: 1px solid #ccc; padding: 0.5em; margin-top: 0.5em; }
+    
+    /* Concept 2: Modal */
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; }
+    .modal-content { background: white; padding: 1em; border-radius: 5px; width: 80%; max-width: 500px; }
 
-      --dark-bg-color: #1b1919;  /* Darker grey for night mode */
-      --dark-border-color: #444;
-      --dark-text-color: #ddd;
-
-      /* For overall page background */
-      --light-page-bg-color: #f5f5f5;
-      --light-page-text-color: #000;
-      --dark-page-bg-color: #706b6b;
-      --dark-page-text-color: #eae2e2;
-    }
-
-    /* Overall page background styles */
-    body.light-bg {
-      background-color: var(--light-page-bg-color);
-      color: var(--light-page-text-color);
-    }
-    body.dark-bg {
-      background-color: var(--dark-page-bg-color);
-      color: var(--dark-page-text-color);
-    }
-
-    /* ----------------------------
-       Common Style Settings
-    ----------------------------- */
-    .common-box {
-      border-radius: 10px;
-      border: 2px solid;
-      padding: 20px;
-      transition: background-color 0.4s, color 0.4s, border-color 0.4s;
-    }
-    /* Light and Dark mode classes for boxes */
-    .light-mode {
-      background-color: var(--light-bg-color);
-      border-color: var(--light-border-color);
-      color: var(--light-text-color);
-    }
-    .dark-mode {
-      background-color: var(--dark-bg-color);
-      border-color: var(--dark-border-color);
-      color: var(--dark-text-color);
-    }
-
-    /* ----------------------------
-       Status Bar Styles
-    ----------------------------- */
-    .status-bar {
-      position: relative;
-      display: flex;
-      justify-content: space-evenly;
-      align-items: center;
-      padding: 20px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-      margin-top: 0;
-    }
-    .status-bar > div:not(.toggle-container) {
-      text-align: center;
-    }
-    .status-label {
-      font-size: 1.1rem;
-      font-weight: bold;
-      margin-bottom: 5px;
-      display: block;
-    }
-    .status-value {
-      font-size: 1.2rem;
-    }
-    .toggle-container {
-      position: absolute;
-      bottom: 5px;
-      right: 5px;
-      cursor: pointer;
-    }
-    .toggle-container svg {
-      display: block;
-    }
-
-    /* ----------------------------
-       Box Row for Side-by-Side Boxes
-    ----------------------------- */
-    .box-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 25px;
-      margin-top: 20px;
-    }
-    .box-row.center-row {
-      gap: 35px;
-    }
-    .mini-table-box, .liquidation-box, .graph-box, .pie-box {
-      width: 48%;
-    }
-
-    /* ----------------------------
-       Pie Box Styles
-    ----------------------------- */
-    .pie-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-    }
-    .pie-col {
-      width: 48%;
-      text-align: center;
-    }
-    .chart-label {
-      font-size: 1.2rem;
-      margin-bottom: 10px;
-      font-weight: bold;
-    }
-
-    /* ----------------------------
-       Graph Box Styles
-    ----------------------------- */
-    .graph-box {
-      overflow: hidden;
-    }
-
-    /* ----------------------------
-       Mini Positions Table Styles
-    ----------------------------- */
-    .mini-table-box table {
-      width: 100%;
-      border-collapse: collapse;
-      color: #fff;
-    }
-    .mini-table-box th, .mini-table-box td {
-      padding: 0.5rem;
-      text-align: center;
-      border-bottom: 1px solid rgba(255,255,255,0.3);
-    }
-    .mini-table-box th {
-      font-weight: bold;
-      font-size: 1.1rem;
-    }
-
-    /* ----------------------------
-       Positions Table Container and Icons
-    ----------------------------- */
-    .positions-container {
-      margin-top: 10px;
-      overflow-x: auto;
-    }
-    .asset-cell, .wallet-cell {
-      text-align: center;
-    }
-    .wallet-icon {
-      border-radius: 50%;
-      width: 32px;
-      height: 32px;
-      object-fit: cover;
-    }
-    .asset-icon {
-      width: 32px;
-      height: 32px;
-    }
-    #positionsTable th {
-      cursor: pointer;
-    }
-
-    /* ----------------------------
-       Liquidation Bar Specific Styles
-    ----------------------------- */
-    .liquidation-box {
-      position: relative;
-      min-height: 150px;
-    }
-
-    /* Use a fixed width to extend the bar more */
-    .progress.liquidation {
-      position: relative;
-      background-color: #e9ecef;
-      height: 1.5rem;
-      border-radius: 1rem;
-      width: 90%;
-      flex: 1;
-    }
-    .progress.liquidation::before {
-      content: "";
-      position: absolute;
-      left: 25%;
-      top: 0;
-      bottom: 0;
-      width: 3px;
-      background-color: rgba(0,0,0,0.7);
-      z-index: 5;
-    }
-    .liquidation-fill {
-      position: absolute;
-      height: 100%;
-      border-radius: 1rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-      font-weight: bold;
-    }
-    .liquidation-fill.striped {
-      background-image: linear-gradient(
-        45deg,
-        rgba(255,255,255,0.15) 25%,
-        transparent 25%,
-        transparent 50%,
-        rgba(255,255,255,0.15) 50%,
-        rgba(255,255,255,0.15) 75%,
-        transparent 75%,
-        transparent
-      );
-      background-size: 1rem 1rem;
-    }
-    .bg-success { background-color: #198754; }
-    .bg-warning { background-color: #ffc107; }
-    .bg-danger { background-color: #dc3545; }
-    .liq-row {
-      display: flex;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-    .liq-row .wallet-icon {
-      margin-top: -5px;
-    }
-
-    /* Heat Index Circle: pinned to the far end of the bar */
-    .heat-index-circle {
-      position: absolute;
-      right: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background-color: #ff5733;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-      font-weight: bold;
-      font-size: 0.9rem;
-      z-index: 6;
-      box-shadow: 0 0 3px rgba(0,0,0,0.3);
-    }
-
-    /* Flame icon outside the bar, now positioned at the top */
-    .flame-icon-pos {
-      position: absolute;
-      right: -30px;
-      top: -20px;
-      font-size: 28px;
-      z-index: 10;
-    }
+    /* Concept 3: Slide-In Panel */
+    .slide-panel { position: fixed; top: 0; right: -300px; width: 300px; height: 100%; background: white; box-shadow: -2px 0 5px rgba(0,0,0,0.3); transition: right 0.3s; padding: 1em; }
+    .slide-panel.active { right: 0; }
+    
+    /* Concept 4: Floating Notepad */
+    .floating { position: fixed; top: 20%; left: 50%; transform: translate(-50%, -20%); background: white; border: 1px solid #ccc; padding: 1em; box-shadow: 0 0 10px rgba(0,0,0,0.3); border-radius: 5px; }
+    .floating.hidden { display: none; }
+    
+    /* Concept 5: Collapsible Card */
+    .collapsible-card { border: 1px solid #ccc; border-radius: 5px; overflow: hidden; width: 300px; }
+    .card-header { background: #f0f0f0; padding: 0.5em; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+    .card-content { display: none; padding: 0.5em; }
+    .card-content.active { display: block; }
   </style>
-{% endblock %}
-
-{% block content %}
-  <!-- Status Bar -->
-  <div class="status-bar common-box light-mode" id="statusBar">
-    <div>
-      <span class="status-label">🔥 Heat</span>
-      <span class="status-value">{{ total_heat_index | default("N/A") }}</span>
-    </div>
-    <div>
-      <span class="status-label">💰 Value</span>
-      <span class="status-value">{{ value | default("$0.00") }}</span>
-    </div>
-    <div>
-      <span class="status-label">⚖️ Leverage</span>
-      <span class="status-value">{{ leverage | default("N/A") }}</span>
-    </div>
-    <div>
-      <span class="status-label">📊 Size</span>
-      <span class="status-value">{{ size | default("$0k") }}</span>
-    </div>
-    <div>
-      <span class="status-label">⚡ VC Ratio</span>
-      <span class="status-value">{{ vc_ratio | default("N/A") }}</span>
-    </div>
-    <div>
-      <span class="status-label">✈️ Travel %</span>
-      <span class="status-value">{{ travel_percent | default("N/A") }}</span>
-    </div>
-    <div class="toggle-container" id="toggleContainer"></div>
+</head>
+<body>
+  <div class="navbar">
+    <h1>Notepad UI Concepts</h1>
+    <p>Honey, check out these 5 cool notepad concepts!</p>
   </div>
 
-  <!-- Row 1: Positions Table Box (left) and Liquidation Bar Box (right) -->
-  <div class="box-row">
-    <!-- Positions Table Box -->
-    <div class="common-box light-mode mini-table-box" id="miniTableBox">
-      <div class="chart-label" style="margin-bottom: 15px;">Positions</div>
-      <div id="positionsContainer" class="positions-container">
-        <table id="positionsTable">
-          <thead>
-            <tr>
-              <th onclick="sortTable('positionsTable', 0)">Asset</th>
-              <th onclick="sortTable('positionsTable', 1)">Wallet</th>
-              <th onclick="sortTable('positionsTable', 2)">Heat Index</th>
-              <th onclick="sortTable('positionsTable', 3)">Travel %</th>
-              <th onclick="sortTable('positionsTable', 4)">Leverage</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for pos in positions %}
-            <tr>
-              <!-- Asset Column -->
-              <td class="asset-cell">
-                {% set asset = pos.asset_type | default('BTC') | upper %}
-                {% if asset == 'BTC' %}
-                  <img class="asset-icon" src="{{ url_for('static', filename='images/btc_logo.png') }}" alt="BTC Icon">
-                {% elif asset == 'ETH' %}
-                  <img class="asset-icon" src="{{ url_for('static', filename='images/eth_logo.png') }}" alt="ETH Icon">
-                {% elif asset == 'SOL' %}
-                  <img class="asset-icon" src="{{ url_for('static', filename='images/sol_logo.png') }}" alt="SOL Icon">
-                {% else %}
-                  <img class="asset-icon" src="{{ url_for('static', filename='images/default.png') }}" alt="{{ asset }} Icon">
-                {% endif %}
-              </td>
-              <!-- Wallet Column -->
-              <td class="wallet-cell">
-                {% set wallet = pos.wallet | default('ObiVault') %}
-                {% if wallet == 'ObiVault' %}
-                  <img class="wallet-icon" src="{{ url_for('static', filename='images/obivault.jpg') }}" alt="ObiVault">
-                {% elif wallet == 'R2Vault' %}
-                  <img class="wallet-icon" src="{{ url_for('static', filename='images/r2vault.jpg') }}" alt="R2Vault">
-                {% else %}
-                  <img class="wallet-icon" src="{{ url_for('static', filename='images/obivault.jpg') }}" alt="Wallet">
-                {% endif %}
-              </td>
-              <!-- Heat Index Column (no decimals) -->
-              <td>
-                {% if pos.heat_index is defined and pos.heat_index is not none %}
-                  {{ pos.heat_index|int }}
-                {% else %}
-                  N/A
-                {% endif %}
-              </td>
-              <!-- Travel % Column -->
-              <td>
-                {% if pos.travel_percent is defined and pos.travel_percent is not none %}
-                  {{ "{:,.2f}".format(pos.travel_percent) }}%
-                {% else %}
-                  N/A
-                {% endif %}
-              </td>
-              <!-- Leverage Column -->
-              <td>
-                {% if pos.leverage is defined and pos.leverage is not none %}
-                  {{ "{:,.2f}".format(pos.leverage) }}
-                {% else %}
-                  N/A
-                {% endif %}
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
+  <!-- Navigation Tabs -->
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-target="concept1">Inline Edit</div>
+    <div class="nav-tab" data-target="concept2">Modal Notepad</div>
+    <div class="nav-tab" data-target="concept3">Slide-In Panel</div>
+    <div class="nav-tab" data-target="concept4">Floating Notepad</div>
+    <div class="nav-tab" data-target="concept5">Collapsible Card</div>
+  </div>
 
-    <!-- Liquidation Bar Box -->
-    <div class="common-box light-mode liquidation-box" id="liquidationBox">
-      <div class="chart-label" style="margin-bottom: 15px;">Liquidation Bar</div>
-      {% for pos in liquidation_positions %}
-        <div class="liq-row">
-          {% set wallet = pos.wallet | default('ObiVault') %}
-          {% if wallet == 'ObiVault' %}
-            <img class="wallet-icon" src="{{ url_for('static', filename='images/obivault.jpg') }}" alt="ObiVault">
-          {% elif wallet == 'R2Vault' %}
-            <img class="wallet-icon" src="{{ url_for('static', filename='images/r2vault.jpg') }}" alt="R2Vault">
-          {% else %}
-            <img class="wallet-icon" src="{{ url_for('static', filename='images/obivault.jpg') }}" alt="Wallet">
-          {% endif %}
-          <div class="progress liquidation">
-            {% set travel = pos.travel_percent | float %}
-            {% if travel >= 0 %}
-              <div class="liquidation-fill striped bg-success"
-                   style="right: 75%; width: calc(({{ travel }} / 25) * 25%);">
-                {{ travel|round(0) }}%
-              </div>
-            {% else %}
-              {% if travel|abs <= 50 %}
-                <div class="liquidation-fill striped bg-warning"
-                     style="left: 25%; width: calc(({{ travel|abs }} / 100) * 75%);">
-                  {{ travel|round(0) }}%
-                </div>
-              {% else %}
-                <div class="liquidation-fill striped bg-danger"
-                     style="left: 25%; width: calc(({{ travel|abs }} / 100) * 75%);">
-                  {{ travel|round(0) }}%
-                </div>
-              {% endif %}
-            {% endif %}
-            <!-- Heat Index Circle pinned at bar's right edge -->
-            <div class="heat-index-circle">
-              {% if pos.heat_index is defined and pos.heat_index is not none %}
-                {{ pos.heat_index|int }}
-              {% else %}
-                N/A
-              {% endif %}
-            </div>
-            <!-- Flame icon outside the bar, now positioned at the top -->
-            <div class="flame-icon-pos">🔥</div>
-          </div>
-        </div>
-      {% endfor %}
+  <!-- Concept 1: Inline Editable Notepad -->
+  <div id="concept1" class="section active">
+    <h2>Inline Editable Notepad</h2>
+    <p>Click the pencil icon to toggle an inline notepad in the title bar.</p>
+    <span class="pencil-icon" id="inlinePencil">✏️</span>
+    <div id="inlineNotepad" class="notepad" style="display:none;">
+      <textarea id="inlineText" rows="4" style="width:100%;" placeholder="Type your note here..."></textarea>
+      <button onclick="saveNote('inline')">Save Note</button>
     </div>
   </div>
 
-  <!-- Row 2: Graph Box (left) and Pie Box (right) -->
-  <div class="box-row">
-    <div class="common-box light-mode graph-box" id="graphBox">
-      <div id="graphChart" style="height: 300px;"></div>
-    </div>
-    <div class="common-box light-mode pie-box" id="pieBox">
-      <div class="pie-row">
-        <div class="pie-col">
-          <div class="chart-label">Size</div>
-          <div id="pieChartSize" style="height: 200px;"></div>
-        </div>
-        <div class="pie-col">
-          <div class="chart-label">Collateral</div>
-          <div id="pieChartCollateral" style="height: 200px;"></div>
-        </div>
+  <!-- Concept 2: Modal Notepad -->
+  <div id="concept2" class="section">
+    <h2>Modal Notepad</h2>
+    <p>Click the pencil icon to open a modal dialog notepad.</p>
+    <span class="pencil-icon" id="modalPencil">✏️</span>
+    <div id="modalNotepad" class="modal">
+      <div class="modal-content">
+        <h3>Notepad</h3>
+        <textarea id="modalText" rows="4" style="width:100%;" placeholder="Type your note here..."></textarea>
+        <br>
+        <button onclick="saveNote('modal')">Save Note</button>
+        <button onclick="toggleModal()">Close</button>
       </div>
     </div>
   </div>
 
-  <!-- Row 3: New Positions Overview Pie Chart -->
-  <div class="box-row" style="margin-top: 20px;">
-    <div class="common-box light-mode" id="pieChartPositions" style="width: 100%; height: 300px;">
-      <div class="chart-label" style="margin-bottom: 15px;">Positions Overview</div>
+  <!-- Concept 3: Slide-In Panel Notepad -->
+  <div id="concept3" class="section">
+    <h2>Slide-In Panel Notepad</h2>
+    <p>Click the pencil icon to slide in a side panel notepad.</p>
+    <span class="pencil-icon" id="slidePencil">✏️</span>
+    <div id="slidePanel" class="slide-panel">
+      <h3>Notepad</h3>
+      <textarea id="slideText" rows="4" style="width:100%;" placeholder="Type your note here..."></textarea>
+      <br>
+      <button onclick="saveNote('slide')">Save Note</button>
+      <button onclick="toggleSlide()">Close</button>
     </div>
   </div>
-{% endblock %}
 
-{% block extra_scripts %}
-  {{ super() }}
+  <!-- Concept 4: Floating Notepad -->
+  <div id="concept4" class="section">
+    <h2>Floating Notepad</h2>
+    <p>Click the pencil icon to open a draggable, floating notepad.</p>
+    <span class="pencil-icon" id="floatingPencil">✏️</span>
+    <div id="floatingNotepad" class="floating hidden">
+      <h3>Notepad</h3>
+      <textarea id="floatingText" rows="4" style="width:100%;" placeholder="Type your note here..."></textarea>
+      <br>
+      <button onclick="saveNote('floating')">Save Note</button>
+      <button onclick="toggleFloating()">Close</button>
+    </div>
+  </div>
+
+  <!-- Concept 5: Collapsible Card Notepad -->
+  <div id="concept5" class="section">
+    <h2>Collapsible Card Notepad</h2>
+    <p>Click the pencil icon in the card header to expand a collapsible card notepad.</p>
+    <div class="collapsible-card">
+      <div class="card-header" onclick="toggleCard()">
+        <span>✏️ Notepad</span>
+        <span id="cardToggle">▼</span>
+      </div>
+      <div id="cardContent" class="card-content">
+        <textarea id="cardText" rows="4" style="width:100%;" placeholder="Type your note here..."></textarea>
+        <br>
+        <button onclick="saveNote('card')">Save Note</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    const statusBar = document.getElementById('statusBar');
-    const toggleContainer = document.getElementById('toggleContainer');
-    const pieBox = document.getElementById('pieBox');
-    const graphBox = document.getElementById('graphBox');
-    const miniTableBox = document.getElementById('miniTableBox');
-    const liquidationBox = document.getElementById('liquidationBox');
-
-    const sunIcon = `
-      <svg viewBox="0 0 24 24" width="16" height="16" fill="white" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="12" cy="12" r="5"/>
-        <line x1="12" y1="1" x2="12" y2="3" stroke="white" stroke-width="2"/>
-        <line x1="12" y1="21" x2="12" y2="23" stroke="white" stroke-width="2"/>
-        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="white" stroke-width="2"/>
-        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="white" stroke-width="2"/>
-        <line x1="1" y1="12" x2="3" y2="12" stroke="white" stroke-width="2"/>
-        <line x1="21" y1="12" x2="23" y2="12" stroke="white" stroke-width="2"/>
-        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="white" stroke-width="2"/>
-        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="white" stroke-width="2"/>
-      </svg>
-    `;
-    const moonIcon = `
-      <svg viewBox="0 0 24 24" width="16" height="16" fill="white" xmlns="http://www.w3.org/2000/svg">
-        <path d="M21 12.79A9 9 0 0 1 11.21 3 A7 7 0 0 0 12 17 a7 7 0 0 0 9 -4.21 z"/>
-      </svg>
-    `;
-    toggleContainer.innerHTML = moonIcon;
-
-    toggleContainer.addEventListener('click', () => {
-      if (statusBar.classList.contains('light-mode')) {
-        statusBar.classList.remove('light-mode');
-        statusBar.classList.add('dark-mode');
-        pieBox.classList.remove('light-mode');
-        pieBox.classList.add('dark-mode');
-        graphBox.classList.remove('light-mode');
-        graphBox.classList.add('dark-mode');
-        miniTableBox.classList.remove('light-mode');
-        miniTableBox.classList.add('dark-mode');
-        liquidationBox.classList.remove('light-mode');
-        liquidationBox.classList.add('dark-mode');
-        toggleContainer.innerHTML = sunIcon;
-      } else {
-        statusBar.classList.remove('dark-mode');
-        statusBar.classList.add('light-mode');
-        pieBox.classList.remove('dark-mode');
-        pieBox.classList.add('light-mode');
-        graphBox.classList.remove('dark-mode');
-        graphBox.classList.add('light-mode');
-        miniTableBox.classList.remove('dark-mode');
-        miniTableBox.classList.add('light-mode');
-        liquidationBox.classList.remove('dark-mode');
-        liquidationBox.classList.add('light-mode');
-        toggleContainer.innerHTML = moonIcon;
-      }
-      // Toggle overall page background
-      if (document.body.classList.contains('light-bg')) {
-        document.body.classList.remove('light-bg');
-        document.body.classList.add('dark-bg');
-      } else {
-        document.body.classList.remove('dark-bg');
-        document.body.classList.add('light-bg');
-      }
-    });
-  </script>
-
-  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-  <script>
-    function renderPieCharts(seriesSize, seriesCollateral) {
-      function createPieOptions(seriesData) {
-        return {
-          chart: { type: 'pie', height: 200 },
-          series: seriesData,
-          labels: ['Long', 'Short'],
-          dataLabels: {
-            enabled: true,
-            style: { fontSize: '20px', colors: ['#fff'] },
-            formatter: function(val) { return Math.round(val) + '%'; }
-          },
-          legend: {
-            position: 'bottom',
-            labels: { colors: ['#fff'], fontSize: '20px', fontWeight: 700 }
-          }
-        };
-      }
-      const optionsSize = createPieOptions(seriesSize);
-      const chartSize = new ApexCharts(document.querySelector("#pieChartSize"), optionsSize);
-      chartSize.render();
-
-      const optionsCollateral = createPieOptions(seriesCollateral);
-      const chartCollateral = new ApexCharts(document.querySelector("#pieChartCollateral"), optionsCollateral);
-      chartCollateral.render();
-    }
-
-    function renderGraphChart(timestamps, valueData, collateralData) {
-      const formattedTimestamps = timestamps.map(ts => {
-        const dateObj = new Date(ts);
-        const hour = dateObj.getHours();
-        return ((hour % 12) === 0 ? 12 : (hour % 12)) + ":00 " + (hour < 12 ? "AM" : "PM");
+    // Tab switching logic
+    const tabs = document.querySelectorAll('.nav-tab');
+    const sections = document.querySelectorAll('.section');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        sections.forEach(sec => sec.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById(tab.getAttribute('data-target')).classList.add('active');
       });
-
-      const optionsGraph = {
-        chart: { type: 'line', height: 300 },
-        xaxis: {
-          categories: formattedTimestamps,
-          tickAmount: 6,
-          labels: {
-            style: { colors: '#fff' },
-            showDuplicates: false,
-            hideOverlappingLabels: true
-          }
-        },
-        yaxis: {
-          labels: {
-            formatter: function(val) { return Math.round(val); },
-            style: { colors: '#fff' }
-          }
-        },
-        series: [
-          { name: 'Value', data: valueData.map(v => Math.round(v)) },
-          { name: 'Collateral', data: collateralData.map(v => Math.round(v)) }
-        ],
-        colors: ['#34a853', '#6234da'],
-        stroke: { curve: 'smooth', width: 2 },
-        dataLabels: { enabled: false },
-        legend: {
-          position: 'top',
-          labels: { colors: '#fff', fontSize: '20px', fontWeight: 700 }
-        },
-        tooltip: {
-          theme: 'dark',
-          style: { fontSize: '16px', fontWeight: 'bold', color: '#fff' },
-          y: { formatter: function(val) { return Math.round(val); } }
-        }
-      };
-      const chartGraph = new ApexCharts(document.querySelector("#graphChart"), optionsGraph);
-      chartGraph.render();
-    }
-
-    fetch('/api/size_composition')
-      .then(r => r.json())
-      .then(data => {
-        const sizeSeries = data.series;
-        fetch('/api/collateral_composition')
-          .then(r => r.json())
-          .then(data2 => {
-            const collateralSeries = data2.series;
-            renderPieCharts(sizeSeries, collateralSeries);
-          })
-          .catch(err => console.error("Error fetching collateral composition:", err));
-      })
-      .catch(err => console.error("Error fetching size composition:", err));
-
-    fetch('/api/graph_data')
-      .then(r => r.json())
-      .then(data => {
-        let collateralData = data.collateral;
-        if (!collateralData) {
-          collateralData = data.values.map(v => 0);
-        }
-        renderGraphChart(data.timestamps, data.values, collateralData);
-      })
-      .catch(err => console.error("Error fetching graph data:", err));
-
-    function sortTable(tableId, colIndex) {
-      var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
-      table = document.getElementById(tableId);
-      switching = true;
-      dir = "asc";
-      while (switching) {
-        switching = false;
-        rows = table.rows;
-        for (i = 1; i < (rows.length - 1); i++) {
-          shouldSwitch = false;
-          x = rows[i].getElementsByTagName("TD")[colIndex];
-          y = rows[i + 1].getElementsByTagName("TD")[colIndex];
-          if (dir == "asc") {
-            if (x.innerText.toLowerCase() > y.innerText.toLowerCase()) {
-              shouldSwitch = true;
-              break;
-            }
-          } else if (dir == "desc") {
-            if (x.innerText.toLowerCase() < y.innerText.toLowerCase()) {
-              shouldSwitch = true;
-              break;
-            }
-          }
-        }
-        if (shouldSwitch) {
-          rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-          switching = true;
-          switchcount++;
-        } else {
-          if (switchcount === 0 && dir === "asc") {
-            dir = "desc";
-            switching = true;
-          }
-        }
-      }
-    }
-
-    // New: Render Positions Overview Pie Chart
-    const positionsData = {{ positions | tojson }};
-    // Take up to 8 positions for the chart
-    const positionsChartData = positionsData.slice(0,8).map(pos => {
-      return {
-        asset: pos.asset_type ? pos.asset_type.toUpperCase() : 'BTC',
-        positionType: pos.position_type ? pos.position_type.toUpperCase() : 'LONG',
-        size: parseFloat(pos.size) || 0
-      };
     });
-    const seriesPositions = positionsChartData.map(item => item.size);
-    const labelsPositions = positionsChartData.map(item => `${item.asset} ${item.positionType}`);
-    const colorMap = { "BTC": "#FFD700", "ETH": "#ADD8E6", "SOL": "#D8BFD8" };
-    const colorsPositions = positionsChartData.map(item => colorMap[item.asset] || "#cccccc");
 
-    const optionsPositions = {
-      chart: { type: 'pie', height: 300 },
-      series: seriesPositions,
-      labels: labelsPositions,
-      colors: colorsPositions,
-      tooltip: {
-        custom: function({ series, seriesIndex, dataPointIndex, w }) {
-          const pos = positionsChartData[seriesIndex];
-          return `<div style="padding:10px; color: #fff; background: #333;">
-                    <strong>Asset:</strong> ${pos.asset}<br/>
-                    <strong>Position:</strong> ${pos.positionType}<br/>
-                    <strong>Size:</strong> ${pos.size.toFixed(2)}
-                  </div>`;
-        }
+    // Inline notepad toggle
+    document.getElementById('inlinePencil').addEventListener('click', () => {
+      const inlineNotepad = document.getElementById('inlineNotepad');
+      inlineNotepad.style.display = inlineNotepad.style.display === 'none' ? 'block' : 'none';
+    });
+
+    // Modal notepad toggle
+    document.getElementById('modalPencil').addEventListener('click', toggleModal);
+    function toggleModal() {
+      const modal = document.getElementById('modalNotepad');
+      modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
+    }
+
+    // Slide panel toggle
+    document.getElementById('slidePencil').addEventListener('click', toggleSlide);
+    function toggleSlide() {
+      const slidePanel = document.getElementById('slidePanel');
+      slidePanel.classList.toggle('active');
+    }
+
+    // Floating notepad toggle
+    document.getElementById('floatingPencil').addEventListener('click', toggleFloating);
+    function toggleFloating() {
+      const floating = document.getElementById('floatingNotepad');
+      floating.classList.contains('hidden') ? floating.classList.remove('hidden') : floating.classList.add('hidden');
+    }
+
+    // Collapsible card toggle
+    function toggleCard() {
+      const cardContent = document.getElementById('cardContent');
+      const cardToggle = document.getElementById('cardToggle');
+      if (cardContent.classList.contains('active')) {
+        cardContent.classList.remove('active');
+        cardToggle.textContent = '▼';
+      } else {
+        cardContent.classList.add('active');
+        cardToggle.textContent = '▲';
       }
-    };
+    }
 
-    const chartPositions = new ApexCharts(document.querySelector("#pieChartPositions"), optionsPositions);
-    chartPositions.render();
+    // Save note function (placeholder)
+    function saveNote(type) {
+      let note = '';
+      if (type === 'inline') {
+        note = document.getElementById('inlineText').value;
+      } else if (type === 'modal') {
+        note = document.getElementById('modalText').value;
+      } else if (type === 'slide') {
+        note = document.getElementById('slideText').value;
+      } else if (type === 'floating') {
+        note = document.getElementById('floatingText').value;
+      } else if (type === 'card') {
+        note = document.getElementById('cardText').value;
+      }
+      alert("Note saved: " + note);
+      // Here you can integrate your backend to actually save the note to the database.
+    }
   </script>
-{% endblock %}
+</body>
+</html>
