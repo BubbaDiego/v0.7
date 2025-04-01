@@ -1,9 +1,5 @@
-# calc_services.py
-
 from typing import Optional, List, Dict
 import sqlite3
-import logging
-
 
 @staticmethod
 def get_profit_alert_class(profit, low_thresh, med_thresh, high_thresh):
@@ -49,17 +45,7 @@ class CalcServices:
     """
 
     def __init__(self):
-        # Set up a logger for this class that writes DEBUG-level logs to a file.
-        self.logger = logging.getLogger("CalcServices")
-        self.logger.setLevel(logging.DEBUG)
-        # Create a file handler that logs debug messages
-        fh = logging.FileHandler("calc_services.log")
-        fh.setLevel(logging.DEBUG)
-        formatter = logging.Formatter('[%(levelname)s] %(asctime)s - %(name)s - %(message)s')
-        fh.setFormatter(formatter)
-        self.logger.addHandler(fh)
-
-        # Ranges for color coding (used by get_color) for some metrics.
+        # Logger initialization removed.
         self.color_ranges = {
             "travel_percent": [
                 (0, 25, "green"),
@@ -90,18 +76,12 @@ class CalcServices:
         Then, immediately reads from the database to confirm the updates.
         Returns a tuple: (confirmed_positions, totals)
         """
-        # Read the current positions from the database.
         positions = data_locker.read_positions()
-        self.logger.debug(f"Read {len(positions)} positions from DB for update.")
 
-        # Update positions (this calls aggregator_positions which runs UPDATE queries).
         updated_positions = self.aggregator_positions(positions, data_locker.db_path)
         totals = self.calculate_totals(updated_positions)
 
-        # Immediately re-read positions from the database using the same DataLocker connection.
         confirmed_positions = data_locker.read_positions()
-        self.logger.info("CalcServices: Updated calculations for cyclone and confirmed DB updates.")
-
         return confirmed_positions, totals
 
     def calculate_composite_risk_index(self, position: dict) -> Optional[float]:
@@ -128,57 +108,33 @@ class CalcServices:
             leverage = float(position.get("leverage", 0.0))
             position_type = (position.get("position_type") or "LONG").upper()
 
-            self.logger.debug(
-                "Calculating composite risk index: entry=%f, current=%f, liq=%f, collateral=%f, size=%f, leverage=%f, type=%s",
-                entry_price, current_price, liquidation_price, collateral, size, leverage, position_type)
-
-            # Validate necessary values
             if entry_price <= 0 or liquidation_price <= 0 or collateral <= 0 or size <= 0:
-                self.logger.debug("Invalid input values; returning None")
                 return None
             if abs(entry_price - liquidation_price) < 1e-6:
-                self.logger.debug("Entry price and liquidation price too close; avoiding division by zero")
-                return None  # Avoid division by zero
+                return None
 
-            # Compute normalized distance to liquidation (NDL)
             if position_type == "LONG":
                 ndl = (current_price - liquidation_price) / (entry_price - liquidation_price)
             else:  # SHORT
                 ndl = (liquidation_price - current_price) / (liquidation_price - entry_price)
             ndl = max(0.0, min(ndl, 1.0))
-            self.logger.debug("Computed NDL: %f", ndl)
 
-            # Risk contribution from price distance
             distance_factor = 1.0 - ndl
-            self.logger.debug("Distance factor: %f", distance_factor)
-
-            # Normalize leverage (cap at 100x)
             normalized_leverage = leverage / 100.0
-            self.logger.debug("Normalized leverage: %f", normalized_leverage)
 
-            # Compute collateral ratio (capped at 1)
             collateral_ratio = collateral / size
             if collateral_ratio > 1.0:
                 collateral_ratio = 1.0
             risk_collateral_factor = 1.0 - collateral_ratio
-            self.logger.debug("Collateral ratio: %f, Risk collateral factor: %f", collateral_ratio,
-                              risk_collateral_factor)
 
-            risk_index = (distance_factor ** 0.45) * (normalized_leverage ** 0.35) * (
-                        risk_collateral_factor ** 0.20) * 100.0
-            self.logger.debug("Composite risk index before applying risk floor: %f", risk_index)
-
-            # Apply minimum risk floor of 5
+            risk_index = (distance_factor ** 0.45) * (normalized_leverage ** 0.35) * (risk_collateral_factor ** 0.20) * 100.0
             risk_index = self.apply_minimum_risk_floor(risk_index, 5.0)
-            self.logger.debug("Composite risk index after applying risk floor: %f", risk_index)
 
             return round(risk_index, 2)
         except Exception as e:
-            self.logger.error(f"Error calculating composite risk index: {e}", exc_info=True)
             return None
 
     def calculate_value(self, position):
-        # Since size is already in USD, just return it.
         size = float(position.get("size") or 0.0)
         return round(size, 2)
 
@@ -203,13 +159,7 @@ class CalcServices:
           - At liquidation_price, travel percent = -100%.
           - At profit target (entry_price - (liquidation_price - entry_price)), travel percent = +100%.
         """
-        # Log the input parameters.
-        self.logger.debug(
-            "calculate_travel_percent called with: position_type=%s, entry_price=%f, current_price=%f, liquidation_price=%f",
-            position_type, entry_price, current_price, liquidation_price)
-
         if entry_price <= 0 or liquidation_price <= 0 or entry_price == liquidation_price:
-            self.logger.debug("Invalid input values; returning 0.0")
             return 0.0
 
         ptype = position_type.upper()
@@ -220,35 +170,24 @@ class CalcServices:
                 denom = entry_price - liquidation_price
                 numer = current_price - entry_price
                 result = (numer / denom) * 100
-                self.logger.debug("LONG (current_price <= entry_price): numer=%f, denom=%f, result=%f", numer, denom,
-                                  result)
             else:
                 profit_target = entry_price + (entry_price - liquidation_price)
                 denom = profit_target - entry_price
                 numer = current_price - entry_price
                 result = (numer / denom) * 100
-                self.logger.debug("LONG (current_price > entry_price): profit_target=%f, numer=%f, denom=%f, result=%f",
-                                  profit_target, numer, denom, result)
         elif ptype == "SHORT":
             if current_price >= entry_price:
                 denom = liquidation_price - entry_price
                 numer = current_price - entry_price
                 result = -((numer / denom) * 100)
-                self.logger.debug("SHORT (current_price >= entry_price): numer=%f, denom=%f, result=%f", numer, denom,
-                                  result)
             else:
                 profit_target = entry_price - (liquidation_price - entry_price)
                 denom = entry_price - profit_target
                 numer = entry_price - current_price
                 result = (numer / denom) * 100
-                self.logger.debug(
-                    "SHORT (current_price < entry_price): profit_target=%f, numer=%f, denom=%f, result=%f",
-                    profit_target, numer, denom, result)
         else:
-            self.logger.debug("Unknown position type '%s'; returning 0.0", position_type)
             return 0.0
 
-        self.logger.debug("calculate_travel_percent returning result: %f", result)
         return result
 
     def aggregator_positions(self, positions: List[dict], db_path: str) -> List[dict]:
@@ -261,7 +200,6 @@ class CalcServices:
         """
         import sqlite3
         conn = DataLocker.get_instance(db_path).conn
-
         cursor = conn.cursor()
 
         for pos in positions:
@@ -280,30 +218,20 @@ class CalcServices:
             )
             pos["travel_percent"] = travel_percent
 
-            # Calculate liquidation distance
             liq_distance = self.calculate_liquid_distance(
                 current_price=current_price,
                 liquidation_price=liquidation_price
             )
             pos["liquidation_distance"] = liq_distance
 
-            self.logger.debug(f"Storing travel_percent {travel_percent} for position {pos['id']} in the database.")
-
-            # Update travel percent in DB
             try:
                 cursor.execute(
                     "UPDATE positions SET travel_percent = ? WHERE id = ?",
                     (travel_percent, pos["id"])
                 )
-
-                # After successful update
-                self.logger.debug(
-                f"Successfully stored travel_percent {travel_percent} for position {pos['id']} in the database.")
-
             except Exception as e:
                 print(f"Error updating travel_percent for position {pos['id']}: {e}")
 
-            # Update liquidation distance in DB
             try:
                 cursor.execute(
                     "UPDATE positions SET liquidation_distance = ? WHERE id = ?",
@@ -312,7 +240,6 @@ class CalcServices:
             except Exception as e:
                 print(f"Error updating liquidation_distance for position {pos['id']}: {e}")
 
-            # Calculate value and leverage for completeness
             if entry_price > 0:
                 token_count = size / entry_price
                 if position_type == "LONG":
@@ -328,12 +255,10 @@ class CalcServices:
             else:
                 pos["leverage"] = 0.0
 
-            # Calculate heat index and set current_heat_index (using the same value)
             heat_index = self.calculate_heat_index(pos) or 0.0
             pos["heat_index"] = heat_index
             pos["current_heat_index"] = heat_index
 
-            # Update heat index and current heat index in DB
             try:
                 cursor.execute(
                     "UPDATE positions SET heat_index = ?, current_heat_index = ? WHERE id = ?",
@@ -342,7 +267,6 @@ class CalcServices:
             except Exception as e:
                 print(f"Error updating heat indexes for position {pos['id']}: {e}")
 
-            # Update current price in DB
             try:
                 cursor.execute(
                     "UPDATE positions SET current_price = ? WHERE id = ?",
@@ -351,7 +275,6 @@ class CalcServices:
             except Exception as e:
                 print(f"Error updating current_price for position {pos['id']}: {e}")
 
-            # Confirm update: Read the updated record for these fields
             try:
                 cursor.execute(
                     "SELECT heat_index, current_heat_index, current_price FROM positions WHERE id = ?",
@@ -384,17 +307,13 @@ class CalcServices:
         """
         Example "heat index" = (size * leverage) / collateral.
         Returns None if collateral <= 0.
-        Logs detailed calculation info.
         """
         size = float(position.get("size", 0.0) or 0.0)
         leverage = float(position.get("leverage", 0.0) or 0.0)
         collateral = float(position.get("collateral", 0.0) or 0.0)
         if collateral <= 0:
-            self.logger.debug("Collateral is zero or negative; heat index calculation skipped.")
             return None
         hi = (size * leverage) / collateral
-        self.logger.debug("Heat index calculation: size=%f, leverage=%f, collateral=%f, raw hi=%f", size, leverage,
-                          collateral, hi)
         return round(hi, 2)
 
     def calculate_travel_percent_no_profit(self,
@@ -421,7 +340,7 @@ class CalcServices:
             denom = abs(entry_price - liquidation_price)
             numer = current_price - entry_price
             travel_percent = safe_ratio(numer, denom)
-        else:  # SHORT
+        else:
             denom = abs(entry_price - liquidation_price)
             numer = entry_price - current_price
             travel_percent = safe_ratio(numer, denom)
@@ -548,14 +467,12 @@ class CalcServices:
         ptype = position_type.upper()
         if ptype == "LONG":
             if current_price <= entry_price:
-                # Scale linearly between entry (0) and liquidation (-100)
                 return ((current_price - entry_price) / (entry_price - liquidation_price)) * 100
             else:
                 profit_target = entry_price + (entry_price - liquidation_price)
                 return ((current_price - entry_price) / (profit_target - entry_price)) * 100
-        else:  # SHORT
+        else:
             if current_price >= entry_price:
-                # Scale between entry (0) and liquidation (-100)
                 return ((entry_price - current_price) / (liquidation_price - entry_price)) * 100
             else:
                 profit_target = entry_price - (liquidation_price - entry_price)
@@ -576,14 +493,12 @@ class CalcServices:
         ptype = position_type.upper()
         if ptype == "LONG":
             if current_price <= entry_price:
-                # Scale linearly between entry (0) and liquidation (-100)
                 return ((current_price - entry_price) / (entry_price - liquidation_price)) * 100
             else:
                 profit_target = entry_price + (entry_price - liquidation_price)
                 return ((current_price - entry_price) / (profit_target - entry_price)) * 100
-        else:  # SHORT
+        else:
             if current_price >= entry_price:
-                # Scale between entry (0) and liquidation (-100)
                 return ((entry_price - current_price) / (liquidation_price - entry_price)) * 100
             else:
                 profit_target = entry_price - (liquidation_price - entry_price)
@@ -630,5 +545,3 @@ class CalcServices:
                 return "alert-high"
         else:
             return ""
-
-# End of calc_services.py
