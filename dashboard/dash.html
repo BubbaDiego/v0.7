@@ -187,7 +187,6 @@
       background-color: #e9ecef;
       height: 1.5rem;
       border-radius: 1rem;
-      /* Extend the bar by setting a width */
       width: 90%;
       flex: 1;
     }
@@ -316,13 +315,18 @@
           <tbody>
             {% for pos in positions %}
             <tr>
-              <!-- Asset Column -->
+              <!-- Updated Asset Column: Using local static assets -->
               <td class="asset-cell">
-                {% set asset = pos.asset_type | default('BTC') | lower %}
-                <img class="asset-icon"
-                     src="https://cryptoicons.org/api/icon/{{ asset }}/32"
-                     alt="{{ asset|upper }} Icon"
-                     onerror="this.onerror=null;this.src='https://via.placeholder.com/32';">
+                {% set asset = pos.asset_type | default('BTC') | upper %}
+                {% if asset == 'BTC' %}
+                  <img class="asset-icon" src="{{ url_for('static', filename='images/btc_logo.png') }}" alt="BTC Icon">
+                {% elif asset == 'ETH' %}
+                  <img class="asset-icon" src="{{ url_for('static', filename='images/eth_logo.png') }}" alt="ETH Icon">
+                {% elif asset == 'SOL' %}
+                  <img class="asset-icon" src="{{ url_for('static', filename='images/sol_logo.png') }}" alt="SOL Icon">
+                {% else %}
+                  <img class="asset-icon" src="{{ url_for('static', filename='images/default.png') }}" alt="{{ asset }} Icon">
+                {% endif %}
               </td>
               <!-- Wallet Column -->
               <td class="wallet-cell">

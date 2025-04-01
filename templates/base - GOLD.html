@@ -2,236 +2,136 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Enhanced Dynamic Icon with Countdown Circle Demo</title>
+  <title>Pie Chart with Image Slices</title>
+  <!-- Include ApexCharts from CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.36.3"></script>
   <style>
-    /* ---------- General Styles ---------- */
     body {
       font-family: Arial, sans-serif;
+      background: #f7f7f7;
+      margin: 20px;
+    }
+    h1 {
       text-align: center;
-      padding: 40px;
-      background-color: #f0f0f0;
-    }
-    .timer-container {
-      display: inline-block;
-      margin-bottom: 30px;
-      position: relative;
-    }
-    /* ---------- Flip Clock Styles ---------- */
-    .flip-clock {
-      font-size: 4rem;
-      font-weight: bold;
-      transition: color 0.5s ease;
-      margin-bottom: 20px;
-      perspective: 1000px;
-    }
-    .flip-clock.flip {
-      animation: flip 0.5s ease-in-out;
-    }
-    @keyframes flip {
-      0% { transform: rotateX(0deg); }
-      50% { transform: rotateX(90deg); }
-      100% { transform: rotateX(0deg); }
-    }
-    /* ---------- Circular Progress Bar Styles ---------- */
-    .circular-progress {
-      display: inline-block;
-      position: relative;
-      width: 120px;
-      height: 120px;
-      margin: 0 auto;
-    }
-    .circular-chart {
-      width: 120px;
-      height: 120px;
-      transform: rotate(-90deg);
-    }
-    .circle-bg {
-      fill: none;
-      stroke: #eee;
-      stroke-width: 3.8;
-    }
-    .circle {
-      fill: none;
-      stroke-width: 2.8;
-      stroke-linecap: round;
-      stroke: #28a745;
-      transition: stroke-dasharray 1s ease;
-    }
-    /* ---------- Dynamic Icon Wrapper (Circle Around Icon) ---------- */
-    .icon-wrapper {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 60px;
-      height: 60px;
-      background-color: #fff;
-      border: 2px solid #333;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transform: translate(-50%, -50%);
-      transition: transform 0.5s ease;
-    }
-    .dynamic-icon {
-      font-size: 2.5rem;
-    }
-    /* ---------- Pulse Animation ---------- */
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.1); }
-      100% { transform: scale(1); }
-    }
-    .pulse {
-      animation: pulse 1s infinite;
-    }
-    /* ---------- Tooltip Styles ---------- */
-    .tooltip {
-      position: relative;
-      display: inline-block;
-      margin-top: 20px;
-      cursor: pointer;
-      font-size: 1.2rem;
       color: #333;
     }
-    .tooltip .tooltiptext {
-      visibility: hidden;
-      width: 220px;
-      background-color: #555;
-      color: #fff;
-      text-align: center;
-      padding: 5px;
-      border-radius: 6px;
-      position: absolute;
-      z-index: 1;
-      bottom: 125%;
-      left: 50%;
-      margin-left: -110px;
-      opacity: 0;
-      transition: opacity 0.3s;
+    /* Set the chart container to fixed size and relative positioning */
+    #chartContainer {
+      position: relative;
+      width: 400px;
+      height: 400px;
+      margin: 0 auto;
     }
-    .tooltip:hover .tooltiptext {
-      visibility: visible;
-      opacity: 1;
-    }
-    /* ---------- Notification Animation ---------- */
-    .notification {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background-color: #ffc107;
-      color: #000;
-      padding: 10px 20px;
-      border-radius: 5px;
-      display: none;
-      opacity: 0;
-      transition: opacity 0.5s ease;
-      font-weight: bold;
-    }
-    .notification.show {
-      display: block;
-      opacity: 1;
+    /* Ensure the chart canvas fills the container */
+    #chart {
+      width: 100%;
+      height: 100%;
     }
   </style>
 </head>
 <body>
-  <h1>Enhanced Dynamic Icon with Countdown Circle Demo</h1>
-  
-  <!-- Timer Display: Flip Clock & Circular Progress with Icon Wrapper -->
-  <div class="timer-container">
-    <div id="flipClock" class="flip-clock">10</div>
-    <div class="circular-progress">
-      <svg viewBox="0 0 36 36" class="circular-chart">
-        <path class="circle-bg"
-          d="M18 2.0845
-             a 15.9155 15.9155 0 0 1 0 31.831
-             a 15.9155 15.9155 0 0 1 0 -31.831"/>
-        <path class="circle"
-          stroke-dasharray="100, 100"
-          d="M18 2.0845
-             a 15.9155 15.9155 0 0 1 0 31.831
-             a 15.9155 15.9155 0 0 1 0 -31.831"/>
-      </svg>
-      <!-- Icon wrapper with dynamic icon inside -->
-      <div id="iconWrapper" class="icon-wrapper">
-        <div id="dynamicIcon" class="dynamic-icon">☎</div>
-      </div>
-    </div>
+  <h1>Pie Chart with Asset & Wallet Images</h1>
+  <div id="chartContainer">
+    <div id="chart"></div>
   </div>
-  
-  <!-- Tooltip Example -->
-  <div class="tooltip">
-    Hover over me!
-    <span class="tooltiptext">Last update: 12:00:00 PM<br>Suppression active</span>
-  </div>
-  
-  <!-- Notification Animation -->
-  <div id="notification" class="notification">Timer Reset!</div>
-  
-  <script>
-    // Set initial canned timer value (in seconds)
-    var timerValue = 10;
-    var maxTime = 10; // For percentage calculations
-    var flipClockElem = document.getElementById("flipClock");
-    var dynamicIconElem = document.getElementById("dynamicIcon");
-    var circularCircle = document.querySelector(".circle");
-    var notificationElem = document.getElementById("notification");
 
-    function updateTimer() {
-      if (timerValue >= 0) {
-        // Update flip clock text
-        flipClockElem.textContent = timerValue;
-        
-        // Update circular progress
-        var progress = (timerValue / maxTime) * 100;
-        circularCircle.style.strokeDasharray = progress + ", 100";
-        
-        // Dynamic color transition for flip clock
-        if (timerValue > 5) {
-          flipClockElem.style.color = "#28a745"; // green
-        } else if (timerValue > 3) {
-          flipClockElem.style.color = "#ffc107"; // yellow
-        } else {
-          flipClockElem.style.color = "#dc3545"; // red
+  <script>
+    // Our canned data (e.g., positions sizes)
+    const seriesData = [40, 30, 20, 10];  // Sum = 100
+    // Asset images for each slice (outer layer)
+    const assetImages = [
+      'https://via.placeholder.com/50x50.png?text=A1',
+      'https://via.placeholder.com/50x50.png?text=A2',
+      'https://via.placeholder.com/50x50.png?text=A3',
+      'https://via.placeholder.com/50x50.png?text=A4'
+    ];
+    // Wallet icon images (to overlay inside the slice)
+    const walletImages = [
+      'https://via.placeholder.com/25x25.png?text=W1',
+      'https://via.placeholder.com/25x25.png?text=W2',
+      'https://via.placeholder.com/25x25.png?text=W3',
+      'https://via.placeholder.com/25x25.png?text=W4'
+    ];
+
+    // Configure the pie chart to use asset images as the fill.
+    const options = {
+      chart: {
+        type: 'pie',
+        height: 400,
+        width: 400,
+        // Set startAngle to 0 for easier calculations
+        startAngle: 0
+      },
+      series: seriesData,
+      // We don’t show any text labels
+      labels: [],
+      dataLabels: {
+        enabled: false
+      },
+      legend: {
+        show: false
+      },
+      tooltip: {
+        enabled: false
+      },
+      fill: {
+        type: 'image',
+        image: {
+          // Use assetImages array for each slice
+          src: assetImages,
+          width: 50,
+          height: 50
         }
-        
-        // Add pulse effect when timer is critical (< 3 sec)
-        if (timerValue < 3) {
-          flipClockElem.classList.add("pulse");
-          dynamicIconElem.classList.add("pulse");
-        } else {
-          flipClockElem.classList.remove("pulse");
-          dynamicIconElem.classList.remove("pulse");
+      },
+      plotOptions: {
+        pie: {
+          expandOnClick: false
         }
-        
-        // Dynamic Icon update: phone when above 5 sec, sleep when 5 or below
-        if (timerValue > 5) {
-          dynamicIconElem.textContent = "☎";
-        } else {
-          dynamicIconElem.textContent = "💤";
-        }
-        
-        timerValue--;
-      } else {
-        // Timer reached zero: trigger notification
-        notificationElem.classList.add("show");
-        // Reset timer after a short delay
-        setTimeout(function(){
-          notificationElem.classList.remove("show");
-          timerValue = maxTime;
-        }, 2000);
       }
-    }
-    
-    // Update timer every second
-    setInterval(updateTimer, 1000);
-    
-    // Trigger flip clock animation by toggling the 'flip' class each second
-    setInterval(function(){
-      flipClockElem.classList.remove("flip");
-      void flipClockElem.offsetWidth; // Force reflow
-      flipClockElem.classList.add("flip");
-    }, 1000);
+    };
+
+    // Render the chart
+    const chart = new ApexCharts(document.querySelector("#chart"), options);
+    chart.render().then(() => {
+      // After the chart is rendered, overlay the wallet icons.
+      // We assume fixed container size: 400x400 and center at (200,200)
+      const container = document.getElementById("chartContainer");
+      const centerX = 200;
+      const centerY = 200;
+      // Choose a radius for wallet icon placement (adjust as needed)
+      const radius = 100; 
+      const total = seriesData.reduce((a, b) => a + b, 0);
+      let startAngle = 0; // in degrees
+      const walletPositions = [];
+      
+      // Compute the center angle for each slice and convert to (x,y) positions.
+      for (let i = 0; i < seriesData.length; i++) {
+        const sliceAngle = seriesData[i] / total * 360; // degrees for this slice
+        const centerAngle = startAngle + sliceAngle / 2;  // center angle of the slice in degrees
+        const rad = centerAngle * Math.PI / 180; // convert to radians
+        
+        // Compute x,y coordinates; subtract half the wallet icon size (assume 25px) to center it.
+        const x = centerX + radius * Math.cos(rad) - 12.5;
+        const y = centerY + radius * Math.sin(rad) - 12.5;
+        walletPositions.push({x, y});
+        
+        startAngle += sliceAngle;
+      }
+      
+      // Now create and position wallet icon <img> elements over the chart.
+      walletPositions.forEach((pos, index) => {
+        const img = document.createElement("img");
+        img.src = walletImages[index];
+        img.style.width = "25px";
+        img.style.height = "25px";
+        img.style.borderRadius = "50%";
+        img.style.border = "2px solid white";
+        img.style.position = "absolute";
+        img.style.left = pos.x + "px";
+        img.style.top = pos.y + "px";
+        container.appendChild(img);
+      });
+    });
   </script>
 </body>
 </html>
