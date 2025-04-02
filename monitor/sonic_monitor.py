@@ -27,7 +27,16 @@ JUPITER_URL = "http://www.deadlypanda.com/positions/update_jupiter"
 MARKET_URL = "http://www.deadlypanda.com/cyclone/api/run_market_updates"
 CYCLE_URL = "http://www.deadlypanda.com/cyclone/api/run_full_cycle"
 
-SLEEP_INTERVAL = 120  # 2 minutes in seconds
+# Load timer config from timer_config.json
+TIMER_CONFIG_FILE = os.path.join(BASE_DIR, "config", "timer_config.json")
+try:
+    with open(TIMER_CONFIG_FILE, "r") as f:
+        timer_config = json.load(f)
+        SLEEP_INTERVAL = timer_config.get("loop_interval", 120)
+        logging.info("Loaded loop_interval from timer_config.json: %s seconds", SLEEP_INTERVAL)
+except Exception as e:
+    logging.error("Failed to load timer_config.json: %s", e)
+    SLEEP_INTERVAL = 120  # fallback
 
 # Define the ledger file using BASE_DIR from config_constants
 LEDGER_FILE = os.path.join(BASE_DIR, "monitor", "sonic_ledger.json")
@@ -77,9 +86,9 @@ def main():
             "component": "sonic_monitor",
             "operation": "heartbeat_update",
             "status": "Success",
-            "message": "Heartbeat updated successfully.",
+            "message": "❤️ Heartbeat updated",
             "metadata": {
-            "loop_counter": loop_counter  # Pass in the current loop_counter here
+                "loop_counter": loop_counter  # Pass in the current loop_counter here
             }
         }
 
@@ -94,6 +103,7 @@ def main():
                 file="sonic_monitor.py"
             )
         except Exception as e:
+            print("💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀 ")
             logging.error("Failed to update ledger: %s", e)
 
     while True:
