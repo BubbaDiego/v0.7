@@ -57,8 +57,7 @@
     }
 
     /* ----------------------------
-       Box Row for the top row
-       and the rest
+       Box Row for Top Row and Others
     ----------------------------- */
     .box-row {
       display: flex;
@@ -74,9 +73,10 @@
     }
 
     /* ----------------------------
-       Ledger Box
-       ### BOX RESIZE ###
-       48% wide, 75px tall, text color #666, 2 columns
+       Ledger Box (Top Left)
+       ### LEDGER BOX ###
+       48% wide, 75px tall, text in grey (#666), 2 columns,
+       with a subtle striped overlay on top of the base color.
     ----------------------------- */
     .ledger-inline-container {
       display: flex;
@@ -84,15 +84,23 @@
       justify-content: center;
       align-items: flex-start;
       width: 48%;
-      height: 75px; /* 25% taller than the previous 60px */
+      height: 75px; /* 25% taller */
       margin: 0;
       padding: 8px;
       border: 4px solid var(--light-border-color);
       border-radius: 10px;
       font-size: 0.9rem;
       font-weight: bold;
-      color: #666 !important; /* override text color to grey */
+      color: #666 !important;
       white-space: nowrap;
+      /* The background-color will be set inline from ledger_info.color */
+      background-image: repeating-linear-gradient(
+        45deg,
+        rgba(255,255,255,0.3) 0px,
+        rgba(255,255,255,0.3) 6px,
+        rgba(240,240,240,0.3) 6px,
+        rgba(240,240,240,0.3) 12px
+      );
     }
     body.dark-bg .ledger-inline-container {
       border-color: var(--dark-border-color);
@@ -105,9 +113,9 @@
     }
 
     /* ----------------------------
-       Status Bar
-       ### BOX RESIZE ###
-       48% wide, 75px tall, smaller fonts
+       Status Bar (Top Right)
+       ### STATUS BOX ###
+       48% wide, 75px tall, slightly smaller fonts.
     ----------------------------- */
     .status-bar {
       position: relative;
@@ -115,7 +123,7 @@
       justify-content: space-evenly;
       align-items: center;
       height: 75px;
-      padding: 15px; /* reduced from 20px */
+      padding: 15px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.2);
       margin-top: 0;
       width: 48%;
@@ -124,13 +132,13 @@
       text-align: center;
     }
     .status-label {
-      font-size: 1.0rem; /* slightly smaller */
+      font-size: 0.95rem;
       font-weight: bold;
-      margin-bottom: 3px; /* less spacing */
+      margin-bottom: 3px;
       display: block;
     }
     .status-value {
-      font-size: 1.1rem; /* slightly smaller */
+      font-size: 1.0rem;
     }
     .toggle-container {
       position: absolute;
@@ -297,10 +305,11 @@
 {% endblock %}
 
 {% block content %}
-  <!-- Top Row: Ledger (left) + Status (right) both 48% wide, 75px tall -->
+  <!-- Top Row: Ledger (left) + Status Bar (right) -->
   <div class="box-row" style="margin-top:0;">
     <!-- Ledger Box -->
-    <div class="ledger-inline-container" id="ledgerContainer" style="background-color: {{ ledger_info.color if ledger_info and ledger_info.color else 'var(--light-bg-color)' }};">
+    <div class="ledger-inline-container" id="ledgerContainer"
+      style="background-color: {{ ledger_info.color if ledger_info and ledger_info.color else 'var(--light-bg-color)' }};">
       {% if ledger_info and ledger_info.formatted_time %}
         <div style="display:flex; flex-wrap:wrap; width:100%;">
           <div style="width:50%;">⚙ Source: Ledger</div>
@@ -319,7 +328,6 @@
 
     <!-- Status Bar -->
     <div class="status-bar common-box light-mode" id="statusBar">
-      <!-- Use 'totals' to show real data instead of N/A -->
       <div>
         <span class="status-label">🔥 Heat</span>
         <span class="status-value">
@@ -520,13 +528,13 @@
         <div class="pie-col">
           <div class="chart-label">Size</div>
           <div id="pieChartSize" style="height: 200px;"></div>
-          <!-- ### PIE VALUES ### Long/Short text below -->
+          <!-- ### PIE VALUES ### -->
           <div id="pieSizeTotals" style="margin-top:5px; font-size:0.9rem; color:#fff;"></div>
         </div>
         <div class="pie-col">
           <div class="chart-label">Collateral</div>
           <div id="pieChartCollateral" style="height: 200px;"></div>
-          <!-- ### PIE VALUES ### Long/Short text below -->
+          <!-- ### PIE VALUES ### -->
           <div id="pieCollateralTotals" style="margin-top:5px; font-size:0.9rem; color:#fff;"></div>
         </div>
       </div>
@@ -599,7 +607,7 @@
       }
     });
 
-    // We'll display the ratio text under each pie
+    // Display the ratio text under each pie
     function showPieValues(sizeSeries, collateralSeries) {
       const pieSizeTotals = document.getElementById("pieSizeTotals");
       const pieCollateralTotals = document.getElementById("pieCollateralTotals");
@@ -611,106 +619,110 @@
       }
     }
 
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-    <script>
-    function renderPieCharts(seriesSize, seriesCollateral) {
-      function createPieOptions(seriesData) {
-        return {
-          chart: { type: 'pie', height: 200 },
-          series: seriesData,
-          labels: ['Long', 'Short'],
-          dataLabels: {
-            enabled: true,
-            style: { fontSize: '20px', colors: ['#fff'] },
-            formatter: function(val) { return Math.round(val) + '%'; }
+    // Load ApexCharts library
+    const apexScript = document.createElement("script");
+    apexScript.src = "https://cdn.jsdelivr.net/npm/apexcharts";
+    document.head.appendChild(apexScript);
+    apexScript.onload = function() {
+      function renderPieCharts(seriesSize, seriesCollateral) {
+        function createPieOptions(seriesData) {
+          return {
+            chart: { type: 'pie', height: 200 },
+            series: seriesData,
+            labels: ['Long', 'Short'],
+            dataLabels: {
+              enabled: true,
+              style: { fontSize: '20px', colors: ['#fff'] },
+              formatter: function(val) { return Math.round(val) + '%'; }
+            },
+            legend: {
+              position: 'bottom',
+              labels: { colors: ['#fff'], fontSize: '20px', fontWeight: 700 }
+            }
+          };
+        }
+        const optionsSize = createPieOptions(seriesSize);
+        const chartSize = new ApexCharts(document.querySelector("#pieChartSize"), optionsSize);
+        chartSize.render();
+
+        const optionsCollateral = createPieOptions(seriesCollateral);
+        const chartCollateral = new ApexCharts(document.querySelector("#pieChartCollateral"), optionsCollateral);
+        chartCollateral.render();
+
+        // Show ratio text
+        showPieValues(seriesSize, seriesCollateral);
+      }
+
+      function renderGraphChart(timestamps, valueData, collateralData) {
+        const formattedTimestamps = timestamps.map(ts => {
+          const dateObj = new Date(ts);
+          const hour = dateObj.getHours();
+          return ((hour % 12) === 0 ? 12 : (hour % 12)) + ":00 " + (hour < 12 ? "AM" : "PM");
+        });
+
+        const optionsGraph = {
+          chart: { type: 'line', height: 300 },
+          xaxis: {
+            categories: formattedTimestamps,
+            tickAmount: 6,
+            labels: {
+              style: { colors: '#fff' },
+              showDuplicates: false,
+              hideOverlappingLabels: true
+            }
           },
+          yaxis: {
+            labels: {
+              formatter: function(val) { return Math.round(val); },
+              style: { colors: '#fff' }
+            }
+          },
+          series: [
+            { name: 'Value', data: valueData.map(v => Math.round(v)) },
+            { name: 'Collateral', data: collateralData.map(v => Math.round(v)) }
+          ],
+          colors: ['#34a853', '#6234da'],
+          stroke: { curve: 'smooth', width: 2 },
+          dataLabels: { enabled: false },
           legend: {
-            position: 'bottom',
-            labels: { colors: ['#fff'], fontSize: '20px', fontWeight: 700 }
+            position: 'top',
+            labels: { colors: '#fff', fontSize: '20px', fontWeight: 700 }
+          },
+          tooltip: {
+            theme: 'dark',
+            style: { fontSize: '16px', fontWeight: 'bold', color: '#fff' },
+            y: { formatter: function(val) { return Math.round(val); } }
           }
         };
+        const chartGraph = new ApexCharts(document.querySelector("#graphChart"), optionsGraph);
+        chartGraph.render();
       }
-      const optionsSize = createPieOptions(seriesSize);
-      const chartSize = new ApexCharts(document.querySelector("#pieChartSize"), optionsSize);
-      chartSize.render();
 
-      const optionsCollateral = createPieOptions(seriesCollateral);
-      const chartCollateral = new ApexCharts(document.querySelector("#pieChartCollateral"), optionsCollateral);
-      chartCollateral.render();
+      fetch('/api/size_composition')
+        .then(r => r.json())
+        .then(data => {
+          const sizeSeries = data.series;
+          fetch('/api/collateral_composition')
+            .then(r => r.json())
+            .then(data2 => {
+              const collateralSeries = data2.series;
+              renderPieCharts(sizeSeries, collateralSeries);
+            })
+            .catch(err => console.error("Error fetching collateral composition:", err));
+        })
+        .catch(err => console.error("Error fetching size composition:", err));
 
-      // ### PIE VALUES ### show ratio text
-      showPieValues(seriesSize, seriesCollateral);
-    }
-
-    function renderGraphChart(timestamps, valueData, collateralData) {
-      const formattedTimestamps = timestamps.map(ts => {
-        const dateObj = new Date(ts);
-        const hour = dateObj.getHours();
-        return ((hour % 12) === 0 ? 12 : (hour % 12)) + ":00 " + (hour < 12 ? "AM" : "PM");
-      });
-
-      const optionsGraph = {
-        chart: { type: 'line', height: 300 },
-        xaxis: {
-          categories: formattedTimestamps,
-          tickAmount: 6,
-          labels: {
-            style: { colors: '#fff' },
-            showDuplicates: false,
-            hideOverlappingLabels: true
+      fetch('/api/graph_data')
+        .then(r => r.json())
+        .then(data => {
+          let collateralData = data.collateral;
+          if (!collateralData) {
+            collateralData = data.values.map(v => 0);
           }
-        },
-        yaxis: {
-          labels: {
-            formatter: function(val) { return Math.round(val); },
-            style: { colors: '#fff' }
-          }
-        },
-        series: [
-          { name: 'Value', data: valueData.map(v => Math.round(v)) },
-          { name: 'Collateral', data: collateralData.map(v => Math.round(v)) }
-        ],
-        colors: ['#34a853', '#6234da'],
-        stroke: { curve: 'smooth', width: 2 },
-        dataLabels: { enabled: false },
-        legend: {
-          position: 'top',
-          labels: { colors: '#fff', fontSize: '20px', fontWeight: 700 }
-        },
-        tooltip: {
-          theme: 'dark',
-          style: { fontSize: '16px', fontWeight: 'bold', color: '#fff' },
-          y: { formatter: function(val) { return Math.round(val); } }
-        }
-      };
-      const chartGraph = new ApexCharts(document.querySelector("#graphChart"), optionsGraph);
-      chartGraph.render();
-    }
-
-    fetch('/api/size_composition')
-      .then(r => r.json())
-      .then(data => {
-        const sizeSeries = data.series;
-        fetch('/api/collateral_composition')
-          .then(r => r.json())
-          .then(data2 => {
-            const collateralSeries = data2.series;
-            renderPieCharts(sizeSeries, collateralSeries);
-          })
-          .catch(err => console.error("Error fetching collateral composition:", err));
-      })
-      .catch(err => console.error("Error fetching size composition:", err));
-
-    fetch('/api/graph_data')
-      .then(r => r.json())
-      .then(data => {
-        let collateralData = data.collateral;
-        if (!collateralData) {
-          collateralData = data.values.map(v => 0);
-        }
-        renderGraphChart(data.timestamps, data.values, collateralData);
-      })
-      .catch(err => console.error("Error fetching graph data:", err));
+          renderGraphChart(data.timestamps, data.values, collateralData);
+        })
+        .catch(err => console.error("Error fetching graph data:", err));
+    };
 
     function sortTable(tableId, colIndex) {
       var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;

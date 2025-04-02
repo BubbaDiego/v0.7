@@ -756,7 +756,7 @@ def api_asset_percent_changes():
         return jsonify({"error": str(e)}), 500
 
 def format_ledger_time(iso_str):
-    """Parse ISO string, compute how old it is, pick a color, and return a nicely formatted time."""
+    """Parse ISO string, compute how old it is, pick a color per new rules, and return a nicely formatted time."""
     try:
         dt = datetime.fromisoformat(iso_str)
     except Exception:
@@ -771,22 +771,21 @@ def format_ledger_time(iso_str):
     diff = datetime.now(pytz.utc) - dt
     minutes_old = diff.total_seconds() / 60
 
-    # Choose a color based on age:
-    if minutes_old > 60:
-        # Over an hour old => light red
-        color = "#ffdddd"
-    elif minutes_old > 30:
-        # Over 30 minutes => light yellow
-        color = "#ffffcc"
+    # New color rules:
+    if minutes_old < 5:
+        color = "#ddffdd"  # light green
+    elif minutes_old < 15:
+        color = "#ffff99"  # light yellow
+    elif minutes_old < 30:
+        color = "#ffcc66"  # orange
     else:
-        # 30 minutes or less => light green
-        color = "#ddffdd"
+        color = "#ff9999"  # red
 
     # Format time as 12-hour clock + short year (e.g., "2:34 PM 4/2/24")
-    hour_min = dt.strftime("%I:%M %p").lstrip("0")  # Removes leading zero
+    hour_min = dt.strftime("%I:%M %p").lstrip("0")
     mon = dt.month
     day = dt.day
-    yr = dt.year % 100  # two-digit year
+    yr = dt.year % 100
     final_str = f"{hour_min} {mon}/{day}/{yr:02d}"
     return final_str, color
 
