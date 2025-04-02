@@ -58,26 +58,27 @@
 
     /* ----------------------------
        Ledger Inline Container
-       Adjusted: left, 25% width, minimal margin
+       2 columns, 30% width, 60px height, text color #666
     ----------------------------- */
     .ledger-inline-container {
       display: flex;
-      flex-direction: column; /* ### RE-ORDER ### put items on separate lines */
+      flex-direction: column;
       justify-content: center;
-      align-items: flex-start; /* left-justify the text */
-      width: 25%; /* reduced from 50% to 25% */
-      margin: 2px auto 8px auto;
+      align-items: flex-start;
+      width: 30%; /* 20% more than 25% */
+      height: 60px;
+      margin: 2px 10px 8px 0;
       padding: 8px;
       border: 4px solid var(--light-border-color);
       border-radius: 10px;
       font-size: 0.9rem;
       font-weight: bold;
-      color: var(--light-text-color);
+      color: #666 !important;
       white-space: nowrap;
     }
     body.dark-bg .ledger-inline-container {
       border-color: var(--dark-border-color);
-      color: var(--dark-text-color);
+      color: #666 !important;
     }
     .ledger-inline-container span {
       margin-right: 8px;
@@ -87,16 +88,18 @@
 
     /* ----------------------------
        Status Bar Styles
+       matched height, about 70% width
     ----------------------------- */
     .status-bar {
       position: relative;
       display: flex;
       justify-content: space-evenly;
       align-items: center;
+      height: 60px;
       padding: 20px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.2);
       margin-top: 0;
-      width: 72%; /* ### RE-ORDER ### so it fits alongside ledger box in same row */
+      width: 68%;
     }
     .status-bar > div:not(.toggle-container) {
       text-align: center;
@@ -120,9 +123,16 @@
       display: block;
     }
 
-    /* ----------------------------
-       Box Row for Side-by-Side Boxes
-    ----------------------------- */
+    /* Top row container for ledger + status bar */
+    .top-row {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      width: 100%;
+      margin-top: 0;
+    }
+
+    /* Box Rows for rest of layout */
     .box-row {
       display: flex;
       justify-content: space-between;
@@ -136,9 +146,7 @@
       width: 48%;
     }
 
-    /* ----------------------------
-       Pie Box Styles
-    ----------------------------- */
+    /* Pie Box Styles */
     .pie-row {
       display: flex;
       justify-content: space-between;
@@ -154,16 +162,12 @@
       font-weight: bold;
     }
 
-    /* ----------------------------
-       Graph Box Styles
-    ----------------------------- */
+    /* Graph Box Styles */
     .graph-box {
       overflow: hidden;
     }
 
-    /* ----------------------------
-       Mini Positions Table Styles
-    ----------------------------- */
+    /* Mini Positions Table Styles */
     .mini-table-box table {
       width: 100%;
       border-collapse: collapse;
@@ -179,9 +183,7 @@
       font-size: 1.1rem;
     }
 
-    /* ----------------------------
-       Positions Table Container & Icons
-    ----------------------------- */
+    /* Positions Table Container & Icons */
     .positions-container {
       margin-top: 10px;
       overflow-x: auto;
@@ -203,9 +205,7 @@
       cursor: pointer;
     }
 
-    /* ----------------------------
-       Liquidation Bar Specific Styles
-    ----------------------------- */
+    /* Liquidation Bar Specific Styles */
     .liquidation-box {
       position: relative;
       min-height: 150px;
@@ -291,26 +291,28 @@
 {% endblock %}
 
 {% block content %}
-
-  <!-- ### RE-ORDER ###
-       Put ledger container & status bar in same row.
-       Ledger on left, status bar on right.
-  -->
-  <div class="box-row" style="margin-top:0;">
-    <!-- Ledger Box (left) -->
+  <!-- Top Row: Ledger (left) + Status Bar (right) -->
+  <div class="top-row">
+    <!-- Ledger Box -->
     <div class="ledger-inline-container" id="ledgerContainer" style="background-color: {{ ledger_info.color if ledger_info and ledger_info.color else 'var(--light-bg-color)' }};">
       {% if ledger_info and ledger_info.formatted_time %}
-        <div>⚙ Source: Ledger</div>
-        <div>🕖 Time: {{ ledger_info.formatted_time }}</div>
-        <div>ℹ️ Status: {{ ledger_info.status }}</div>
-        {% if ledger_info.loop_count is defined %}
-          <div>🔄 Loop: {{ ledger_info.loop_count }}</div>
-        {% endif %}
+        <!-- ### 2-COLUMN LEDGER ### -->
+        <div style="display:flex; flex-wrap:wrap; width:100%;">
+          <div style="width:50%;">⚙ Source: Ledger</div>
+          <div style="width:50%;">🕖 Time: {{ ledger_info.formatted_time }}</div>
+          <div style="width:50%;">ℹ️ Status: {{ ledger_info.status }}</div>
+          {% if ledger_info.loop_count is defined %}
+            <div style="width:50%;">🔄 Loop: {{ ledger_info.loop_count }}</div>
+          {% else %}
+            <div style="width:50%;">🔄 Loop: (not set)</div>
+          {% endif %}
+        </div>
       {% else %}
         <div>No ledger info available.</div>
       {% endif %}
     </div>
-    <!-- Status Bar (right) -->
+
+    <!-- Status Bar -->
     <div class="status-bar common-box light-mode" id="statusBar">
       <div>
         <span class="status-label">🔥 Heat</span>
@@ -386,7 +388,8 @@
               <!-- Heat Index Column (no decimals) -->
               <td>
                 {% if pos.heat_index is defined and pos.heat_index is not none %}
-                  {{ pos.heat_index|int }}
+                  <!-- ### BOLD HEAT INDEX ### -->
+                  <strong>{{ pos.heat_index|int }}</strong>
                 {% else %}
                   N/A
                 {% endif %}
@@ -449,7 +452,7 @@
             {% endif %}
             <div class="heat-index-circle">
               {% if pos.heat_index is defined and pos.heat_index is not none %}
-                {{ pos.heat_index|int }}
+                <strong>{{ pos.heat_index|int }}</strong>
               {% else %}
                 N/A
               {% endif %}
@@ -494,8 +497,6 @@
     const sunIcon = `
       <svg viewBox="0 0 24 24" width="16" height="16" fill="white" xmlns="http://www.w3.org/2000/svg">
         <circle cx="12" cy="12" r="5"/>
-        <line x1="12" y1="1" x2="12" y2="3" stroke="white" stroke-width="2"/>
-        <line x1="12" y1="21" x2="12" y2="23" stroke="white" stroke-width="2"/>
         <line x1="12" y1="1" x2="12" y2="3" stroke="white" stroke-width="2"/>
         <line x1="12" y1="21" x2="12" y2="23" stroke="white" stroke-width="2"/>
         <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="white" stroke-width="2"/>
