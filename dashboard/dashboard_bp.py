@@ -151,6 +151,7 @@ def compute_collateral_composition():
 
 @dashboard_bp.route("/dashboard")
 def dashboard():
+
     try:
         all_positions = PositionService.get_all_positions(DB_PATH) or []
         positions = all_positions
@@ -235,6 +236,8 @@ def dashboard():
             logger.error("Error loading theme config: %s", ex)
             theme_config = {}
 
+        ledger_info = get_last_ledger_entry()
+
         return render_template(
             "dashboard.html",  # Note: since blueprint's template_folder is "dashboard", this loads templates/dashboard/dashboard.html
             theme=theme_config,
@@ -255,7 +258,8 @@ def dashboard():
             last_update_positions_source=last_update_positions_source,
             system_feed_entries=system_feed_entries,
             alert_entries=alert_entries,
-            strategy_performance=strategy_performance
+            strategy_performance=strategy_performance,
+            ledger_info=ledger_info,
         )
     except Exception as e:
         logger.exception("Error rendering dashboard:")
@@ -636,6 +640,32 @@ def compute_collateral_composition():
         series = [0, 0]
     return jsonify({"series": series})
 
+def get_last_ledger_entry():
+    import os, json
+    from flask import current_app
+    from config.config_constants import BASE_DIR
+
+    ledger_file = os.path.join(BASE_DIR, "monitor", "sonic_ledger.json")
+    print("Reading ledger file from:", ledger_file)
+    try:
+        with open(ledger_file, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+        print("Ledger file has", len(lines), "lines.")
+        if lines:
+            last_entry = json.loads(lines[-1])
+            print("Last ledger entry:", last_entry)
+            # If metadata exists and contains a loop counter, pass it in as loop_count
+            if isinstance(last_entry, dict) and "metadata" in last_entry and isinstance(last_entry["metadata"], dict):
+                if "loop_counter" in last_entry["metadata"]:
+                    last_entry["loop_count"] = last_entry["metadata"]["loop_counter"]
+            return last_entry
+        else:
+            print("Ledger file is empty.")
+            return {}
+    except Exception as e:
+        print("Error reading ledger file:", e)
+        current_app.logger.error(f"Error reading ledger file: {e}", exc_info=True)
+        return {}
 
 @dashboard_bp.route("/save_theme", methods=["POST"], endpoint="save_theme_route")
 def save_theme_route():
@@ -725,32 +755,55 @@ def api_asset_percent_changes():
         logger.error(f"Error in api_asset_percent_changes: {e}", exc_info=True)
         return jsonify({"error": str(e)}), 500
 
-@dashboard_bp.route("/dash")
-@dashboard_bp.route("/dash")
+def format_ledger_time(iso_str):
+    """Parse ISO string, compute how old it is, pick a color, and return a nicely formatted time."""
+    try:
+        dt = datetime.fromisoformat(iso_str)
+    except Exception:
+        # If the timestamp is invalid, just return fallback
+        return "N/A", "#dddddd"
+
+    # If dt is naive, make it UTC-aware.
+    if dt.tzinfo is None:
+        dt = pytz.utc.localize(dt)
+
+    # Calculate how many minutes old this timestamp is
+    diff = datetime.now(pytz.utc) - dt
+    minutes_old = diff.total_seconds() / 60
+
+    # Choose a color based on age:
+    if minutes_old > 60:
+        # Over an hour old => light red
+        color = "#ffdddd"
+    elif minutes_old > 30:
+        # Over 30 minutes => light yellow
+        color = "#ffffcc"
+    else:
+        # 30 minutes or less => light green
+        color = "#ddffdd"
+
+    # Format time as 12-hour clock + short year (e.g., "2:34 PM 4/2/24")
+    hour_min = dt.strftime("%I:%M %p").lstrip("0")  # Removes leading zero
+    mon = dt.month
+    day = dt.day
+    yr = dt.year % 100  # two-digit year
+    final_str = f"{hour_min} {mon}/{day}/{yr:02d}"
+    return final_str, color
+
+
+@dashboard_bp.route("/dash", endpoint="dash_page")
 def dash_page():
     all_positions = PositionService.get_all_positions(DB_PATH) or []
-
     if all_positions:
-        # Compute total value & total collateral for V/C ratio
         total_value = sum(float(p.get("value", 0)) for p in all_positions)
         total_collateral = sum(float(p.get("collateral", 0)) for p in all_positions)
-
-        # Compute total size
         total_size = sum(float(p.get("size", 0)) for p in all_positions)
-
-        # Compute average leverage
         avg_leverage = sum(float(p.get("leverage", 0)) for p in all_positions) / len(all_positions)
-
-        # Use travel_percent (if that's the current field name)
         avg_travel_percent = sum(float(p.get("travel_percent", 0)) for p in all_positions) / len(all_positions)
-
-        # Compute V/C ratio
         if total_collateral > 0:
             vc_ratio = round(total_value / total_collateral, 2)
         else:
             vc_ratio = "N/A"
-
-        # Compute average heat index
         total_heat_index = sum(float(p.get("heat_index", 0)) for p in all_positions)
         avg_heat_index = total_heat_index / len(all_positions)
     else:
@@ -761,25 +814,71 @@ def dash_page():
         vc_ratio = "N/A"
         avg_heat_index = 0
 
-    # Format values for display
-    formatted_value = "${:,.2f}".format(total_value)
-    formatted_size = "${:,.2f}".format(total_size)
-    formatted_leverage = "{:,.2f}x".format(avg_leverage) if avg_leverage else "N/A"
-    formatted_travel_percent = "{:.2f}%".format(avg_travel_percent) if avg_travel_percent else "N/A"
-    formatted_avg_heat_index = "{:,.2f}".format(avg_heat_index)
+    formatted_portfolio_value = "${:,.2f}".format(total_value)
+    formatted_portfolio_change = "N/A"  # Set a default since change isn't computed here.
 
+    positions = all_positions
     liquidation_positions = all_positions
+    top_positions = sorted(all_positions, key=lambda pos: float(pos.get("current_travel_percent", 0)), reverse=True)
+    bottom_positions = sorted(all_positions, key=lambda pos: float(pos.get("current_travel_percent", 0)))[:3]
+
+    dl = DataLocker.get_instance()
+    portfolio_history = dl.get_portfolio_history() or []
+    try:
+        with open(THEME_CONFIG_PATH, "r", encoding="utf-8") as f:
+            theme_config = json.load(f)
+    except Exception as ex:
+        theme_config = {}
+
+    # Set defaults for prices and update times (could be extended to mirror the /dashboard route)
+    btc_price = "0.00"
+    eth_price = "0.00"
+    sol_price = "0.00"
+    sp500_value = "0.00"
+    last_update_time_only = "N/A"
+    last_update_date_only = "N/A"
+    last_update_positions_source = "N/A"
+    system_feed_entries = ""
+    alert_entries = ""
+    strategy_performance = {}
+
+    # Update bar stuff
+    ledger_info = get_last_ledger_entry()
+    if ledger_info and "timestamp" in ledger_info:
+        formatted_time, ledger_color = format_ledger_time(ledger_info["timestamp"])
+        ledger_info["formatted_time"] = formatted_time
+        ledger_info["color"] = ledger_color
+    else:
+        # No ledger info or no timestamp
+        ledger_info = {}
 
     return render_template(
-        "dash.html",
-        value=formatted_value,
-        leverage=formatted_leverage,
-        size=formatted_size,
-        vc_ratio=vc_ratio,
-        travel_percent=formatted_travel_percent,
-        total_heat_index=formatted_avg_heat_index,  # Now it's the average heat index
-        positions=all_positions,
-        liquidation_positions=liquidation_positions
+        "dash.html",  # Changed here from "dashboard.html" to "dash.html"
+        theme=theme_config,
+        top_positions=top_positions,
+        bottom_positions=bottom_positions,
+        liquidation_positions=liquidation_positions,
+        portfolio_data=portfolio_history,
+        portfolio_value=formatted_portfolio_value,
+        portfolio_change=formatted_portfolio_change,
+        btc_price=btc_price,
+        eth_price=eth_price,
+        sol_price=sol_price,
+        sp500_value=sp500_value,
+        positions=positions,
+        totals={
+            "total_collateral": total_collateral,
+            "total_value": total_value,
+            "total_size": total_size,
+            "avg_leverage": avg_leverage,
+            "avg_travel_percent": avg_travel_percent
+        },
+        last_update_time_only=last_update_time_only,
+        last_update_date_only=last_update_date_only,
+        last_update_positions_source=last_update_positions_source,
+        system_feed_entries=system_feed_entries,
+        alert_entries=alert_entries,
+        strategy_performance=strategy_performance,
+        ledger_info=ledger_info,
     )
-
 
