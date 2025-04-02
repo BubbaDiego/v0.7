@@ -57,82 +57,9 @@
     }
 
     /* ----------------------------
-       Ledger Inline Container
-       2 columns, 30% width, 60px height, text color #666
+       Box Row for the top row
+       and the rest
     ----------------------------- */
-    .ledger-inline-container {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: flex-start;
-      width: 30%; /* 20% more than 25% */
-      height: 60px;
-      margin: 2px 10px 8px 0;
-      padding: 8px;
-      border: 4px solid var(--light-border-color);
-      border-radius: 10px;
-      font-size: 0.9rem;
-      font-weight: bold;
-      color: #666 !important;
-      white-space: nowrap;
-    }
-    body.dark-bg .ledger-inline-container {
-      border-color: var(--dark-border-color);
-      color: #666 !important;
-    }
-    .ledger-inline-container span {
-      margin-right: 8px;
-      display: inline-flex;
-      align-items: center;
-    }
-
-    /* ----------------------------
-       Status Bar Styles
-       matched height, about 70% width
-    ----------------------------- */
-    .status-bar {
-      position: relative;
-      display: flex;
-      justify-content: space-evenly;
-      align-items: center;
-      height: 60px;
-      padding: 20px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-      margin-top: 0;
-      width: 68%;
-    }
-    .status-bar > div:not(.toggle-container) {
-      text-align: center;
-    }
-    .status-label {
-      font-size: 1.1rem;
-      font-weight: bold;
-      margin-bottom: 5px;
-      display: block;
-    }
-    .status-value {
-      font-size: 1.2rem;
-    }
-    .toggle-container {
-      position: absolute;
-      bottom: 5px;
-      right: 5px;
-      cursor: pointer;
-    }
-    .toggle-container svg {
-      display: block;
-    }
-
-    /* Top row container for ledger + status bar */
-    .top-row {
-      display: flex;
-      justify-content: flex-start;
-      align-items: center;
-      width: 100%;
-      margin-top: 0;
-    }
-
-    /* Box Rows for rest of layout */
     .box-row {
       display: flex;
       justify-content: space-between;
@@ -146,7 +73,78 @@
       width: 48%;
     }
 
-    /* Pie Box Styles */
+    /* ----------------------------
+       Ledger Box
+       ### BOX RESIZE ###
+       48% wide, 75px tall, text color #666, 2 columns
+    ----------------------------- */
+    .ledger-inline-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      width: 48%;
+      height: 75px; /* 25% taller than the previous 60px */
+      margin: 0;
+      padding: 8px;
+      border: 4px solid var(--light-border-color);
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      color: #666 !important; /* override text color to grey */
+      white-space: nowrap;
+    }
+    body.dark-bg .ledger-inline-container {
+      border-color: var(--dark-border-color);
+      color: #666 !important;
+    }
+    .ledger-inline-container span {
+      margin-right: 8px;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    /* ----------------------------
+       Status Bar
+       ### BOX RESIZE ###
+       48% wide, 75px tall, smaller fonts
+    ----------------------------- */
+    .status-bar {
+      position: relative;
+      display: flex;
+      justify-content: space-evenly;
+      align-items: center;
+      height: 75px;
+      padding: 15px; /* reduced from 20px */
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      margin-top: 0;
+      width: 48%;
+    }
+    .status-bar > div:not(.toggle-container) {
+      text-align: center;
+    }
+    .status-label {
+      font-size: 1.0rem; /* slightly smaller */
+      font-weight: bold;
+      margin-bottom: 3px; /* less spacing */
+      display: block;
+    }
+    .status-value {
+      font-size: 1.1rem; /* slightly smaller */
+    }
+    .toggle-container {
+      position: absolute;
+      bottom: 5px;
+      right: 5px;
+      cursor: pointer;
+    }
+    .toggle-container svg {
+      display: block;
+    }
+
+    /* ----------------------------
+       Pie Box Styles
+    ----------------------------- */
     .pie-row {
       display: flex;
       justify-content: space-between;
@@ -162,12 +160,16 @@
       font-weight: bold;
     }
 
-    /* Graph Box Styles */
+    /* ----------------------------
+       Graph Box Styles
+    ----------------------------- */
     .graph-box {
       overflow: hidden;
     }
 
-    /* Mini Positions Table Styles */
+    /* ----------------------------
+       Mini Positions Table Styles
+    ----------------------------- */
     .mini-table-box table {
       width: 100%;
       border-collapse: collapse;
@@ -183,7 +185,9 @@
       font-size: 1.1rem;
     }
 
-    /* Positions Table Container & Icons */
+    /* ----------------------------
+       Positions Table Container & Icons
+    ----------------------------- */
     .positions-container {
       margin-top: 10px;
       overflow-x: auto;
@@ -205,7 +209,9 @@
       cursor: pointer;
     }
 
-    /* Liquidation Bar Specific Styles */
+    /* ----------------------------
+       Liquidation Bar Specific Styles
+    ----------------------------- */
     .liquidation-box {
       position: relative;
       min-height: 150px;
@@ -291,12 +297,11 @@
 {% endblock %}
 
 {% block content %}
-  <!-- Top Row: Ledger (left) + Status Bar (right) -->
-  <div class="top-row">
+  <!-- Top Row: Ledger (left) + Status (right) both 48% wide, 75px tall -->
+  <div class="box-row" style="margin-top:0;">
     <!-- Ledger Box -->
     <div class="ledger-inline-container" id="ledgerContainer" style="background-color: {{ ledger_info.color if ledger_info and ledger_info.color else 'var(--light-bg-color)' }};">
       {% if ledger_info and ledger_info.formatted_time %}
-        <!-- ### 2-COLUMN LEDGER ### -->
         <div style="display:flex; flex-wrap:wrap; width:100%;">
           <div style="width:50%;">⚙ Source: Ledger</div>
           <div style="width:50%;">🕖 Time: {{ ledger_info.formatted_time }}</div>
@@ -314,35 +319,77 @@
 
     <!-- Status Bar -->
     <div class="status-bar common-box light-mode" id="statusBar">
+      <!-- Use 'totals' to show real data instead of N/A -->
       <div>
         <span class="status-label">🔥 Heat</span>
-        <span class="status-value">{{ total_heat_index | default("N/A") }}</span>
+        <span class="status-value">
+          {% if totals is defined %}
+            {% set total_heat_index = totals.get('total_heat_index', 0) %}
+            {% if total_heat_index %}
+              {{ total_heat_index|int }}
+            {% else %}
+              N/A
+            {% endif %}
+          {% else %}
+            N/A
+          {% endif %}
+        </span>
       </div>
       <div>
         <span class="status-label">💰 Value</span>
-        <span class="status-value">{{ value | default("$0.00") }}</span>
+        <span class="status-value">
+          {% if totals is defined and totals.get('total_value') %}
+            ${{ "{:,.2f}".format(totals.total_value) }}
+          {% else %}
+            $0.00
+          {% endif %}
+        </span>
       </div>
       <div>
         <span class="status-label">⚖️ Leverage</span>
-        <span class="status-value">{{ leverage | default("N/A") }}</span>
+        <span class="status-value">
+          {% if totals is defined and totals.get('avg_leverage') %}
+            {{ "{:,.2f}".format(totals.avg_leverage) }}
+          {% else %}
+            N/A
+          {% endif %}
+        </span>
       </div>
       <div>
         <span class="status-label">📊 Size</span>
-        <span class="status-value">{{ size | default("$0k") }}</span>
+        <span class="status-value">
+          {% if totals is defined and totals.get('total_size') %}
+            ${{ "{:,.2f}".format(totals.total_size) }}
+          {% else %}
+            $0.00
+          {% endif %}
+        </span>
       </div>
       <div>
         <span class="status-label">⚡ VC Ratio</span>
-        <span class="status-value">{{ vc_ratio | default("N/A") }}</span>
+        <span class="status-value">
+          {% if totals is defined and totals.get('total_collateral') and totals.total_collateral > 0 %}
+            {{ "{:,.2f}".format(totals.total_value / totals.total_collateral) }}
+          {% else %}
+            N/A
+          {% endif %}
+        </span>
       </div>
       <div>
         <span class="status-label">✈️ Travel %</span>
-        <span class="status-value">{{ travel_percent | default("N/A") }}</span>
+        <span class="status-value">
+          {% if totals is defined and totals.get('avg_travel_percent') %}
+            {{ "{:,.2f}".format(totals.avg_travel_percent) }}%
+          {% else %}
+            N/A
+          {% endif %}
+        </span>
       </div>
       <div class="toggle-container" id="toggleContainer"></div>
     </div>
   </div>
 
-  <!-- Row 1: Positions Table Box (left) and Liquidation Bar Box (right) -->
+  <!-- Row 1: Positions Table (left) + Liquidation Bar (right) -->
   <div class="box-row">
     <!-- Positions Table Box -->
     <div class="common-box light-mode mini-table-box" id="miniTableBox">
@@ -385,10 +432,9 @@
                   <img class="wallet-icon" src="{{ url_for('static', filename='images/obivault.jpg') }}" alt="Wallet">
                 {% endif %}
               </td>
-              <!-- Heat Index Column (no decimals) -->
+              <!-- Heat Index Column (bold, no decimals) -->
               <td>
                 {% if pos.heat_index is defined and pos.heat_index is not none %}
-                  <!-- ### BOLD HEAT INDEX ### -->
                   <strong>{{ pos.heat_index|int }}</strong>
                 {% else %}
                   N/A
@@ -474,10 +520,14 @@
         <div class="pie-col">
           <div class="chart-label">Size</div>
           <div id="pieChartSize" style="height: 200px;"></div>
+          <!-- ### PIE VALUES ### Long/Short text below -->
+          <div id="pieSizeTotals" style="margin-top:5px; font-size:0.9rem; color:#fff;"></div>
         </div>
         <div class="pie-col">
           <div class="chart-label">Collateral</div>
           <div id="pieChartCollateral" style="height: 200px;"></div>
+          <!-- ### PIE VALUES ### Long/Short text below -->
+          <div id="pieCollateralTotals" style="margin-top:5px; font-size:0.9rem; color:#fff;"></div>
         </div>
       </div>
     </div>
@@ -548,10 +598,21 @@
         document.body.classList.add('light-bg');
       }
     });
-  </script>
 
-  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-  <script>
+    // We'll display the ratio text under each pie
+    function showPieValues(sizeSeries, collateralSeries) {
+      const pieSizeTotals = document.getElementById("pieSizeTotals");
+      const pieCollateralTotals = document.getElementById("pieCollateralTotals");
+      if (pieSizeTotals && sizeSeries.length === 2) {
+        pieSizeTotals.innerText = `Long: ${sizeSeries[0]}% / Short: ${sizeSeries[1]}%`;
+      }
+      if (pieCollateralTotals && collateralSeries.length === 2) {
+        pieCollateralTotals.innerText = `Long: ${collateralSeries[0]}% / Short: ${collateralSeries[1]}%`;
+      }
+    }
+
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script>
     function renderPieCharts(seriesSize, seriesCollateral) {
       function createPieOptions(seriesData) {
         return {
@@ -576,6 +637,9 @@
       const optionsCollateral = createPieOptions(seriesCollateral);
       const chartCollateral = new ApexCharts(document.querySelector("#pieChartCollateral"), optionsCollateral);
       chartCollateral.render();
+
+      // ### PIE VALUES ### show ratio text
+      showPieValues(seriesSize, seriesCollateral);
     }
 
     function renderGraphChart(timestamps, valueData, collateralData) {
