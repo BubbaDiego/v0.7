@@ -76,8 +76,11 @@ def main():
             "timestamp": timestamp,
             "component": "sonic_monitor",
             "operation": "heartbeat_update",
-            "status": "success",
-            "message": "Heartbeat updated successfully."
+            "status": "Success",
+            "message": "Heartbeat updated successfully.",
+            "metadata": {
+            "loop_counter": loop_counter  # Pass in the current loop_counter here
+            }
         }
 
         try:
