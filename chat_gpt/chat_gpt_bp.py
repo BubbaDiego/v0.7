@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 # Instantiate the OpenAI client using the API key
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+client = OpenAI(api_key=os.getenv("OPEN_AI_KEY"))
 
 # Create the blueprint for ChatGPT
 chat_gpt_bp = Blueprint('chat_gpt_bp', __name__, template_folder='templates')

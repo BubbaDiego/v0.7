@@ -170,7 +170,7 @@ def notify_failure_via_fallback(error_message: str):
     Also logs the fallback notification via the ops log.
     """
     config = load_com_config()
-    subject = "Twilio Failure Alert"
+    subject = "Holy shit batman.  Twilio Failure Alert"
     body = f"Twilio notification failed with error: {error_message}"
     email_success = send_email("", subject, body, config=config)
     sms_success = send_sms("", body, config=config)

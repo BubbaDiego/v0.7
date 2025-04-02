@@ -77,15 +77,7 @@ def main():
             "component": "sonic_monitor",
             "operation": "heartbeat_update",
             "status": "success",
-            "message": "Heartbeat updated successfully.",
-            "metadata": {
-                "loop_counter": loop_counter,
-                "endpoint_status": {
-                    "market_updates": "success",
-                    "run_cycle": "success",
-                    "jupiter": "success"
-                }
-            }
+            "message": "Heartbeat updated successfully."
         }
 
         try:
@@ -118,6 +110,7 @@ def main():
             file="sonic_monitor.py"
         )
         write_ledger()
+        print("❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄 ")
         time.sleep(SLEEP_INTERVAL)
 
 

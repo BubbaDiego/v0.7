@@ -2,196 +2,156 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Notepad UI Concepts</title>
+  <title>Ledger Info Box Options in Status Bar</title>
   <style>
-    /* Global Styles */
-    body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
-    .navbar { background-color: #4a90e2; color: white; padding: 1em; text-align: center; }
-    .nav-tabs { display: flex; justify-content: center; margin: 1em 0; }
-    .nav-tab { margin: 0 1em; cursor: pointer; padding: 0.5em 1em; border: 1px solid #ccc; border-radius: 5px; }
-    .nav-tab.active { background-color: #4a90e2; color: white; }
-    .section { display: none; padding: 1em; }
-    .section.active { display: block; }
-    .pencil-icon { cursor: pointer; font-size: 24px; margin-right: 0.5em; }
-    .notepad { border: 1px solid #ccc; padding: 0.5em; margin-top: 0.5em; }
-    
-    /* Concept 2: Modal */
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; }
-    .modal-content { background: white; padding: 1em; border-radius: 5px; width: 80%; max-width: 500px; }
-
-    /* Concept 3: Slide-In Panel */
-    .slide-panel { position: fixed; top: 0; right: -300px; width: 300px; height: 100%; background: white; box-shadow: -2px 0 5px rgba(0,0,0,0.3); transition: right 0.3s; padding: 1em; }
-    .slide-panel.active { right: 0; }
-    
-    /* Concept 4: Floating Notepad */
-    .floating { position: fixed; top: 20%; left: 50%; transform: translate(-50%, -20%); background: white; border: 1px solid #ccc; padding: 1em; box-shadow: 0 0 10px rgba(0,0,0,0.3); border-radius: 5px; }
-    .floating.hidden { display: none; }
-    
-    /* Concept 5: Collapsible Card */
-    .collapsible-card { border: 1px solid #ccc; border-radius: 5px; overflow: hidden; width: 300px; }
-    .card-header { background: #f0f0f0; padding: 0.5em; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
-    .card-content { display: none; padding: 0.5em; }
-    .card-content.active { display: block; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    /* The status bar container simulates your header/status bar */
+    .status-bar {
+      position: relative;
+      background: #00796b;
+      color: #fff;
+      padding: 10px 10px 10px 70px; /* leave space on left for ledger box */
+      margin-bottom: 30px;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+    }
+    /* Dummy element to simulate other status info */
+    .other-info {
+      margin-left: 20px;
+      font-size: 1.1em;
+    }
+    /* Ledger info box placed at the upper left corner of the status bar */
+    .ledger-box {
+      position: absolute;
+      left: 10px;
+      top: 10px;
+      padding: 5px;
+      border-radius: 4px;
+      font-size: 0.85em;
+      line-height: 1.2;
+    }
+    .ledger-box .line {
+      margin-bottom: 3px;
+      display: flex;
+      align-items: center;
+    }
+    .ledger-box .line .icon {
+      margin-right: 4px;
+    }
+    /* Option 1: Basic card style with light background */
+    .option1 {
+      background: #fff;
+      color: #000;
+      border: 1px solid #ccc;
+    }
+    /* Option 2: Accent border with blue tint */
+    .option2 {
+      background: #e3f2fd;
+      color: #0d47a;
+      border: 1px solid #90caf9;
+    }
+    /* Option 3: Minimal with semi-transparent border */
+    .option3 {
+      background: rgba(255,255,255,0.8);
+      color: #333;
+      border: 1px solid rgba(0,0,0,0.2);
+    }
+    /* Option 4: Inverted dark style */
+    .option4 {
+      background: #424242;
+      color: #fff;
+      border: 1px solid #616161;
+    }
+    /* Option 5: Rounded badge style */
+    .option5 {
+      background: #d1c4e9;
+      color: #4a148c;
+      border: 1px solid #b39ddb;
+      border-radius: 20px;
+      padding: 4px 10px;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
-  <div class="navbar">
-    <h1>Notepad UI Concepts</h1>
-    <p>Honey, check out these 5 cool notepad concepts!</p>
-  </div>
+  <h1>Ledger Info Box Options in Status Bar</h1>
 
-  <!-- Navigation Tabs -->
-  <div class="nav-tabs">
-    <div class="nav-tab active" data-target="concept1">Inline Edit</div>
-    <div class="nav-tab" data-target="concept2">Modal Notepad</div>
-    <div class="nav-tab" data-target="concept3">Slide-In Panel</div>
-    <div class="nav-tab" data-target="concept4">Floating Notepad</div>
-    <div class="nav-tab" data-target="concept5">Collapsible Card</div>
-  </div>
-
-  <!-- Concept 1: Inline Editable Notepad -->
-  <div id="concept1" class="section active">
-    <h2>Inline Editable Notepad</h2>
-    <p>Click the pencil icon to toggle an inline notepad in the title bar.</p>
-    <span class="pencil-icon" id="inlinePencil">✏️</span>
-    <div id="inlineNotepad" class="notepad" style="display:none;">
-      <textarea id="inlineText" rows="4" style="width:100%;" placeholder="Type your note here..."></textarea>
-      <button onclick="saveNote('inline')">Save Note</button>
+  <!-- Option 1 -->
+  <div class="status-bar">
+    <div class="ledger-box option1">
+      <div class="line"><span class="icon">⏰</span><span>Ledger Info</span></div>
+      <div class="line"><span class="icon">🕖</span><span>7:45 PM 4/3/24</span></div>
+      <div class="line"><span class="icon">✅</span><span>Status: success</span></div>
+      <div class="line"><span class="icon">🔄</span><span>Loop: 152</span></div>
+    </div>
+    <div class="other-info">
+      Other Status Info...
     </div>
   </div>
 
-  <!-- Concept 2: Modal Notepad -->
-  <div id="concept2" class="section">
-    <h2>Modal Notepad</h2>
-    <p>Click the pencil icon to open a modal dialog notepad.</p>
-    <span class="pencil-icon" id="modalPencil">✏️</span>
-    <div id="modalNotepad" class="modal">
-      <div class="modal-content">
-        <h3>Notepad</h3>
-        <textarea id="modalText" rows="4" style="width:100%;" placeholder="Type your note here..."></textarea>
-        <br>
-        <button onclick="saveNote('modal')">Save Note</button>
-        <button onclick="toggleModal()">Close</button>
+  <!-- Option 2 -->
+  <div class="status-bar">
+    <div class="ledger-box option2">
+      <div class="line"><span class="icon">⏰</span><span>Ledger Info</span></div>
+      <div class="line"><span class="icon">🕖</span><span>7:45 PM 4/3/24</span></div>
+      <div class="line"><span class="icon">✅</span><span>Status: success</span></div>
+      <div class="line"><span class="icon">🔄</span><span>Loop: 152</span></div>
+    </div>
+    <div class="other-info">
+      Other Status Info...
+    </div>
+  </div>
+
+  <!-- Option 3 -->
+  <div class="status-bar">
+    <div class="ledger-box option3">
+      <div class="line"><span class="icon">⏰</span><span>Ledger Info</span></div>
+      <div class="line"><span class="icon">🕖</span><span>7:45 PM 4/3/24</span></div>
+      <div class="line"><span class="icon">✅</span><span>Status: success</span></div>
+      <div class="line"><span class="icon">🔄</span><span>Loop: 152</span></div>
+    </div>
+    <div class="other-info">
+      Other Status Info...
+    </div>
+  </div>
+
+  <!-- Option 4 -->
+  <div class="status-bar">
+    <div class="ledger-box option4">
+      <div class="line"><span class="icon">⏰</span><span>Ledger Info</span></div>
+      <div class="line"><span class="icon">🕖</span><span>7:45 PM 4/3/24</span></div>
+      <div class="line"><span class="icon">✅</span><span>Status: success</span></div>
+      <div class="line"><span class="icon">🔄</span><span>Loop: 152</span></div>
+    </div>
+    <div class="other-info">
+      Other Status Info...
+    </div>
+  </div>
+
+  <!-- Option 5 -->
+  <div class="status-bar">
+    <div class="ledger-box option5">
+      <div class="line"><span class="icon">⏰</span><span>Ledger</span></div>
+      <div class="line"><span class="icon">🕖</span><span>7:45 PM</span></div>
+      <div class="line"><span>4/3/24</span></div>
+      <div class="line">
+        <span class="icon">✅</span><span>Success</span> 
+        <span class="icon">🔄</span><span>152</span>
       </div>
     </div>
-  </div>
-
-  <!-- Concept 3: Slide-In Panel Notepad -->
-  <div id="concept3" class="section">
-    <h2>Slide-In Panel Notepad</h2>
-    <p>Click the pencil icon to slide in a side panel notepad.</p>
-    <span class="pencil-icon" id="slidePencil">✏️</span>
-    <div id="slidePanel" class="slide-panel">
-      <h3>Notepad</h3>
-      <textarea id="slideText" rows="4" style="width:100%;" placeholder="Type your note here..."></textarea>
-      <br>
-      <button onclick="saveNote('slide')">Save Note</button>
-      <button onclick="toggleSlide()">Close</button>
+    <div class="other-info">
+      Other Status Info...
     </div>
   </div>
-
-  <!-- Concept 4: Floating Notepad -->
-  <div id="concept4" class="section">
-    <h2>Floating Notepad</h2>
-    <p>Click the pencil icon to open a draggable, floating notepad.</p>
-    <span class="pencil-icon" id="floatingPencil">✏️</span>
-    <div id="floatingNotepad" class="floating hidden">
-      <h3>Notepad</h3>
-      <textarea id="floatingText" rows="4" style="width:100%;" placeholder="Type your note here..."></textarea>
-      <br>
-      <button onclick="saveNote('floating')">Save Note</button>
-      <button onclick="toggleFloating()">Close</button>
-    </div>
-  </div>
-
-  <!-- Concept 5: Collapsible Card Notepad -->
-  <div id="concept5" class="section">
-    <h2>Collapsible Card Notepad</h2>
-    <p>Click the pencil icon in the card header to expand a collapsible card notepad.</p>
-    <div class="collapsible-card">
-      <div class="card-header" onclick="toggleCard()">
-        <span>✏️ Notepad</span>
-        <span id="cardToggle">▼</span>
-      </div>
-      <div id="cardContent" class="card-content">
-        <textarea id="cardText" rows="4" style="width:100%;" placeholder="Type your note here..."></textarea>
-        <br>
-        <button onclick="saveNote('card')">Save Note</button>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    // Tab switching logic
-    const tabs = document.querySelectorAll('.nav-tab');
-    const sections = document.querySelectorAll('.section');
-    tabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        tabs.forEach(t => t.classList.remove('active'));
-        sections.forEach(sec => sec.classList.remove('active'));
-        tab.classList.add('active');
-        document.getElementById(tab.getAttribute('data-target')).classList.add('active');
-      });
-    });
-
-    // Inline notepad toggle
-    document.getElementById('inlinePencil').addEventListener('click', () => {
-      const inlineNotepad = document.getElementById('inlineNotepad');
-      inlineNotepad.style.display = inlineNotepad.style.display === 'none' ? 'block' : 'none';
-    });
-
-    // Modal notepad toggle
-    document.getElementById('modalPencil').addEventListener('click', toggleModal);
-    function toggleModal() {
-      const modal = document.getElementById('modalNotepad');
-      modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
-    }
-
-    // Slide panel toggle
-    document.getElementById('slidePencil').addEventListener('click', toggleSlide);
-    function toggleSlide() {
-      const slidePanel = document.getElementById('slidePanel');
-      slidePanel.classList.toggle('active');
-    }
-
-    // Floating notepad toggle
-    document.getElementById('floatingPencil').addEventListener('click', toggleFloating);
-    function toggleFloating() {
-      const floating = document.getElementById('floatingNotepad');
-      floating.classList.contains('hidden') ? floating.classList.remove('hidden') : floating.classList.add('hidden');
-    }
-
-    // Collapsible card toggle
-    function toggleCard() {
-      const cardContent = document.getElementById('cardContent');
-      const cardToggle = document.getElementById('cardToggle');
-      if (cardContent.classList.contains('active')) {
-        cardContent.classList.remove('active');
-        cardToggle.textContent = '▼';
-      } else {
-        cardContent.classList.add('active');
-        cardToggle.textContent = '▲';
-      }
-    }
-
-    // Save note function (placeholder)
-    function saveNote(type) {
-      let note = '';
-      if (type === 'inline') {
-        note = document.getElementById('inlineText').value;
-      } else if (type === 'modal') {
-        note = document.getElementById('modalText').value;
-      } else if (type === 'slide') {
-        note = document.getElementById('slideText').value;
-      } else if (type === 'floating') {
-        note = document.getElementById('floatingText').value;
-      } else if (type === 'card') {
-        note = document.getElementById('cardText').value;
-      }
-      alert("Note saved: " + note);
-      // Here you can integrate your backend to actually save the note to the database.
-    }
-  </script>
+  
 </body>
 </html>

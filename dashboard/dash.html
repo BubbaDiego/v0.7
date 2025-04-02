@@ -1,3 +1,4 @@
+{% set hide_title_bar = True %}
 {% extends "base.html" %}
 
 {% block title %}Dashboard{% endblock %}
@@ -14,7 +15,7 @@
       --light-border-color: #fff;
       --light-text-color: #fff;
 
-      --dark-bg-color: #1b1919;  /* Darker grey for night mode */
+      --dark-bg-color: #1b1919;
       --dark-border-color: #444;
       --dark-text-color: #ddd;
 
@@ -44,7 +45,6 @@
       padding: 20px;
       transition: background-color 0.4s, color 0.4s, border-color 0.4s;
     }
-    /* Light and Dark mode classes for boxes */
     .light-mode {
       background-color: var(--light-bg-color);
       border-color: var(--light-border-color);
@@ -88,6 +88,23 @@
     }
     .toggle-container svg {
       display: block;
+    }
+    /* Ledger info integrated inline (Option 1 style) */
+    .ledger-info-inline {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.9rem;
+      color: inherit;
+      display: flex;
+      align-items: center;
+      white-space: nowrap;
+    }
+    .ledger-info-inline span {
+      margin-right: 8px;
+      display: flex;
+      align-items: center;
     }
 
     /* ----------------------------
@@ -180,14 +197,11 @@
       position: relative;
       min-height: 150px;
     }
-
-    /* Use a fixed width to extend the bar more */
     .progress.liquidation {
       position: relative;
       background-color: #e9ecef;
       height: 1.5rem;
       border-radius: 1rem;
-      /* Extend the bar by setting a width */
       width: 90%;
       flex: 1;
     }
@@ -235,8 +249,6 @@
     .liq-row .wallet-icon {
       margin-top: -5px;
     }
-
-    /* Heat Index Circle: pinned to the far end of the bar */
     .heat-index-circle {
       position: absolute;
       right: 0;
@@ -255,8 +267,6 @@
       z-index: 6;
       box-shadow: 0 0 3px rgba(0,0,0,0.3);
     }
-
-    /* Flame icon outside the bar, now positioned at the top */
     .flame-icon-pos {
       position: absolute;
       right: -30px;
@@ -270,6 +280,17 @@
 {% block content %}
   <!-- Status Bar -->
   <div class="status-bar common-box light-mode" id="statusBar">
+    <!-- Inline Ledger Info from Option 1 (integrated into status bar) -->
+    <div class="ledger-info-inline">
+      <span class="icon">⏰</span>
+      <span>Ledger Info</span>
+      <span class="icon">🕖</span>
+      <span>7:45 PM 4/3/24</span>
+      <span class="icon">✅</span>
+      <span>Status: success</span>
+      <span class="icon">🔄</span>
+      <span>Loop: 152</span>
+    </div>
     <div>
       <span class="status-label">🔥 Heat</span>
       <span class="status-value">{{ total_heat_index | default("N/A") }}</span>
@@ -399,7 +420,6 @@
                 </div>
               {% endif %}
             {% endif %}
-            <!-- Heat Index Circle pinned at bar's right edge -->
             <div class="heat-index-circle">
               {% if pos.heat_index is defined and pos.heat_index is not none %}
                 {{ pos.heat_index|int }}
@@ -407,7 +427,6 @@
                 N/A
               {% endif %}
             </div>
-            <!-- Flame icon outside the bar, now positioned at the top -->
             <div class="flame-icon-pos">🔥</div>
           </div>
         </div>
@@ -491,7 +510,6 @@
         liquidationBox.classList.add('light-mode');
         toggleContainer.innerHTML = moonIcon;
       }
-      // Toggle overall page background
       if (document.body.classList.contains('light-bg')) {
         document.body.classList.remove('light-bg');
         document.body.classList.add('dark-bg');
