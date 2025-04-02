@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 import os
 import sys
-
-sys.path.insert(0, '/home/BubbaDiego/v0.7')
-
 import time
 import json
 import logging
@@ -11,7 +8,12 @@ import argparse
 import re
 import inspect
 from datetime import datetime, timedelta, timezone
-from config.config_constants import HEARTBEAT_FILE, BASE_DIR  # Using the heartbeat file constant and BASE_DIR
+import pytz
+
+# Ensure BASE_DIR is added to the path
+sys.path.insert(0, '/home/BubbaDiego/v0.7')
+
+from config.config_constants import HEARTBEAT_FILE, BASE_DIR
 from utils.unified_logger import UnifiedLogger
 from alerts.alert_manager import trigger_twilio_flow
 
@@ -22,45 +24,36 @@ from xcom.xcom import send_email, send_sms, load_com_config
 LEDGER_FILE = os.path.join(BASE_DIR, "monitor", "sonic_ledger.json")
 HTML_REPORT_FILE = os.path.join(BASE_DIR, "monitor", "sonic_monitor.html")
 
-
-# Function to strip ANSI escape codes
-def strip_ansi_codes(text: str) -> str:
-    ansi_escape = re.compile(r'\x1B\[[0-?]*[ -/]*[@-~]')
-    return ansi_escape.sub('', text)
+# Define timer config file path (assumes timer_config.json is in the config folder)
+TIMER_CONFIG_PATH = os.path.join(BASE_DIR, "config", "timer_config.json")
 
 
-# Load sonic configuration from sonic_config.json
-sonic_config_path = os.path.join(BASE_DIR, "sonic_config.json")
-try:
-    with open(sonic_config_path, "r") as f:
-        sonic_config = json.load(f)
-except Exception as e:
-    logging.error("Error loading sonic configuration: %s", e)
-    sonic_config = {}
+def load_timer_config():
+    try:
+        with open(TIMER_CONFIG_PATH, "r") as f:
+            return json.load(f)
+    except Exception as e:
+        logging.error("Error loading timer config: %s", e)
+        return {}
 
-# Retrieve notification settings from sonic_config.json
-notification_config = sonic_config.get("notification_config", {})
-email_config = notification_config.get("email", {})
-sms_config = notification_config.get("sms", {})
-email_recipient = email_config.get("recipient_email", "N/A")
-sms_recipient = sms_config.get("recipient_number", "N/A")
 
-# Retrieve system alert settings from sonic_config.json
-system_config = sonic_config.get("system_config", {})
-alert_monitor_enabled = system_config.get("alert_monitor_enabled", True)
+def update_timer_config(new_config: dict):
+    try:
+        with open(TIMER_CONFIG_PATH, "w") as f:
+            json.dump(new_config, f, indent=4)
+    except Exception as e:
+        logging.error("Error updating timer config: %s", e)
 
-# Set threshold (in minutes) for considering the monitor as down
-THRESHOLD_MINUTES = 35
+
+# Load timer configuration and extract the den_mother_loop_interval (in minutes)
+timer_config = load_timer_config()
+den_mother_loop_interval = timer_config.get("den_mother_loop_interval", 35)  # default to 35 minutes
 
 # Create an instance of the UnifiedLogger
 unified_logger = UnifiedLogger()
 
 
 def log_operation_with_line(operation_type: str, primary_text: str, source: str, file: str):
-    """
-    Helper function that logs an operation along with the caller's line number.
-    Uses 'caller_lineno' to avoid overwriting the reserved 'lineno' attribute.
-    """
     lineno = inspect.currentframe().f_back.f_lineno
     extra = {
         "source": source,
@@ -76,6 +69,7 @@ def log_operation_with_line(operation_type: str, primary_text: str, source: str,
 def write_ledger(component: str, operation: str, status: str, message: str, metadata: dict = None):
     """
     Appends a JSON ledger entry to the shared ledger file.
+    After writing, updates the timer config by setting 'den_mother_start_time'.
     """
     ledger_dir = os.path.dirname(LEDGER_FILE)
     os.makedirs(ledger_dir, exist_ok=True)
@@ -92,15 +86,15 @@ def write_ledger(component: str, operation: str, status: str, message: str, meta
         with open(LEDGER_FILE, "a") as f:
             f.write(json.dumps(ledger_entry) + "\n")
         logging.info("Ledger updated: %s", ledger_entry)
+        # Update the timer configuration with the new den_mother_start_time
+        current_timer_config = load_timer_config()
+        current_timer_config["den_mother_start_time"] = timestamp
+        update_timer_config(current_timer_config)
     except Exception as ex:
         logging.error("Failed to update ledger: %s", ex)
 
 
 def generate_html_report():
-    """
-    Reads the ledger file, filters entries from the last 15 minutes, and generates
-    a pretty HTML report that overwrites itself every update.
-    """
     current_time = datetime.now(timezone.utc)
     entries = []
     try:
@@ -165,10 +159,6 @@ def generate_html_report():
 
 
 def notify_failure_via_fallback(error_message: str):
-    """
-    Uses xCom's email and SMS functions to send fallback notifications if Twilio fails.
-    Also logs the fallback notification via the ops log.
-    """
     config = load_com_config()
     subject = "Holy shit batman.  Twilio Failure Alert"
     body = f"Twilio notification failed with error: {error_message}"
@@ -215,7 +205,7 @@ def check_heartbeat():
     now = datetime.now(timezone.utc)
     elapsed_minutes = (now - last_update).seconds // 60
 
-    if now - last_update > timedelta(minutes=THRESHOLD_MINUTES):
+    if now - last_update > timedelta(minutes=den_mother_loop_interval):
         alert_msg = (
             f"\033[91mOh Shit Alert: No heartbeat update for {elapsed_minutes} minutes! "
             f"Notifications: email to {email_recipient}, SMS to {sms_recipient}\033[0m"
@@ -242,7 +232,7 @@ def check_heartbeat():
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Watchdog Script for Jupiter Monitor.")
+    parser = argparse.ArgumentParser(description="Watchdog Script for den_mother.")
     parser.add_argument(
         '--mode',
         choices=['oneshot', 'monitor'],
@@ -256,6 +246,13 @@ if __name__ == '__main__':
         generate_html_report()
     else:
         while True:
+            # Set den_mother_start_time at the beginning of each loop
+            current_timer_config = load_timer_config()
+            current_timestamp = datetime.now(timezone.utc).isoformat()
+            current_timer_config["den_mother_start_time"] = current_timestamp
+            update_timer_config(current_timer_config)
+
             check_heartbeat()
             generate_html_report()
-            time.sleep(300)  # Check every 5 minutes
+            # Sleep for den_mother_loop_interval (convert minutes to seconds)
+            time.sleep(den_mother_loop_interval * 60)

@@ -33,6 +33,7 @@
       --dark-page-bg-color: #3a3838;
       --dark-page-text-color: #ddd;
     }
+    /* Use the persisted theme_mode (set from DB via the render context) */
     body {
       color: var(--text-color) !important;
       {% if theme.get('profiles', {}).get(theme.get('selected_profile', ''), {}).get('wallpaper', {}).get('image') %}
@@ -58,9 +59,17 @@
   </style>
 </head>
 
-<body class="hold-transition layout-top-nav light-bg">
+<body class="hold-transition layout-top-nav {{ theme_mode }}-bg">
   <div class="wrapper">
     {% include "title_bar.html" %}
+
+    <!-- Theme toggle control (could be placed in a header or nav bar) -->
+    <div id="themeToggleContainer" class="p-2" style="position: absolute; top: 10px; right: 10px;">
+      <label class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" id="themeToggle" {% if theme_mode == 'dark' %}checked{% endif %}>
+        <span class="form-check-label">Dark Mode</span>
+      </label>
+    </div>
 
     <!-- Use a single container with an id so client-side can switch its class -->
     <div class="content-wrapper">
@@ -84,13 +93,36 @@
 
   <!-- Client-side Layout Mode Loader -->
   <script>
-    (function(){
-      var mode = localStorage.getItem("layoutMode") || "fluid";
-      var container = document.getElementById("layoutContainer");
-      if(container){
-        container.className = (mode === "fixed") ? "container" : "container-fluid";
-      }
-    })();
+    // On page load, no need to check localStorage.
+    // The backend passes the persisted theme_mode which is used in the <body> tag.
+  </script>
+
+  <!-- Theme Toggle Script: update DB when toggled -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const themeToggle = document.getElementById('themeToggle');
+      themeToggle.addEventListener('change', function() {
+        const newMode = this.checked ? "dark" : "light";
+        // POST to the new endpoint to save the theme mode in the DB
+        fetch("/save_theme_mode", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ theme_mode: newMode })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if(data.success){
+            // Reload page to apply new theme mode
+            window.location.reload();
+          } else {
+            console.error("Failed to save theme mode:", data.error);
+          }
+        })
+        .catch(err => console.error("Error saving theme mode:", err));
+      });
+    });
   </script>
 </body>
 </html>

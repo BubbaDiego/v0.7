@@ -1,61 +1,191 @@
 #!/usr/bin/env python3
+"""
+rebuild_db.py
+
+This script will drop all tables in the SQLite database except for the
+'wallets' table, and then rebuild the remaining tables using new definitions.
+Be sure to back up your data before running this script!
+"""
+
 import sqlite3
-import json
-import os
 from config.config_constants import DB_PATH
+import os
 
-def create_wallets_table(conn):
-    # Create the wallets table if it doesn't exist.
-    create_table_query = """
-    CREATE TABLE IF NOT EXISTS wallets (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT,
-        public_address TEXT,
-        private_address TEXT,
-        image_path TEXT,
-        balance REAL
-    );
-    """
-    conn.execute(create_table_query)
-    conn.commit()
-
-def insert_wallets(conn, wallets):
+def get_existing_tables(conn):
     cursor = conn.cursor()
-    insert_query = """
-    INSERT INTO wallets (name, public_address, private_address, image_path, balance)
-    VALUES (?, ?, ?, ?, ?);
-    """
-    for wallet in wallets:
-        name = wallet.get("name", "")
-        public_address = wallet.get("public_address", "")
-        private_address = wallet.get("private_address", "")
-        image_path = wallet.get("image_path", "")
-        balance = wallet.get("balance", 0)
-        cursor.execute(insert_query, (name, public_address, private_address, image_path, balance))
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+    tables = [row[0] for row in cursor.fetchall()]
+    return tables
+
+def drop_tables(conn, tables_to_keep):
+    existing_tables = get_existing_tables(conn)
+    cursor = conn.cursor()
+    for table in existing_tables:
+        if table not in tables_to_keep:
+            print(f"Dropping table: {table}")
+            cursor.execute(f"DROP TABLE IF EXISTS {table}")
     conn.commit()
+
+def create_tables(conn):
+    cursor = conn.cursor()
+    
+    # Create system_vars table with additional columns (including theme_mode)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS system_vars (
+            id INTEGER PRIMARY KEY,
+            last_update_time_positions DATETIME,
+            last_update_positions_source TEXT,
+            last_update_time_prices DATETIME,
+            last_update_prices_source TEXT,
+            last_update_time_jupiter DATETIME,
+            theme_mode TEXT DEFAULT 'light',
+            total_brokerage_balance REAL DEFAULT 0.0,
+            total_wallet_balance REAL DEFAULT 0.0,
+            total_balance REAL DEFAULT 0.0,
+            strategy_start_value REAL DEFAULT 0.0,
+            strategy_description TEXT DEFAULT ''
+        )
+    """)
+    cursor.execute("""
+        INSERT OR IGNORE INTO system_vars (
+            id,
+            last_update_time_positions,
+            last_update_positions_source,
+            last_update_time_prices,
+            last_update_prices_source,
+            last_update_time_jupiter,
+            theme_mode,
+            total_brokerage_balance,
+            total_wallet_balance,
+            total_balance,
+            strategy_start_value,
+            strategy_description
+        )
+        VALUES (1, NULL, NULL, NULL, NULL, NULL, 'light', 0.0, 0.0, 0.0, 0.0, '')
+    """)
+
+    # Create prices table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS prices (
+            id TEXT PRIMARY KEY,
+            asset_type TEXT,
+            current_price REAL,
+            previous_price REAL,
+            last_update_time DATETIME,
+            previous_update_time DATETIME,
+            source TEXT
+        )
+    """)
+
+    # Create positions table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS positions (
+            id TEXT PRIMARY KEY,
+            asset_type TEXT,
+            position_type TEXT,
+            entry_price REAL,
+            liquidation_price REAL,
+            travel_percent REAL,
+            value REAL,
+            collateral REAL,
+            size REAL,
+            leverage REAL,
+            wallet_name TEXT,
+            last_updated DATETIME,
+            alert_reference_id TEXT,
+            hedge_buddy_id TEXT,
+            current_price REAL,
+            liquidation_distance REAL,
+            heat_index REAL,
+            current_heat_index REAL,
+            pnl_after_fees_usd REAL
+        )
+    """)
+
+    # Create alerts table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS alerts (
+            id TEXT PRIMARY KEY,
+            created_at DATETIME,
+            alert_type TEXT,
+            alert_class TEXT,
+            asset_type TEXT,
+            trigger_value REAL,
+            condition TEXT,
+            notification_type TEXT,
+            level TEXT,
+            last_triggered DATETIME,
+            status TEXT,
+            frequency INTEGER,
+            counter INTEGER,
+            liquidation_distance REAL,
+            travel_percent REAL,
+            liquidation_price REAL,
+            notes TEXT,
+            description TEXT,
+            position_reference_id TEXT,
+            evaluated_value REAL
+        )
+    """)
+
+    # Create alert_ledger table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS alert_ledger (
+            id TEXT PRIMARY KEY,
+            alert_id TEXT,
+            modified_by TEXT,
+            reason TEXT,
+            before_value TEXT,
+            after_value TEXT,
+            timestamp DATETIME
+        )
+    """)
+
+    # Create brokers table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS brokers (
+            name TEXT PRIMARY KEY,
+            image_path TEXT,
+            web_address TEXT,
+            total_holding REAL DEFAULT 0.0
+        )
+    """)
+
+    # Create portfolio_entries table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS portfolio_entries (
+            id TEXT PRIMARY KEY,
+            snapshot_time DATETIME,
+            total_value REAL NOT NULL
+        )
+    """)
+
+    # Create positions_totals_history table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS positions_totals_history (
+            id TEXT PRIMARY KEY,
+            snapshot_time DATETIME,
+            total_size REAL,
+            total_value REAL,
+            total_collateral REAL,
+            avg_leverage REAL,
+            avg_travel_percent REAL,
+            avg_heat_index REAL
+        )
+    """)
+
+    conn.commit()
+    print("New tables created.")
 
 def main():
-    try:
-        # Connect to the SQLite database using the DB_PATH from config_constants.py
-        conn = sqlite3.connect(str(DB_PATH))
-        conn.row_factory = sqlite3.Row
-        
-        # Create the wallets table if it doesn't exist
-        create_wallets_table(conn)
-        
-        # Assume wallets_backup.json is in the same directory as this script
-        json_path = os.path.join(os.path.dirname(__file__), "wallets_backup.json")
-        with open(json_path, "r", encoding="utf-8") as f:
-            wallets = json.load(f)
-        
-        # Insert the wallets into the DB
-        insert_wallets(conn, wallets)
-        print("Successfully injected wallets into the database.")
-    except Exception as e:
-        print(f"Error injecting wallets: {e}")
-    finally:
-        if conn:
-            conn.close()
+    # Connect to the database
+    conn = sqlite3.connect(str(DB_PATH))
+    # We want to keep the "wallets" table
+    tables_to_keep = ["wallets"]
+    drop_tables(conn, tables_to_keep)
+    create_tables(conn)
+    conn.close()
+    print("Database rebuild complete.")
 
 if __name__ == '__main__':
     main()

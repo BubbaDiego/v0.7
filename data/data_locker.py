@@ -81,6 +81,12 @@ class DataLocker:
                 """)
                 self.logger.info("Added 'last_update_jupiter_source' column to 'system_vars' table.")
 
+            cursor.execute("PRAGMA table_info(system_vars)")
+            existing_cols = [row["name"] for row in cursor.fetchall()]
+            if "theme_mode" not in existing_cols:
+                cursor.execute("ALTER TABLE system_vars ADD COLUMN theme_mode TEXT DEFAULT 'light'")
+                self.logger.info("Added 'theme_mode' column to 'system_vars' table.")
+
             # Add additional balance columns if missing
             cursor.execute("PRAGMA table_info(system_vars)")
             existing_cols = [row["name"] for row in cursor.fetchall()]
@@ -250,6 +256,19 @@ class DataLocker:
     def get_db_connection(self) -> sqlite3.Connection:
         self._init_sqlite_if_needed()
         return self.conn
+
+    def get_theme_mode(self) -> str:
+        self._init_sqlite_if_needed()
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT theme_mode FROM system_vars WHERE id = 1 LIMIT 1")
+        row = cursor.fetchone()
+        return row["theme_mode"] if row and "theme_mode" in row and row["theme_mode"] else "light"
+
+    def set_theme_mode(self, mode: str):
+        self._init_sqlite_if_needed()
+        cursor = self.conn.cursor()
+        cursor.execute("UPDATE system_vars SET theme_mode = ? WHERE id = 1", (mode,))
+        self.conn.commit()
 
     # ----------------------------------------------------------------
     # Strategy Performance Data Persistence

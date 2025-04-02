@@ -755,6 +755,8 @@ def api_asset_percent_changes():
         logger.error(f"Error in api_asset_percent_changes: {e}", exc_info=True)
         return jsonify({"error": str(e)}), 500
 
+
+
 def format_ledger_time(iso_str):
     """Parse ISO string, compute how old it is, pick a color per new rules, and return a nicely formatted time."""
     try:
@@ -789,6 +791,20 @@ def format_ledger_time(iso_str):
     final_str = f"{hour_min} {mon}/{day}/{yr:02d}"
     return final_str, color
 
+@dashboard_bp.route("/save_theme_mode", methods=["POST"])
+def save_theme_mode():
+    data = request.get_json() or {}
+    mode = data.get("theme_mode")
+    if mode not in ["light", "dark"]:
+        return jsonify({"success": False, "error": "Invalid theme mode"}), 400
+    try:
+        dl = DataLocker.get_instance()
+        dl.set_theme_mode(mode)
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 
 @dashboard_bp.route("/dash", endpoint="dash_page")
 def dash_page():
@@ -807,6 +823,7 @@ def dash_page():
         avg_heat_index = total_heat_index / len(all_positions)
     else:
         total_value = 0
+        total_collateral = 0  # Fix: Define total_collateral for empty positions.
         total_size = 0
         avg_leverage = 0
         avg_travel_percent = 0
@@ -851,9 +868,12 @@ def dash_page():
         # No ledger info or no timestamp
         ledger_info = {}
 
+    theme_mode = dl.get_theme_mode()
+
     return render_template(
         "dash.html",  # Changed here from "dashboard.html" to "dash.html"
         theme=theme_config,
+        theme_mode=theme_mode,
         top_positions=top_positions,
         bottom_positions=bottom_positions,
         liquidation_positions=liquidation_positions,
@@ -880,4 +900,3 @@ def dash_page():
         strategy_performance=strategy_performance,
         ledger_info=ledger_info,
     )
-

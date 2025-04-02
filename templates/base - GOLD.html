@@ -2,156 +2,44 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Ledger Info Box Options in Status Bar</title>
+  <title>Den Mother Countdown</title>
+  <!-- Include jQuery and the countdown360 plugin -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/johnschult/jquery.countdown360@0.1.9/dist/jquery.countdown360.min.js"></script>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f9f9f9;
-      padding: 20px;
-    }
-    h1 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    /* The status bar container simulates your header/status bar */
-    .status-bar {
-      position: relative;
-      background: #00796b;
-      color: #fff;
-      padding: 10px 10px 10px 70px; /* leave space on left for ledger box */
-      margin-bottom: 30px;
-      border-radius: 5px;
-      display: flex;
-      align-items: center;
-    }
-    /* Dummy element to simulate other status info */
-    .other-info {
-      margin-left: 20px;
-      font-size: 1.1em;
-    }
-    /* Ledger info box placed at the upper left corner of the status bar */
-    .ledger-box {
-      position: absolute;
-      left: 10px;
-      top: 10px;
-      padding: 5px;
-      border-radius: 4px;
-      font-size: 0.85em;
-      line-height: 1.2;
-    }
-    .ledger-box .line {
-      margin-bottom: 3px;
-      display: flex;
-      align-items: center;
-    }
-    .ledger-box .line .icon {
-      margin-right: 4px;
-    }
-    /* Option 1: Basic card style with light background */
-    .option1 {
-      background: #fff;
-      color: #000;
-      border: 1px solid #ccc;
-    }
-    /* Option 2: Accent border with blue tint */
-    .option2 {
-      background: #e3f2fd;
-      color: #0d47a;
-      border: 1px solid #90caf9;
-    }
-    /* Option 3: Minimal with semi-transparent border */
-    .option3 {
-      background: rgba(255,255,255,0.8);
-      color: #333;
-      border: 1px solid rgba(0,0,0,0.2);
-    }
-    /* Option 4: Inverted dark style */
-    .option4 {
-      background: #424242;
-      color: #fff;
-      border: 1px solid #616161;
-    }
-    /* Option 5: Rounded badge style */
-    .option5 {
-      background: #d1c4e9;
-      color: #4a148c;
-      border: 1px solid #b39ddb;
-      border-radius: 20px;
-      padding: 4px 10px;
-      text-align: center;
+    #countdown {
+      max-width: 200px;
+      margin: 20px auto;
     }
   </style>
 </head>
 <body>
-  <h1>Ledger Info Box Options in Status Bar</h1>
+  <!-- Container for the circular timer -->
+  <div id="countdown"></div>
 
-  <!-- Option 1 -->
-  <div class="status-bar">
-    <div class="ledger-box option1">
-      <div class="line"><span class="icon">⏰</span><span>Ledger Info</span></div>
-      <div class="line"><span class="icon">🕖</span><span>7:45 PM 4/3/24</span></div>
-      <div class="line"><span class="icon">✅</span><span>Status: success</span></div>
-      <div class="line"><span class="icon">🔄</span><span>Loop: 152</span></div>
-    </div>
-    <div class="other-info">
-      Other Status Info...
-    </div>
-  </div>
+  <!-- Initialize the Den Mother Countdown -->
+  <script>
+    function startDenMotherCountdown(minutes) {
+      // Convert minutes to seconds
+      var seconds = minutes * 60;
+      $("#countdown").countdown360({
+        radius: 80,            // Radius of the circle in pixels
+        seconds: seconds,      // Total seconds to count down (converted from minutes)
+        fillStyle: '#8ac575',   // Circle fill color
+        strokeStyle: '#477050', // Circle border color
+        fontColor: '#ffffff',   // Font color for the time text
+        autostart: false,       // Set to start manually
+        onComplete: function() {
+          console.log('Time up!');
+          // You can add additional actions here when the countdown finishes
+        }
+      }).start();
+    }
 
-  <!-- Option 2 -->
-  <div class="status-bar">
-    <div class="ledger-box option2">
-      <div class="line"><span class="icon">⏰</span><span>Ledger Info</span></div>
-      <div class="line"><span class="icon">🕖</span><span>7:45 PM 4/3/24</span></div>
-      <div class="line"><span class="icon">✅</span><span>Status: success</span></div>
-      <div class="line"><span class="icon">🔄</span><span>Loop: 152</span></div>
-    </div>
-    <div class="other-info">
-      Other Status Info...
-    </div>
-  </div>
-
-  <!-- Option 3 -->
-  <div class="status-bar">
-    <div class="ledger-box option3">
-      <div class="line"><span class="icon">⏰</span><span>Ledger Info</span></div>
-      <div class="line"><span class="icon">🕖</span><span>7:45 PM 4/3/24</span></div>
-      <div class="line"><span class="icon">✅</span><span>Status: success</span></div>
-      <div class="line"><span class="icon">🔄</span><span>Loop: 152</span></div>
-    </div>
-    <div class="other-info">
-      Other Status Info...
-    </div>
-  </div>
-
-  <!-- Option 4 -->
-  <div class="status-bar">
-    <div class="ledger-box option4">
-      <div class="line"><span class="icon">⏰</span><span>Ledger Info</span></div>
-      <div class="line"><span class="icon">🕖</span><span>7:45 PM 4/3/24</span></div>
-      <div class="line"><span class="icon">✅</span><span>Status: success</span></div>
-      <div class="line"><span class="icon">🔄</span><span>Loop: 152</span></div>
-    </div>
-    <div class="other-info">
-      Other Status Info...
-    </div>
-  </div>
-
-  <!-- Option 5 -->
-  <div class="status-bar">
-    <div class="ledger-box option5">
-      <div class="line"><span class="icon">⏰</span><span>Ledger</span></div>
-      <div class="line"><span class="icon">🕖</span><span>7:45 PM</span></div>
-      <div class="line"><span>4/3/24</span></div>
-      <div class="line">
-        <span class="icon">✅</span><span>Success</span> 
-        <span class="icon">🔄</span><span>152</span>
-      </div>
-    </div>
-    <div class="other-info">
-      Other Status Info...
-    </div>
-  </div>
-  
+    // Start the countdown for, say, 5 minutes
+    jQuery(function($) {
+      startDenMotherCountdown(5);
+    });
+  </script>
 </body>
 </html>

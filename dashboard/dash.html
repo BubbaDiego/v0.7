@@ -4,761 +4,751 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block extra_styles %}
-  {{ super() }}
-  <style>
-    /* ----------------------------------------------------
-       Color Setting Variables (Light & Dark Mode)
-    ----------------------------------------------------- */
-    :root {
-      /* For dashboard boxes */
-      --light-bg-color: #7db3f5;
-      --light-border-color: #fff;
-      --light-text-color: #fff;
+{{ super() }}
+<style>
+  :root {
+    /* For dashboard boxes */
+    --light-bg-color: #7db3f5;
+    --light-border-color: #fff;
+    --light-text-color: #fff;
 
-      --dark-bg-color: #1b1919;
-      --dark-border-color: #444;
-      --dark-text-color: #ddd;
+    --dark-bg-color: #1b1919;
+    --dark-border-color: #444;
+    --dark-text-color: #ddd;
 
-      /* For overall page background */
-      --light-page-bg-color: #ede3e3;
-      --light-page-text-color: #000;
-      --dark-page-bg-color: #706b6b;
-      --dark-page-text-color: #eae2e2;
-    }
+    /* For overall page background */
+    --light-page-bg-color: #ede3e3;
+    --light-page-text-color: #000;
+    --dark-page-bg-color: #706b6b;
+    --dark-page-text-color: #eae2e2;
+  }
 
-    /* Overall page background styles */
-    body.light-bg {
-      background-color: var(--light-page-bg-color);
-      color: var(--light-page-text-color);
-    }
-    body.dark-bg {
-      background-color: var(--dark-page-bg-color);
-      color: var(--dark-page-text-color);
-    }
+  body.light-bg {
+    background-color: var(--light-page-bg-color);
+    color: var(--light-page-text-color);
+  }
+  body.dark-bg {
+    background-color: var(--dark-page-bg-color);
+    color: var(--dark-page-text-color);
+  }
 
-    /* ----------------------------
-       Common Box Style
-    ----------------------------- */
-    .common-box {
-      border-radius: 10px;
-      border: 2px solid;
-      padding: 20px;
-      transition: background-color 0.4s, color 0.4s, border-color 0.4s;
-    }
-    .light-mode {
-      background-color: var(--light-bg-color);
-      border-color: var(--light-border-color);
-      color: var(--light-text-color);
-    }
-    .dark-mode {
-      background-color: var(--dark-bg-color);
-      border-color: var(--dark-border-color);
-      color: var(--dark-text-color);
-    }
+  .common-box {
+    border-radius: 10px;
+    border: 2px solid;
+    padding: 20px;
+    transition: background-color 0.4s, color 0.4s, border-color 0.4s;
+  }
+  .light-mode {
+    background-color: var(--light-bg-color);
+    border-color: var(--light-border-color);
+    color: var(--light-text-color);
+  }
+  .dark-mode {
+    background-color: var(--dark-bg-color);
+    border-color: var(--dark-border-color);
+    color: var(--dark-text-color);
+  }
 
-    /* ----------------------------
-       Box Row for Top Row and Others
-    ----------------------------- */
-    .box-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 25px;
-      margin-top: 20px;
-    }
-    .box-row.center-row {
-      gap: 35px;
-    }
-    .mini-table-box, .liquidation-box, .graph-box, .pie-box {
-      width: 48%;
-    }
+  .box-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 25px;
+    margin-top: 20px;
+  }
+  .mini-table-box, .liquidation-box, .graph-box, .pie-box {
+    width: 48%;
+  }
 
-    /* ----------------------------
-       Ledger Box (Top Left)
-       ### LEDGER BOX ###
-       48% wide, 75px tall, text in grey (#666), 2 columns,
-       with a subtle striped overlay on top of the base color.
-    ----------------------------- */
-    .ledger-inline-container {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: flex-start;
-      width: 48%;
-      height: 75px; /* 25% taller */
-      margin: 0;
-      padding: 8px;
-      border: 4px solid var(--light-border-color);
-      border-radius: 10px;
-      font-size: 0.9rem;
-      font-weight: bold;
-      color: #666 !important;
-      white-space: nowrap;
-      /* The background-color will be set inline from ledger_info.color */
-      background-image: repeating-linear-gradient(
-        45deg,
-        rgba(255,255,255,0.3) 0px,
-        rgba(255,255,255,0.3) 6px,
-        rgba(240,240,240,0.3) 6px,
-        rgba(240,240,240,0.3) 12px
-      );
-    }
-    body.dark-bg .ledger-inline-container {
-      border-color: var(--dark-border-color);
-      color: #666 !important;
-    }
-    .ledger-inline-container span {
-      margin-right: 8px;
-      display: inline-flex;
-      align-items: center;
-    }
+  /* Ledger Box */
+  .ledger-inline-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    height: 75px;
+    margin: 0;
+    padding: 8px;
+    border: 4px solid var(--light-border-color);
+    border-radius: 10px;
+    font-size: 0.75rem; /* Reduced from 0.8rem */
+    font-weight: bold;
+    color: #666 !important;
+    white-space: nowrap;
+    /* Striped background */
+    background-image: repeating-linear-gradient(
+      45deg,
+      rgba(255,255,255,0.3) 0px,
+      rgba(255,255,255,0.3) 6px,
+      rgba(240,240,240,0.3) 6px,
+      rgba(240,240,240,0.3) 12px
+    );
+  }
+  body.dark-bg .ledger-inline-container {
+    border-color: var(--dark-border-color);
+    color: #666 !important;
+  }
+  .ledger-inline-container span {
+    margin-right: 8px;
+    display: inline-flex;
+    align-items: center;
+  }
 
-    /* ----------------------------
-       Status Bar (Top Right)
-       ### STATUS BOX ###
-       48% wide, 75px tall, slightly smaller fonts.
-    ----------------------------- */
-    .status-bar {
-      position: relative;
-      display: flex;
-      justify-content: space-evenly;
-      align-items: center;
-      height: 75px;
-      padding: 15px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-      margin-top: 0;
-      width: 48%;
-    }
-    .status-bar > div:not(.toggle-container) {
-      text-align: center;
-    }
-    .status-label {
-      font-size: 0.95rem;
-      font-weight: bold;
-      margin-bottom: 3px;
-      display: block;
-    }
-    .status-value {
-      font-size: 1.0rem;
-    }
-    .toggle-container {
-      position: absolute;
-      bottom: 5px;
-      right: 5px;
-      cursor: pointer;
-    }
-    .toggle-container svg {
-      display: block;
-    }
+  /* Status Bar (make it same height as ledger/timer boxes: 75px) */
+  .status-bar {
+    position: relative;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    height: 75px; /* same as ledger/timer */
+    padding: 15px; /* revert to normal padding for a 75px bar */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+  .status-bar > div:not(.toggle-container) {
+    text-align: center;
+  }
+  .status-label {
+    font-size: 0.95rem;
+    font-weight: bold;
+    margin-bottom: 3px;
+    display: block;
+  }
+  .status-value {
+    font-size: 1.0rem;
+  }
+  .toggle-container {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    cursor: pointer;
+  }
 
-    /* ----------------------------
-       Pie Box Styles
-    ----------------------------- */
-    .pie-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-    }
-    .pie-col {
-      width: 48%;
-      text-align: center;
-    }
-    .chart-label {
-      font-size: 1.2rem;
-      margin-bottom: 10px;
-      font-weight: bold;
-    }
+  /* Positions Table */
+  .mini-table-box table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #fff;
+  }
+  .mini-table-box th, .mini-table-box td {
+    padding: 0.5rem;
+    text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.3);
+  }
+  .mini-table-box th {
+    font-weight: bold;
+    font-size: 1.1rem;
+    cursor: pointer;
+  }
+  .positions-container {
+    margin-top: 10px;
+    overflow-x: auto;
+  }
+  .asset-cell, .wallet-cell {
+    text-align: center;
+  }
+  .wallet-icon {
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    object-fit: cover;
+  }
+  .asset-icon {
+    width: 32px;
+    height: 32px;
+  }
 
-    /* ----------------------------
-       Graph Box Styles
-    ----------------------------- */
-    .graph-box {
-      overflow: hidden;
-    }
+  /* Liquidation Bar */
+  .liquidation-box {
+    position: relative;
+    min-height: 150px;
+  }
+  .progress.liquidation {
+    position: relative;
+    background-color: #e9ecef;
+    height: 1.5rem;
+    border-radius: 1rem;
+    width: 90%;
+    flex: 1;
+  }
+  .progress.liquidation::before {
+    content: "";
+    position: absolute;
+    left: 25%;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background-color: rgba(0,0,0,0.7);
+    z-index: 5;
+  }
+  .liquidation-fill {
+    position: absolute;
+    height: 100%;
+    border-radius: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: bold;
+  }
+  .liquidation-fill.striped {
+    background-image: linear-gradient(
+      45deg,
+      rgba(255,255,255,0.15) 25%,
+      transparent 25%,
+      transparent 50%,
+      rgba(255,255,255,0.15) 50%,
+      rgba(255,255,255,0.15) 75%,
+      transparent 75%,
+      transparent
+    );
+    background-size: 1rem 1rem;
+  }
+  .bg-success { background-color: #198754; }
+  .bg-warning { background-color: #ffc107; }
+  .bg-danger { background-color: #dc3545; }
+  .liq-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .liq-row .wallet-icon {
+    margin-top: -5px;
+  }
+  .heat-index-circle {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #ff5733;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: bold;
+    font-size: 0.9rem;
+    z-index: 6;
+    box-shadow: 0 0 3px rgba(0,0,0,0.3);
+  }
+  .flame-icon-pos {
+    position: absolute;
+    right: -30px;
+    top: -20px;
+    font-size: 28px;
+    z-index: 10;
+  }
 
-    /* ----------------------------
-       Mini Positions Table Styles
-    ----------------------------- */
-    .mini-table-box table {
-      width: 100%;
-      border-collapse: collapse;
-      color: #fff;
-    }
-    .mini-table-box th, .mini-table-box td {
-      padding: 0.5rem;
-      text-align: center;
-      border-bottom: 1px solid rgba(255,255,255,0.3);
-    }
-    .mini-table-box th {
-      font-weight: bold;
-      font-size: 1.1rem;
-    }
-
-    /* ----------------------------
-       Positions Table Container & Icons
-    ----------------------------- */
-    .positions-container {
-      margin-top: 10px;
-      overflow-x: auto;
-    }
-    .asset-cell, .wallet-cell {
-      text-align: center;
-    }
-    .wallet-icon {
-      border-radius: 50%;
-      width: 32px;
-      height: 32px;
-      object-fit: cover;
-    }
-    .asset-icon {
-      width: 32px;
-      height: 32px;
-    }
-    #positionsTable th {
-      cursor: pointer;
-    }
-
-    /* ----------------------------
-       Liquidation Bar Specific Styles
-    ----------------------------- */
-    .liquidation-box {
-      position: relative;
-      min-height: 150px;
-    }
-    .progress.liquidation {
-      position: relative;
-      background-color: #e9ecef;
-      height: 1.5rem;
-      border-radius: 1rem;
-      width: 90%;
-      flex: 1;
-    }
-    .progress.liquidation::before {
-      content: "";
-      position: absolute;
-      left: 25%;
-      top: 0;
-      bottom: 0;
-      width: 3px;
-      background-color: rgba(0,0,0,0.7);
-      z-index: 5;
-    }
-    .liquidation-fill {
-      position: absolute;
-      height: 100%;
-      border-radius: 1rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-      font-weight: bold;
-    }
-    .liquidation-fill.striped {
-      background-image: linear-gradient(
-        45deg,
-        rgba(255,255,255,0.15) 25%,
-        transparent 25%,
-        transparent 50%,
-        rgba(255,255,255,0.15) 50%,
-        rgba(255,255,255,0.15) 75%,
-        transparent 75%,
-        transparent
-      );
-      background-size: 1rem 1rem;
-    }
-    .bg-success { background-color: #198754; }
-    .bg-warning { background-color: #ffc107; }
-    .bg-danger { background-color: #dc3545; }
-    .liq-row {
-      display: flex;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-    .liq-row .wallet-icon {
-      margin-top: -5px;
-    }
-    .heat-index-circle {
-      position: absolute;
-      right: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background-color: #ff5733;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-      font-weight: bold;
-      font-size: 0.9rem;
-      z-index: 6;
-      box-shadow: 0 0 3px rgba(0,0,0,0.3);
-    }
-    .flame-icon-pos {
-      position: absolute;
-      right: -30px;
-      top: -20px;
-      font-size: 28px;
-      z-index: 10;
-    }
-  </style>
+  /* Pie & Graph Boxes */
+  .pie-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .pie-col {
+    width: 48%;
+    text-align: center;
+  }
+  .chart-label {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    font-weight: bold;
+  }
+  .graph-box {
+    overflow: hidden;
+  }
+</style>
 {% endblock %}
 
 {% block content %}
-  <!-- Top Row: Ledger (left) + Status Bar (right) -->
-  <div class="box-row" style="margin-top:0;">
-    <!-- Ledger Box -->
-    <div class="ledger-inline-container" id="ledgerContainer"
-      style="background-color: {{ ledger_info.color if ledger_info and ledger_info.color else 'var(--light-bg-color)' }};">
-      {% if ledger_info and ledger_info.formatted_time %}
-        <div style="display:flex; flex-wrap:wrap; width:100%;">
-          <div style="width:50%;">⚙ Source: Ledger</div>
-          <div style="width:50%;">🕖 Time: {{ ledger_info.formatted_time }}</div>
-          <div style="width:50%;">ℹ️ Status: {{ ledger_info.status }}</div>
-          {% if ledger_info.loop_count is defined %}
-            <div style="width:50%;">🔄 Loop: {{ ledger_info.loop_count }}</div>
-          {% else %}
-            <div style="width:50%;">🔄 Loop: (not set)</div>
-          {% endif %}
-        </div>
-      {% else %}
-        <div>No ledger info available.</div>
-      {% endif %}
-    </div>
 
-    <!-- Status Bar -->
-    <div class="status-bar common-box light-mode" id="statusBar">
-      <div>
-        <span class="status-label">🔥 Heat</span>
-        <span class="status-value">
-          {% if totals is defined %}
-            {% set total_heat_index = totals.get('total_heat_index', 0) %}
-            {% if total_heat_index %}
-              {{ total_heat_index|int }}
-            {% else %}
-              N/A
-            {% endif %}
-          {% else %}
-            N/A
-          {% endif %}
-        </span>
+<!-- Single Top Row with 3 Boxes: Ledger (left), Timer (middle), Status (right) -->
+<div class="box-row" style="margin-top:0;">
+  <!-- Ledger Box (24%) -->
+  <div class="ledger-inline-container" id="ledgerContainer" style="width:24%;">
+    {% if ledger_info and ledger_info.formatted_time %}
+      <div style="display:flex; flex-wrap:wrap; width:100%;">
+        <div style="width:50%;">⚙ Source: Ledger</div>
+        <!-- "Time:" label removed previously -->
+        <div style="width:50%;">🕖 {{ ledger_info.formatted_time }}</div>
+        <div style="width:50%;">ℹ️ Status: {{ ledger_info.status }}</div>
+        {% if ledger_info.loop_count is defined %}
+          <div style="width:50%;">🔄 Loop: {{ ledger_info.loop_count }}</div>
+        {% else %}
+          <div style="width:50%;">🔄 Loop: (not set)</div>
+        {% endif %}
       </div>
-      <div>
-        <span class="status-label">💰 Value</span>
-        <span class="status-value">
-          {% if totals is defined and totals.get('total_value') %}
-            ${{ "{:,.2f}".format(totals.total_value) }}
-          {% else %}
-            $0.00
-          {% endif %}
-        </span>
+    {% else %}
+      <div>No ledger info available.</div>
+    {% endif %}
+  </div>
+
+  <!-- Countdown Timers Box (24%) so its right side lines up with Positions below -->
+  <div class="common-box light-mode" id="countdownBox" style="width:24%; height:75px;">
+    <div style="display:flex; flex-direction:column; justify-content:center; height:100%;">
+      <div style="display:flex; justify-content:space-around; align-items:center;">
+        <div id="sonic-timer-container"></div>
+        <div id="den-timer-container"></div>
       </div>
-      <div>
-        <span class="status-label">⚖️ Leverage</span>
-        <span class="status-value">
-          {% if totals is defined and totals.get('avg_leverage') %}
-            {{ "{:,.2f}".format(totals.avg_leverage) }}
-          {% else %}
-            N/A
-          {% endif %}
-        </span>
-      </div>
-      <div>
-        <span class="status-label">📊 Size</span>
-        <span class="status-value">
-          {% if totals is defined and totals.get('total_size') %}
-            ${{ "{:,.2f}".format(totals.total_size) }}
-          {% else %}
-            $0.00
-          {% endif %}
-        </span>
-      </div>
-      <div>
-        <span class="status-label">⚡ VC Ratio</span>
-        <span class="status-value">
-          {% if totals is defined and totals.get('total_collateral') and totals.total_collateral > 0 %}
-            {{ "{:,.2f}".format(totals.total_value / totals.total_collateral) }}
-          {% else %}
-            N/A
-          {% endif %}
-        </span>
-      </div>
-      <div>
-        <span class="status-label">✈️ Travel %</span>
-        <span class="status-value">
-          {% if totals is defined and totals.get('avg_travel_percent') %}
-            {{ "{:,.2f}".format(totals.avg_travel_percent) }}%
-          {% else %}
-            N/A
-          {% endif %}
-        </span>
-      </div>
-      <div class="toggle-container" id="toggleContainer"></div>
     </div>
   </div>
 
-  <!-- Row 1: Positions Table (left) + Liquidation Bar (right) -->
-  <div class="box-row">
-    <!-- Positions Table Box -->
-    <div class="common-box light-mode mini-table-box" id="miniTableBox">
-      <div class="chart-label" style="margin-bottom: 15px;">Positions</div>
-      <div id="positionsContainer" class="positions-container">
-        <table id="positionsTable">
-          <thead>
-            <tr>
-              <th onclick="sortTable('positionsTable', 0)">Asset</th>
-              <th onclick="sortTable('positionsTable', 1)">Wallet</th>
-              <th onclick="sortTable('positionsTable', 2)">Heat Index</th>
-              <th onclick="sortTable('positionsTable', 3)">Travel %</th>
-              <th onclick="sortTable('positionsTable', 4)">Leverage</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for pos in positions %}
-            <tr>
-              <!-- Asset Column -->
-              <td class="asset-cell">
-                {% set asset = pos.asset_type | default('BTC') | lower %}
-                {% if asset == 'btc' %}
-                  <img class="asset-icon" src="{{ url_for('static', filename='images/btc_logo.png') }}" alt="BTC Icon">
-                {% elif asset == 'eth' %}
-                  <img class="asset-icon" src="{{ url_for('static', filename='images/eth_logo.png') }}" alt="ETH Icon">
-                {% elif asset == 'sol' %}
-                  <img class="asset-icon" src="{{ url_for('static', filename='images/sol_logo.png') }}" alt="SOL Icon">
-                {% else %}
-                  <img class="asset-icon" src="https://via.placeholder.com/32" alt="{{ asset|upper }} Icon">
-                {% endif %}
-              </td>
-              <!-- Wallet Column -->
-              <td class="wallet-cell">
-                {% set wallet = pos.wallet | default('ObiVault') %}
-                {% if wallet == 'ObiVault' %}
-                  <img class="wallet-icon" src="{{ url_for('static', filename='images/obivault.jpg') }}" alt="ObiVault">
-                {% elif wallet == 'R2Vault' %}
-                  <img class="wallet-icon" src="{{ url_for('static', filename='images/r2vault.jpg') }}" alt="R2Vault">
-                {% else %}
-                  <img class="wallet-icon" src="{{ url_for('static', filename='images/obivault.jpg') }}" alt="Wallet">
-                {% endif %}
-              </td>
-              <!-- Heat Index Column (bold, no decimals) -->
-              <td>
-                {% if pos.heat_index is defined and pos.heat_index is not none %}
-                  <strong>{{ pos.heat_index|int }}</strong>
-                {% else %}
-                  N/A
-                {% endif %}
-              </td>
-              <!-- Travel % Column -->
-              <td>
-                {% if pos.travel_percent is defined and pos.travel_percent is not none %}
-                  {{ "{:,.2f}".format(pos.travel_percent) }}%
-                {% else %}
-                  N/A
-                {% endif %}
-              </td>
-              <!-- Leverage Column -->
-              <td>
-                {% if pos.leverage is defined and pos.leverage is not none %}
-                  {{ "{:,.2f}".format(pos.leverage) }}
-                {% else %}
-                  N/A
-                {% endif %}
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Liquidation Bar Box -->
-    <div class="common-box light-mode liquidation-box" id="liquidationBox">
-      <div class="chart-label" style="margin-bottom: 15px;">Liquidation Bar</div>
-      {% for pos in liquidation_positions %}
-        <div class="liq-row">
-          {% set wallet = pos.wallet | default('ObiVault') %}
-          {% if wallet == 'ObiVault' %}
-            <img class="wallet-icon" src="{{ url_for('static', filename='images/obivault.jpg') }}" alt="ObiVault">
-          {% elif wallet == 'R2Vault' %}
-            <img class="wallet-icon" src="{{ url_for('static', filename='images/r2vault.jpg') }}" alt="R2Vault">
+  <!-- Status Bar (Remaining ~52%, 75px tall) -->
+  <div class="status-bar common-box light-mode" id="statusBar" style="width:52%;">
+    <div>
+      <span class="status-label">🔥 Heat</span>
+      <span class="status-value">
+        {% if totals is defined %}
+          {% set total_heat_index = totals.get('total_heat_index', 0) %}
+          {% if total_heat_index %}
+            {{ total_heat_index|int }}
           {% else %}
-            <img class="wallet-icon" src="{{ url_for('static', filename='images/obivault.jpg') }}" alt="Wallet">
+            N/A
           {% endif %}
-          <div class="progress liquidation">
-            {% set travel = pos.travel_percent | float %}
-            {% if travel >= 0 %}
-              <div class="liquidation-fill striped bg-success"
-                   style="right: 75%; width: calc(({{ travel }} / 25) * 25%);">
-                {{ travel|round(0) }}%
-              </div>
-            {% else %}
-              {% if travel|abs <= 50 %}
-                <div class="liquidation-fill striped bg-warning"
-                     style="left: 25%; width: calc(({{ travel|abs }} / 100) * 75%);">
-                  {{ travel|round(0) }}%
-                </div>
+        {% else %}
+          N/A
+        {% endif %}
+      </span>
+    </div>
+    <div>
+      <span class="status-label">💰 Value</span>
+      <span class="status-value">
+        {% if totals is defined and totals.get('total_value') %}
+          ${{ "{:,.2f}".format(totals.total_value) }}
+        {% else %}
+          $0.00
+        {% endif %}
+      </span>
+    </div>
+    <div>
+      <span class="status-label">⚖️ Leverage</span>
+      <span class="status-value">
+        {% if totals is defined and totals.get('avg_leverage') %}
+          {{ "{:,.2f}".format(totals.avg_leverage) }}
+        {% else %}
+          N/A
+        {% endif %}
+      </span>
+    </div>
+    <div>
+      <span class="status-label">📊 Size</span>
+      <span class="status-value">
+        {% if totals is defined and totals.get('total_size') %}
+          ${{ "{:,.2f}".format(totals.total_size) }}
+        {% else %}
+          $0.00
+        {% endif %}
+      </span>
+    </div>
+    <div>
+      <span class="status-label">⚡ VC Ratio</span>
+      <span class="status-value">
+        {% if totals is defined and totals.get('total_collateral') and totals.total_collateral > 0 %}
+          {{ "{:,.2f}".format(totals.total_value / totals.total_collateral) }}
+        {% else %}
+          N/A
+        {% endif %}
+      </span>
+    </div>
+    <div>
+      <span class="status-label">✈️ Travel %</span>
+      <span class="status-value">
+        {% if totals is defined and totals.get('avg_travel_percent') %}
+          {{ "{:,.2f}".format(totals.avg_travel_percent) }}%
+        {% else %}
+          N/A
+        {% endif %}
+      </span>
+    </div>
+    <div class="toggle-container" id="toggleContainer"></div>
+  </div>
+</div>
+
+<!-- Row 2: Positions Table (left) + Liquidation Bar (right) -->
+<div class="box-row">
+  <div class="common-box light-mode mini-table-box" id="miniTableBox">
+    <div class="chart-label" style="margin-bottom: 15px;">Positions</div>
+    <div id="positionsContainer" class="positions-container">
+      <table id="positionsTable">
+        <thead>
+          <tr>
+            <th onclick="sortTable('positionsTable', 0)">Asset</th>
+            <th onclick="sortTable('positionsTable', 1)">Wallet</th>
+            <th onclick="sortTable('positionsTable', 2)">Heat Index</th>
+            <th onclick="sortTable('positionsTable', 3)">Travel %</th>
+            <th onclick="sortTable('positionsTable', 4)">Leverage</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for pos in positions %}
+          <tr>
+            <!-- Asset Column -->
+            <td class="asset-cell">
+              {% set asset = pos.asset_type|default('BTC')|lower %}
+              {% if asset == 'btc' %}
+                <img class="asset-icon" src="{{ url_for('static', filename='images/btc_logo.png') }}" alt="BTC Icon">
+              {% elif asset == 'eth' %}
+                <img class="asset-icon" src="{{ url_for('static', filename='images/eth_logo.png') }}" alt="ETH Icon">
+              {% elif asset == 'sol' %}
+                <img class="asset-icon" src="{{ url_for('static', filename='images/sol_logo.png') }}" alt="SOL Icon">
               {% else %}
-                <div class="liquidation-fill striped bg-danger"
-                     style="left: 25%; width: calc(({{ travel|abs }} / 100) * 75%);">
-                  {{ travel|round(0) }}%
-                </div>
+                <img class="asset-icon" src="https://via.placeholder.com/32" alt="{{ asset|upper }} Icon">
               {% endif %}
-            {% endif %}
-            <div class="heat-index-circle">
+            </td>
+            <!-- Wallet Column -->
+            <td class="wallet-cell">
+              {% set wallet = pos.wallet|default('ObiVault') %}
+              {% if wallet == 'ObiVault' %}
+                <img class="wallet-icon" src="{{ url_for('static', filename='images/obivault.jpg') }}" alt="ObiVault">
+              {% elif wallet == 'R2Vault' %}
+                <img class="wallet-icon" src="{{ url_for('static', filename='images/r2vault.jpg') }}" alt="R2Vault">
+              {% else %}
+                <img class="wallet-icon" src="{{ url_for('static', filename='images/obivault.jpg') }}" alt="Wallet">
+              {% endif %}
+            </td>
+            <!-- Heat Index Column -->
+            <td>
               {% if pos.heat_index is defined and pos.heat_index is not none %}
                 <strong>{{ pos.heat_index|int }}</strong>
               {% else %}
                 N/A
               {% endif %}
-            </div>
-            <div class="flame-icon-pos">🔥</div>
-          </div>
-        </div>
-      {% endfor %}
+            </td>
+            <!-- Travel % Column -->
+            <td>
+              {% if pos.travel_percent is defined and pos.travel_percent is not none %}
+                {{ "{:,.2f}".format(pos.travel_percent) }}%
+              {% else %}
+                N/A
+              {% endif %}
+            </td>
+            <!-- Leverage Column -->
+            <td>
+              {% if pos.leverage is defined and pos.leverage is not none %}
+                {{ "{:,.2f}".format(pos.leverage) }}
+              {% else %}
+                N/A
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
   </div>
 
-  <!-- Row 2: Graph Box (left) and Pie Box (right) -->
-  <div class="box-row">
-    <div class="common-box light-mode graph-box" id="graphBox">
-      <div id="graphChart" style="height: 300px;"></div>
-    </div>
-    <div class="common-box light-mode pie-box" id="pieBox">
-      <div class="pie-row">
-        <div class="pie-col">
-          <div class="chart-label">Size</div>
-          <div id="pieChartSize" style="height: 200px;"></div>
-          <!-- ### PIE VALUES ### -->
-          <div id="pieSizeTotals" style="margin-top:5px; font-size:0.9rem; color:#fff;"></div>
+  <!-- Liquidation Bar (right side) -->
+  <div class="common-box light-mode liquidation-box" id="liquidationBox">
+    <div class="chart-label" style="margin-bottom: 15px;">Liquidation Bar</div>
+    {% for pos in liquidation_positions %}
+      <div class="liq-row">
+        {% set wallet = pos.wallet|default('ObiVault') %}
+        {% if wallet == 'ObiVault' %}
+          <img class="wallet-icon" src="{{ url_for('static', filename='images/obivault.jpg') }}" alt="ObiVault">
+        {% elif wallet == 'R2Vault' %}
+          <img class="wallet-icon" src="{{ url_for('static', filename='images/r2vault.jpg') }}" alt="R2Vault">
+        {% else %}
+          <img class="wallet-icon" src="{{ url_for('static', filename='images/obivault.jpg') }}" alt="Wallet">
+        {% endif %}
+        <div class="progress liquidation">
+          {% set travel = pos.travel_percent|float %}
+          {% if travel >= 0 %}
+            <div class="liquidation-fill striped bg-success"
+                 style="right: 75%; width: calc(({{ travel }} / 25) * 25%);">
+              {{ travel|round(0) }}%
+            </div>
+          {% else %}
+            {% if travel|abs <= 50 %}
+              <div class="liquidation-fill striped bg-warning"
+                   style="left: 25%; width: calc(({{ travel|abs }} / 100) * 75%);">
+                {{ travel|round(0) }}%
+              </div>
+            {% else %}
+              <div class="liquidation-fill striped bg-danger"
+                   style="left: 25%; width: calc(({{ travel|abs }} / 100) * 75%);">
+                {{ travel|round(0) }}%
+              </div>
+            {% endif %}
+          {% endif %}
+          <div class="heat-index-circle">
+            {% if pos.heat_index is defined and pos.heat_index is not none %}
+              <strong>{{ pos.heat_index|int }}</strong>
+            {% else %}
+              N/A
+            {% endif %}
+          </div>
+          <div class="flame-icon-pos">🔥</div>
         </div>
-        <div class="pie-col">
-          <div class="chart-label">Collateral</div>
-          <div id="pieChartCollateral" style="height: 200px;"></div>
-          <!-- ### PIE VALUES ### -->
-          <div id="pieCollateralTotals" style="margin-top:5px; font-size:0.9rem; color:#fff;"></div>
-        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Row 3: Graph Box (left) and Pie Box (right) -->
+<div class="box-row">
+  <div class="common-box light-mode graph-box" id="graphBox">
+    <div id="graphChart" style="height: 300px;"></div>
+  </div>
+  <div class="common-box light-mode pie-box" id="pieBox">
+    <div class="pie-row">
+      <div class="pie-col">
+        <div class="chart-label">Size</div>
+        <div id="pieChartSize" style="height: 200px;"></div>
+        <div id="pieSizeTotals" style="margin-top:5px; font-size:0.9rem; color:#fff;"></div>
+      </div>
+      <div class="pie-col">
+        <div class="chart-label">Collateral</div>
+        <div id="pieChartCollateral" style="height: 200px;"></div>
+        <div id="pieCollateralTotals" style="margin-top:5px; font-size:0.9rem; color:#fff;"></div>
       </div>
     </div>
   </div>
+</div>
 {% endblock %}
 
 {% block extra_scripts %}
-  {{ super() }}
-  <script>
-    const statusBar = document.getElementById('statusBar');
-    const toggleContainer = document.getElementById('toggleContainer');
-    const pieBox = document.getElementById('pieBox');
-    const graphBox = document.getElementById('graphBox');
-    const miniTableBox = document.getElementById('miniTableBox');
-    const liquidationBox = document.getElementById('liquidationBox');
+{{ super() }}
 
-    const sunIcon = `
-      <svg viewBox="0 0 24 24" width="16" height="16" fill="white" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="12" cy="12" r="5"/>
-        <line x1="12" y1="1" x2="12" y2="3" stroke="white" stroke-width="2"/>
-        <line x1="12" y1="21" x2="12" y2="23" stroke="white" stroke-width="2"/>
-        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="white" stroke-width="2"/>
-        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="white" stroke-width="2"/>
-        <line x1="1" y1="12" x2="3" y2="12" stroke="white" stroke-width="2"/>
-        <line x1="21" y1="12" x2="23" y2="12" stroke="white" stroke-width="2"/>
-        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="white" stroke-width="2"/>
-        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="white" stroke-width="2"/>
-      </svg>
-    `;
-    const moonIcon = `
-      <svg viewBox="0 0 24 24" width="16" height="16" fill="white" xmlns="http://www.w3.org/2000/svg">
-        <path d="M21 12.79A9 9 0 0 1 11.21 3 A7 7 0 0 0 12 17 a7 7 0 0 0 9 -4.21 z"/>
-      </svg>
-    `;
-    toggleContainer.innerHTML = moonIcon;
+<!-- 1. Ensure jQuery is loaded first -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
 
-    toggleContainer.addEventListener('click', () => {
-      if (statusBar.classList.contains('light-mode')) {
-        statusBar.classList.remove('light-mode');
-        statusBar.classList.add('dark-mode');
-        pieBox.classList.remove('light-mode');
-        pieBox.classList.add('dark-mode');
-        graphBox.classList.remove('light-mode');
-        graphBox.classList.add('dark-mode');
-        miniTableBox.classList.remove('light-mode');
-        miniTableBox.classList.add('dark-mode');
-        liquidationBox.classList.remove('light-mode');
-        liquidationBox.classList.add('dark-mode');
-        toggleContainer.innerHTML = sunIcon;
+<!-- 2. Load countdown360 plugin -->
+<script src="https://cdn.jsdelivr.net/gh/johnschult/jquery.countdown360@0.1.9/dist/jquery.countdown360.min.js"></script>
+
+<!-- 3. Then everything else -->
+<script>
+  // Toggle Light/Dark Mode
+  const statusBar = document.getElementById('statusBar');
+  const toggleContainer = document.getElementById('toggleContainer');
+  const pieBox = document.getElementById('pieBox');
+  const graphBox = document.getElementById('graphBox');
+  const miniTableBox = document.getElementById('miniTableBox');
+  const liquidationBox = document.getElementById('liquidationBox');
+
+  const sunIcon = `
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="white" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="5"/>
+      <line x1="12" y1="1" x2="12" y2="3" stroke="white" stroke-width="2"/>
+      <line x1="12" y1="21" x2="12" y2="23" stroke="white" stroke-width="2"/>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="white" stroke-width="2"/>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="white" stroke-width="2"/>
+      <line x1="1" y1="12" x2="3" y2="12" stroke="white" stroke-width="2"/>
+      <line x1="21" y1="12" x2="23" y2="12" stroke="white" stroke-width="2"/>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="white" stroke-width="2"/>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="white" stroke-width="2"/>
+    </svg>
+  `;
+  const moonIcon = `
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="white" xmlns="http://www.w3.org/2000/svg">
+      <path d="M21 12.79A9 9 0 0 1 11.21 3 A7 7 0 0 0 12 17 a7 7 0 0 0 9 -4.21 z"/>
+    </svg>
+  `;
+  toggleContainer.innerHTML = moonIcon;
+
+  toggleContainer.addEventListener('click', () => {
+    if (statusBar.classList.contains('light-mode')) {
+      statusBar.classList.remove('light-mode');
+      statusBar.classList.add('dark-mode');
+      pieBox.classList.remove('light-mode');
+      pieBox.classList.add('dark-mode');
+      graphBox.classList.remove('light-mode');
+      graphBox.classList.add('dark-mode');
+      miniTableBox.classList.remove('light-mode');
+      miniTableBox.classList.add('dark-mode');
+      liquidationBox.classList.remove('light-mode');
+      liquidationBox.classList.add('dark-mode');
+      toggleContainer.innerHTML = sunIcon;
+    } else {
+      statusBar.classList.remove('dark-mode');
+      statusBar.classList.add('light-mode');
+      pieBox.classList.remove('dark-mode');
+      pieBox.classList.add('light-mode');
+      graphBox.classList.remove('dark-mode');
+      graphBox.classList.add('light-mode');
+      miniTableBox.classList.remove('dark-mode');
+      miniTableBox.classList.add('light-mode');
+      liquidationBox.classList.remove('dark-mode');
+      liquidationBox.classList.add('light-mode');
+      toggleContainer.innerHTML = moonIcon;
+    }
+    if (document.body.classList.contains('light-bg')) {
+      document.body.classList.remove('light-bg');
+      document.body.classList.add('dark-bg');
+    } else {
+      document.body.classList.remove('dark-bg');
+      document.body.classList.add('light-bg');
+    }
+  });
+
+  // Initialize the two countdown timers
+  function startCountdown(selector, minutes) {
+    const seconds = minutes * 60;
+    jQuery(selector).countdown360({
+      radius: 24,
+      seconds: seconds,
+      fillStyle: '#8ac575',
+      strokeStyle: '#477050',
+      fontColor: '#ffffff',
+      autostart: false,
+      onComplete: function() {
+        console.log(selector + ' countdown complete!');
+      }
+    }).start();
+  }
+
+  jQuery(function($) {
+    // Start Sonic timer (5 minutes)
+    startCountdown('#sonic-timer-container', 5);
+    // Start Den Mother timer (10 minutes)
+    startCountdown('#den-timer-container', 10);
+  });
+
+  // Sorting the positions table
+  function sortTable(tableId, colIndex) {
+    var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+    table = document.getElementById(tableId);
+    switching = true;
+    dir = "asc";
+    while (switching) {
+      switching = false;
+      rows = table.rows;
+      for (i = 1; i < (rows.length - 1); i++) {
+        shouldSwitch = false;
+        x = rows[i].getElementsByTagName("TD")[colIndex];
+        y = rows[i + 1].getElementsByTagName("TD")[colIndex];
+        if (dir == "asc") {
+          if (x.innerText.toLowerCase() > y.innerText.toLowerCase()) {
+            shouldSwitch= true;
+            break;
+          }
+        } else if (dir == "desc") {
+          if (x.innerText.toLowerCase() < y.innerText.toLowerCase()) {
+            shouldSwitch= true;
+            break;
+          }
+        }
+      }
+      if (shouldSwitch) {
+        rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+        switching = true;
+        switchcount++;
       } else {
-        statusBar.classList.remove('dark-mode');
-        statusBar.classList.add('light-mode');
-        pieBox.classList.remove('dark-mode');
-        pieBox.classList.add('light-mode');
-        graphBox.classList.remove('dark-mode');
-        graphBox.classList.add('light-mode');
-        miniTableBox.classList.remove('dark-mode');
-        miniTableBox.classList.add('light-mode');
-        liquidationBox.classList.remove('dark-mode');
-        liquidationBox.classList.add('light-mode');
-        toggleContainer.innerHTML = moonIcon;
-      }
-      if (document.body.classList.contains('light-bg')) {
-        document.body.classList.remove('light-bg');
-        document.body.classList.add('dark-bg');
-      } else {
-        document.body.classList.remove('dark-bg');
-        document.body.classList.add('light-bg');
-      }
-    });
-
-    // Display the ratio text under each pie
-    function showPieValues(sizeSeries, collateralSeries) {
-      const pieSizeTotals = document.getElementById("pieSizeTotals");
-      const pieCollateralTotals = document.getElementById("pieCollateralTotals");
-      if (pieSizeTotals && sizeSeries.length === 2) {
-        pieSizeTotals.innerText = `Long: ${sizeSeries[0]}% / Short: ${sizeSeries[1]}%`;
-      }
-      if (pieCollateralTotals && collateralSeries.length === 2) {
-        pieCollateralTotals.innerText = `Long: ${collateralSeries[0]}% / Short: ${collateralSeries[1]}%`;
+        if (switchcount === 0 && dir === "asc") {
+          dir = "desc";
+          switching = true;
+        }
       }
     }
+  }
 
-    // Load ApexCharts library
-    const apexScript = document.createElement("script");
-    apexScript.src = "https://cdn.jsdelivr.net/npm/apexcharts";
-    document.head.appendChild(apexScript);
-    apexScript.onload = function() {
-      function renderPieCharts(seriesSize, seriesCollateral) {
-        function createPieOptions(seriesData) {
-          return {
-            chart: { type: 'pie', height: 200 },
-            series: seriesData,
-            labels: ['Long', 'Short'],
-            dataLabels: {
-              enabled: true,
-              style: { fontSize: '20px', colors: ['#fff'] },
-              formatter: function(val) { return Math.round(val) + '%'; }
-            },
-            legend: {
-              position: 'bottom',
-              labels: { colors: ['#fff'], fontSize: '20px', fontWeight: 700 }
-            }
-          };
-        }
-        const optionsSize = createPieOptions(seriesSize);
-        const chartSize = new ApexCharts(document.querySelector("#pieChartSize"), optionsSize);
-        chartSize.render();
+  // Load ApexCharts for the pie & line graphs
+  const apexScript = document.createElement("script");
+  apexScript.src = "https://cdn.jsdelivr.net/npm/apexcharts";
+  document.head.appendChild(apexScript);
 
-        const optionsCollateral = createPieOptions(seriesCollateral);
-        const chartCollateral = new ApexCharts(document.querySelector("#pieChartCollateral"), optionsCollateral);
-        chartCollateral.render();
-
-        // Show ratio text
-        showPieValues(seriesSize, seriesCollateral);
-      }
-
-      function renderGraphChart(timestamps, valueData, collateralData) {
-        const formattedTimestamps = timestamps.map(ts => {
-          const dateObj = new Date(ts);
-          const hour = dateObj.getHours();
-          return ((hour % 12) === 0 ? 12 : (hour % 12)) + ":00 " + (hour < 12 ? "AM" : "PM");
-        });
-
-        const optionsGraph = {
-          chart: { type: 'line', height: 300 },
-          xaxis: {
-            categories: formattedTimestamps,
-            tickAmount: 6,
-            labels: {
-              style: { colors: '#fff' },
-              showDuplicates: false,
-              hideOverlappingLabels: true
-            }
+  apexScript.onload = function() {
+    function renderPieCharts(seriesSize, seriesCollateral) {
+      function createPieOptions(seriesData) {
+        return {
+          chart: { type: 'pie', height: 200 },
+          series: seriesData,
+          labels: ['Long', 'Short'],
+          dataLabels: {
+            enabled: true,
+            style: { fontSize: '20px', colors: ['#fff'] },
+            formatter: function(val) { return Math.round(val) + '%'; }
           },
-          yaxis: {
-            labels: {
-              formatter: function(val) { return Math.round(val); },
-              style: { colors: '#fff' }
-            }
-          },
-          series: [
-            { name: 'Value', data: valueData.map(v => Math.round(v)) },
-            { name: 'Collateral', data: collateralData.map(v => Math.round(v)) }
-          ],
-          colors: ['#34a853', '#6234da'],
-          stroke: { curve: 'smooth', width: 2 },
-          dataLabels: { enabled: false },
           legend: {
-            position: 'top',
-            labels: { colors: '#fff', fontSize: '20px', fontWeight: 700 }
-          },
-          tooltip: {
-            theme: 'dark',
-            style: { fontSize: '16px', fontWeight: 'bold', color: '#fff' },
-            y: { formatter: function(val) { return Math.round(val); } }
+            position: 'bottom',
+            labels: { colors: ['#fff'], fontSize: '20px', fontWeight: 700 }
           }
         };
-        const chartGraph = new ApexCharts(document.querySelector("#graphChart"), optionsGraph);
-        chartGraph.render();
       }
+      const chartSize = new ApexCharts(document.querySelector("#pieChartSize"), createPieOptions(seriesSize));
+      chartSize.render();
 
-      fetch('/api/size_composition')
-        .then(r => r.json())
-        .then(data => {
-          const sizeSeries = data.series;
-          fetch('/api/collateral_composition')
-            .then(r => r.json())
-            .then(data2 => {
-              const collateralSeries = data2.series;
-              renderPieCharts(sizeSeries, collateralSeries);
-            })
-            .catch(err => console.error("Error fetching collateral composition:", err));
-        })
-        .catch(err => console.error("Error fetching size composition:", err));
+      const chartCollateral = new ApexCharts(document.querySelector("#pieChartCollateral"), createPieOptions(seriesCollateral));
+      chartCollateral.render();
 
-      fetch('/api/graph_data')
-        .then(r => r.json())
-        .then(data => {
-          let collateralData = data.collateral;
-          if (!collateralData) {
-            collateralData = data.values.map(v => 0);
-          }
-          renderGraphChart(data.timestamps, data.values, collateralData);
-        })
-        .catch(err => console.error("Error fetching graph data:", err));
-    };
-
-    function sortTable(tableId, colIndex) {
-      var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
-      table = document.getElementById(tableId);
-      switching = true;
-      dir = "asc";
-      while (switching) {
-        switching = false;
-        rows = table.rows;
-        for (i = 1; i < (rows.length - 1); i++) {
-          shouldSwitch = false;
-          x = rows[i].getElementsByTagName("TD")[colIndex];
-          y = rows[i + 1].getElementsByTagName("TD")[colIndex];
-          if (dir == "asc") {
-            if (x.innerText.toLowerCase() > y.innerText.toLowerCase()) {
-              shouldSwitch = true;
-              break;
-            }
-          } else if (dir == "desc") {
-            if (x.innerText.toLowerCase() < y.innerText.toLowerCase()) {
-              shouldSwitch = true;
-              break;
-            }
-          }
-        }
-        if (shouldSwitch) {
-          rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-          switching = true;
-          switchcount++;
-        } else {
-          if (switchcount === 0 && dir === "asc") {
-            dir = "desc";
-            switching = true;
-          }
-        }
+      // Show ratio text
+      const pieSizeTotals = document.getElementById("pieSizeTotals");
+      const pieCollateralTotals = document.getElementById("pieCollateralTotals");
+      if (pieSizeTotals && seriesSize.length === 2) {
+        pieSizeTotals.innerText = `Long: ${seriesSize[0]}% / Short: ${seriesSize[1]}%`;
+      }
+      if (pieCollateralTotals && seriesCollateral.length === 2) {
+        pieCollateralTotals.innerText = `Long: ${seriesCollateral[0]}% / Short: ${seriesCollateral[1]}%`;
       }
     }
-  </script>
+
+    function renderGraphChart(timestamps, valueData, collateralData) {
+      const formattedTimestamps = timestamps.map(ts => {
+        const dateObj = new Date(ts);
+        const hour = dateObj.getHours();
+        return ((hour % 12) === 0 ? 12 : (hour % 12)) + ":00 " + (hour < 12 ? "AM" : "PM");
+      });
+
+      const optionsGraph = {
+        chart: { type: 'line', height: 300 },
+        xaxis: {
+          categories: formattedTimestamps,
+          tickAmount: 6,
+          labels: {
+            style: { colors: '#fff' },
+            showDuplicates: false,
+            hideOverlappingLabels: true
+          }
+        },
+        yaxis: {
+          labels: {
+            formatter: function(val) { return Math.round(val); },
+            style: { colors: '#fff' }
+          }
+        },
+        series: [
+          { name: 'Value', data: valueData.map(v => Math.round(v)) },
+          { name: 'Collateral', data: collateralData.map(v => Math.round(v)) }
+        ],
+        colors: ['#34a853', '#6234da'],
+        stroke: { curve: 'smooth', width: 2 },
+        dataLabels: { enabled: false },
+        legend: {
+          position: 'top',
+          labels: { colors: '#fff', fontSize: '20px', fontWeight: 700 }
+        },
+        tooltip: {
+          theme: 'dark',
+          style: { fontSize: '16px', fontWeight: 'bold', color: '#fff' },
+          y: { formatter: function(val) { return Math.round(val); } }
+        }
+      };
+      const chartGraph = new ApexCharts(document.querySelector("#graphChart"), optionsGraph);
+      chartGraph.render();
+    }
+
+    // Fetch data for pies
+    fetch('/api/size_composition')
+      .then(r => r.json())
+      .then(data => {
+        const sizeSeries = data.series || [0,0];
+        fetch('/api/collateral_composition')
+          .then(r => r.json())
+          .then(data2 => {
+            const collateralSeries = data2.series || [0,0];
+            renderPieCharts(sizeSeries, collateralSeries);
+          })
+          .catch(err => console.error("Error fetching collateral composition:", err));
+      })
+      .catch(err => console.error("Error fetching size composition:", err));
+
+    // Fetch data for graph
+    fetch('/api/graph_data')
+      .then(r => r.json())
+      .then(data => {
+        const collateralData = data.collateral || data.values.map(() => 0);
+        renderGraphChart(data.timestamps, data.values, collateralData);
+      })
+      .catch(err => console.error("Error fetching graph data:", err));
+  };
+</script>
 {% endblock %}

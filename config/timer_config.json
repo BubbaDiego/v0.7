@@ -1,3 +1,6 @@
 {
-  "loop_interval": 120
+    "sonic_loop_interval": 120,
+    "den_mother_loop_interval": 35,
+    "den_mother_start_time": "",
+    "sonic_loop_start_time": "2025-04-02T23:43:01.276300+00:00"
 }
