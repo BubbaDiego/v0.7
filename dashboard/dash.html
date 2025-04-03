@@ -7,7 +7,6 @@
 {{ super() }}
 <style>
   :root {
-    /* For dashboard boxes */
     --light-bg-color: #7db3f5;
     --light-border-color: #fff;
     --light-text-color: #fff;
@@ -16,7 +15,6 @@
     --dark-border-color: #444;
     --dark-text-color: #ddd;
 
-    /* For overall page background */
     --light-page-bg-color: #ede3e3;
     --light-page-text-color: #000;
     --dark-page-bg-color: #706b6b;
@@ -74,7 +72,7 @@
     font-weight: bold;
     color: #666 !important;
     white-space: nowrap;
-    /* Striped background with overlay so inline color shows */
+    /* Striped background + overlay so the color from ledger_info.color shows */
     background-image: repeating-linear-gradient(
       45deg,
       rgba(255,255,255,0.3) 0px,
@@ -88,41 +86,68 @@
     border-color: var(--dark-border-color);
     color: #666 !important;
   }
-  .ledger-inline-container span {
-    margin-right: 8px;
-    display: inline-flex;
-    align-items: center;
+
+  /* Timer Box & Price Timer (Analog) */
+  #countdownBox {
+    width: 20%;
+    height: 75px;
+  }
+  #price-timer-container {
+    position: relative;
+    width: 40px;
+    height: 40px;
+  }
+  #price-timer-container .dial {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 2px solid #444;
+    border-radius: 50%;
+  }
+  /* Thicker neon hand, pivot in center */
+  #price-timer-container .hand {
+    position: absolute;
+    width: 3px;
+    height: 20px;
+    background: #39ff14; /* neon green */
+    top: 0;             /* pivot at bottom => top + height = 20 => center of 40px circle */
+    left: 50%;
+    transform-origin: bottom center;
+    transition: transform 1s linear;
   }
 
-  /* Status Bar (75px tall, text white, 48% wide) */
+  /* Status Bar: 6 columns for 6 label-value pairs, plus an absolutely positioned toggle. */
   .status-bar {
     position: relative;
-    display: flex;
-    justify-content: space-evenly;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
     align-items: center;
+    justify-items: center;
     height: 75px;
     padding: 15px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    margin-left: 0;
+    width: 48%;
   }
-  .status-bar > div:not(.toggle-container) {
-    text-align: left;
+  .status-pair {
+    text-align: center;
   }
   .status-label {
+    display: block;
     font-size: 0.85rem;
     font-weight: bold;
-    margin-bottom: 3px;
-    display: block;
-    color: #fff; /* text color back to white */
+    color: #fff;
+    margin-bottom: 2px;
   }
   .status-value {
     font-size: 0.9rem;
     font-weight: bold;
-    color: #fff; /* values in white */
+    color: #fff;
   }
   .toggle-container {
     position: absolute;
-    bottom: 5px;
+    top: 5px;
     right: 5px;
     cursor: pointer;
   }
@@ -147,18 +172,21 @@
     margin-top: 10px;
     overflow-x: auto;
   }
-  .asset-cell, .wallet-cell {
-    text-align: center;
-  }
-  .wallet-icon {
-    border-radius: 50%;
-    width: 32px;
-    height: 32px;
-    object-fit: cover;
-  }
+  /* Force asset icons to 32×32 in the positions table */
   .asset-icon {
-    width: 32px;
-    height: 32px;
+    width: 32px !important;
+    height: 32px !important;
+    object-fit: cover;
+    border-radius: 50%;
+    margin-right: 4px;
+  }
+  /* Force wallet icons to 32×32 in the positions table */
+  .wallet-icon {
+    width: 32px !important;
+    height: 32px !important;
+    object-fit: cover;
+    border-radius: 50%;
+    margin-right: 4px;
   }
 
   /* Liquidation Bar */
@@ -215,8 +243,13 @@
     align-items: center;
     margin-bottom: 10px;
   }
+  /* Force wallet icons to 32×32 in the liquidation bar as well */
   .liq-row .wallet-icon {
-    margin-top: -5px;
+    width: 32px !important;
+    height: 32px !important;
+    object-fit: cover;
+    border-radius: 50%;
+    margin-right: 8px;
   }
   .heat-index-circle {
     position: absolute;
@@ -260,50 +293,20 @@
     font-weight: bold;
     color: #fff;
   }
-  .graph-box {
-    overflow: hidden;
-  }
-
-  /* Timer Box & Price Timer (Analog) */
-  #price-timer-container {
-    position: relative;
-    width: 50px;
-    height: 50px;
-  }
-  #price-timer-container .dial {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    border: 2px solid #444;
-    border-radius: 50%;
-  }
-  #price-timer-container .hand {
-    position: absolute;
-    width: 1px;
-    height: 16px;
-    background: #e33;
-    /* Center pivot at the circle's center (25px) => top + height = 25 => top=9 if height=16 */
-    top: 9px;
-    left: 50%;
-    transform-origin: bottom center;
-    transition: transform 1s linear;
-  }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Top Row: Ledger (24%) + Timer (24%) + Status (48%) -->
+<!-- Top Row: Ledger (24%) + Timer (20%) + Status (48%) -->
 <div class="box-row" style="margin-top:0;">
   <!-- Ledger Box -->
-  <div class="ledger-inline-container" id="ledgerContainer"
+  <div class="ledger-inline-container"
        style="width:24%;
               background-color: {{ ledger_info.color if ledger_info and ledger_info.color else 'var(--light-bg-color)' }};">
     {% if ledger_info and ledger_info.formatted_time %}
       <div style="display:flex; flex-wrap:wrap; width:100%;">
         <div style="width:50%;">⚙ Source: Ledger</div>
-        <!-- Stripping the year, adding extra space after PM -->
+        <!-- Remove year, add space after PM -->
         <div style="width:50%;">
           🕖
           {% set parted = ledger_info.formatted_time.split(' ') %}
@@ -331,28 +334,29 @@
     {% endif %}
   </div>
 
-  <!-- Timer Box -->
-  <div class="common-box light-mode" id="countdownBox" style="width:24%; height:75px;">
+  <!-- Timer Box (Sonic + Price + Den) -->
+  <div class="common-box light-mode" id="countdownBox">
     <div style="display:flex; flex-direction:column; justify-content:center; height:100%;">
       <div style="display:flex; justify-content:space-around; align-items:center;">
-        <!-- Sonic Timer (countdown360) -->
+        <!-- Sonic Timer -->
         <div id="sonic-timer-container"></div>
-        <!-- Price Timer (analog style, 60s) -->
+        <!-- Price Timer (analog 60s) -->
         <div id="price-timer-container">
           <div class="dial"></div>
           <div class="hand"></div>
         </div>
-        <!-- Den Mother Timer (countdown360) -->
+        <!-- Den Mother Timer -->
         <div id="den-timer-container"></div>
       </div>
     </div>
   </div>
 
-  <!-- Status Box (48% width, text white) -->
-  <div class="status-bar common-box light-mode" id="statusBar" style="width:48%;">
-    <div>
-      <span class="status-label">🔥 Heat</span>
-      <span class="status-value">
+  <!-- Status Bar: 6 columns, each column is label + value. Toggle in absolute position. -->
+  <div class="status-bar common-box light-mode" id="statusBar">
+    <!-- 1st column: Heat -->
+    <div class="status-pair">
+      <div class="status-label">🔥 Heat</div>
+      <div class="status-value">
         {% if totals is defined %}
           {% set total_heat_index = totals.get('total_heat_index', 0) %}
           {% if total_heat_index %}
@@ -363,58 +367,70 @@
         {% else %}
           N/A
         {% endif %}
-      </span>
+      </div>
     </div>
-    <div>
-      <span class="status-label">💰 Value</span>
-      <span class="status-value">
+
+    <!-- 2nd column: Value -->
+    <div class="status-pair">
+      <div class="status-label">💰 Value</div>
+      <div class="status-value">
         {% if totals is defined and totals.get('total_value') %}
           ${{ "{:,.2f}".format(totals.total_value) }}
         {% else %}
           $0.00
         {% endif %}
-      </span>
+      </div>
     </div>
-    <div>
-      <span class="status-label">⚖️ Leverage</span>
-      <span class="status-value">
+
+    <!-- 3rd column: Leverage -->
+    <div class="status-pair">
+      <div class="status-label">⚖️ Leverage</div>
+      <div class="status-value">
         {% if totals is defined and totals.get('avg_leverage') %}
           {{ "{:,.2f}".format(totals.avg_leverage) }}
         {% else %}
           N/A
         {% endif %}
-      </span>
+      </div>
     </div>
-    <div>
-      <span class="status-label">📊 Size</span>
-      <span class="status-value">
+
+    <!-- 4th column: Size -->
+    <div class="status-pair">
+      <div class="status-label">📊 Size</div>
+      <div class="status-value">
         {% if totals is defined and totals.get('total_size') %}
           ${{ "{:,.2f}".format(totals.total_size) }}
         {% else %}
           $0.00
         {% endif %}
-      </span>
+      </div>
     </div>
-    <div>
-      <span class="status-label">⚡ VC Ratio</span>
-      <span class="status-value">
+
+    <!-- 5th column: VC Ratio -->
+    <div class="status-pair">
+      <div class="status-label">⚡ VC Ratio</div>
+      <div class="status-value">
         {% if totals is defined and totals.get('total_collateral') and totals.total_collateral > 0 %}
           {{ "{:,.2f}".format(totals.total_value / totals.total_collateral) }}
         {% else %}
           N/A
         {% endif %}
-      </span>
+      </div>
     </div>
-    <div>
-      <span class="status-label">✈️ Travel %</span>
-      <span class="status-value">
+
+    <!-- 6th column: Travel % -->
+    <div class="status-pair">
+      <div class="status-label">✈️ Travel %</div>
+      <div class="status-value">
         {% if totals is defined and totals.get('avg_travel_percent') %}
           {{ "{:,.2f}".format(totals.avg_travel_percent) }}%
         {% else %}
           N/A
         {% endif %}
-      </span>
+      </div>
     </div>
+
+    <!-- The beloved sun/moon toggle -->
     <div class="toggle-container" id="toggleContainer"></div>
   </div>
 </div>
@@ -437,8 +453,7 @@
         <tbody>
           {% for pos in positions %}
           <tr>
-            <!-- Asset Column -->
-            <td class="asset-cell">
+            <td>
               {% set asset = pos.asset_type|default('BTC')|lower %}
               {% if asset == 'btc' %}
                 <img class="asset-icon" src="{{ url_for('static', filename='images/btc_logo.png') }}" alt="BTC Icon">
@@ -450,8 +465,7 @@
                 <img class="asset-icon" src="https://via.placeholder.com/32" alt="{{ asset|upper }} Icon">
               {% endif %}
             </td>
-            <!-- Wallet Column -->
-            <td class="wallet-cell">
+            <td>
               {% set wallet = pos.wallet|default('ObiVault') %}
               {% if wallet == 'ObiVault' %}
                 <img class="wallet-icon" src="{{ url_for('static', filename='images/obivault.jpg') }}" alt="ObiVault">
@@ -461,7 +475,6 @@
                 <img class="wallet-icon" src="{{ url_for('static', filename='images/obivault.jpg') }}" alt="Wallet">
               {% endif %}
             </td>
-            <!-- Heat Index Column -->
             <td>
               {% if pos.heat_index is defined and pos.heat_index is not none %}
                 <strong>{{ pos.heat_index|int }}</strong>
@@ -469,7 +482,6 @@
                 N/A
               {% endif %}
             </td>
-            <!-- Travel % Column -->
             <td>
               {% if pos.travel_percent is defined and pos.travel_percent is not none %}
                 {{ "{:,.2f}".format(pos.travel_percent) }}%
@@ -477,7 +489,6 @@
                 N/A
               {% endif %}
             </td>
-            <!-- Leverage Column -->
             <td>
               {% if pos.leverage is defined and pos.leverage is not none %}
                 {{ "{:,.2f}".format(pos.leverage) }}
@@ -492,7 +503,6 @@
     </div>
   </div>
 
-  <!-- Liquidation Bar -->
   <div class="common-box light-mode liquidation-box" id="liquidationBox">
     <div class="chart-label" style="margin-bottom: 15px;">Liquidation Bar</div>
     {% for pos in liquidation_positions %}
@@ -570,7 +580,7 @@
 <!-- 2. countdown360 plugin -->
 <script src="https://cdn.jsdelivr.net/gh/johnschult/jquery.countdown360@0.1.9/dist/jquery.countdown360.min.js"></script>
 
-<!-- 3. Everything else -->
+<!-- 3. Then everything else -->
 <script>
   const statusBar = document.getElementById('statusBar');
   const toggleContainer = document.getElementById('toggleContainer');
@@ -579,6 +589,7 @@
   const miniTableBox = document.getElementById('miniTableBox');
   const liquidationBox = document.getElementById('liquidationBox');
 
+  /* The beloved sun/moon icons only, no "Dark Mode" text. */
   const sunIcon = `
     <svg viewBox="0 0 24 24" width="16" height="16" fill="white" xmlns="http://www.w3.org/2000/svg">
       <circle cx="12" cy="12" r="5"/>
@@ -649,7 +660,6 @@
       }
     }).start();
   }
-
   jQuery(function($) {
     // Sonic timer (purple)
     startCountdown('#sonic-timer-container', 5, '#b19cd9');
@@ -662,7 +672,6 @@
     const totalTime = 60;
     let timeLeft = totalTime;
     const handElem = document.querySelector('#price-timer-container .hand');
-
     function updatePriceTimer(){
       // from 0 deg at start to 360 deg at end
       const progress = (totalTime - timeLeft) / totalTime;
@@ -719,13 +728,22 @@
     }
   }
 
-  // Load ApexCharts for the pies & line graphs
+  // Load ApexCharts for pies & line chart
   const apexScript = document.createElement("script");
   apexScript.src = "https://cdn.jsdelivr.net/npm/apexcharts";
   document.head.appendChild(apexScript);
 
   apexScript.onload = function() {
-    function renderPieCharts(seriesSize, seriesCollateral) {
+    // Helper to format large numbers e.g. 4.5k
+    function formatK(num) {
+      if(!num) return '0';
+      if(num >= 1000) {
+        return (num/1000).toFixed(1) + 'k';
+      }
+      return num.toString();
+    }
+
+    function renderPieCharts(seriesSize, seriesCollateral, longSizeAmt, shortSizeAmt, longCollAmt, shortCollAmt) {
       function createPieOptions(seriesData) {
         return {
           chart: { type: 'pie', height: 200 },
@@ -748,14 +766,18 @@
       const chartCollateral = new ApexCharts(document.querySelector("#pieChartCollateral"), createPieOptions(seriesCollateral));
       chartCollateral.render();
 
-      // Show ratio text
+      // Show numeric amounts instead of percentages
       const pieSizeTotals = document.getElementById("pieSizeTotals");
       const pieCollateralTotals = document.getElementById("pieCollateralTotals");
-      if (pieSizeTotals && seriesSize.length === 2) {
-        pieSizeTotals.innerText = `Long: ${seriesSize[0]}% / Short: ${seriesSize[1]}%`;
+      if (pieSizeTotals) {
+        const longTxt = formatK(longSizeAmt || 0);
+        const shortTxt = formatK(shortSizeAmt || 0);
+        pieSizeTotals.innerText = `Long: ${longTxt} / Short: ${shortTxt}`;
       }
-      if (pieCollateralTotals && seriesCollateral.length === 2) {
-        pieCollateralTotals.innerText = `Long: ${seriesCollateral[0]}% / Short: ${seriesCollateral[1]}%`;
+      if (pieCollateralTotals) {
+        const longTxt = formatK(longCollAmt || 0);
+        const shortTxt = formatK(shortCollAmt || 0);
+        pieCollateralTotals.innerText = `Long: ${longTxt} / Short: ${shortTxt}`;
       }
     }
 
@@ -792,7 +814,7 @@
         dataLabels: { enabled: false },
         legend: {
           position: 'top',
-          labels: { colors: ['#fff'], fontSize: '20px', fontWeight: 700 }
+          labels: { colors: '#fff', fontSize: '20px', fontWeight: 700 }
         },
         tooltip: {
           theme: 'dark',
@@ -804,22 +826,27 @@
       chartGraph.render();
     }
 
-    // Grab composition data
+    // Example usage with numeric amounts from your endpoints
     fetch('/api/size_composition')
       .then(r => r.json())
       .then(data => {
         const sizeSeries = data.series || [0,0];
+        const longSizeAmt = data.longAmount || 0;
+        const shortSizeAmt = data.shortAmount || 0;
+
         fetch('/api/collateral_composition')
           .then(r => r.json())
           .then(data2 => {
             const collateralSeries = data2.series || [0,0];
-            renderPieCharts(sizeSeries, collateralSeries);
+            const longCollAmt = data2.longAmount || 0;
+            const shortCollAmt = data2.shortAmount || 0;
+
+            renderPieCharts(sizeSeries, collateralSeries, longSizeAmt, shortSizeAmt, longCollAmt, shortCollAmt);
           })
           .catch(err => console.error("Error fetching collateral composition:", err));
       })
       .catch(err => console.error("Error fetching size composition:", err));
 
-    // Grab graph data
     fetch('/api/graph_data')
       .then(r => r.json())
       .then(data => {
