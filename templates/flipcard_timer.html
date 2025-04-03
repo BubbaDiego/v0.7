@@ -1,0 +1,23 @@
+<!-- 1. Include jQuery and countdown360 plugin -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/johnschult/jquery.countdown360@0.1.9/dist/jquery.countdown360.min.js"></script>
+
+<!-- 2. Container for the circular timer -->
+<div id="countdown" style="max-width:200px; margin:20px;"></div>
+
+<!-- 3. Initialize the circular countdown -->
+<script>
+jQuery(function($){
+  $("#countdown").countdown360({
+    radius      : 80,            // radius of the circle in pixels (size of the timer)
+    seconds     : 30,            // total seconds to count down (e.g., 30s here)
+    fillStyle   : '#8ac575',     // circle fill color (green)
+    strokeStyle : '#477050',     // circle border color (darker green)
+    fontColor   : '#ffffff',     // font color for the time text
+    autostart   : false,         // start manually (we will call start() below)
+    onComplete  : function () { 
+      console.log('Time up!');   // callback when countdown finishes (optional)
+    }
+  }).start();  // start the countdown animation&#8203;:contentReference[oaicite:8]{index=8}
+});
+</script>
