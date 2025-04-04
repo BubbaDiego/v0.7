@@ -891,10 +891,10 @@ def dash_page():
     sol_data = dl.get_latest_price("SOL") or {}
     sp500_data = dl.get_latest_price("SP500") or {}
 
-    btc_price = "{:,.2f}".format(float(btc_data.get("current_price", 0)))
-    eth_price = "{:,.2f}".format(float(eth_data.get("current_price", 0)))
+    btc_price = "{:,.0f}".format(float(btc_data.get("current_price", 0)))
+    eth_price = "{:,.0f}".format(float(eth_data.get("current_price", 0)))
     sol_price = "{:,.2f}".format(float(sol_data.get("current_price", 0)))
-    sp500_value = "{:,.2f}".format(float(sp500_data.get("current_price", 0)))
+    sp500_value = "{:,.0f}".format(float(sp500_data.get("current_price", 0)))
 
     # Get last update times
     update_times = dl.get_last_update_times() or {}
