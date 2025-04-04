@@ -356,6 +356,40 @@ def get_alert_limits():
         current_app.logger.error(f"Error reading alert_limits.json: {e}", exc_info=True)
         return jsonify({"error": "Unable to load alert limits"}), 500
 
+@dashboard_bp.route("/title_bar")
+def title_bar():
+    # Get the latest price data from the DataLocker
+    dl = DataLocker.get_instance()
+    btc_data = dl.get_latest_price("BTC") or {}
+    eth_data = dl.get_latest_price("ETH") or {}
+    sol_data = dl.get_latest_price("SOL") or {}
+    sp500_data = dl.get_latest_price("SP500") or {}
+
+    # Format prices from the database
+    try:
+        formatted_btc_price = "{:,.2f}".format(float(btc_data.get("current_price", 0)))
+        formatted_eth_price = "{:,.2f}".format(float(eth_data.get("current_price", 0)))
+        formatted_sol_price = "{:,.2f}".format(float(sol_data.get("current_price", 0)))
+        formatted_sp500_value = "{:,.2f}".format(float(sp500_data.get("current_price", 0)))
+    except Exception as e:
+        current_app.logger.error("Error formatting prices: %s", e)
+        formatted_btc_price = formatted_eth_price = formatted_sol_price = formatted_sp500_value = "0.00"
+
+    # Debug: Log the price values to confirm they're correct
+    current_app.logger.info(
+        "Title Bar Prices - BTC: %s, ETH: %s, SOL: %s, SP500: %s",
+        formatted_btc_price, formatted_eth_price, formatted_sol_price, formatted_sp500_value
+    )
+
+    # Render the title bar template with these prices
+    return render_template(
+        "title_bar.html",
+        btc_price=formatted_btc_price,
+        eth_price=formatted_eth_price,
+        sol_price=formatted_sol_price,
+        sp500_value=formatted_sp500_value
+    )
+
 
 @dashboard_bp.route("/api/size_balance")
 def api_size_balance():
@@ -651,21 +685,34 @@ def get_last_ledger_entry():
         with open(ledger_file, "r", encoding="utf-8") as f:
             lines = f.readlines()
         print("Ledger file has", len(lines), "lines.")
-        if lines:
-            last_entry = json.loads(lines[-1])
-            print("Last ledger entry:", last_entry)
-            # If metadata exists and contains a loop counter, pass it in as loop_count
-            if isinstance(last_entry, dict) and "metadata" in last_entry and isinstance(last_entry["metadata"], dict):
-                if "loop_counter" in last_entry["metadata"]:
-                    last_entry["loop_count"] = last_entry["metadata"]["loop_counter"]
-            return last_entry
-        else:
-            print("Ledger file is empty.")
+
+        # Iterate backwards over the lines until a valid JSON entry is found
+        last_entry = None
+        for line in reversed(lines):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                last_entry = json.loads(line)
+                break
+            except json.decoder.JSONDecodeError:
+                continue
+
+        if last_entry is None:
+            print("No valid ledger entry found.")
             return {}
+
+        print("Last ledger entry:", last_entry)
+        # If metadata exists and contains a loop counter, add it as loop_count
+        if isinstance(last_entry, dict) and "metadata" in last_entry and isinstance(last_entry["metadata"], dict):
+            if "loop_counter" in last_entry["metadata"]:
+                last_entry["loop_count"] = last_entry["metadata"]["loop_counter"]
+        return last_entry
     except Exception as e:
         print("Error reading ledger file:", e)
         current_app.logger.error(f"Error reading ledger file: {e}", exc_info=True)
         return {}
+
 
 @dashboard_bp.route("/save_theme", methods=["POST"], endpoint="save_theme_route")
 def save_theme_route():
@@ -815,23 +862,15 @@ def dash_page():
         total_size = sum(float(p.get("size", 0)) for p in all_positions)
         avg_leverage = sum(float(p.get("leverage", 0)) for p in all_positions) / len(all_positions)
         avg_travel_percent = sum(float(p.get("travel_percent", 0)) for p in all_positions) / len(all_positions)
-        if total_collateral > 0:
-            vc_ratio = round(total_value / total_collateral, 2)
-        else:
-            vc_ratio = "N/A"
+        vc_ratio = round(total_value / total_collateral, 2) if total_collateral > 0 else "N/A"
         total_heat_index = sum(float(p.get("heat_index", 0)) for p in all_positions)
         avg_heat_index = total_heat_index / len(all_positions)
     else:
-        total_value = 0
-        total_collateral = 0  # Fix: Define total_collateral for empty positions.
-        total_size = 0
-        avg_leverage = 0
-        avg_travel_percent = 0
+        total_value = total_collateral = total_size = avg_leverage = avg_travel_percent = avg_heat_index = 0
         vc_ratio = "N/A"
-        avg_heat_index = 0
 
     formatted_portfolio_value = "${:,.2f}".format(total_value)
-    formatted_portfolio_change = "N/A"  # Set a default since change isn't computed here.
+    formatted_portfolio_change = "N/A"  # Default since change isn't computed here
 
     positions = all_positions
     liquidation_positions = all_positions
@@ -846,32 +885,56 @@ def dash_page():
     except Exception as ex:
         theme_config = {}
 
-    # Set defaults for prices and update times (could be extended to mirror the /dashboard route)
-    btc_price = "0.00"
-    eth_price = "0.00"
-    sol_price = "0.00"
-    sp500_value = "0.00"
-    last_update_time_only = "N/A"
-    last_update_date_only = "N/A"
-    last_update_positions_source = "N/A"
-    system_feed_entries = ""
-    alert_entries = ""
-    strategy_performance = {}
+    # Fetch price data from the database
+    btc_data = dl.get_latest_price("BTC") or {}
+    eth_data = dl.get_latest_price("ETH") or {}
+    sol_data = dl.get_latest_price("SOL") or {}
+    sp500_data = dl.get_latest_price("SP500") or {}
 
-    # Update bar stuff
+    btc_price = "{:,.2f}".format(float(btc_data.get("current_price", 0)))
+    eth_price = "{:,.2f}".format(float(eth_data.get("current_price", 0)))
+    sol_price = "{:,.2f}".format(float(sol_data.get("current_price", 0)))
+    sp500_value = "{:,.2f}".format(float(sp500_data.get("current_price", 0)))
+
+    # Get last update times
+    update_times = dl.get_last_update_times() or {}
+    raw_last_update = update_times.get("last_update_time_positions")
+    last_update_positions_source = update_times.get("last_update_positions_source", "N/A")
+    if raw_last_update:
+        converted_last_update = _convert_iso_to_pst(raw_last_update)
+        if converted_last_update != "N/A":
+            try:
+                dt_obj = datetime.strptime(converted_last_update, "%m/%d/%Y %I:%M:%S %p %Z")
+                last_update_time_only = dt_obj.strftime("%I:%M %p %Z").lstrip("0")
+                last_update_date_only = f"{dt_obj.month}/{dt_obj.day}/{dt_obj.strftime('%y')}"
+            except Exception:
+                last_update_time_only = last_update_date_only = "N/A"
+        else:
+            last_update_time_only = last_update_date_only = "N/A"
+    else:
+        last_update_time_only = last_update_date_only = "N/A"
+
+    # Read log files using UnifiedLogViewer.
+    operations_log_file = os.path.join(str(BASE_DIR), "operations_log.txt")
+    alert_log_file = os.path.join(str(BASE_DIR), "alert_monitor_log.txt")
+    ops_viewer = UnifiedLogViewer([operations_log_file])
+    system_feed_entries = ops_viewer.get_all_display_strings()
+    alert_viewer = UnifiedLogViewer([alert_log_file])
+    alert_entries = alert_viewer.get_all_display_strings()
+
+    # Ledger info for update bar
     ledger_info = get_last_ledger_entry()
     if ledger_info and "timestamp" in ledger_info:
         formatted_time, ledger_color = format_ledger_time(ledger_info["timestamp"])
         ledger_info["formatted_time"] = formatted_time
         ledger_info["color"] = ledger_color
     else:
-        # No ledger info or no timestamp
         ledger_info = {}
 
     theme_mode = dl.get_theme_mode()
 
     return render_template(
-        "dash.html",  # Changed here from "dashboard.html" to "dash.html"
+        "dash.html",  # Your main dashboard template that includes the title bar partial
         theme=theme_config,
         theme_mode=theme_mode,
         top_positions=top_positions,
@@ -897,6 +960,6 @@ def dash_page():
         last_update_positions_source=last_update_positions_source,
         system_feed_entries=system_feed_entries,
         alert_entries=alert_entries,
-        strategy_performance=strategy_performance,
+        strategy_performance={},
         ledger_info=ledger_info,
     )

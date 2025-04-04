@@ -87,17 +87,36 @@
   "snooze_countdown": 300.0,
   "call_refractory_start": null,
   "snooze_start": null,
+  "global_alert_config": {
+    "enabled": "on",
+    "data_fields": {
+      "price": "on",
+      "profit": "on",
+      "travel_percent": "on",
+      "heat_index": "on"
+    },
+    "thresholds": {
+      "price": {
+        "BTC": 0.0,
+        "ETH": 0.0,
+        "SOL": 0.0
+      },
+      "profit": 0.0,
+      "travel_percent": -15.0,
+      "heat_index": 0.0
+    }
+  },
   "price_alerts": {
     "BTC": {
-      "enabled": true,
+      "enabled": "on",
       "trigger_value": 77667.0
     },
     "ETH": {
-      "enabled": true,
+      "enabled": "on",
       "trigger_value": 1926.84
     },
     "SOL": {
-      "enabled": true,
+      "enabled": "on",
       "trigger_value": 133.9
     }
   }

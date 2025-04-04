@@ -19,15 +19,11 @@ from data.models import NotificationType, Status, Alert, Position
 from data.models import AlertType, Alert, AlertClass  # for standardizing alert types
 from xcom.xcom import send_sms
 
-# Use relative import for AlertController when running as a module.
 try:
     from .alert_controller import AlertController
 except ImportError:
-    # Fallback for running directly as a script; assumes alert_controller.py is in the same directory.
     from alert_controller import AlertController
 
-
-# Instantiate the unified logger
 u_logger = UnifiedLogger()
 
 # Create a dedicated logger for travel percent check details
@@ -41,10 +37,6 @@ if not travel_logger.handlers:
 
 
 def trigger_twilio_flow(custom_message: str, twilio_config: dict) -> str:
-    """
-    Triggers the Twilio Studio flow to send a notification.
-    Raises a ValueError if required configuration is missing.
-    """
     account_sid = twilio_config.get("account_sid")
     auth_token = twilio_config.get("auth_token")
     flow_sid = twilio_config.get("flow_sid")
@@ -90,10 +82,10 @@ class AlertManager:
         self.u_logger = u_logger
         self.last_profit: Dict[str, str] = {}
         self.last_triggered: Dict[str, float] = {}
-        self.last_call_triggered: Dict[str, float] = {}  # reused for SMS as well
+        self.last_call_triggered: Dict[str, float] = {}
         self.suppressed_count = 0
 
-        print("Initializing AlertManager...")  # Debug print
+        print("Initializing AlertManager...")
 
         from data.data_locker import DataLocker
         from utils.calc_services import CalcServices
@@ -289,42 +281,71 @@ class AlertManager:
             )
             return
 
-        self.reevaluate_alerts()
+        # Debug: log global config enabled flag
+        global_config = self.config.get("global_alert_config", {})
+        self.logger.debug("Global alert config enabled flag: " + str(global_config.get("enabled", False)))
 
-        alerts = self.data_locker.get_alerts()
-        triggered_alerts = [a for a in alerts if a.get("level", "Normal") != "Normal"]
-
-        if triggered_alerts:
-            combined_message = "\n".join(
-                f"{a.get('alert_type', 'Alert')} ALERT for {a.get('asset_type', 'Asset')} - "
-                f"Level: {a.get('level')}, Value: {a.get('evaluated_value')}"
-                for a in triggered_alerts
-            )
-            u_logger.log_alert(
-                operation_type="Alert Triggered",
-                primary_text=f"{len(triggered_alerts)} alerts triggered",
-                source=source or "",
-                file="alert_manager.py",
-                extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
-            )
-            # Use xCom to send an SMS alert instead of a voice call
-            self.send_sms_alert(combined_message, "all_alerts")
-        elif self.suppressed_count > 0:
-            u_logger.log_alert(
-                operation_type="Alert Silenced",
-                primary_text=f"{self.suppressed_count} alerts suppressed",
-                source=source or "",
-                file="alert_manager.py",
-                extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
-            )
+        if global_config.get("enabled", False):
+            positions = self.data_locker.read_positions()
+            # For debugging, using dummy market data:
+            market_data = {"BTC": 75000, "ETH": 1600, "SOL": 130}
+            self.logger.debug("Using dummy market data for global alert evaluation: " + str(market_data))
+            global_alerts = self.alert_evaluator.evaluate_global_alerts(positions, market_data)
+            if global_alerts:
+                combined_message = "Global Alerts:\n" + "\n".join(
+                    f"{key.upper()}: {msg}" for key, msg in global_alerts.items()
+                )
+                u_logger.log_alert(
+                    operation_type="Global Alert Triggered",
+                    primary_text=f"Global alert triggered: {combined_message}",
+                    source=source or "",
+                    file="alert_manager.py",
+                    extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
+                )
+                self.send_sms_alert(combined_message, "global_alerts")
+            else:
+                u_logger.log_alert(
+                    operation_type="No Global Alerts Found",
+                    primary_text="No global alerts triggered",
+                    source=source or "",
+                    file="alert_manager.py",
+                    extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
+                )
         else:
-            u_logger.log_alert(
-                operation_type="No Alerts Found",
-                primary_text="No alerts found in DB",
-                source=source or "",
-                file="alert_manager.py",
-                extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
-            )
+            self.reevaluate_alerts()
+            alerts = self.data_locker.get_alerts()
+            triggered_alerts = [a for a in alerts if a.get("level", "Normal") != "Normal"]
+
+            if triggered_alerts:
+                combined_message = "\n".join(
+                    f"{a.get('alert_type', 'Alert')} ALERT for {a.get('asset_type', 'Asset')} - "
+                    f"Level: {a.get('level')}, Value: {a.get('evaluated_value')}"
+                    for a in triggered_alerts
+                )
+                u_logger.log_alert(
+                    operation_type="Alert Triggered",
+                    primary_text=f"{len(triggered_alerts)} alerts triggered",
+                    source=source or "",
+                    file="alert_manager.py",
+                    extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
+                )
+                self.send_sms_alert(combined_message, "all_alerts")
+            elif self.suppressed_count > 0:
+                u_logger.log_alert(
+                    operation_type="Alert Silenced",
+                    primary_text=f"{self.suppressed_count} alerts suppressed",
+                    source=source or "",
+                    file="alert_manager.py",
+                    extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
+                )
+            else:
+                u_logger.log_alert(
+                    operation_type="No Alerts Found",
+                    primary_text="No alerts found in DB",
+                    source=source or "",
+                    file="alert_manager.py",
+                    extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
+                )
 
     def update_timer_states(self):
         now = current_time()
@@ -600,7 +621,6 @@ class AlertManager:
         except Exception as e:
             print(f"Error clearing hedge data: {e}")
 
-
     def run(self):
         """
         Background loop if run as a main script.
@@ -617,16 +637,11 @@ class AlertManager:
             self.check_alerts()
             time.sleep(self.poll_interval)
 
-# Create a global AlertManager instance for use in other modules.
 manager = AlertManager(
     db_path=str(DB_PATH),
     poll_interval=60,
     config_path=str(CONFIG_PATH)
 )
-
-
-
-
 
 if __name__ == "__main__":
     import logging

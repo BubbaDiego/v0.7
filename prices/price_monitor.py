@@ -9,7 +9,7 @@ from typing import Dict, List
 from datetime import datetime, timezone, timedelta
 
 # Import necessary constants including BASE_DIR, LOG_DIR, etc.
-from config.config_constants import DB_PATH, COM_CONFIG_PATH, LOG_DIR, BTC_LOGO_IMAGE, ETH_LOGO_IMAGE, SOL_LOGO_IMAGE, LOG_DATE_FORMAT, BASE_DIR
+
 
 from utils.json_manager import JsonManager, JsonType
 from data.data_locker import DataLocker
@@ -22,6 +22,8 @@ import aiohttp
 
 logger = logging.getLogger("PriceMonitorLogger")
 logger.setLevel(logging.DEBUG)
+
+from config.config_constants import DB_PATH, COM_CONFIG_PATH, LOG_DIR, BTC_LOGO_IMAGE, ETH_LOGO_IMAGE, SOL_LOGO_IMAGE, LOG_DATE_FORMAT, BASE_DIR
 
 # New: Define the timer config file path and functions to load and update it.
 TIMER_CONFIG_PATH = os.path.join(BASE_DIR, "config", "timer_config.json")

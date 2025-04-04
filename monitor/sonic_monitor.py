@@ -9,6 +9,10 @@ import urllib3
 from datetime import datetime, timezone
 import pytz
 
+# Set logging to use Pacific Standard Time (PST)
+PST = pytz.timezone("America/Los_Angeles")
+logging.Formatter.converter = lambda *args: datetime.now(PST).timetuple()
+
 # Ensure BASE_DIR is added to the path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
@@ -91,7 +95,6 @@ def call_run_cycle():
         logging.error("Error calling run_cycle: %s", e)
 
 def write_ledger(loop_counter):
-    # Define ledger file path (shared with den_mother if desired)
     LEDGER_FILE = os.path.join(BASE_DIR, "monitor", "sonic_ledger.json")
     ledger_dir = os.path.dirname(LEDGER_FILE)
     os.makedirs(ledger_dir, exist_ok=True)
@@ -110,18 +113,15 @@ def write_ledger(loop_counter):
         with open(LEDGER_FILE, "a") as f:
             f.write(json.dumps(ledger_entry) + "\n")
         logging.info("Ledger updated: %s", ledger_entry)
-        # Update the timer configuration with the new sonic_loop_start_time
         current_timer_config = load_timer_config()
         current_timer_config["sonic_loop_start_time"] = timestamp
         update_timer_config(current_timer_config)
     except Exception as e:
         logging.error("Failed to update ledger: %s", e)
 
-
 def main():
     loop_counter = 0
     while True:
-        # Set sonic_loop_start_time at the beginning of each loop
         current_timer_config = load_timer_config()
         current_timestamp = datetime.now(timezone.utc).isoformat()
         current_timer_config["sonic_loop_start_time"] = current_timestamp
@@ -133,7 +133,7 @@ def main():
         time.sleep(10)
         call_run_cycle()
         call_jupiter()
-        log_operation_with_line("Monitor Loop", f"Monitor Loop #{loop_counter} - Endpoints called", "monitor", "sonic_monitor.py")
+        log_operation_with_line("Monitor Loop", f"Monitor Loop #{loop_counter} - Endpoints called", "Cyclone", "sonic_monitor.py")
         write_ledger(loop_counter)
         print("❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄")
         time.sleep(sonic_loop_interval)

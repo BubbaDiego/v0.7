@@ -4,10 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Title Bar</title>
-  <!-- Include your Bootstrap CSS here if needed -->
-  <!-- Example: <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"> -->
+  <!-- Include Bootstrap CSS if needed -->
   <style>
-    /* Updated gradient (Option 3) for a smoother transition */
+    /* Gradient navbar */
     .gradient-navbar {
       background: linear-gradient(
         90deg,
@@ -17,11 +16,10 @@
         #4a90e2 70%,
         #4a90e2 100%
       );
-      /* Only a border-bottom to separate the title bar from the body */
       border-bottom: 2px solid white;
     }
 
-    /* Asset panels (the price ellipses) with thicker white border */
+    /* Asset panels with thicker white border */
     .asset-panel {
       display: flex;
       align-items: center;
@@ -37,12 +35,11 @@
       height: 20px;
     }
 
-    /* Left nav and right nav split: we’ll manually handle spacing */
+    /* Navbar layout */
     .navbar-nav.left-items {
       flex-direction: row;
     }
     .navbar-nav.center-timer {
-      /* Let this container grow and center its items */
       flex: 1;
       display: flex;
       justify-content: center;
@@ -53,7 +50,7 @@
       flex-direction: row;
     }
 
-    /* Unified update button styles */
+    /* Update buttons */
     .update-btn {
       border: none;
       background: none;
@@ -67,20 +64,19 @@
       width: 32px;
       height: 32px;
       border-radius: 50%;
-      font-size: 32px;  /* Larger icons */
+      font-size: 32px;
       font-weight: bold;
       background-color: #f8f9fa;
       background-size: 100%;
       background-position: center;
       background-repeat: no-repeat;
-      border: 2px solid white;  /* Thicker border for update icons */
+      border: 2px solid white;
     }
-    /* Make the Jupiter image a little bigger without increasing the circle size */
     #updateJupiterBtn .update-icon {
       background-size: 100%;
     }
 
-    /* Timer box: light grey with black text and thicker white border */
+    /* Timer box styles */
     .timer-box {
       background-color: #ddd;
       border: 2px solid white;
@@ -89,23 +85,21 @@
       display: flex;
       align-items: center;
       gap: 0.75rem;
-      margin-left: -5px; /* shifted left */
+      margin-left: -5px;
     }
     .timer-box span {
       color: #000;
       font-weight: bold;
-      font-size: 1.2em; /* slightly bigger icons */
+      font-size: 1.2em;
     }
 
-    /* Slightly lower the Jupiter button to align with other buttons */
+    /* Button alignment tweaks */
     #updateJupiterBtn {
       margin-top: 2px;
     }
-
-    /* Raise the hedgehog icon a bit */
     .hedgehog-icon {
       position: relative;
-      top: -2px; /* shift upward */
+      top: -2px;
     }
 
     @keyframes spin {
@@ -128,31 +122,26 @@
       <div class="collapse navbar-collapse" id="navbarCollapse">
         <!-- Left Items -->
         <ul class="navbar-nav left-items">
-          <!-- Dashboard -->
           <li class="nav-item">
             <a href="{{ url_for('dashboard.dash_page') }}" class="nav-link">
               <i class="fas fa-home"></i>
             </a>
           </li>
-          <!-- Positions Table -->
           <li class="nav-item">
             <a href="{{ url_for('positions.positions_table') }}" class="nav-link">
               <i class="fas fa-table"></i>
             </a>
           </li>
-          <!-- Alert Limit Settings -->
           <li class="nav-item">
             <a href="{{ url_for('alerts_bp.alert_config_page') }}" class="nav-link">
               <i class="fas fa-bell"></i>
             </a>
           </li>
-          <!-- Alert Matrix -->
           <li class="nav-item">
             <a href="{{ url_for('alerts_bp.alert_matrix') }}" class="nav-link">
               <i class="fas fa-th"></i>
             </a>
           </li>
-          <!-- Hedge Calculator -->
           <li class="nav-item">
             <a href="{{ url_for('sonic_labs.hedge_calculator') }}" class="nav-link">
               <span class="hedgehog-icon" style="font-size:1.2em;">🦔</span>
@@ -160,38 +149,33 @@
           </li>
         </ul>
 
-        <!-- Center Items: Timer, Layout Toggle, and Price Panel -->
+        <!-- Center Items: Timer and Price Panel -->
         <ul class="navbar-nav center-timer">
-          <!-- Timer Box -->
           <li class="nav-item d-none d-md-flex align-items-center">
             <div class="timer-box">
               <span id="callTimer">☎ --</span>
               <span id="snoozeTimer">💤 --</span>
             </div>
           </li>
-          <!-- Layout Toggle Button -->
           <li class="nav-item">
             <a href="#" class="nav-link" id="layoutToggle" title="Toggle Layout">
               <i class="fas fa-arrows-alt-h"></i>
             </a>
           </li>
-          <!-- Price Panel -->
+          <!-- Price Panel using database prices -->
           <li class="nav-item d-none d-md-flex align-items-center me-3">
             <div class="d-flex gap-2">
               <div class="asset-panel">
                 <img src="https://cryptologos.cc/logos/bitcoin-btc-logo.png?v=023" alt="BTC">
-                <span id="btcPrice">$--.--</span>
-                <small id="btcChange" class="fw-bold">0.00%</small>
+                <span id="btcPrice">${{ btc_price }}</span>
               </div>
               <div class="asset-panel">
                 <img src="https://cryptologos.cc/logos/ethereum-eth-logo.png?v=023" alt="ETH">
-                <span id="ethPrice">$--.--</span>
-                <small id="ethChange" class="fw-bold">0.00%</small>
+                <span id="ethPrice">${{ eth_price }}</span>
               </div>
               <div class="asset-panel">
                 <img src="https://cryptologos.cc/logos/solana-sol-logo.png?v=023" alt="SOL">
-                <span id="solPrice">$--.--</span>
-                <small id="solChange" class="fw-bold">0.00%</small>
+                <span id="solPrice">${{ sol_price }}</span>
               </div>
             </div>
           </li>
@@ -199,7 +183,6 @@
 
         <!-- Right Items: Update Buttons and Gear Dropdown -->
         <ul class="navbar-nav right-items">
-          <!-- Jupiter Update Button -->
           <li class="nav-item d-flex align-items-center me-3">
             <button type="button" class="update-btn" id="updateJupiterBtn" title="Update Positions">
               <span class="update-icon"
@@ -207,22 +190,16 @@
               </span>
             </button>
           </li>
-
-          <!-- Prices Update Button -->
           <li class="nav-item d-flex align-items-center me-3">
             <button type="button" class="update-btn" id="updatePricesBtn" title="Update Prices">
               <span class="update-icon" style="color: green;">$</span>
             </button>
           </li>
-
-          <!-- Full Cycle (Cyclone) Update Button -->
           <li class="nav-item d-flex align-items-center me-3">
             <button type="button" class="update-btn" id="updateFullCycleBtn" title="Full Cycle Update">
               <span class="update-icon">🌀</span>
             </button>
           </li>
-
-          <!-- Gear Dropdown -->
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="gearDropdown" role="button"
                data-bs-toggle="dropdown" aria-expanded="false" title="Navigation">
@@ -257,9 +234,9 @@
     </div>
   </nav>
 
-  <!-- Inline JavaScript -->
+  <!-- Inline JavaScript for timers and button actions -->
   <script>
-    // Timers
+    // Timer functionality
     function getRemaining(start, period) {
       if (!start) return period;
       const elapsed = Math.floor(Date.now() / 1000) - start;
@@ -273,12 +250,9 @@
         const callStart = data.call_refractory_start;
         const snoozeStart = data.snooze_start;
         function updateTimers() {
-          // For call timer: show "☎" if >5 seconds, else "⏰"
           const callRemaining = getRemaining(callStart, callPeriod);
           const callIcon = callRemaining > 5 ? '☎' : '⏰';
           document.getElementById('callTimer').textContent = `${callIcon} ${callRemaining}`;
-
-          // For snooze timer: show "💤" if >5 seconds, else "😴"
           const snoozeRemaining = getRemaining(snoozeStart, snoozeCount);
           const snoozeIcon = snoozeRemaining > 5 ? '💤' : '😴';
           document.getElementById('snoozeTimer').textContent = `${snoozeIcon} ${snoozeRemaining}`;
@@ -288,38 +262,7 @@
       })
       .catch(err => console.error('Timer error:', err));
 
-    // Price Updates
-    function updatePrices() {
-      fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd&include_24hr_change=true')
-        .then(r => r.json())
-        .then(data => {
-          document.getElementById('btcPrice').textContent =
-            '$' + data.bitcoin.usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-          const btcChange = data.bitcoin.usd_24hr_change.toFixed(2);
-          const btcChangeElem = document.getElementById('btcChange');
-          btcChangeElem.textContent = btcChange + '%';
-          btcChangeElem.style.color = btcChange >= 0 ? 'green' : 'red';
-
-          document.getElementById('ethPrice').textContent =
-            '$' + data.ethereum.usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-          const ethChange = data.ethereum.usd_24hr_change.toFixed(2);
-          const ethChangeElem = document.getElementById('ethChange');
-          ethChangeElem.textContent = ethChange + '%';
-          ethChangeElem.style.color = ethChange >= 0 ? 'green' : 'red';
-
-          document.getElementById('solPrice').textContent =
-            '$' + data.solana.usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-          const solChange = data.solana.usd_24hr_change.toFixed(2);
-          const solChangeElem = document.getElementById('solChange');
-          solChangeElem.textContent = solChange + '%';
-          solChangeElem.style.color = solChange >= 0 ? 'green' : 'red';
-        })
-        .catch(err => console.error('Price fetch error:', err));
-    }
-    updatePrices();
-    setInterval(updatePrices, 60000);
-
-    // Jupiter Update Button
+    // Update button functionalities remain unchanged
     const updateJupiterBtn = document.getElementById("updateJupiterBtn");
     if (updateJupiterBtn) {
       updateJupiterBtn.addEventListener("click", () => {
@@ -334,7 +277,6 @@
       });
     }
 
-    // Prices Update Button
     const updatePricesBtn = document.getElementById("updatePricesBtn");
     if (updatePricesBtn) {
       updatePricesBtn.addEventListener("click", () => {
@@ -349,7 +291,6 @@
       });
     }
 
-    // Full Cycle (Cyclone) Update Button
     const updateFullCycleBtn = document.getElementById("updateFullCycleBtn");
     if (updateFullCycleBtn) {
       updateFullCycleBtn.addEventListener("click", () => {
@@ -367,7 +308,6 @@
       });
     }
 
-    // Layout Toggle Switch
     document.getElementById('layoutToggle').addEventListener('click', function(e) {
       e.preventDefault();
       var mode = localStorage.getItem("layoutMode") || "fluid";

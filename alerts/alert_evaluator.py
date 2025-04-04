@@ -550,6 +550,115 @@ class AlertEvaluator:
         print(f"[DEBUG] evaluate_heat_index_alert: {msg}")
         return msg
 
+    def evaluate_global_alerts(self, positions: list, market_data: dict) -> dict:
+        """
+        Evaluates global alert conditions based on the configured global thresholds.
+        This method aggregates data from positions and market feeds and compares the
+        values against global thresholds defined in the configuration.
+
+        Parameters:
+            positions (list): List of position dictionaries.
+            market_data (dict): Dictionary of asset prices, e.g., {"BTC": 45000, "ETH": 3000}.
+
+        Returns:
+            dict: A dictionary with keys for each metric (e.g., 'price', 'profit')
+                  and concatenated alert messages if thresholds are exceeded.
+        """
+        print("----------------------------------------------------------------------------------------")
+        self.logger.debug("Starting global alert evaluation")
+        global_config = self.config.get("global_alert_config", {})
+        if not global_config.get("enabled", False):
+            self.logger.debug("Global alerts not enabled in config")
+            return {}
+
+        thresholds = global_config.get("thresholds", {})
+        data_fields = global_config.get("data_fields", {})
+        alerts = {}
+
+        # Evaluate global price alerts
+        if data_fields.get("price", False):
+            self.logger.debug("Evaluating global price alerts")
+            price_thresholds = thresholds.get("price", {})
+            price_alert_messages = []
+            for asset, current_price in market_data.items():
+                threshold = price_thresholds.get(asset)
+                self.logger.debug(f"Asset {asset}: current price = {current_price}, threshold = {threshold}")
+                if threshold is not None and current_price >= threshold:
+                    msg = f"{asset} price {current_price} >= {threshold}"
+                    self.logger.debug("Price alert triggered: " + msg)
+                    price_alert_messages.append(msg)
+            if price_alert_messages:
+                alerts["price"] = "; ".join(price_alert_messages)
+        else:
+            self.logger.debug("Global price alerts not enabled in data_fields")
+
+        # Evaluate global profit alerts
+        if data_fields.get("profit", False):
+            self.logger.debug("Evaluating global profit alerts")
+            profit_threshold = thresholds.get("profit", float('inf'))
+            profit_alert_messages = []
+            for pos in positions:
+                try:
+                    profit = float(pos.get("pnl_after_fees_usd", 0))
+                except Exception as e:
+                    self.logger.error("Error parsing profit for position {}: {}".format(pos.get("id"), e))
+                    profit = 0.0
+                self.logger.debug(f"Position {pos.get('id')}: profit = {profit}, threshold = {profit_threshold}")
+                if profit >= profit_threshold:
+                    msg = f"Pos {pos.get('id')} profit {profit} >= {profit_threshold}"
+                    self.logger.debug("Profit alert triggered: " + msg)
+                    profit_alert_messages.append(msg)
+            if profit_alert_messages:
+                alerts["profit"] = "; ".join(profit_alert_messages)
+        else:
+            self.logger.debug("Global profit alerts not enabled in data_fields")
+
+        # Evaluate global travel percent alerts
+        if data_fields.get("travel_percent", False):
+            self.logger.debug("Evaluating global travel percent alerts")
+            travel_threshold = thresholds.get("travel_percent", 0)
+            travel_alert_messages = []
+            for pos in positions:
+                try:
+                    travel_percent = float(pos.get("travel_percent", 0))
+                except Exception as e:
+                    self.logger.error("Error parsing travel_percent for position {}: {}".format(pos.get("id"), e))
+                    travel_percent = 0.0
+                self.logger.debug(
+                    f"Position {pos.get('id')}: travel_percent = {travel_percent}, threshold = {travel_threshold}")
+                if travel_percent <= travel_threshold:
+                    msg = f"Pos {pos.get('id')} travel percent {travel_percent} <= {travel_threshold}"
+                    self.logger.debug("Travel percent alert triggered: " + msg)
+                    travel_alert_messages.append(msg)
+            if travel_alert_messages:
+                alerts["travel_percent"] = "; ".join(travel_alert_messages)
+        else:
+            self.logger.debug("Global travel_percent alerts not enabled in data_fields")
+
+        # Evaluate global heat index alerts
+        if data_fields.get("heat_index", False):
+            self.logger.debug("Evaluating global heat index alerts")
+            heat_threshold = thresholds.get("heat_index", float('inf'))
+            heat_alert_messages = []
+            for pos in positions:
+                try:
+                    heat_index = float(pos.get("current_heat_index", 0))
+                except Exception as e:
+                    self.logger.error("Error parsing heat_index for position {}: {}".format(pos.get("id"), e))
+                    heat_index = 0.0
+                self.logger.debug(f"Position {pos.get('id')}: heat_index = {heat_index}, threshold = {heat_threshold}")
+                if heat_index >= heat_threshold:
+                    msg = f"Pos {pos.get('id')} heat index {heat_index} >= {heat_threshold}"
+                    self.logger.debug("Heat index alert triggered: " + msg)
+                    heat_alert_messages.append(msg)
+            if heat_alert_messages:
+                alerts["heat_index"] = "; ".join(heat_alert_messages)
+        else:
+            self.logger.debug("Global heat_index alerts not enabled in data_fields")
+
+        self.logger.debug("Global alert evaluation complete with alerts: " + str(alerts))
+        return alerts
+
     def _update_alert_level(self, pos: dict, new_level: str, evaluated_value: float = None,
                             custom_alert_type: str = None):
         alert_id = pos.get("alert_reference_id")
@@ -697,4 +806,84 @@ def create_alert(self, alert_obj) -> bool:
     except Exception as e:
         self._debug_log(f"[DEBUG] create_alert: Error creating alert: {e}")
         return False
+
+    def evaluate_global_alerts(self, positions: list, market_data: dict) -> dict:
+        """
+        Evaluates global alert conditions based on the configured global thresholds.
+        This method aggregates data from positions and market feeds and compares the
+        values against global thresholds defined in the configuration.
+
+        Parameters:
+            positions (list): List of position dictionaries.
+            market_data (dict): Dictionary of asset prices, e.g., {"BTC": 45000, "ETH": 3000}.
+
+        Returns:
+            dict: A dictionary where keys are metric names (e.g., 'price', 'profit') and
+                  values are concatenated alert messages if thresholds are exceeded.
+        """
+        global_config = self.config.get("global_alert_config", {})
+        if not global_config.get("enabled", False):
+            return {}
+
+        thresholds = global_config.get("thresholds", {})
+        data_fields = global_config.get("data_fields", {})
+
+        alerts = {}
+
+        # Evaluate global price alerts using market data
+        if data_fields.get("price", False):
+            price_thresholds = thresholds.get("price", {})
+            price_alert_messages = []
+            for asset, current_price in market_data.items():
+                threshold = price_thresholds.get(asset)
+                if threshold is not None and current_price >= threshold:
+                    price_alert_messages.append(f"{asset} price {current_price} >= {threshold}")
+            if price_alert_messages:
+                alerts["price"] = "; ".join(price_alert_messages)
+
+        # Evaluate global profit alerts from positions
+        if data_fields.get("profit", False):
+            profit_threshold = thresholds.get("profit", float('inf'))
+            profit_alert_messages = []
+            for pos in positions:
+                try:
+                    profit = float(pos.get("pnl_after_fees_usd", 0))
+                except Exception:
+                    profit = 0.0
+                if profit >= profit_threshold:
+                    profit_alert_messages.append(f"Pos {pos.get('id')} profit {profit} >= {profit_threshold}")
+            if profit_alert_messages:
+                alerts["profit"] = "; ".join(profit_alert_messages)
+
+        # Evaluate global travel percent alerts from positions
+        if data_fields.get("travel_percent", False):
+            travel_threshold = thresholds.get("travel_percent", 0)
+            travel_alert_messages = []
+            for pos in positions:
+                try:
+                    travel_percent = float(pos.get("travel_percent", 0))
+                except Exception:
+                    travel_percent = 0.0
+                # Assuming threshold is negative (e.g., -30.0), alert if travel_percent is less than or equal to it
+                if travel_percent <= travel_threshold:
+                    travel_alert_messages.append(
+                        f"Pos {pos.get('id')} travel percent {travel_percent} <= {travel_threshold}")
+            if travel_alert_messages:
+                alerts["travel_percent"] = "; ".join(travel_alert_messages)
+
+        # Evaluate global heat index alerts from positions
+        if data_fields.get("heat_index", False):
+            heat_threshold = thresholds.get("heat_index", float('inf'))
+            heat_alert_messages = []
+            for pos in positions:
+                try:
+                    heat_index = float(pos.get("current_heat_index", 0))
+                except Exception:
+                    heat_index = 0.0
+                if heat_index >= heat_threshold:
+                    heat_alert_messages.append(f"Pos {pos.get('id')} heat index {heat_index} >= {heat_threshold}")
+            if heat_alert_messages:
+                alerts["heat_index"] = "; ".join(heat_alert_messages)
+
+        return alerts
 

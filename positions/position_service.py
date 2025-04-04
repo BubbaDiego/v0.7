@@ -438,12 +438,9 @@ class PositionService:
             from sonic_labs.hedge_manager import HedgeManager
             hedge_manager = HedgeManager(positions)
             hedges = hedge_manager.get_hedges()
-            UnifiedLogger().log_operation(
-                operation_type="Hedge Updated",
-                primary_text=f"{len(hedges)} hedges updated using raw positions.",
-                source="System",
-                file="position_service.py"
-            )
+            u_logger.log_operation("Hedge Updated", f"Hedge update complete; {len(hedges)} hedges created.",
+                                   source=source)
+
             return hedges
         except Exception as e:
             UnifiedLogger().log_operation(

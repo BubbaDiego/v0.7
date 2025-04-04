@@ -12,11 +12,11 @@
     "last_price_update_time": null
   },
   "api_config": {
-    "coingecko_api_enabled": "ENABLE",
-    "kucoin_api_enabled": "ENABLE",
-    "coinmarketcap_api_enabled": "ENABLE",
-    "coinpaprika_api_enabled": "ENABLE",
-    "binance_api_enabled": "ENABLE",
+    "coingecko_api_enabled": true,
+    "kucoin_api_enabled": true,
+    "coinmarketcap_api_enabled": true,
+    "coinpaprika_api_enabled": true,
+    "binance_api_enabled": true,
     "coinmarketcap_api_key": "c51c0c22-1bf3-4674-86bf-36f39a912d1a"
   },
   "notification_config": {
@@ -41,50 +41,83 @@
   },
   "alert_ranges": {
     "heat_index_ranges": {
-      "enabled": true,
+      "enabled": "on",
       "low": 12.0,
       "medium": 33.0,
       "high": 66.0
     },
     "liquidation_distance_ranges": {
-      "enabled": true,
+      "enabled": "on",
       "low": 10.0,
       "medium": 25.0,
       "high": 50.0
     },
     "travel_percent_liquid_ranges": {
-      "enabled": true,
-      "low": -4.0,
-      "medium": -7.0,
-      "high": -10.0
+      "enabled": "on",
+      "low": -25.0,
+      "medium": -50.0,
+      "high": -75.0
     },
     "profit_ranges": {
-      "enabled": true,
+      "enabled": "on",
       "low": 22.0,
       "medium": 51.0,
       "high": 99.0
     },
     "price_alerts": {
       "BTC": {
-        "enabled": false,
+        "enabled": true,
         "condition": "ABOVE",
         "trigger_value": 77667
       },
       "ETH": {
-        "enabled": false,
+        "enabled": true,
         "condition": "ABOVE",
         "trigger_value": 1926.84
       },
       "SOL": {
-        "enabled": false,
+        "enabled": true,
         "condition": "BELOW",
         "trigger_value": 133.9
       }
     }
   },
-  "alert_cooldown_seconds": 888.0,
+  "alert_cooldown_seconds": 187.0,
   "call_refractory_period": 873.0,
   "snooze_countdown": 300.0,
-  "call_refractory_start": 1742823013.4932268,
-  "snooze_start": null
+  "call_refractory_start": null,
+  "snooze_start": null,
+  "global_alert_config": {
+    "enabled": true,
+    "data_fields": {
+      "price": true,
+      "profit": true,
+      "travel_percent": true,
+      "heat_index": true
+    },
+    "thresholds": {
+      "price": {
+        "BTC": 70000,
+        "ETH": 1500,
+        "SOL": 120
+      },
+      "profit": 20.0,
+      "travel_percent": -30.0,
+      "heat_index": 40.0
+    }
+  },
+  "price_alerts": {
+    "BTC": {
+      "enabled": true,
+      "trigger_value": 77667.0
+    },
+    "ETH": {
+      "enabled": true,
+      "trigger_value": 1926.84
+    },
+    "SOL": {
+      "enabled": true,
+      "trigger_value": 133.9
+    }
+  }
 }

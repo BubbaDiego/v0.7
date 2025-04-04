@@ -1,4 +1,19 @@
 {% extends "base.html" %}
+{% set global_alert_config = global_alert_config|default({
+    "enabled": false,
+    "data_fields": {
+        "price": false,
+        "profit": false,
+        "travel_percent": false,
+        "heat_index": false
+    },
+    "thresholds": {
+        "price": {"BTC": 0, "ETH": 0, "SOL": 0},
+        "profit": 0,
+        "travel_percent": 0,
+        "heat_index": 0
+    }
+}, true) %}
 
 {% block title %}Alert Limits Configuration{% endblock %}
 
@@ -12,6 +27,10 @@
   .bg-info {
     background-color: var(--card-background-color) !important;
     color: var(--text-color) !important;
+  }
+  .bg-secondary {
+    background-color: #6c757d !important;
+    color: #fff !important;
   }
   /* Outer wrapper for all alert sections */
   .alert-limits-wrapper {
@@ -123,7 +142,7 @@
                         </td>
                         <td>{{ price_alerts.BTC.condition }}</td>
                         <td>
-                          <input type="number" class="form-control" style="width:100px;" name="price_alerts[BTC][trigger_value]" value="{{ price_alerts.BTC.trigger_value }}" />
+                          <input type="number" class="form-control" style="width:100px;" name="price_alerts[BTC][trigger_value]" value="{{ price_alerts.BTC.trigger_value }}">
                         </td>
                         <td>
                           <div class="notif-inline justify-content-center">
@@ -155,7 +174,7 @@
                         </td>
                         <td>{{ price_alerts.ETH.condition }}</td>
                         <td>
-                          <input type="number" class="form-control" style="width:100px;" name="price_alerts[ETH][trigger_value]" value="{{ price_alerts.ETH.trigger_value }}" />
+                          <input type="number" class="form-control" style="width:100px;" name="price_alerts[ETH][trigger_value]" value="{{ price_alerts.ETH.trigger_value }}">
                         </td>
                         <td>
                           <div class="notif-inline justify-content-center">
@@ -187,7 +206,7 @@
                         </td>
                         <td>{{ price_alerts.SOL.condition }}</td>
                         <td>
-                          <input type="number" class="form-control" style="width:100px;" name="price_alerts[SOL][trigger_value]" value="{{ price_alerts.SOL.trigger_value }}" />
+                          <input type="number" class="form-control" style="width:100px;" name="price_alerts[SOL][trigger_value]" value="{{ price_alerts.SOL.trigger_value }}">
                         </td>
                         <td>
                           <div class="notif-inline justify-content-center">
@@ -341,6 +360,70 @@
               </div>
             </div>
           </div>
+
+          <!-- Third row: Global Alert Settings -->
+          <div class="row card-row">
+            <div class="col-12">
+              <div class="card bg-secondary">
+                <div class="card-header">
+                  <h5 class="card-title"><strong>🌐 Global Alert Settings</strong></h5>
+                </div>
+                <div class="card-body">
+                  <div class="form-group">
+                    <label>Enable Global Alerts</label>
+                    <input type="checkbox" name="global_alert_config[enabled]" {% if global_alert_config.enabled|default(false) %}checked{% endif %}>
+                  </div>
+                  <div class="form-group">
+                    <label>Data Fields to Monitor:</label>
+                    <div>
+                      <label><input type="checkbox" name="global_alert_config[data_fields][price]" {% if global_alert_config.data_fields.price|default(false) %}checked{% endif %}> Price</label>
+                      <label><input type="checkbox" name="global_alert_config[data_fields][profit]" {% if global_alert_config.data_fields.profit|default(false) %}checked{% endif %}> Profit</label>
+                      <label><input type="checkbox" name="global_alert_config[data_fields][travel_percent]" {% if global_alert_config.data_fields.travel_percent|default(false) %}checked{% endif %}> Travel Percent</label>
+                      <label><input type="checkbox" name="global_alert_config[data_fields][heat_index]" {% if global_alert_config.data_fields.heat_index|default(false) %}checked{% endif %}> Heat Index</label>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label>Global Price Thresholds</label>
+                    <table class="table table-bordered text-center">
+                      <thead>
+                        <tr>
+                          <th>Asset</th>
+                          <th>Threshold</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>BTC</td>
+                          <td><input type="number" class="form-control" name="global_alert_config[thresholds][price][BTC]" value="{{ global_alert_config.thresholds.price.BTC|default(0) }}"></td>
+                        </tr>
+                        <tr>
+                          <td>ETH</td>
+                          <td><input type="number" class="form-control" name="global_alert_config[thresholds][price][ETH]" value="{{ global_alert_config.thresholds.price.ETH|default(0) }}"></td>
+                        </tr>
+                        <tr>
+                          <td>SOL</td>
+                          <td><input type="number" class="form-control" name="global_alert_config[thresholds][price][SOL]" value="{{ global_alert_config.thresholds.price.SOL|default(0) }}"></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="form-group">
+                    <label>Profit Threshold</label>
+                    <input type="number" class="form-control" name="global_alert_config[thresholds][profit]" value="{{ global_alert_config.thresholds.profit|default(0) }}">
+                  </div>
+                  <div class="form-group">
+                    <label>Travel Percent Threshold</label>
+                    <input type="number" class="form-control" name="global_alert_config[thresholds][travel_percent]" value="{{ global_alert_config.thresholds.travel_percent|default(0) }}">
+                  </div>
+                  <div class="form-group">
+                    <label>Heat Index Threshold</label>
+                    <input type="number" class="form-control" name="global_alert_config[thresholds][heat_index]" value="{{ global_alert_config.thresholds.heat_index|default(0) }}">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
 
         <!-- Save Configuration Button -->
@@ -349,8 +432,7 @@
             <button type="submit" class="btn btn-success btn-lg">Save Configuration</button>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
     </form>
   </div>
 </div>

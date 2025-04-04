@@ -44,7 +44,7 @@ from jupiter.jupiter_bp import jupiter_bp
 from cyclone.cyclone_bp import cyclone_bp
 from utils.unified_logger import UnifiedLogger
 from sonic_labs.sonic_labs_bp import sonic_labs_bp
-from chat_gpt.chat_gpt_bp import chat_gpt_bp
+#from chat_gpt.chat_gpt_bp import chat_gpt_bp
 from aave.aave_bp import aave_bp
 from aave import aave_api
 
@@ -79,7 +79,7 @@ app.register_blueprint(dashboard_bp)  # Dashboard-specific routes and API endpoi
 app.register_blueprint(sonic_labs_bp, url_prefix="/sonic_labs")
 app.register_blueprint(cyclone_bp, url_prefix="/cyclone")
 
-app.register_blueprint(chat_gpt_bp, url_prefix='/chat_gpt')
+#app.register_blueprint(chat_gpt_bp, url_prefix='/chat_gpt')
 app.register_blueprint(aave_bp, url_prefix="/aave")
 
 app.register_blueprint(jupiter_bp, url_prefix="/jupiter")
