@@ -816,6 +816,10 @@ def format_ledger_time(iso_str):
     if dt.tzinfo is None:
         dt = pytz.utc.localize(dt)
 
+        # Convert dt to Pacific Time
+    pst = pytz.timezone("US/Pacific")
+    dt = dt.astimezone(pst)
+
     # Calculate how many minutes old this timestamp is
     diff = datetime.now(pytz.utc) - dt
     minutes_old = diff.total_seconds() / 60

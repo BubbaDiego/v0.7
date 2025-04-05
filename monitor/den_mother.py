@@ -158,6 +158,8 @@ def notify_failure_via_fallback(error_message: str):
                                 source="system", file="den_mother.py")
 
 def check_heartbeat():
+    # Load config at the start so it's available in all branches
+    config = load_com_config()
     try:
         with open(HEARTBEAT_FILE, "r") as f:
             timestamp_str = f.read().strip()
