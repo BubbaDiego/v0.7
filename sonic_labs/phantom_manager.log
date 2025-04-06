@@ -10996,3 +10996,713 @@ Call log:
 2025-04-05 17:38:13,209 - DEBUG - PAGE CONSOLE: handleSendTransaction error User rejected the request.
 2025-04-05 17:38:13,209 - DEBUG - PAGE CONSOLE: Failed to open position! true
 2025-04-05 17:38:13,244 - DEBUG - Position open triggered with label: Long SOL
+2025-04-05 17:50:12,763 - DEBUG - Launching browser with Phantom extension from C:\v0.7\sonic_labs\phantom_wallet
+2025-04-05 17:50:12,763 - DEBUG - Using proactor: IocpProactor
+2025-04-05 17:50:13,428 - DEBUG - Existing user data detected. Using shorter service worker timeout: 5000 ms
+2025-04-05 17:50:13,428 - DEBUG - Waiting for service worker to register Phantom extension (timeout 5000 ms)...
+2025-04-05 17:50:18,437 - ERROR - Service worker not registered within timeout: Timeout 5000ms exceeded while waiting for event "serviceworker"
+2025-04-05 17:50:18,437 - DEBUG - Open page 0: about:blank
+2025-04-05 17:50:18,438 - DEBUG - Open page 1: about:blank
+2025-04-05 17:50:18,438 - DEBUG - Assuming Phantom extension ID as fallback: bfnaelmomeimhlpmgjnjophhpkkoljpa
+2025-04-05 17:50:18,438 - DEBUG - Navigating to dApp: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-05 17:50:19,133 - DEBUG - dApp page loaded. Current URL: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-05 17:50:19,133 - DEBUG - Checking if wallet is already connected using selector: text=Connected
+2025-04-05 17:50:19,164 - DEBUG - PAGE CONSOLE: Phantom was registered as a Standard Wallet. The Wallet Adapter for Phantom can be removed from your app.
+2025-04-05 17:50:19,253 - DEBUG - PAGE CONSOLE: Phantom was registered as a Standard Wallet. The Wallet Adapter for Phantom can be removed from your app.
+2025-04-05 17:50:19,339 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-05 17:50:19,343 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-05 17:50:19,376 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-05 17:50:19,563 - DEBUG - PAGE CONSOLE: 2025-04-06T00:50:19.560Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-05 17:50:19,563 - DEBUG - PAGE CONSOLE: 2025-04-06T00:50:19.561Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-05 17:50:19,693 - DEBUG - Wallet already connected on dApp. Skipping connect flow.
+2025-04-05 17:50:47,947 - DEBUG - Navigating to dApp: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-05 17:50:47,949 - DEBUG - PAGE CONSOLE: {result: Array(52)}
+2025-04-05 17:50:47,949 - DEBUG - PAGE CONSOLE: Detected injected providers: [Object]
+2025-04-05 17:50:47,949 - DEBUG - PAGE CONSOLE: The configured WalletConnect 'metadata.url':https://jup.ag/perps-legacy/short/SOL-SOL differs from the actual page url:https://jup.ag. This is probably unintended and can lead to issues.
+2025-04-05 17:50:47,949 - DEBUG - PAGE CONSOLE: Wallet did not respond to eth_accounts. Defaulting to prefetched accounts. mq: Must call 'eth_requestAccounts' before other methods
+    at pq (https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:1570413)
+    at https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:1577638
+2025-04-05 17:50:47,954 - DEBUG - PAGE CONSOLE: %cWarning! color:#F16552; font-size:50px; font-weight: bold; -webkit-text-stroke: 1px black;
+2025-04-05 17:50:47,955 - DEBUG - PAGE CONSOLE: %cYou are reading this message because you opened the browser console, a developer tool. Do not enter or paste code you do not understand. Never share your tokens or any other info with anyone. If someone told you to do this, it is very likely a scam. font-size: 18px;
+2025-04-05 17:50:48,182 - DEBUG - dApp page loaded. Current URL: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-05 17:50:48,182 - DEBUG - Checking if wallet is already connected using selector: text=Connected
+2025-04-05 17:50:48,193 - DEBUG - PAGE CONSOLE: Phantom was registered as a Standard Wallet. The Wallet Adapter for Phantom can be removed from your app.
+2025-04-05 17:50:48,231 - DEBUG - PAGE CONSOLE: Phantom was registered as a Standard Wallet. The Wallet Adapter for Phantom can be removed from your app.
+2025-04-05 17:50:48,278 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-05 17:50:48,280 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-05 17:50:48,311 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-05 17:50:48,418 - DEBUG - PAGE CONSOLE: 2025-04-06T00:50:48.412Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-05 17:50:48,418 - DEBUG - PAGE CONSOLE: 2025-04-06T00:50:48.414Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-05 17:50:48,504 - DEBUG - Wallet already connected on dApp. Skipping connect flow.
+2025-04-05 17:50:55,613 - DEBUG - Selecting position type: long
+2025-04-05 17:50:55,615 - DEBUG - PAGE CONSOLE: Detected injected providers: [Object]
+2025-04-05 17:50:55,615 - DEBUG - PAGE CONSOLE: The configured WalletConnect 'metadata.url':https://jup.ag/perps-legacy/short/SOL-SOL differs from the actual page url:https://jup.ag. This is probably unintended and can lead to issues.
+2025-04-05 17:50:55,615 - DEBUG - PAGE CONSOLE: Wallet did not respond to eth_accounts. Defaulting to prefetched accounts. mq: Must call 'eth_requestAccounts' before other methods
+    at pq (https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:1570413)
+    at https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:1577638
+2025-04-05 17:50:55,615 - DEBUG - PAGE CONSOLE: {result: Array(52)}
+2025-04-05 17:50:55,617 - DEBUG - PAGE CONSOLE: %cWarning! color:#F16552; font-size:50px; font-weight: bold; -webkit-text-stroke: 1px black;
+2025-04-05 17:50:55,617 - DEBUG - PAGE CONSOLE: %cYou are reading this message because you opened the browser console, a developer tool. Do not enter or paste code you do not understand. Never share your tokens or any other info with anyone. If someone told you to do this, it is very likely a scam. font-size: 18px;
+2025-04-05 17:51:06,660 - DEBUG - Selecting payment asset: WBTC
+2025-04-05 17:51:35,266 - DEBUG - Selecting payment asset: USDT
+2025-04-05 17:51:35,272 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-05 17:51:35,273 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-05 17:51:35,278 - DEBUG - PAGE CONSOLE: 2025-04-06T00:51:20.631Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-05 17:51:35,278 - DEBUG - PAGE CONSOLE: 2025-04-06T00:51:20.633Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-05 17:51:35,280 - DEBUG - PAGE CONSOLE: WebSocket connection to 'wss://history.oraclesecurity.org/trading-view/stream' failed: WebSocket is closed before the connection is established.
+2025-04-05 17:51:35,316 - DEBUG - Pulldown button clicked to reveal asset options.
+2025-04-05 17:51:50,085 - DEBUG - Setting position size: 34
+2025-04-05 17:51:50,087 - DEBUG - PAGE CONSOLE: Failed to load resource: the server responded with a status of 429 ()
+2025-04-05 17:52:03,003 - DEBUG - Setting leverage: 34
+2025-04-05 17:52:16,663 - DEBUG - Setting position size: 45
+2025-04-05 17:52:26,011 - DEBUG - Setting leverage: 23
+2025-04-05 18:09:22,500 - DEBUG - Launching browser with Phantom extension from C:\v0.7\sonic_labs\phantom_wallet
+2025-04-05 18:09:22,501 - DEBUG - Using proactor: IocpProactor
+2025-04-05 18:09:23,113 - DEBUG - Existing user data detected. Using shorter service worker timeout: 5000 ms
+2025-04-05 18:09:23,113 - DEBUG - Waiting for service worker to register Phantom extension (timeout 5000 ms)...
+2025-04-05 18:09:28,132 - ERROR - Service worker not registered within timeout: Timeout 5000ms exceeded while waiting for event "serviceworker"
+2025-04-05 18:09:28,132 - DEBUG - Open page 0: about:blank
+2025-04-05 18:09:28,132 - DEBUG - Open page 1: about:blank
+2025-04-05 18:09:28,132 - DEBUG - Assuming Phantom extension ID as fallback: bfnaelmomeimhlpmgjnjophhpkkoljpa
+2025-04-05 18:09:28,132 - DEBUG - Navigating to dApp: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-05 18:09:28,719 - DEBUG - dApp page loaded. Current URL: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-05 18:09:28,719 - DEBUG - Checking if wallet is already connected using selector: text=Connected
+2025-04-05 18:09:28,766 - DEBUG - PAGE CONSOLE: Phantom was registered as a Standard Wallet. The Wallet Adapter for Phantom can be removed from your app.
+2025-04-05 18:09:28,848 - DEBUG - PAGE CONSOLE: Phantom was registered as a Standard Wallet. The Wallet Adapter for Phantom can be removed from your app.
+2025-04-05 18:09:28,929 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-05 18:09:28,932 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-05 18:09:28,975 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-05 18:09:29,213 - DEBUG - PAGE CONSOLE: 2025-04-06T01:09:29.210Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-05 18:09:29,214 - DEBUG - PAGE CONSOLE: 2025-04-06T01:09:29.211Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-05 18:09:29,331 - DEBUG - PAGE CONSOLE: {result: Array(52)}
+2025-04-05 18:09:29,340 - DEBUG - Wallet already connected on dApp. Skipping connect flow.
+2025-04-05 18:10:35,446 - DEBUG - Waiting for network request with keyword: order-submit
+2025-04-05 18:10:35,450 - DEBUG - PAGE CONSOLE: Detected injected providers: [Object]
+2025-04-05 18:10:35,450 - DEBUG - PAGE CONSOLE: The configured WalletConnect 'metadata.url':https://jup.ag/perps-legacy/short/SOL-SOL differs from the actual page url:https://jup.ag. This is probably unintended and can lead to issues.
+2025-04-05 18:10:35,450 - DEBUG - PAGE CONSOLE: Wallet did not respond to eth_accounts. Defaulting to prefetched accounts. mq: Must call 'eth_requestAccounts' before other methods
+    at pq (https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:1570413)
+    at https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:1577638
+2025-04-05 18:10:35,453 - DEBUG - PAGE CONSOLE: %cWarning! color:#F16552; font-size:50px; font-weight: bold; -webkit-text-stroke: 1px black;
+2025-04-05 18:10:35,453 - DEBUG - PAGE CONSOLE: %cYou are reading this message because you opened the browser console, a developer tool. Do not enter or paste code you do not understand. Never share your tokens or any other info with anyone. If someone told you to do this, it is very likely a scam. font-size: 18px;
+2025-04-05 18:10:35,467 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-05 18:10:35,467 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-05 18:10:35,477 - DEBUG - PAGE CONSOLE: 2025-04-06T01:09:37.747Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-05 18:10:35,478 - DEBUG - PAGE CONSOLE: 2025-04-06T01:09:37.748Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-05 18:10:35,481 - DEBUG - PAGE CONSOLE: WebSocket connection to 'wss://history.oraclesecurity.org/trading-view/stream' failed: WebSocket is closed before the connection is established.
+2025-04-05 18:10:45,470 - ERROR - Error capturing order payload: Timeout 10000ms exceeded while waiting for event "requestfinished"
+=========================== logs ===========================
+waiting for event "requestfinished"
+============================================================
+2025-04-05 18:13:55,069 - DEBUG - Opening position with label: Long SOL
+2025-04-05 18:14:05,079 - ERROR - Error opening position with label Long SOL: Page.click: Timeout 10000ms exceeded.
+Call log:
+  - waiting for locator("div.flex.items-center.justify-center.rounded-lg:has-text('Long SOL')")
+
+2025-04-05 18:14:17,202 - DEBUG - Opening position with label: Long SOL
+2025-04-05 18:14:20,787 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-05 18:14:20,793 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106219)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112758
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at ls (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:105221)
+    at S (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:138470)
+    at MessagePort.T (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:139004)
+2025-04-05 18:14:20,979 - DEBUG - PAGE CONSOLE: 2025-04-06T01:14:20.976Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-05 18:14:20,980 - DEBUG - PAGE CONSOLE: 2025-04-06T01:14:20.977Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-05 18:14:21,009 - DEBUG - PAGE CONSOLE: WebSocket connection to 'wss://history.oraclesecurity.org/trading-view/stream' failed: WebSocket is closed before the connection is established.
+2025-04-05 18:14:27,214 - ERROR - Error opening position with label Long SOL: Page.click: Timeout 10000ms exceeded.
+Call log:
+  - waiting for locator("div.flex.items-center.justify-center.rounded-lg:has-text('Long SOL')")
+
+2025-04-05 18:14:31,354 - DEBUG - Opening position with label: Long SOL
+2025-04-05 18:14:31,397 - DEBUG - Position open triggered with label: Long SOL
+2025-04-05 18:14:59,606 - DEBUG - Triggering transaction with selector: text=Send Transaction
+2025-04-05 18:14:59,608 - DEBUG - PAGE CONSOLE: [] perps CUP {minimumCUP: 0, marketReferenceCUP: 38794, computedCUP: 38794}
+2025-04-05 18:14:59,608 - DEBUG - PAGE CONSOLE: [] perps priority fee in SOL {computedPriorityFeesInSol: 0.000011638, userMaxPriorityFeesInSol: 0.001}
+2025-04-05 18:15:09,617 - ERROR - Error triggering transaction: Page.click: Timeout 10000ms exceeded.
+Call log:
+  - waiting for locator("text=Send Transaction")
+
+2025-04-05 18:22:14,177 - DEBUG - Launching browser with Phantom extension from C:\v0.7\sonic_labs\phantom_wallet
+2025-04-05 18:22:14,177 - DEBUG - Using proactor: IocpProactor
+2025-04-05 18:22:14,822 - DEBUG - Existing user data detected. Using shorter service worker timeout: 5000 ms
+2025-04-05 18:22:14,822 - DEBUG - Waiting for service worker to register Phantom extension (timeout 5000 ms)...
+2025-04-05 18:22:19,837 - ERROR - Service worker not registered within timeout: Timeout 5000ms exceeded while waiting for event "serviceworker"
+2025-04-05 18:22:19,837 - DEBUG - Open page 0: about:blank
+2025-04-05 18:22:19,837 - DEBUG - Open page 1: about:blank
+2025-04-05 18:22:19,837 - DEBUG - Assuming Phantom extension ID as fallback: bfnaelmomeimhlpmgjnjophhpkkoljpa
+2025-04-05 18:22:19,838 - DEBUG - Navigating to dApp: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-05 18:22:20,404 - DEBUG - dApp page loaded. Current URL: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-05 18:22:20,404 - DEBUG - Checking if wallet is already connected using selector: text=Connected
+2025-04-05 18:22:20,439 - DEBUG - PAGE CONSOLE: Phantom was registered as a Standard Wallet. The Wallet Adapter for Phantom can be removed from your app.
+2025-04-05 18:22:20,517 - DEBUG - PAGE CONSOLE: Phantom was registered as a Standard Wallet. The Wallet Adapter for Phantom can be removed from your app.
+2025-04-05 18:22:20,592 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-05 18:22:20,595 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-05 18:22:20,630 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-05 18:22:20,808 - DEBUG - PAGE CONSOLE: 2025-04-06T01:22:20.805Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-05 18:22:20,808 - DEBUG - PAGE CONSOLE: 2025-04-06T01:22:20.806Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-05 18:22:20,945 - DEBUG - Wallet already connected on dApp. Skipping connect flow.
+2025-04-05 18:23:02,070 - DEBUG - Opening position with label: Long SOL
+2025-04-05 18:23:02,072 - DEBUG - PAGE CONSOLE: {result: Array(52)}
+2025-04-05 18:23:02,073 - DEBUG - PAGE CONSOLE: Detected injected providers: [Object]
+2025-04-05 18:23:02,073 - DEBUG - PAGE CONSOLE: The configured WalletConnect 'metadata.url':https://jup.ag/perps-legacy/short/SOL-SOL differs from the actual page url:https://jup.ag. This is probably unintended and can lead to issues.
+2025-04-05 18:23:02,073 - DEBUG - PAGE CONSOLE: Wallet did not respond to eth_accounts. Defaulting to prefetched accounts. mq: Must call 'eth_requestAccounts' before other methods
+    at pq (https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:1570413)
+    at https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:1577638
+2025-04-05 18:23:02,080 - DEBUG - PAGE CONSOLE: %cWarning! color:#F16552; font-size:50px; font-weight: bold; -webkit-text-stroke: 1px black;
+2025-04-05 18:23:02,081 - DEBUG - PAGE CONSOLE: %cYou are reading this message because you opened the browser console, a developer tool. Do not enter or paste code you do not understand. Never share your tokens or any other info with anyone. If someone told you to do this, it is very likely a scam. font-size: 18px;
+2025-04-05 18:23:02,141 - DEBUG - Position open triggered with label: Long SOL
+2025-04-05 18:23:13,008 - DEBUG - Opening position with label: Long SOL
+2025-04-05 18:23:13,010 - DEBUG - PAGE CONSOLE: [] perps CUP {minimumCUP: 0, marketReferenceCUP: 38225, computedCUP: 38225}
+2025-04-05 18:23:13,010 - DEBUG - PAGE CONSOLE: [] perps priority fee in SOL {computedPriorityFeesInSol: 0.000011468, userMaxPriorityFeesInSol: 0.001}
+2025-04-05 18:23:13,012 - DEBUG - PAGE CONSOLE: GOT ERROR Ve: User rejected the request.
+    at #o (chrome-extension://bfnaelmomeimhlpmgjnjophhpkkoljpa/solana.js:3:409826)
+    at async r.signTransaction (chrome-extension://bfnaelmomeimhlpmgjnjophhpkkoljpa/solana.js:3:411138)
+    at async #d [as signTransaction] (chrome-extension://bfnaelmomeimhlpmgjnjophhpkkoljpa/solana.js:3:417079)
+    at async Ae.de [as signAllTransactions] (https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:1:3202493)
+    at async https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:1:3207247
+2025-04-05 18:23:13,012 - DEBUG - PAGE CONSOLE: {error: WalletSignTransactionError: User rejected the request.
+    at Ae.de [as signAllTransactions] (https…, adapter: Ae}
+2025-04-05 18:23:13,013 - DEBUG - PAGE CONSOLE: handleSendTransaction error User rejected the request.
+2025-04-05 18:23:13,013 - DEBUG - PAGE CONSOLE: Failed to open position! true
+2025-04-05 18:23:23,020 - ERROR - Error opening position with label Long SOL: Page.click: Timeout 10000ms exceeded.
+Call log:
+  - waiting for locator("div.flex.items-center.justify-center.rounded-lg:has-text('Long SOL')")
+
+2025-04-05 18:24:05,344 - DEBUG - Selecting position type: short
+2025-04-05 18:24:30,534 - DEBUG - Selecting payment asset: SOL
+2025-04-05 18:24:38,374 - DEBUG - Opening position with label: Short SOL
+2025-04-05 18:24:38,417 - DEBUG - Position open triggered with label: Short SOL
+2025-04-05 18:28:21,291 - DEBUG - Launching browser with Phantom extension from C:\v0.7\sonic_labs\phantom_wallet
+2025-04-05 18:28:21,291 - DEBUG - Using proactor: IocpProactor
+2025-04-05 18:28:22,042 - DEBUG - Existing user data detected. Using shorter service worker timeout: 5000 ms
+2025-04-05 18:28:22,042 - DEBUG - Waiting for service worker to register Phantom extension (timeout 5000 ms)...
+2025-04-05 18:28:27,055 - ERROR - Service worker not registered within timeout: Timeout 5000ms exceeded while waiting for event "serviceworker"
+2025-04-05 18:28:27,055 - DEBUG - Open page 0: about:blank
+2025-04-05 18:28:27,055 - DEBUG - Open page 1: about:blank
+2025-04-05 18:28:27,055 - DEBUG - Assuming Phantom extension ID as fallback: bfnaelmomeimhlpmgjnjophhpkkoljpa
+2025-04-05 18:28:27,055 - DEBUG - Navigating to dApp: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-05 18:28:27,930 - DEBUG - dApp page loaded. Current URL: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-05 18:28:27,930 - DEBUG - Checking if wallet is already connected using selector: text=Connected
+2025-04-05 18:28:27,966 - DEBUG - PAGE CONSOLE: Phantom was registered as a Standard Wallet. The Wallet Adapter for Phantom can be removed from your app.
+2025-04-05 18:28:28,044 - DEBUG - PAGE CONSOLE: Phantom was registered as a Standard Wallet. The Wallet Adapter for Phantom can be removed from your app.
+2025-04-05 18:28:28,127 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-05 18:28:28,130 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-05 18:28:28,160 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-05 18:28:28,342 - DEBUG - PAGE CONSOLE: 2025-04-06T01:28:28.339Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-05 18:28:28,342 - DEBUG - PAGE CONSOLE: 2025-04-06T01:28:28.340Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-05 18:28:28,482 - DEBUG - PAGE CONSOLE: {result: Array(52)}
+2025-04-05 18:28:28,483 - DEBUG - Wallet already connected on dApp. Skipping connect flow.
+2025-04-05 18:30:53,383 - DEBUG - Launching browser with Phantom extension from C:\v0.7\sonic_labs\phantom_wallet
+2025-04-05 18:30:53,384 - DEBUG - Using proactor: IocpProactor
+2025-04-05 18:30:54,032 - DEBUG - Existing user data detected. Using shorter service worker timeout: 5000 ms
+2025-04-05 18:30:54,032 - DEBUG - Waiting for service worker to register Phantom extension (timeout 5000 ms)...
+2025-04-05 18:30:59,049 - ERROR - Service worker not registered within timeout: Timeout 5000ms exceeded while waiting for event "serviceworker"
+2025-04-05 18:30:59,049 - DEBUG - Open page 0: about:blank
+2025-04-05 18:30:59,049 - DEBUG - Open page 1: about:blank
+2025-04-05 18:30:59,049 - DEBUG - Assuming Phantom extension ID as fallback: bfnaelmomeimhlpmgjnjophhpkkoljpa
+2025-04-05 18:30:59,049 - DEBUG - Navigating to dApp: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-05 18:30:59,618 - DEBUG - dApp page loaded. Current URL: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-05 18:30:59,618 - DEBUG - Checking if wallet is already connected using selector: text=Connected
+2025-04-05 18:30:59,655 - DEBUG - PAGE CONSOLE: Phantom was registered as a Standard Wallet. The Wallet Adapter for Phantom can be removed from your app.
+2025-04-05 18:30:59,733 - DEBUG - PAGE CONSOLE: Phantom was registered as a Standard Wallet. The Wallet Adapter for Phantom can be removed from your app.
+2025-04-05 18:30:59,818 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-05 18:30:59,821 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-05 18:30:59,856 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-05 18:31:00,040 - DEBUG - PAGE CONSOLE: 2025-04-06T01:31:00.038Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-05 18:31:00,040 - DEBUG - PAGE CONSOLE: 2025-04-06T01:31:00.039Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-05 18:31:00,135 - DEBUG - Wallet already connected on dApp. Skipping connect flow.
+2025-04-05 18:31:12,744 - DEBUG - Opening position with label: Long SOL
+2025-04-05 18:31:12,746 - DEBUG - PAGE CONSOLE: {result: Array(52)}
+2025-04-05 18:31:12,746 - DEBUG - PAGE CONSOLE: Detected injected providers: [Object]
+2025-04-05 18:31:12,747 - DEBUG - PAGE CONSOLE: The configured WalletConnect 'metadata.url':https://jup.ag/perps-legacy/short/SOL-SOL differs from the actual page url:https://jup.ag. This is probably unintended and can lead to issues.
+2025-04-05 18:31:12,747 - DEBUG - PAGE CONSOLE: Wallet did not respond to eth_accounts. Defaulting to prefetched accounts. mq: Must call 'eth_requestAccounts' before other methods
+    at pq (https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:1570413)
+    at https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:1577638
+2025-04-05 18:31:12,753 - DEBUG - PAGE CONSOLE: %cWarning! color:#F16552; font-size:50px; font-weight: bold; -webkit-text-stroke: 1px black;
+2025-04-05 18:31:12,753 - DEBUG - PAGE CONSOLE: %cYou are reading this message because you opened the browser console, a developer tool. Do not enter or paste code you do not understand. Never share your tokens or any other info with anyone. If someone told you to do this, it is very likely a scam. font-size: 18px;
+2025-04-05 18:31:12,809 - DEBUG - Position open triggered with label: Long SOL
+2025-04-05 18:35:57,388 - DEBUG - Launching browser with Phantom extension from C:\v0.7\sonic_labs\phantom_wallet
+2025-04-05 18:35:57,388 - DEBUG - Using proactor: IocpProactor
+2025-04-05 18:35:58,022 - DEBUG - Existing user data detected. Using shorter service worker timeout: 5000 ms
+2025-04-05 18:35:58,022 - DEBUG - Waiting for service worker to register Phantom extension (timeout 5000 ms)...
+2025-04-05 18:36:03,027 - ERROR - Service worker not registered within timeout: Timeout 5000ms exceeded while waiting for event "serviceworker"
+2025-04-05 18:36:03,027 - DEBUG - Open page 0: about:blank
+2025-04-05 18:36:03,027 - DEBUG - Open page 1: about:blank
+2025-04-05 18:36:03,027 - DEBUG - Assuming Phantom extension ID as fallback: bfnaelmomeimhlpmgjnjophhpkkoljpa
+2025-04-05 18:36:03,027 - DEBUG - Navigating to dApp: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-05 18:36:03,595 - DEBUG - dApp page loaded. Current URL: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-05 18:36:03,595 - DEBUG - Checking if wallet is already connected using selector: text=Connected
+2025-04-05 18:36:03,626 - DEBUG - PAGE CONSOLE: Phantom was registered as a Standard Wallet. The Wallet Adapter for Phantom can be removed from your app.
+2025-04-05 18:36:03,714 - DEBUG - PAGE CONSOLE: Phantom was registered as a Standard Wallet. The Wallet Adapter for Phantom can be removed from your app.
+2025-04-05 18:36:03,798 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-05 18:36:03,802 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-05 18:36:03,831 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-05 18:36:04,010 - DEBUG - PAGE CONSOLE: 2025-04-06T01:36:04.007Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-05 18:36:04,010 - DEBUG - PAGE CONSOLE: 2025-04-06T01:36:04.008Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-05 18:36:04,134 - DEBUG - Wallet already connected on dApp. Skipping connect flow.
+2025-04-05 18:36:22,942 - DEBUG - Opening position with label: Long SOL
+2025-04-05 18:36:22,944 - DEBUG - PAGE CONSOLE: {result: Array(52)}
+2025-04-05 18:36:22,945 - DEBUG - PAGE CONSOLE: Detected injected providers: [Object]
+2025-04-05 18:36:22,945 - DEBUG - PAGE CONSOLE: The configured WalletConnect 'metadata.url':https://jup.ag/perps-legacy/short/SOL-SOL differs from the actual page url:https://jup.ag. This is probably unintended and can lead to issues.
+2025-04-05 18:36:22,945 - DEBUG - PAGE CONSOLE: Wallet did not respond to eth_accounts. Defaulting to prefetched accounts. mq: Must call 'eth_requestAccounts' before other methods
+    at pq (https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:1570413)
+    at https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:1577638
+2025-04-05 18:36:23,027 - DEBUG - Position open triggered with label: Long SOL
+2025-04-05 18:37:50,005 - DEBUG - Opening position with label: Long SOL
+2025-04-05 18:37:50,007 - DEBUG - PAGE CONSOLE: [] perps CUP {minimumCUP: 0, marketReferenceCUP: 40000, computedCUP: 40000}
+2025-04-05 18:37:50,007 - DEBUG - PAGE CONSOLE: [] perps priority fee in SOL {computedPriorityFeesInSol: 0.000012, userMaxPriorityFeesInSol: 0.001}
+2025-04-05 18:37:50,008 - DEBUG - PAGE CONSOLE: %cWarning! color:#F16552; font-size:50px; font-weight: bold; -webkit-text-stroke: 1px black;
+2025-04-05 18:37:50,008 - DEBUG - PAGE CONSOLE: %cYou are reading this message because you opened the browser console, a developer tool. Do not enter or paste code you do not understand. Never share your tokens or any other info with anyone. If someone told you to do this, it is very likely a scam. font-size: 18px;
+2025-04-05 18:37:50,022 - DEBUG - PAGE CONSOLE: GOT ERROR Ve: User rejected the request.
+    at #o (chrome-extension://bfnaelmomeimhlpmgjnjophhpkkoljpa/solana.js:3:409826)
+    at async r.signTransaction (chrome-extension://bfnaelmomeimhlpmgjnjophhpkkoljpa/solana.js:3:411138)
+    at async #d [as signTransaction] (chrome-extension://bfnaelmomeimhlpmgjnjophhpkkoljpa/solana.js:3:417079)
+    at async Ae.de [as signAllTransactions] (https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:1:3202493)
+    at async https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:1:3207247
+2025-04-05 18:37:50,022 - DEBUG - PAGE CONSOLE: {error: WalletSignTransactionError: User rejected the request.
+    at Ae.de [as signAllTransactions] (https…, adapter: Ae}
+2025-04-05 18:37:50,022 - DEBUG - PAGE CONSOLE: handleSendTransaction error User rejected the request.
+2025-04-05 18:37:50,022 - DEBUG - PAGE CONSOLE: Failed to open position! true
+2025-04-05 18:37:50,084 - DEBUG - Position open triggered with label: Long SOL
+2025-04-05 18:38:57,763 - DEBUG - Launching browser with Phantom extension from C:\v0.7\sonic_labs\phantom_wallet
+2025-04-05 18:38:57,763 - DEBUG - Using proactor: IocpProactor
+2025-04-05 18:38:58,373 - DEBUG - Existing user data detected. Using shorter service worker timeout: 5000 ms
+2025-04-05 18:38:58,373 - DEBUG - Waiting for service worker to register Phantom extension (timeout 5000 ms)...
+2025-04-05 18:39:03,381 - ERROR - Service worker not registered within timeout: Timeout 5000ms exceeded while waiting for event "serviceworker"
+2025-04-05 18:39:03,381 - DEBUG - Open page 0: about:blank
+2025-04-05 18:39:03,381 - DEBUG - Open page 1: about:blank
+2025-04-05 18:39:03,381 - DEBUG - Assuming Phantom extension ID as fallback: bfnaelmomeimhlpmgjnjophhpkkoljpa
+2025-04-05 18:39:03,381 - DEBUG - Navigating to dApp: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-05 18:39:03,984 - DEBUG - dApp page loaded. Current URL: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-05 18:39:03,984 - DEBUG - Checking if wallet is already connected using selector: text=Connected
+2025-04-05 18:39:04,020 - DEBUG - PAGE CONSOLE: Phantom was registered as a Standard Wallet. The Wallet Adapter for Phantom can be removed from your app.
+2025-04-05 18:39:04,098 - DEBUG - PAGE CONSOLE: Phantom was registered as a Standard Wallet. The Wallet Adapter for Phantom can be removed from your app.
+2025-04-05 18:39:04,173 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-05 18:39:04,176 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-05 18:39:04,210 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-05 18:39:04,388 - DEBUG - PAGE CONSOLE: 2025-04-06T01:39:04.386Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-05 18:39:04,389 - DEBUG - PAGE CONSOLE: 2025-04-06T01:39:04.387Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-05 18:39:04,518 - DEBUG - PAGE CONSOLE: {result: Array(52)}
+2025-04-05 18:39:04,519 - DEBUG - Wallet already connected on dApp. Skipping connect flow.
+2025-04-05 18:39:20,272 - DEBUG - Opening position with label: Long SOL
+2025-04-05 18:39:20,274 - DEBUG - PAGE CONSOLE: Detected injected providers: [Object]
+2025-04-05 18:39:20,274 - DEBUG - PAGE CONSOLE: The configured WalletConnect 'metadata.url':https://jup.ag/perps-legacy/short/SOL-SOL differs from the actual page url:https://jup.ag. This is probably unintended and can lead to issues.
+2025-04-05 18:39:20,274 - DEBUG - PAGE CONSOLE: Wallet did not respond to eth_accounts. Defaulting to prefetched accounts. mq: Must call 'eth_requestAccounts' before other methods
+    at pq (https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:1570413)
+    at https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:1577638
+2025-04-05 18:39:20,276 - DEBUG - PAGE CONSOLE: %cWarning! color:#F16552; font-size:50px; font-weight: bold; -webkit-text-stroke: 1px black;
+2025-04-05 18:39:20,276 - DEBUG - PAGE CONSOLE: %cYou are reading this message because you opened the browser console, a developer tool. Do not enter or paste code you do not understand. Never share your tokens or any other info with anyone. If someone told you to do this, it is very likely a scam. font-size: 18px;
+2025-04-05 18:39:20,344 - DEBUG - Position open triggered with label: Long SOL
+2025-04-05 18:39:23,961 - DEBUG - Checking if Phantom is locked...
+2025-04-05 18:43:42,823 - DEBUG - Launching browser with Phantom extension from C:\v0.7\sonic_labs\phantom_wallet
+2025-04-05 18:43:42,823 - DEBUG - Using proactor: IocpProactor
+2025-04-05 18:43:43,549 - DEBUG - Existing user data detected. Using shorter service worker timeout: 5000 ms
+2025-04-05 18:43:43,549 - DEBUG - Waiting for service worker to register Phantom extension (timeout 5000 ms)...
+2025-04-05 18:43:48,571 - ERROR - Service worker not registered within timeout: Timeout 5000ms exceeded while waiting for event "serviceworker"
+2025-04-05 18:43:48,572 - DEBUG - Open page 0: about:blank
+2025-04-05 18:43:48,572 - DEBUG - Open page 1: about:blank
+2025-04-05 18:43:48,572 - DEBUG - Assuming Phantom extension ID as fallback: bfnaelmomeimhlpmgjnjophhpkkoljpa
+2025-04-05 18:43:48,572 - DEBUG - Navigating to dApp: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-05 18:43:49,266 - DEBUG - dApp page loaded. Current URL: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-05 18:43:49,266 - DEBUG - Checking if wallet is already connected using selector: text=Connected
+2025-04-05 18:43:49,303 - DEBUG - PAGE CONSOLE: Phantom was registered as a Standard Wallet. The Wallet Adapter for Phantom can be removed from your app.
+2025-04-05 18:43:49,381 - DEBUG - PAGE CONSOLE: Phantom was registered as a Standard Wallet. The Wallet Adapter for Phantom can be removed from your app.
+2025-04-05 18:43:49,458 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-05 18:43:49,461 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-05 18:43:49,496 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-05 18:43:49,681 - DEBUG - PAGE CONSOLE: 2025-04-06T01:43:49.679Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-05 18:43:49,682 - DEBUG - PAGE CONSOLE: 2025-04-06T01:43:49.680Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-05 18:43:49,790 - DEBUG - Wallet already connected on dApp. Skipping connect flow.
+2025-04-05 18:44:12,475 - DEBUG - Opening position with label: Long SOL (using selector: div.flex.items-center.justify-center.rounded-lg.lg\:px-8.lg\:py-4.p-3:has-text('Long SOL'))
+2025-04-05 18:44:12,477 - DEBUG - PAGE CONSOLE: {result: Array(52)}
+2025-04-05 18:44:12,477 - DEBUG - PAGE CONSOLE: Detected injected providers: [Object]
+2025-04-05 18:44:12,478 - DEBUG - PAGE CONSOLE: The configured WalletConnect 'metadata.url':https://jup.ag/perps-legacy/short/SOL-SOL differs from the actual page url:https://jup.ag. This is probably unintended and can lead to issues.
+2025-04-05 18:44:12,478 - DEBUG - PAGE CONSOLE: Wallet did not respond to eth_accounts. Defaulting to prefetched accounts. mq: Must call 'eth_requestAccounts' before other methods
+    at pq (https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:1570413)
+    at https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:1577638
+2025-04-05 18:44:12,487 - DEBUG - PAGE CONSOLE: %cWarning! color:#F16552; font-size:50px; font-weight: bold; -webkit-text-stroke: 1px black;
+2025-04-05 18:44:12,487 - DEBUG - PAGE CONSOLE: %cYou are reading this message because you opened the browser console, a developer tool. Do not enter or paste code you do not understand. Never share your tokens or any other info with anyone. If someone told you to do this, it is very likely a scam. font-size: 18px;
+2025-04-05 18:44:12,534 - DEBUG - Position open triggered with label: Long SOL
+2025-04-05 18:44:16,271 - DEBUG - Checking if Phantom is locked...
+2025-04-05 18:44:16,271 - DEBUG - Popup not open; opening now.
+2025-04-05 18:44:16,272 - DEBUG - Opening Phantom popup UI...
+2025-04-05 18:44:16,273 - DEBUG - PAGE CONSOLE: [] perps CUP {minimumCUP: 0, marketReferenceCUP: 42477, computedCUP: 42477}
+2025-04-05 18:44:16,273 - DEBUG - PAGE CONSOLE: [] perps priority fee in SOL {computedPriorityFeesInSol: 0.000012743, userMaxPriorityFeesInSol: 0.001}
+2025-04-05 18:44:16,328 - DEBUG - Phantom popup UI loaded. URL: chrome-extension://bfnaelmomeimhlpmgjnjophhpkkoljpa/popup.html
+2025-04-05 18:44:17,305 - DEBUG - POPUP CONSOLE: [DeprecatedLocalStorage.get] Error parsing JSON for key "i18nextLng"
+2025-04-05 18:44:17,323 - DEBUG - Password input field detected. Clicking to focus...
+2025-04-05 18:44:17,391 - DEBUG - Submitted password. Waiting briefly for unlock to complete...
+2025-04-05 18:44:17,871 - DEBUG - POPUP CONSOLE: Failed to load resource: the server responded with a status of 404 ()
+2025-04-05 18:46:36,509 - DEBUG - Closing browser context.
+2025-04-05 18:46:40,552 - DEBUG - Launching browser with Phantom extension from C:\v0.7\sonic_labs\phantom_wallet
+2025-04-05 18:46:40,552 - DEBUG - Using proactor: IocpProactor
+2025-04-05 18:46:41,210 - DEBUG - Existing user data detected. Using shorter service worker timeout: 5000 ms
+2025-04-05 18:46:41,210 - DEBUG - Waiting for service worker to register Phantom extension (timeout 5000 ms)...
+2025-04-05 18:46:46,230 - ERROR - Service worker not registered within timeout: Timeout 5000ms exceeded while waiting for event "serviceworker"
+2025-04-05 18:46:46,230 - DEBUG - Open page 0: about:blank
+2025-04-05 18:46:46,230 - DEBUG - Open page 1: about:blank
+2025-04-05 18:46:46,230 - DEBUG - Assuming Phantom extension ID as fallback: bfnaelmomeimhlpmgjnjophhpkkoljpa
+2025-04-05 18:46:46,231 - DEBUG - Navigating to dApp: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-05 18:46:47,078 - DEBUG - dApp page loaded. Current URL: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-05 18:46:47,078 - DEBUG - Checking if wallet is already connected using selector: text=Connected
+2025-04-05 18:46:47,115 - DEBUG - PAGE CONSOLE: Phantom was registered as a Standard Wallet. The Wallet Adapter for Phantom can be removed from your app.
+2025-04-05 18:46:47,192 - DEBUG - PAGE CONSOLE: Phantom was registered as a Standard Wallet. The Wallet Adapter for Phantom can be removed from your app.
+2025-04-05 18:46:47,277 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-05 18:46:47,281 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-05 18:46:47,309 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-05 18:46:47,497 - DEBUG - PAGE CONSOLE: 2025-04-06T01:46:47.494Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-05 18:46:47,497 - DEBUG - PAGE CONSOLE: 2025-04-06T01:46:47.495Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-05 18:46:47,653 - DEBUG - Wallet already connected on dApp. Skipping connect flow.
+2025-04-05 18:49:50,391 - DEBUG - Launching browser with Phantom extension from C:\v0.7\sonic_labs\phantom_wallet
+2025-04-05 18:49:50,391 - DEBUG - Using proactor: IocpProactor
+2025-04-05 18:49:51,030 - DEBUG - Existing user data detected. Using shorter service worker timeout: 5000 ms
+2025-04-05 18:49:51,030 - DEBUG - Waiting for service worker to register Phantom extension (timeout 5000 ms)...
+2025-04-05 18:49:56,045 - ERROR - Service worker not registered within timeout: Timeout 5000ms exceeded while waiting for event "serviceworker"
+2025-04-05 18:49:56,045 - DEBUG - Open page 0: about:blank
+2025-04-05 18:49:56,045 - DEBUG - Open page 1: about:blank
+2025-04-05 18:49:56,045 - DEBUG - Assuming Phantom extension ID as fallback: bfnaelmomeimhlpmgjnjophhpkkoljpa
+2025-04-05 18:49:56,046 - DEBUG - Navigating to dApp: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-05 18:49:56,664 - DEBUG - dApp page loaded. Current URL: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-05 18:49:56,664 - DEBUG - Checking if wallet is already connected using selector: text=Connected
+2025-04-05 18:49:56,700 - DEBUG - PAGE CONSOLE: Phantom was registered as a Standard Wallet. The Wallet Adapter for Phantom can be removed from your app.
+2025-04-05 18:49:56,779 - DEBUG - PAGE CONSOLE: Phantom was registered as a Standard Wallet. The Wallet Adapter for Phantom can be removed from your app.
+2025-04-05 18:49:56,860 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-05 18:49:56,864 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-05 18:49:56,893 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-05 18:49:57,085 - DEBUG - PAGE CONSOLE: 2025-04-06T01:49:57.082Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-05 18:49:57,085 - DEBUG - PAGE CONSOLE: 2025-04-06T01:49:57.083Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-05 18:49:57,215 - DEBUG - Wallet already connected on dApp. Skipping connect flow.
+2025-04-05 18:50:16,240 - DEBUG - Opening position with label: Long SOL (using selector: div.flex.items-center.justify-center.rounded-lg.lg\:px-8.lg\:py-4.p-3:has-text('Long SOL'))
+2025-04-05 18:50:16,242 - DEBUG - PAGE CONSOLE: {result: Array(52)}
+2025-04-05 18:50:16,243 - DEBUG - PAGE CONSOLE: Detected injected providers: [Object]
+2025-04-05 18:50:16,243 - DEBUG - PAGE CONSOLE: The configured WalletConnect 'metadata.url':https://jup.ag/perps-legacy/short/SOL-SOL differs from the actual page url:https://jup.ag. This is probably unintended and can lead to issues.
+2025-04-05 18:50:16,243 - DEBUG - PAGE CONSOLE: Wallet did not respond to eth_accounts. Defaulting to prefetched accounts. mq: Must call 'eth_requestAccounts' before other methods
+    at pq (https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:1570413)
+    at https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:1577638
+2025-04-05 18:50:16,253 - DEBUG - PAGE CONSOLE: %cWarning! color:#F16552; font-size:50px; font-weight: bold; -webkit-text-stroke: 1px black;
+2025-04-05 18:50:16,253 - DEBUG - PAGE CONSOLE: %cYou are reading this message because you opened the browser console, a developer tool. Do not enter or paste code you do not understand. Never share your tokens or any other info with anyone. If someone told you to do this, it is very likely a scam. font-size: 18px;
+2025-04-05 18:50:16,306 - DEBUG - Position open triggered with label: Long SOL
+2025-04-05 18:50:20,956 - DEBUG - Checking if Phantom is locked...
+2025-04-05 18:50:20,956 - DEBUG - Popup not open; opening now.
+2025-04-05 18:50:20,956 - DEBUG - Opening Phantom popup UI...
+2025-04-05 18:50:20,958 - DEBUG - PAGE CONSOLE: [] perps CUP {minimumCUP: 0, marketReferenceCUP: 33333, computedCUP: 33333}
+2025-04-05 18:50:20,958 - DEBUG - PAGE CONSOLE: [] perps priority fee in SOL {computedPriorityFeesInSol: 0.00001, userMaxPriorityFeesInSol: 0.001}
+2025-04-05 18:50:21,015 - DEBUG - Phantom popup UI loaded. URL: chrome-extension://bfnaelmomeimhlpmgjnjophhpkkoljpa/popup.html
+2025-04-05 18:50:21,828 - DEBUG - POPUP CONSOLE: [DeprecatedLocalStorage.get] Error parsing JSON for key "i18nextLng"
+2025-04-05 18:50:21,955 - DEBUG - Password input field detected. Clicking to focus...
+2025-04-05 18:50:22,014 - DEBUG - Password entered. Now clicking the Unlock button...
+2025-04-05 18:50:22,060 - DEBUG - Clicked 'Unlock'. Waiting briefly for unlock to complete...
+2025-04-05 18:50:22,604 - DEBUG - POPUP CONSOLE: Failed to load resource: the server responded with a status of 404 ()
+2025-04-05 18:53:42,816 - DEBUG - Closing browser context.
+2025-04-05 18:53:42,994 - DEBUG - Browser closed.
+2025-04-05 18:53:49,269 - DEBUG - Launching browser with Phantom extension from C:\v0.7\sonic_labs\phantom_wallet
+2025-04-05 18:53:49,270 - DEBUG - Using proactor: IocpProactor
+2025-04-05 18:53:49,917 - DEBUG - Existing user data detected. Using shorter service worker timeout: 5000 ms
+2025-04-05 18:53:49,917 - DEBUG - Waiting for service worker to register Phantom extension (timeout 5000 ms)...
+2025-04-05 18:53:54,927 - ERROR - Service worker not registered within timeout: Timeout 5000ms exceeded while waiting for event "serviceworker"
+2025-04-05 18:53:54,927 - DEBUG - Open page 0: about:blank
+2025-04-05 18:53:54,927 - DEBUG - Open page 1: about:blank
+2025-04-05 18:53:54,927 - DEBUG - Assuming Phantom extension ID as fallback: bfnaelmomeimhlpmgjnjophhpkkoljpa
+2025-04-05 18:53:54,927 - DEBUG - Navigating to dApp: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-05 18:53:55,488 - DEBUG - dApp page loaded. Current URL: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-05 18:53:55,488 - DEBUG - Checking if wallet is already connected using selector: text=Connected
+2025-04-05 18:53:55,532 - DEBUG - PAGE CONSOLE: Phantom was registered as a Standard Wallet. The Wallet Adapter for Phantom can be removed from your app.
+2025-04-05 18:53:55,603 - DEBUG - PAGE CONSOLE: Phantom was registered as a Standard Wallet. The Wallet Adapter for Phantom can be removed from your app.
+2025-04-05 18:53:55,686 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-05 18:53:55,689 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-05 18:53:55,720 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-05 18:53:55,898 - DEBUG - PAGE CONSOLE: 2025-04-06T01:53:55.896Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-05 18:53:55,899 - DEBUG - PAGE CONSOLE: 2025-04-06T01:53:55.897Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-05 18:53:56,020 - DEBUG - PAGE CONSOLE: {result: Array(52)}
+2025-04-05 18:53:56,022 - DEBUG - Wallet already connected on dApp. Skipping connect flow.
+2025-04-05 18:54:18,369 - DEBUG - Checking if Phantom is locked...
+2025-04-05 18:54:18,369 - DEBUG - Popup not open; opening now.
+2025-04-05 18:54:18,369 - DEBUG - Opening Phantom popup UI...
+2025-04-05 18:54:18,371 - DEBUG - PAGE CONSOLE: Detected injected providers: [Object]
+2025-04-05 18:54:18,371 - DEBUG - PAGE CONSOLE: The configured WalletConnect 'metadata.url':https://jup.ag/perps-legacy/short/SOL-SOL differs from the actual page url:https://jup.ag. This is probably unintended and can lead to issues.
+2025-04-05 18:54:18,371 - DEBUG - PAGE CONSOLE: Wallet did not respond to eth_accounts. Defaulting to prefetched accounts. mq: Must call 'eth_requestAccounts' before other methods
+    at pq (https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:1570413)
+    at https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:1577638
+2025-04-05 18:54:18,373 - DEBUG - PAGE CONSOLE: %cWarning! color:#F16552; font-size:50px; font-weight: bold; -webkit-text-stroke: 1px black;
+2025-04-05 18:54:18,373 - DEBUG - PAGE CONSOLE: %cYou are reading this message because you opened the browser console, a developer tool. Do not enter or paste code you do not understand. Never share your tokens or any other info with anyone. If someone told you to do this, it is very likely a scam. font-size: 18px;
+2025-04-05 18:54:18,399 - DEBUG - PAGE CONSOLE: [] perps CUP {minimumCUP: 0, marketReferenceCUP: 38222, computedCUP: 38222}
+2025-04-05 18:54:18,400 - DEBUG - PAGE CONSOLE: [] perps priority fee in SOL {computedPriorityFeesInSol: 0.000011467, userMaxPriorityFeesInSol: 0.001}
+2025-04-05 18:54:18,470 - DEBUG - Phantom popup UI loaded. URL: chrome-extension://bfnaelmomeimhlpmgjnjophhpkkoljpa/popup.html
+2025-04-05 18:54:19,284 - DEBUG - POPUP CONSOLE: [DeprecatedLocalStorage.get] Error parsing JSON for key "i18nextLng"
+2025-04-05 18:54:19,481 - DEBUG - Password entered. Now clicking the Unlock button...
+2025-04-05 18:54:19,526 - DEBUG - Clicked 'Unlock'. Waiting briefly for unlock to complete...
+2025-04-05 18:54:20,026 - DEBUG - POPUP CONSOLE: Failed to load resource: the server responded with a status of 404 ()
+2025-04-05 18:54:24,547 - DEBUG - No post-unlock dialog overlay found or timed out: Page.wait_for_selector: Timeout 3000ms exceeded.
+Call log:
+  - waiting for locator("text=Click this dialog to continue") to be visible
+
+2025-04-05 18:55:14,138 - DEBUG - Triggering transaction with selector: text=Send Transaction
+2025-04-05 18:55:14,142 - DEBUG - PAGE CONSOLE: GOT ERROR Ve: User rejected the request.
+    at #o (chrome-extension://bfnaelmomeimhlpmgjnjophhpkkoljpa/solana.js:3:409826)
+    at async r.signTransaction (chrome-extension://bfnaelmomeimhlpmgjnjophhpkkoljpa/solana.js:3:411138)
+    at async #d [as signTransaction] (chrome-extension://bfnaelmomeimhlpmgjnjophhpkkoljpa/solana.js:3:417079)
+    at async Ae.de [as signAllTransactions] (https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:1:3202493)
+    at async https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:1:3207247
+2025-04-05 18:55:14,143 - DEBUG - PAGE CONSOLE: {error: WalletSignTransactionError: User rejected the request.
+    at Ae.de [as signAllTransactions] (https…, adapter: Ae}
+2025-04-05 18:55:14,144 - DEBUG - PAGE CONSOLE: handleSendTransaction error User rejected the request.
+2025-04-05 18:55:14,144 - DEBUG - PAGE CONSOLE: Failed to open position! true
+2025-04-05 18:55:14,152 - DEBUG - PAGE CONSOLE: [] perps CUP {minimumCUP: 0, marketReferenceCUP: 30071, computedCUP: 30071}
+2025-04-05 18:55:14,152 - DEBUG - PAGE CONSOLE: [] perps priority fee in SOL {computedPriorityFeesInSol: 0.000009021, userMaxPriorityFeesInSol: 0.001}
+2025-04-05 18:55:24,155 - ERROR - Error triggering transaction: Page.click: Timeout 10000ms exceeded.
+Call log:
+  - waiting for locator("text=Send Transaction")
+
+2025-04-05 18:58:03,285 - DEBUG - Launching browser with Phantom extension from C:\v0.7\sonic_labs\phantom_wallet
+2025-04-05 18:58:03,285 - DEBUG - Using proactor: IocpProactor
+2025-04-05 18:58:03,903 - DEBUG - Existing user data detected. Using shorter service worker timeout: 5000 ms
+2025-04-05 18:58:03,903 - DEBUG - Waiting for service worker to register Phantom extension (timeout 5000 ms)...
+2025-04-05 18:58:08,916 - ERROR - Service worker not registered within timeout: Timeout 5000ms exceeded while waiting for event "serviceworker"
+2025-04-05 18:58:08,916 - DEBUG - Open page 0: about:blank
+2025-04-05 18:58:08,916 - DEBUG - Open page 1: about:blank
+2025-04-05 18:58:08,916 - DEBUG - Assuming Phantom extension ID as fallback: bfnaelmomeimhlpmgjnjophhpkkoljpa
+2025-04-05 18:58:08,916 - DEBUG - Navigating to dApp: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-05 18:58:09,566 - DEBUG - dApp page loaded. Current URL: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-05 18:58:09,566 - DEBUG - Checking if wallet is already connected using selector: text=Connected
+2025-04-05 18:58:09,603 - DEBUG - PAGE CONSOLE: Phantom was registered as a Standard Wallet. The Wallet Adapter for Phantom can be removed from your app.
+2025-04-05 18:58:09,679 - DEBUG - PAGE CONSOLE: Phantom was registered as a Standard Wallet. The Wallet Adapter for Phantom can be removed from your app.
+2025-04-05 18:58:09,757 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-05 18:58:09,761 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-05 18:58:09,796 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-05 18:58:09,987 - DEBUG - PAGE CONSOLE: 2025-04-06T01:58:09.984Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-05 18:58:09,988 - DEBUG - PAGE CONSOLE: 2025-04-06T01:58:09.985Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-05 18:58:10,133 - DEBUG - Wallet already connected on dApp. Skipping connect flow.
+2025-04-05 18:58:29,149 - DEBUG - Opening position with label: Long SOL (using selector: div.flex.items-center.justify-center.rounded-lg.lg\:px-8.lg\:py-4.p-3:has-text('Long SOL'))
+2025-04-05 18:58:29,151 - DEBUG - PAGE CONSOLE: {result: Array(52)}
+2025-04-05 18:58:29,151 - DEBUG - PAGE CONSOLE: Detected injected providers: [Object]
+2025-04-05 18:58:29,151 - DEBUG - PAGE CONSOLE: The configured WalletConnect 'metadata.url':https://jup.ag/perps-legacy/short/SOL-SOL differs from the actual page url:https://jup.ag. This is probably unintended and can lead to issues.
+2025-04-05 18:58:29,152 - DEBUG - PAGE CONSOLE: Wallet did not respond to eth_accounts. Defaulting to prefetched accounts. mq: Must call 'eth_requestAccounts' before other methods
+    at pq (https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:1570413)
+    at https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:1577638
+2025-04-05 18:58:29,152 - DEBUG - PAGE CONSOLE: %cWarning! color:#F16552; font-size:50px; font-weight: bold; -webkit-text-stroke: 1px black;
+2025-04-05 18:58:29,153 - DEBUG - PAGE CONSOLE: %cYou are reading this message because you opened the browser console, a developer tool. Do not enter or paste code you do not understand. Never share your tokens or any other info with anyone. If someone told you to do this, it is very likely a scam. font-size: 18px;
+2025-04-05 18:58:29,202 - DEBUG - Position open triggered with label: Long SOL
+2025-04-05 18:58:33,202 - DEBUG - Checking if Phantom is locked...
+2025-04-05 18:58:33,202 - DEBUG - Popup not open; opening now.
+2025-04-05 18:58:33,202 - DEBUG - Opening Phantom popup UI...
+2025-04-05 18:58:33,204 - DEBUG - PAGE CONSOLE: [] perps CUP {minimumCUP: 0, marketReferenceCUP: 39102, computedCUP: 39102}
+2025-04-05 18:58:33,204 - DEBUG - PAGE CONSOLE: [] perps priority fee in SOL {computedPriorityFeesInSol: 0.000011731, userMaxPriorityFeesInSol: 0.001}
+2025-04-05 18:58:33,267 - DEBUG - Phantom popup UI loaded. URL: chrome-extension://bfnaelmomeimhlpmgjnjophhpkkoljpa/popup.html
+2025-04-05 18:58:34,130 - DEBUG - POPUP CONSOLE: [DeprecatedLocalStorage.get] Error parsing JSON for key "i18nextLng"
+2025-04-05 18:58:34,312 - DEBUG - Password entered. Now clicking the Unlock button...
+2025-04-05 18:58:34,359 - DEBUG - Clicked 'Unlock'. Waiting briefly for unlock to complete...
+2025-04-05 18:58:34,941 - DEBUG - POPUP CONSOLE: Failed to load resource: the server responded with a status of 404 ()
+2025-04-05 18:58:39,382 - DEBUG - No post-unlock dialog overlay found or timed out: Page.wait_for_selector: Timeout 3000ms exceeded.
+Call log:
+  - waiting for locator("text=Click this dialog to continue") to be visible
+
+2025-04-05 19:00:12,123 - DEBUG - Closing browser context.
+2025-04-05 19:00:12,158 - DEBUG - PAGE CONSOLE: GOT ERROR Ve: User rejected the request.
+    at #o (chrome-extension://bfnaelmomeimhlpmgjnjophhpkkoljpa/solana.js:3:409826)
+    at async r.signTransaction (chrome-extension://bfnaelmomeimhlpmgjnjophhpkkoljpa/solana.js:3:411138)
+    at async #d [as signTransaction] (chrome-extension://bfnaelmomeimhlpmgjnjophhpkkoljpa/solana.js:3:417079)
+    at async Ae.de [as signAllTransactions] (https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:1:3202493)
+    at async https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:1:3207247
+2025-04-05 19:00:12,159 - DEBUG - PAGE CONSOLE: {error: WalletSignTransactionError: User rejected the request.
+    at Ae.de [as signAllTransactions] (https…, adapter: Ae}
+2025-04-05 19:00:12,159 - DEBUG - PAGE CONSOLE: handleSendTransaction error User rejected the request.
+2025-04-05 19:00:12,159 - DEBUG - PAGE CONSOLE: Failed to open position! true
+2025-04-05 19:00:12,283 - DEBUG - Browser closed.
+2025-04-05 19:00:17,812 - DEBUG - Launching browser with Phantom extension from C:\v0.7\sonic_labs\phantom_wallet
+2025-04-05 19:00:17,812 - DEBUG - Using proactor: IocpProactor
+2025-04-05 19:00:18,450 - DEBUG - Existing user data detected. Using shorter service worker timeout: 5000 ms
+2025-04-05 19:00:18,450 - DEBUG - Waiting for service worker to register Phantom extension (timeout 5000 ms)...
+2025-04-05 19:00:23,462 - ERROR - Service worker not registered within timeout: Timeout 5000ms exceeded while waiting for event "serviceworker"
+2025-04-05 19:00:23,463 - DEBUG - Open page 0: about:blank
+2025-04-05 19:00:23,463 - DEBUG - Open page 1: about:blank
+2025-04-05 19:00:23,463 - DEBUG - Assuming Phantom extension ID as fallback: bfnaelmomeimhlpmgjnjophhpkkoljpa
+2025-04-05 19:00:23,463 - DEBUG - Navigating to dApp: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-05 19:00:24,058 - DEBUG - dApp page loaded. Current URL: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-05 19:00:24,058 - DEBUG - Checking if wallet is already connected using selector: text=Connected
+2025-04-05 19:00:24,103 - DEBUG - PAGE CONSOLE: Phantom was registered as a Standard Wallet. The Wallet Adapter for Phantom can be removed from your app.
+2025-04-05 19:00:24,176 - DEBUG - PAGE CONSOLE: Phantom was registered as a Standard Wallet. The Wallet Adapter for Phantom can be removed from your app.
+2025-04-05 19:00:24,254 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-05 19:00:24,257 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-05 19:00:24,292 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-05 19:00:24,485 - DEBUG - PAGE CONSOLE: 2025-04-06T02:00:24.482Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-05 19:00:24,485 - DEBUG - PAGE CONSOLE: 2025-04-06T02:00:24.483Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-05 19:00:24,602 - DEBUG - Wallet already connected on dApp. Skipping connect flow.
+2025-04-05 19:00:34,574 - DEBUG - Opening position with label: Long SOL (using selector: div.flex.items-center.justify-center.rounded-lg.lg\:px-8.lg\:py-4.p-3:has-text('Long SOL'))
+2025-04-05 19:00:34,576 - DEBUG - PAGE CONSOLE: {result: Array(52)}
+2025-04-05 19:00:34,576 - DEBUG - PAGE CONSOLE: Detected injected providers: [Object]
+2025-04-05 19:00:34,576 - DEBUG - PAGE CONSOLE: The configured WalletConnect 'metadata.url':https://jup.ag/perps-legacy/short/SOL-SOL differs from the actual page url:https://jup.ag. This is probably unintended and can lead to issues.
+2025-04-05 19:00:34,576 - DEBUG - PAGE CONSOLE: Wallet did not respond to eth_accounts. Defaulting to prefetched accounts. mq: Must call 'eth_requestAccounts' before other methods
+    at pq (https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:1570413)
+    at https://jup.ag/_next/static/chunks/pages/_app-364a650f9164d4b6.js:11623:1577638
+2025-04-05 19:00:34,579 - DEBUG - PAGE CONSOLE: %cWarning! color:#F16552; font-size:50px; font-weight: bold; -webkit-text-stroke: 1px black;
+2025-04-05 19:00:34,579 - DEBUG - PAGE CONSOLE: %cYou are reading this message because you opened the browser console, a developer tool. Do not enter or paste code you do not understand. Never share your tokens or any other info with anyone. If someone told you to do this, it is very likely a scam. font-size: 18px;
+2025-04-05 19:00:34,637 - DEBUG - Position open triggered with label: Long SOL
+2025-04-05 19:00:38,583 - DEBUG - Checking if Phantom is locked...
+2025-04-05 19:00:38,583 - DEBUG - Popup not open; opening now.
+2025-04-05 19:00:38,583 - DEBUG - Opening Phantom popup UI...
+2025-04-05 19:00:38,585 - DEBUG - PAGE CONSOLE: [] perps CUP {minimumCUP: 0, marketReferenceCUP: 34617, computedCUP: 34617}
+2025-04-05 19:00:38,585 - DEBUG - PAGE CONSOLE: [] perps priority fee in SOL {computedPriorityFeesInSol: 0.000010385, userMaxPriorityFeesInSol: 0.001}
+2025-04-05 19:00:38,635 - DEBUG - Phantom popup UI loaded. URL: chrome-extension://bfnaelmomeimhlpmgjnjophhpkkoljpa/popup.html
+2025-04-05 19:00:39,551 - DEBUG - POPUP CONSOLE: [DeprecatedLocalStorage.get] Error parsing JSON for key "i18nextLng"
+2025-04-05 19:00:39,628 - DEBUG - Password entered. Now clicking the Unlock button...
+2025-04-05 19:00:39,677 - DEBUG - Clicked 'Unlock'. Waiting briefly for unlock to complete...
+2025-04-05 19:00:40,307 - DEBUG - POPUP CONSOLE: Failed to load resource: the server responded with a status of 404 ()
+2025-04-05 19:00:44,694 - DEBUG - No post-unlock dialog overlay found or timed out: Page.wait_for_selector: Timeout 3000ms exceeded.
+Call log:
+  - waiting for locator("text=Click this dialog to continue") to be visible
+
+2025-04-05 19:00:44,694 - DEBUG - Triggering transaction with selector: text=Send Transaction
+2025-04-05 19:00:54,711 - ERROR - Error triggering transaction: Page.click: Timeout 10000ms exceeded.
+Call log:
+  - waiting for locator("text=Send Transaction")
+
