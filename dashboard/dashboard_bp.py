@@ -149,6 +149,7 @@ def compute_collateral_composition():
     return series
 
 
+
 @dashboard_bp.route("/dashboard")
 def dashboard():
 
@@ -859,6 +860,11 @@ def save_theme_mode():
 
 @dashboard_bp.route("/dash", endpoint="dash_page")
 def dash_page():
+    from datetime import datetime, timedelta, timezone
+    import os
+    import json
+
+    # Get positions data
     all_positions = PositionService.get_all_positions(DB_PATH) or []
     if all_positions:
         total_value = sum(float(p.get("value", 0)) for p in all_positions)
@@ -937,6 +943,30 @@ def dash_page():
 
     theme_mode = dl.get_theme_mode()
 
+    # --- Sonic Timer Calculation ---
+    try:
+        timer_config_path = os.path.join(BASE_DIR, "config", "timer_config.json")
+        with open(timer_config_path, "r") as f:
+            timer_config = json.load(f)
+        sonic_start = timer_config.get("sonic_loop_start_time")
+        sonic_loop_interval = timer_config.get("sonic_loop_interval", 120)  # default 120 seconds
+        if sonic_start:
+            sonic_start_time = datetime.fromisoformat(sonic_start)
+            next_sonic_update = sonic_start_time + timedelta(seconds=sonic_loop_interval)
+            now = datetime.now(timezone.utc)
+            sonic_remaining = next_sonic_update - now
+            if sonic_remaining.total_seconds() < 0:
+                sonic_remaining = timedelta(seconds=0)
+        else:
+            sonic_remaining = timedelta(seconds=0)
+    except Exception as e:
+        sonic_remaining = timedelta(seconds=0)
+
+    sonic_minutes = int(sonic_remaining.total_seconds() // 60)
+    sonic_seconds = int(sonic_remaining.total_seconds() % 60)
+    formatted_sonic_remaining = f"{sonic_minutes:02d}:{sonic_seconds:02d}"
+    # --- End Sonic Timer Calculation ---
+
     return render_template(
         "dash.html",  # Your main dashboard template that includes the title bar partial
         theme=theme_config,
@@ -966,4 +996,5 @@ def dash_page():
         alert_entries=alert_entries,
         strategy_performance={},
         ledger_info=ledger_info,
+        sonic_timer_remaining=formatted_sonic_remaining
     )

@@ -208,6 +208,35 @@ class Position:
             f"current_heat_index={self.current_heat_index}, pnl_after_fees_usd={self.pnl_after_fees_usd})"
         )
 
+class Order:
+    def __init__(self,
+                 asset: str,
+                 position_type: str,  # "long" or "short"
+                 collateral_asset: str,
+                 position_size: float,
+                 leverage: float,
+                 order_type: str,  # "market" or "limit"
+                 entry_price: float = 0.0,
+                 status: str = "pending",
+                 fees: float = 0.0):
+        self.id = str(uuid.uuid4())
+        self.asset = asset
+        self.position_type = position_type
+        self.collateral_asset = collateral_asset
+        self.position_size = position_size
+        self.leverage = leverage
+        self.order_type = order_type
+        self.entry_price = entry_price
+        self.status = status
+        self.fees = fees
+        self.timestamp = datetime.utcnow()
+
+    def __repr__(self):
+        return (f"Order(id={self.id!r}, asset={self.asset!r}, position_type={self.position_type!r}, "
+                f"collateral_asset={self.collateral_asset!r}, position_size={self.position_size}, "
+                f"leverage={self.leverage}, order_type={self.order_type!r}, entry_price={self.entry_price}, "
+                f"status={self.status!r}, fees={self.fees}, timestamp={self.timestamp})")
+
 class Hedge:
     """
     Represents a hedge comprising two or more positions with associated alerts.
