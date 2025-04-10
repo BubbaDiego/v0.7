@@ -1,0 +1,6 @@
+2025/04/06-03:32:07.922 6968 Reusing MANIFEST C:\v0.7\sonic_labs\playwright-data\Default\shared_proto_db/MANIFEST-000001
+2025/04/06-03:32:07.922 6968 Recovering log #4
+2025/04/06-03:32:07.923 6968 Reusing old log C:\v0.7\sonic_labs\playwright-data\Default\shared_proto_db/000004.log 
+2025/04/06-03:32:10.100 3a6c Level-0 table #8: started
+2025/04/06-03:32:10.102 3a6c Level-0 table #8: 112241 bytes OK
+2025/04/06-03:32:10.105 3a6c Delete type=0 #4

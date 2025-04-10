@@ -2,44 +2,180 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Den Mother Countdown</title>
-  <!-- Include jQuery and the countdown360 plugin -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/johnschult/jquery.countdown360@0.1.9/dist/jquery.countdown360.min.js"></script>
+  <title>Dual Circle + Animated Ring Timers</title>
   <style>
-    #countdown {
-      max-width: 200px;
-      margin: 20px auto;
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      margin: 0; 
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      margin-bottom: 1rem;
+    }
+
+    .timer-row {
+      display: flex;
+      gap: 60px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    /* Outer wrapper: layers the background, the animated ring, and the inner icon */
+    .timer-wrapper {
+      position: relative;
+      width: 120px;
+      height: 120px;
+    }
+
+    /* Big colored background circle */
+    .background-circle {
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      top: 0;
+      left: 0;
+      z-index: 1;
+    }
+
+    /* Animated ring using an SVG circle */
+    .progress-ring {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 2;
+    }
+    .progress-ring__circle {
+      transition: stroke-dashoffset 1s linear;
+      transform: rotate(-90deg); /* Start at the top */
+      transform-origin: 50% 50%;
+    }
+
+    /* White inner circle with the icon; increased size to 60px */
+    .inner-icon-circle {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff;
+      z-index: 3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .inner-icon-circle svg {
+      width: 80%;
+      height: 80%;
     }
   </style>
 </head>
 <body>
-  <!-- Container for the circular timer -->
-  <div id="countdown"></div>
+  <h1>Den Mother &amp; Price Monitor with Bigger Inner Icons</h1>
 
-  <!-- Initialize the Den Mother Countdown -->
+  <div class="timer-row">
+
+    <!-- Den Mother Timer -->
+    <div class="timer-wrapper">
+      <!-- Background circle -->
+      <div class="background-circle" style="background-color: #8ac575;"></div>
+      <!-- Animated ring -->
+      <svg class="progress-ring" width="120" height="120">
+        <circle
+          id="denRing"
+          class="progress-ring__circle"
+          stroke="#5a9245"
+          stroke-width="8"
+          fill="transparent"
+          r="56"
+          cx="60"
+          cy="60"
+        />
+      </svg>
+      <!-- White inner circle with larger Shield Check icon -->
+      <div class="inner-icon-circle">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 1L4 5v6c0 5.5 3.7 10.5 8 12 4.3-1.5 8-6.5 8-12V5l-8-4z"/>
+          <path d="M9 11l2 2 4-4" stroke="#fff" stroke-width="2" fill="none"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Price Monitor Timer -->
+    <div class="timer-wrapper">
+      <!-- Background circle -->
+      <div class="background-circle" style="background-color: #7db3f5;"></div>
+      <!-- Animated ring -->
+      <svg class="progress-ring" width="120" height="120">
+        <circle
+          id="priceRing"
+          class="progress-ring__circle"
+          stroke="#5f9de0"
+          stroke-width="8"
+          fill="transparent"
+          r="56"
+          cx="60"
+          cy="60"
+        />
+      </svg>
+      <!-- White inner circle with larger Dollar Circle icon -->
+      <div class="inner-icon-circle">
+        <svg viewBox="0 0 24 24" fill="#fff">
+          <circle cx="12" cy="12" r="10"/>
+          <text x="12" y="16" text-anchor="middle" font-size="12" fill="#7db3f5">$</text>
+        </svg>
+      </div>
+    </div>
+
+  </div>
+
   <script>
-    function startDenMotherCountdown(minutes) {
-      // Convert minutes to seconds
-      var seconds = minutes * 60;
-      $("#countdown").countdown360({
-        radius: 80,            // Radius of the circle in pixels
-        seconds: seconds,      // Total seconds to count down (converted from minutes)
-        fillStyle: '#8ac575',   // Circle fill color
-        strokeStyle: '#477050', // Circle border color
-        fontColor: '#ffffff',   // Font color for the time text
-        autostart: false,       // Set to start manually
-        onComplete: function() {
-          console.log('Time up!');
-          // You can add additional actions here when the countdown finishes
-        }
-      }).start();
+    // Both timers are 60 seconds for demo purposes.
+    let denTimeLeft = 60;
+    let priceTimeLeft = 60;
+
+    // Den Mother ring setup.
+    const denCircle = document.getElementById('denRing');
+    const denRadius = denCircle.r.baseVal.value;
+    const denCircumference = 2 * Math.PI * denRadius;
+    denCircle.style.strokeDasharray = denCircumference;
+    denCircle.style.strokeDashoffset = 0;
+
+    function updateDenMother() {
+      denTimeLeft--;
+      if (denTimeLeft < 0) denTimeLeft = 0;
+      const fraction = denTimeLeft / 60;
+      const offset = denCircumference - (fraction * denCircumference);
+      denCircle.style.strokeDashoffset = offset;
     }
 
-    // Start the countdown for, say, 5 minutes
-    jQuery(function($) {
-      startDenMotherCountdown(5);
-    });
+    // Price Monitor ring setup.
+    const priceCircle = document.getElementById('priceRing');
+    const priceRadius = priceCircle.r.baseVal.value;
+    const priceCircumference = 2 * Math.PI * priceRadius;
+    priceCircle.style.strokeDasharray = priceCircumference;
+    priceCircle.style.strokeDashoffset = 0;
+
+    function updatePrice() {
+      priceTimeLeft--;
+      if (priceTimeLeft < 0) priceTimeLeft = 0;
+      const fraction = priceTimeLeft / 60;
+      const offset = priceCircumference - (fraction * priceCircumference);
+      priceCircle.style.strokeDashoffset = offset;
+    }
+
+    setInterval(() => {
+      updateDenMother();
+      updatePrice();
+    }, 1000);
   </script>
 </body>
 </html>

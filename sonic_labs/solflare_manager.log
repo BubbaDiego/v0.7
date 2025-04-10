@@ -1,0 +1,834 @@
+2025-04-06 03:32:07,329 - DEBUG - Launching browser with Phantom extension from C:\v0.7\sonic_labs\phantom_wallet
+2025-04-06 03:32:07,329 - DEBUG - Using proactor: IocpProactor
+2025-04-06 03:32:07,987 - DEBUG - Existing user data detected. Using shorter service worker timeout: 2500 ms
+2025-04-06 03:32:07,987 - DEBUG - Waiting for service worker to register Phantom extension (timeout 2500 ms)...
+2025-04-06 03:32:10,503 - ERROR - Service worker not registered within timeout: Timeout 2500ms exceeded while waiting for event "serviceworker"
+2025-04-06 03:32:10,503 - DEBUG - Open page 0: about:blank
+2025-04-06 03:32:10,504 - DEBUG - Open page 1: about:blank
+2025-04-06 03:32:10,504 - DEBUG - Assuming Phantom extension ID as fallback: bfnaelmomeimhlpmgjnjophhpkkoljpa
+2025-04-06 03:32:10,504 - DEBUG - Navigating to dApp: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-06 03:32:11,185 - DEBUG - dApp page loaded. Current URL: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-06 03:32:11,185 - DEBUG - Checking if wallet is already connected using selector: text=Connected
+2025-04-06 03:32:11,218 - DEBUG - PAGE CONSOLE: Phantom was registered as a Standard Wallet. The Wallet Adapter for Phantom can be removed from your app.
+2025-04-06 03:32:11,285 - DEBUG - PAGE CONSOLE: Phantom was registered as a Standard Wallet. The Wallet Adapter for Phantom can be removed from your app.
+2025-04-06 03:32:11,369 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 03:32:11,374 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-06 03:32:11,405 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 03:32:11,532 - DEBUG - Wallet already connected on dApp. Skipping connect flow.
+2025-04-06 03:32:16,891 - DEBUG - Navigating to dApp: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-06 03:32:16,892 - DEBUG - PAGE CONSOLE: 2025-04-06T10:32:11.607Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-06 03:32:16,893 - DEBUG - PAGE CONSOLE: 2025-04-06T10:32:11.608Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-06 03:32:16,893 - DEBUG - PAGE CONSOLE: {result: Array(52)}
+2025-04-06 03:32:16,893 - DEBUG - PAGE CONSOLE: Detected injected providers: [Object]
+2025-04-06 03:32:16,893 - DEBUG - PAGE CONSOLE: The configured WalletConnect 'metadata.url':https://jup.ag/perps-legacy/short/SOL-SOL differs from the actual page url:https://jup.ag. This is probably unintended and can lead to issues.
+2025-04-06 03:32:16,894 - DEBUG - PAGE CONSOLE: Wallet did not respond to eth_accounts. Defaulting to prefetched accounts. mq: Must call 'eth_requestAccounts' before other methods
+    at pq (https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:1570413)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:1577638
+2025-04-06 03:32:17,115 - DEBUG - dApp page loaded. Current URL: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-06 03:32:17,116 - DEBUG - Checking if wallet is already connected using selector: text=Connected
+2025-04-06 03:32:17,126 - DEBUG - PAGE CONSOLE: Phantom was registered as a Standard Wallet. The Wallet Adapter for Phantom can be removed from your app.
+2025-04-06 03:32:17,170 - DEBUG - PAGE CONSOLE: Phantom was registered as a Standard Wallet. The Wallet Adapter for Phantom can be removed from your app.
+2025-04-06 03:32:17,216 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 03:32:17,219 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-06 03:32:17,251 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 03:32:17,348 - DEBUG - PAGE CONSOLE: Detected injected providers: [Object]
+2025-04-06 03:32:17,349 - DEBUG - PAGE CONSOLE: The configured WalletConnect 'metadata.url':https://jup.ag/perps-legacy/short/SOL-SOL differs from the actual page url:https://jup.ag. This is probably unintended and can lead to issues.
+2025-04-06 03:32:17,356 - DEBUG - PAGE CONSOLE: Wallet did not respond to eth_accounts. Defaulting to prefetched accounts. mq: Must call 'eth_requestAccounts' before other methods
+    at pq (https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:1570413)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:1577638
+2025-04-06 03:32:17,388 - DEBUG - PAGE CONSOLE: 2025-04-06T10:32:17.382Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-06 03:32:17,388 - DEBUG - PAGE CONSOLE: 2025-04-06T10:32:17.384Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-06 03:32:17,455 - DEBUG - Wallet already connected on dApp. Skipping connect flow.
+2025-04-06 03:39:19,645 - DEBUG - Launching browser with Solflare extension from C:\path\to\solflare_wallet
+2025-04-06 03:39:19,645 - DEBUG - Using proactor: IocpProactor
+2025-04-06 03:39:20,438 - ERROR - Error launching browser context: BrowserType.launch_persistent_context: Target page, context or browser has been closed
+Browser logs:
+
+<launching> C:\Program Files\Google\Chrome\Application\chrome.exe --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-extensions --disable-features=AcceptCHFrame,AutoExpandDetailsElement,AvoidUnnecessaryBeforeUnloadCheckSync,CertificateTransparencyComponentUpdater,DeferRendererTasksAfterInput,DestroyProfileOnBrowserClose,DialMediaRouteProvider,ExtensionManifestV2Disabled,GlobalMediaControls,HttpsUpgrades,ImprovedCookieControls,LazyFrameLoading,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --force-color-profile=srgb --metrics-recording-only --no-first-run --enable-automation --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --no-sandbox --disable-extensions-except=C:\path\to\solflare_wallet --load-extension=C:\path\to\solflare_wallet --window-size=1280,720 --start-maximized --user-data-dir=C:\v0.7\sonic_labs\playwright-data --remote-debugging-pipe about:blank
+<launched> pid=21392
+Call log:
+  - <launching> C:\Program Files\Google\Chrome\Application\chrome.exe --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-extensions --disable-features=AcceptCHFrame,AutoExpandDetailsElement,AvoidUnnecessaryBeforeUnloadCheckSync,CertificateTransparencyComponentUpdater,DeferRendererTasksAfterInput,DestroyProfileOnBrowserClose,DialMediaRouteProvider,ExtensionManifestV2Disabled,GlobalMediaControls,HttpsUpgrades,ImprovedCookieControls,LazyFrameLoading,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --force-color-profile=srgb --metrics-recording-only --no-first-run --enable-automation --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --no-sandbox --disable-extensions-except=C:\path\to\solflare_wallet --load-extension=C:\path\to\solflare_wallet --window-size=1280,720 --start-maximized --user-data-dir=C:\v0.7\sonic_labs\playwright-data --remote-debugging-pipe about:blank
+  -   - <launched> pid=21392
+
+2025-04-06 05:03:48,601 - DEBUG - Launching browser with Solflare extension from C:\path\to\solflare_wallet
+2025-04-06 05:03:48,602 - DEBUG - Using proactor: IocpProactor
+2025-04-06 05:03:54,960 - DEBUG - Using service worker timeout: 2500 ms
+2025-04-06 05:03:54,960 - DEBUG - Waiting for service worker to register Solflare extension (timeout 2500 ms)...
+2025-04-06 05:03:57,472 - ERROR - Service worker not registered within timeout: Timeout 2500ms exceeded while waiting for event "serviceworker"
+2025-04-06 05:03:57,473 - DEBUG - Assuming Solflare extension ID as fallback: solflarefallbackid
+2025-04-06 05:03:57,473 - DEBUG - Navigating to dApp: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-06 05:03:57,783 - ERROR - Error navigating to dApp: Page.goto: Target page, context or browser has been closed
+Call log:
+  - navigating to "https://jup.ag/perps-legacy/short/SOL-SOL", waiting until "load"
+
+2025-04-06 05:04:58,389 - DEBUG - Launching browser with Solflare extension from C:\v0.7\sonic_labs\solflare_wallet
+2025-04-06 05:04:58,389 - DEBUG - Using proactor: IocpProactor
+2025-04-06 05:04:59,007 - DEBUG - Using service worker timeout: 2500 ms
+2025-04-06 05:04:59,007 - DEBUG - Waiting for service worker to register Solflare extension (timeout 2500 ms)...
+2025-04-06 05:05:01,511 - ERROR - Service worker not registered within timeout: Timeout 2500ms exceeded while waiting for event "serviceworker"
+2025-04-06 05:05:01,511 - DEBUG - Assuming Solflare extension ID as fallback: solflarefallbackid
+2025-04-06 05:05:01,512 - DEBUG - Navigating to dApp: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-06 05:05:01,922 - DEBUG - dApp page loaded. Current URL: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-06 05:05:01,922 - DEBUG - Checking if wallet is already connected using selector: text=Connected
+2025-04-06 05:05:01,955 - DEBUG - PAGE CONSOLE: Solflare was registered as a Standard Wallet. The Wallet Adapter for Solflare can be removed from your app.
+2025-04-06 05:05:02,007 - DEBUG - PAGE CONSOLE: Solflare was registered as a Standard Wallet. The Wallet Adapter for Solflare can be removed from your app.
+2025-04-06 05:05:02,095 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 05:05:02,100 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-06 05:05:02,127 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 05:05:02,288 - DEBUG - PAGE CONSOLE: 2025-04-06T12:05:02.286Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-06 05:05:02,289 - DEBUG - PAGE CONSOLE: 2025-04-06T12:05:02.287Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-06 05:05:02,471 - DEBUG - PAGE CONSOLE: {result: Array(52)}
+2025-04-06 05:05:02,759 - DEBUG - PAGE CONSOLE: The configured WalletConnect 'metadata.url':https://jup.ag/perps-legacy/short/SOL-SOL differs from the actual page url:https://jup.ag. This is probably unintended and can lead to issues.
+2025-04-06 05:05:02,761 - DEBUG - PAGE CONSOLE: Wallet did not respond to eth_accounts. Defaulting to prefetched accounts. mq: Must call 'eth_requestAccounts' before other methods
+    at pq (https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:1570413)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:1577638
+2025-04-06 05:05:03,189 - DEBUG - PAGE CONSOLE: %cWarning! color:#F16552; font-size:50px; font-weight: bold; -webkit-text-stroke: 1px black;
+2025-04-06 05:05:03,189 - DEBUG - PAGE CONSOLE: %cYou are reading this message because you opened the browser console, a developer tool. Do not enter or paste code you do not understand. Never share your tokens or any other info with anyone. If someone told you to do this, it is very likely a scam. font-size: 18px;
+2025-04-06 05:05:05,759 - DEBUG - PAGE CONSOLE: Detected injected providers: []
+2025-04-06 05:05:06,931 - DEBUG - Wallet not connected; proceeding with connect flow.
+2025-04-06 05:05:06,931 - DEBUG - Waiting for dApp connect button with selector: css=span.text-v2-primary
+2025-04-06 05:05:06,942 - DEBUG - Clicking dApp connect button with selector: css=span.text-v2-primary
+2025-04-06 05:05:07,349 - DEBUG - Opening Solflare popup to approve wallet connection.
+2025-04-06 05:05:07,349 - DEBUG - Opening Solflare popup UI...
+2025-04-06 05:05:07,383 - ERROR - Error loading Solflare popup: Page.goto: net::ERR_BLOCKED_BY_CLIENT at chrome-extension://solflarefallbackid/popup.html
+Call log:
+  - navigating to "chrome-extension://solflarefallbackid/popup.html", waiting until "load"
+
+2025-04-06 05:09:48,836 - DEBUG - Launching browser with Solflare extension from C:\v0.7\sonic_labs\solflare_wallet
+2025-04-06 05:09:48,836 - DEBUG - Using proactor: IocpProactor
+2025-04-06 05:09:49,454 - DEBUG - Using service worker timeout: 2500 ms
+2025-04-06 05:09:49,454 - DEBUG - Waiting for service worker to register Solflare extension (timeout 2500 ms)...
+2025-04-06 05:09:51,961 - ERROR - Service worker not registered within timeout: Timeout 2500ms exceeded while waiting for event "serviceworker"
+2025-04-06 05:09:51,962 - DEBUG - Assuming Solflare extension ID as fallback: solflarefallbackid
+2025-04-06 05:09:51,962 - DEBUG - Navigating to dApp: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-06 05:09:52,333 - DEBUG - dApp page loaded. Current URL: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-06 05:09:52,333 - DEBUG - Checking if wallet is already connected using selector: text=Connected
+2025-04-06 05:09:52,365 - DEBUG - PAGE CONSOLE: Solflare was registered as a Standard Wallet. The Wallet Adapter for Solflare can be removed from your app.
+2025-04-06 05:09:52,420 - DEBUG - PAGE CONSOLE: Solflare was registered as a Standard Wallet. The Wallet Adapter for Solflare can be removed from your app.
+2025-04-06 05:09:52,508 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 05:09:52,511 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-06 05:09:52,561 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 05:09:52,730 - DEBUG - PAGE CONSOLE: 2025-04-06T12:09:52.727Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-06 05:09:52,730 - DEBUG - PAGE CONSOLE: 2025-04-06T12:09:52.728Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-06 05:09:52,780 - DEBUG - Wallet already connected on dApp. Skipping connect flow.
+2025-04-06 05:10:12,825 - DEBUG - Launching browser with Solflare extension from C:\v0.7\sonic_labs\solflare_wallet
+2025-04-06 05:10:12,826 - DEBUG - Using proactor: IocpProactor
+2025-04-06 05:10:13,513 - DEBUG - Using service worker timeout: 2500 ms
+2025-04-06 05:10:13,514 - DEBUG - Waiting for service worker to register Solflare extension (timeout 2500 ms)...
+2025-04-06 05:10:16,022 - ERROR - Service worker not registered within timeout: Timeout 2500ms exceeded while waiting for event "serviceworker"
+2025-04-06 05:10:16,022 - DEBUG - Assuming Solflare extension ID as fallback: solflarefallbackid
+2025-04-06 05:10:16,022 - DEBUG - Navigating to dApp: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-06 05:10:16,377 - DEBUG - dApp page loaded. Current URL: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-06 05:10:16,378 - DEBUG - Checking if wallet is already connected using selector: text=Connected
+2025-04-06 05:10:16,412 - DEBUG - PAGE CONSOLE: Solflare was registered as a Standard Wallet. The Wallet Adapter for Solflare can be removed from your app.
+2025-04-06 05:10:16,462 - DEBUG - PAGE CONSOLE: Solflare was registered as a Standard Wallet. The Wallet Adapter for Solflare can be removed from your app.
+2025-04-06 05:10:16,520 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 05:10:16,523 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-06 05:10:16,562 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 05:10:16,798 - DEBUG - PAGE CONSOLE: 2025-04-06T12:10:16.795Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-06 05:10:16,798 - DEBUG - PAGE CONSOLE: 2025-04-06T12:10:16.797Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-06 05:10:16,815 - DEBUG - Wallet already connected on dApp. Skipping connect flow.
+2025-04-06 05:10:29,836 - DEBUG - Navigating to dApp: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-06 05:10:29,838 - DEBUG - PAGE CONSOLE: The configured WalletConnect 'metadata.url':https://jup.ag/perps-legacy/short/SOL-SOL differs from the actual page url:https://jup.ag. This is probably unintended and can lead to issues.
+2025-04-06 05:10:29,838 - DEBUG - PAGE CONSOLE: Wallet did not respond to eth_accounts. Defaulting to prefetched accounts. mq: Must call 'eth_requestAccounts' before other methods
+    at pq (https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:1570413)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:1577638
+2025-04-06 05:10:29,838 - DEBUG - PAGE CONSOLE: {result: Array(52)}
+2025-04-06 05:10:29,840 - DEBUG - PAGE CONSOLE: %cWarning! color:#F16552; font-size:50px; font-weight: bold; -webkit-text-stroke: 1px black;
+2025-04-06 05:10:29,840 - DEBUG - PAGE CONSOLE: %cYou are reading this message because you opened the browser console, a developer tool. Do not enter or paste code you do not understand. Never share your tokens or any other info with anyone. If someone told you to do this, it is very likely a scam. font-size: 18px;
+2025-04-06 05:10:29,847 - DEBUG - PAGE CONSOLE: Detected injected providers: []
+2025-04-06 05:10:36,605 - DEBUG - PAGE CONSOLE: Solflare was registered as a Standard Wallet. The Wallet Adapter for Solflare can be removed from your app.
+2025-04-06 05:10:36,641 - DEBUG - PAGE CONSOLE: Solflare was registered as a Standard Wallet. The Wallet Adapter for Solflare can be removed from your app.
+2025-04-06 05:10:36,687 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 05:10:36,692 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-06 05:10:36,739 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 05:10:36,808 - DEBUG - PAGE CONSOLE: The configured WalletConnect 'metadata.url':https://jup.ag/perps-legacy/short/SOL-SOL differs from the actual page url:https://jup.ag. This is probably unintended and can lead to issues.
+2025-04-06 05:10:36,812 - DEBUG - PAGE CONSOLE: Wallet did not respond to eth_accounts. Defaulting to prefetched accounts. mq: Must call 'eth_requestAccounts' before other methods
+    at pq (https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:1570413)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:1577638
+2025-04-06 05:10:36,848 - DEBUG - PAGE CONSOLE: 2025-04-06T12:10:36.843Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-06 05:10:36,849 - DEBUG - PAGE CONSOLE: 2025-04-06T12:10:36.844Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-06 05:10:36,953 - DEBUG - PAGE CONSOLE: {result: Array(52)}
+2025-04-06 05:10:37,061 - DEBUG - PAGE CONSOLE: %cWarning! color:#F16552; font-size:50px; font-weight: bold; -webkit-text-stroke: 1px black;
+2025-04-06 05:10:37,061 - DEBUG - PAGE CONSOLE: %cYou are reading this message because you opened the browser console, a developer tool. Do not enter or paste code you do not understand. Never share your tokens or any other info with anyone. If someone told you to do this, it is very likely a scam. font-size: 18px;
+2025-04-06 05:10:37,068 - DEBUG - dApp page loaded. Current URL: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-06 05:10:37,068 - DEBUG - Checking if wallet is already connected using selector: text=Connected
+2025-04-06 05:10:37,091 - DEBUG - Wallet already connected on dApp. Skipping connect flow.
+2025-04-06 05:10:53,201 - DEBUG - Opening position with label: Long SOL
+2025-04-06 05:10:53,203 - DEBUG - PAGE CONSOLE: Detected injected providers: []
+2025-04-06 05:10:53,245 - DEBUG - Position open triggered with label: Long SOL
+2025-04-06 05:41:42,829 - DEBUG - Launching browser with Solflare extension from C:\v0.7\sonic_labs\solflare_wallet
+2025-04-06 05:41:42,830 - DEBUG - Using proactor: IocpProactor
+2025-04-06 05:41:43,457 - DEBUG - Using service worker timeout: 2500 ms
+2025-04-06 05:41:43,457 - DEBUG - Waiting for service worker to register Solflare extension (timeout 2500 ms)...
+2025-04-06 05:41:45,960 - ERROR - Service worker not registered within timeout: Timeout 2500ms exceeded while waiting for event "serviceworker"
+2025-04-06 05:41:45,960 - DEBUG - Assuming Solflare extension ID as fallback: solflarefallbackid
+2025-04-06 05:41:45,960 - DEBUG - Navigating to dApp: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-06 05:41:46,328 - DEBUG - dApp page loaded. Current URL: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-06 05:41:46,328 - DEBUG - Checking if wallet is already connected using selector: text=Connected
+2025-04-06 05:41:46,360 - DEBUG - PAGE CONSOLE: Solflare was registered as a Standard Wallet. The Wallet Adapter for Solflare can be removed from your app.
+2025-04-06 05:41:46,410 - DEBUG - PAGE CONSOLE: Solflare was registered as a Standard Wallet. The Wallet Adapter for Solflare can be removed from your app.
+2025-04-06 05:41:46,468 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 05:41:46,471 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-06 05:41:46,514 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 05:41:46,707 - DEBUG - PAGE CONSOLE: 2025-04-06T12:41:46.705Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-06 05:41:46,707 - DEBUG - PAGE CONSOLE: 2025-04-06T12:41:46.706Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-06 05:41:46,727 - DEBUG - Wallet already connected on dApp. Skipping connect flow.
+2025-04-06 05:42:08,948 - DEBUG - Selecting position type: long
+2025-04-06 05:42:08,950 - DEBUG - PAGE CONSOLE: {result: Array(52)}
+2025-04-06 05:42:08,951 - DEBUG - PAGE CONSOLE: The configured WalletConnect 'metadata.url':https://jup.ag/perps-legacy/short/SOL-SOL differs from the actual page url:https://jup.ag. This is probably unintended and can lead to issues.
+2025-04-06 05:42:08,951 - DEBUG - PAGE CONSOLE: Wallet did not respond to eth_accounts. Defaulting to prefetched accounts. mq: Must call 'eth_requestAccounts' before other methods
+    at pq (https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:1570413)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:1577638
+2025-04-06 05:42:08,952 - DEBUG - PAGE CONSOLE: %cWarning! color:#F16552; font-size:50px; font-weight: bold; -webkit-text-stroke: 1px black;
+2025-04-06 05:42:08,953 - DEBUG - PAGE CONSOLE: %cYou are reading this message because you opened the browser console, a developer tool. Do not enter or paste code you do not understand. Never share your tokens or any other info with anyone. If someone told you to do this, it is very likely a scam. font-size: 18px;
+2025-04-06 05:42:08,963 - DEBUG - PAGE CONSOLE: Detected injected providers: []
+2025-04-06 05:42:27,794 - DEBUG - Selecting position type: short
+2025-04-06 05:42:45,926 - DEBUG - Selecting payment asset: USDT
+2025-04-06 05:43:04,402 - DEBUG - Setting leverage: 8
+2025-04-06 05:43:04,410 - DEBUG - Calculated target coordinates for leverage: (1086.22, 416.91)
+2025-04-06 05:43:23,475 - DEBUG - Selecting order type: limt
+2025-04-06 05:43:50,771 - DEBUG - Selecting order type: limit
+2025-04-06 05:43:50,777 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 05:43:50,777 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-06 05:43:50,782 - DEBUG - PAGE CONSOLE: 2025-04-06T12:43:18.428Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-06 05:43:50,782 - DEBUG - PAGE CONSOLE: 2025-04-06T12:43:18.430Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-06 05:43:50,783 - DEBUG - PAGE CONSOLE: WebSocket connection to 'wss://history.oraclesecurity.org/trading-view/stream' failed: WebSocket is closed before the connection is established.
+2025-04-06 05:43:58,725 - DEBUG - Selecting position type: short
+2025-04-06 06:10:15,325 - DEBUG - Launching browser with Solflare extension from C:\v0.7\sonic_labs\solflare_wallet
+2025-04-06 06:10:15,325 - DEBUG - Using proactor: IocpProactor
+2025-04-06 06:10:15,934 - DEBUG - Using service worker timeout: 2500 ms
+2025-04-06 06:10:15,934 - DEBUG - Waiting for service worker to register Solflare extension (timeout 2500 ms)...
+2025-04-06 06:10:18,442 - ERROR - Service worker not registered within timeout: Timeout 2500ms exceeded while waiting for event "serviceworker"
+2025-04-06 06:10:18,443 - DEBUG - Assuming Solflare extension ID as fallback: solflarefallbackid
+2025-04-06 06:10:18,443 - DEBUG - Navigating to dApp: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-06 06:10:18,843 - DEBUG - dApp page loaded. Current URL: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-06 06:10:18,843 - DEBUG - Checking if wallet is already connected using selector: text=Connected
+2025-04-06 06:10:18,875 - DEBUG - PAGE CONSOLE: Solflare was registered as a Standard Wallet. The Wallet Adapter for Solflare can be removed from your app.
+2025-04-06 06:10:18,925 - DEBUG - PAGE CONSOLE: Solflare was registered as a Standard Wallet. The Wallet Adapter for Solflare can be removed from your app.
+2025-04-06 06:10:19,008 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 06:10:19,013 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-06 06:10:19,061 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 06:10:19,183 - DEBUG - Wallet already connected on dApp. Skipping connect flow.
+2025-04-06 06:12:38,330 - DEBUG - Launching browser with Solflare extension from C:\v0.7\sonic_labs\solflare_wallet
+2025-04-06 06:12:38,330 - DEBUG - Using proactor: IocpProactor
+2025-04-06 06:12:38,980 - DEBUG - Using service worker timeout: 2500 ms
+2025-04-06 06:12:38,980 - DEBUG - Waiting for service worker to register Solflare extension (timeout 2500 ms)...
+2025-04-06 06:12:41,500 - ERROR - Service worker not registered within timeout: Timeout 2500ms exceeded while waiting for event "serviceworker"
+2025-04-06 06:12:41,500 - DEBUG - Assuming Solflare extension ID as fallback: solflarefallbackid
+2025-04-06 06:12:41,500 - DEBUG - Navigating to dApp: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-06 06:12:41,868 - DEBUG - dApp page loaded. Current URL: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-06 06:12:41,868 - DEBUG - Checking if wallet is already connected using selector: text=Connected
+2025-04-06 06:12:41,899 - DEBUG - PAGE CONSOLE: Solflare was registered as a Standard Wallet. The Wallet Adapter for Solflare can be removed from your app.
+2025-04-06 06:12:41,949 - DEBUG - PAGE CONSOLE: Solflare was registered as a Standard Wallet. The Wallet Adapter for Solflare can be removed from your app.
+2025-04-06 06:12:42,007 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 06:12:42,009 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-06 06:12:42,048 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 06:12:42,238 - DEBUG - PAGE CONSOLE: 2025-04-06T13:12:42.236Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-06 06:12:42,239 - DEBUG - PAGE CONSOLE: 2025-04-06T13:12:42.237Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-06 06:12:42,276 - DEBUG - Wallet already connected on dApp. Skipping connect flow.
+2025-04-06 06:12:58,439 - DEBUG - Initiating withdrawal: asset=SOL, position_type=long, amount=4
+2025-04-06 06:12:58,441 - DEBUG - PAGE CONSOLE: {result: Array(52)}
+2025-04-06 06:12:58,441 - DEBUG - PAGE CONSOLE: The configured WalletConnect 'metadata.url':https://jup.ag/perps-legacy/short/SOL-SOL differs from the actual page url:https://jup.ag. This is probably unintended and can lead to issues.
+2025-04-06 06:12:58,441 - DEBUG - PAGE CONSOLE: Wallet did not respond to eth_accounts. Defaulting to prefetched accounts. mq: Must call 'eth_requestAccounts' before other methods
+    at pq (https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:1570413)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:1577638
+2025-04-06 06:12:58,442 - DEBUG - PAGE CONSOLE: Detected injected providers: []
+2025-04-06 06:12:58,609 - DEBUG - PAGE CONSOLE: %cWarning! color:#F16552; font-size:50px; font-weight: bold; -webkit-text-stroke: 1px black;
+2025-04-06 06:12:58,609 - DEBUG - PAGE CONSOLE: %cYou are reading this message because you opened the browser console, a developer tool. Do not enter or paste code you do not understand. Never share your tokens or any other info with anyone. If someone told you to do this, it is very likely a scam. font-size: 18px;
+2025-04-06 06:13:03,458 - ERROR - Error selecting asset for withdrawal: Page.click: Timeout 5000ms exceeded.
+Call log:
+  - waiting for locator("button.bg-v3-input-secondary-background")
+
+2025-04-06 06:13:26,742 - DEBUG - Initiating withdrawal: asset=SOL, position_type=long, amount=3
+2025-04-06 06:13:26,748 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 06:13:26,749 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-06 06:13:26,754 - DEBUG - PAGE CONSOLE: 2025-04-06T13:13:16.798Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-06 06:13:26,754 - DEBUG - PAGE CONSOLE: 2025-04-06T13:13:16.800Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-06 06:13:26,755 - DEBUG - PAGE CONSOLE: WebSocket connection to 'wss://history.oraclesecurity.org/trading-view/stream' failed: WebSocket is closed before the connection is established.
+2025-04-06 06:13:26,838 - DEBUG - Asset selected for withdrawal: SOL
+2025-04-06 06:13:26,887 - DEBUG - Position type selected for withdrawal: long
+2025-04-06 06:13:26,909 - DEBUG - Withdraw amount set to: 3
+2025-04-06 06:13:31,923 - ERROR - Error clicking withdraw button: Page.click: Timeout 5000ms exceeded.
+Call log:
+  - waiting for locator("button:has-text('Withdraw')")
+
+2025-04-06 06:13:54,692 - DEBUG - Initiating withdrawal: asset=SOL, position_type=long, amount=3
+2025-04-06 06:13:54,789 - DEBUG - Asset selected for withdrawal: SOL
+2025-04-06 06:13:54,835 - DEBUG - Position type selected for withdrawal: long
+2025-04-06 06:13:54,845 - DEBUG - Withdraw amount set to: 3
+2025-04-06 06:13:54,891 - DEBUG - Withdrawal request submitted.
+2025-04-06 06:14:08,688 - DEBUG - Initiating withdrawal: asset=SOL, position_type=long, amount=3
+2025-04-06 06:14:08,754 - DEBUG - Asset selected for withdrawal: SOL
+2025-04-06 06:14:08,785 - DEBUG - Position type selected for withdrawal: long
+2025-04-06 06:14:08,792 - DEBUG - Withdraw amount set to: 3
+2025-04-06 06:14:08,822 - DEBUG - Withdrawal request submitted.
+2025-04-06 06:15:46,143 - DEBUG - Initiating withdrawal: asset=SOL, position_type=long, amount=3
+2025-04-06 06:15:46,236 - DEBUG - Asset selected for withdrawal: SOL
+2025-04-06 06:15:46,270 - DEBUG - Position type selected for withdrawal: long
+2025-04-06 06:15:46,276 - DEBUG - Withdraw amount set to: 3
+2025-04-06 06:15:46,320 - DEBUG - Withdrawal request submitted.
+2025-04-06 06:16:20,620 - DEBUG - Initiating withdrawal: asset=SOL, position_type=long, amount=3
+2025-04-06 06:16:20,709 - DEBUG - Asset selected for withdrawal: SOL
+2025-04-06 06:16:20,752 - DEBUG - Position type selected for withdrawal: long
+2025-04-06 06:16:20,757 - DEBUG - Withdraw amount set to: 3
+2025-04-06 06:16:20,787 - DEBUG - Withdrawal request submitted.
+2025-04-06 06:16:46,669 - DEBUG - Initiating withdrawal: asset=SOL, position_type=long, amount=3
+2025-04-06 06:16:46,753 - DEBUG - Asset selected for withdrawal: SOL
+2025-04-06 06:16:46,783 - DEBUG - Position type selected for withdrawal: long
+2025-04-06 06:16:46,789 - DEBUG - Withdraw amount set to: 3
+2025-04-06 06:16:46,819 - DEBUG - Withdrawal request submitted.
+2025-04-06 06:17:42,197 - DEBUG - Initiating withdrawal: asset=SOL, position_type=long, amount=3
+2025-04-06 06:17:42,304 - DEBUG - Asset selected for withdrawal: SOL
+2025-04-06 06:17:42,351 - DEBUG - Position type selected for withdrawal: long
+2025-04-06 06:17:42,358 - DEBUG - Withdraw amount set to: 3
+2025-04-06 06:17:42,404 - DEBUG - Withdrawal request submitted.
+2025-04-06 06:18:16,723 - DEBUG - Initiating withdrawal: asset=SOL, position_type=long, amount=3
+2025-04-06 06:18:16,728 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 06:18:16,728 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106219)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112758
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at ls (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:105221)
+    at S (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:138470)
+    at MessagePort.T (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:139004)
+2025-04-06 06:18:16,732 - DEBUG - PAGE CONSOLE: 2025-04-06T13:17:52.987Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-06 06:18:16,732 - DEBUG - PAGE CONSOLE: 2025-04-06T13:17:52.989Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-06 06:18:16,734 - DEBUG - PAGE CONSOLE: WebSocket connection to 'wss://history.oraclesecurity.org/trading-view/stream' failed: WebSocket is closed before the connection is established.
+2025-04-06 06:18:21,727 - ERROR - Error selecting asset for withdrawal: Page.click: Timeout 5000ms exceeded.
+Call log:
+  - waiting for locator("button.bg-v3-input-secondary-background")
+
+2025-04-06 06:18:31,382 - DEBUG - Initiating withdrawal: asset=SOL, position_type=long, amount=3
+2025-04-06 06:18:36,392 - ERROR - Error selecting asset for withdrawal: Page.click: Timeout 5000ms exceeded.
+Call log:
+  - waiting for locator("button.bg-v3-input-secondary-background")
+
+2025-04-06 06:18:57,976 - DEBUG - Navigating to dApp: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-06 06:18:57,979 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 06:18:57,979 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106219)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112758
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at ls (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:105221)
+    at S (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:138470)
+    at MessagePort.T (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:139004)
+2025-04-06 06:18:57,984 - DEBUG - PAGE CONSOLE: 2025-04-06T13:18:43.475Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-06 06:18:57,984 - DEBUG - PAGE CONSOLE: 2025-04-06T13:18:43.476Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-06 06:18:57,985 - DEBUG - PAGE CONSOLE: WebSocket connection to 'wss://history.oraclesecurity.org/trading-view/stream' failed: WebSocket is closed before the connection is established.
+2025-04-06 06:18:58,315 - DEBUG - dApp page loaded. Current URL: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-06 06:18:58,316 - DEBUG - Checking if wallet is already connected using selector: text=Connected
+2025-04-06 06:18:58,335 - DEBUG - PAGE CONSOLE: Solflare was registered as a Standard Wallet. The Wallet Adapter for Solflare can be removed from your app.
+2025-04-06 06:18:58,373 - DEBUG - PAGE CONSOLE: Solflare was registered as a Standard Wallet. The Wallet Adapter for Solflare can be removed from your app.
+2025-04-06 06:18:58,420 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 06:18:58,422 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-06 06:18:58,456 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 06:18:58,561 - DEBUG - PAGE CONSOLE: 2025-04-06T13:18:58.557Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-06 06:18:58,561 - DEBUG - PAGE CONSOLE: 2025-04-06T13:18:58.559Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-06 06:18:58,610 - DEBUG - Wallet already connected on dApp. Skipping connect flow.
+2025-04-06 06:19:30,147 - DEBUG - Initiating withdrawal: asset=SOL, position_type=long, amount=3
+2025-04-06 06:19:30,149 - DEBUG - PAGE CONSOLE: The configured WalletConnect 'metadata.url':https://jup.ag/perps-legacy/short/SOL-SOL differs from the actual page url:https://jup.ag. This is probably unintended and can lead to issues.
+2025-04-06 06:19:30,150 - DEBUG - PAGE CONSOLE: Wallet did not respond to eth_accounts. Defaulting to prefetched accounts. mq: Must call 'eth_requestAccounts' before other methods
+    at pq (https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:1570413)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:1577638
+2025-04-06 06:19:30,150 - DEBUG - PAGE CONSOLE: %cWarning! color:#F16552; font-size:50px; font-weight: bold; -webkit-text-stroke: 1px black;
+2025-04-06 06:19:30,150 - DEBUG - PAGE CONSOLE: %cYou are reading this message because you opened the browser console, a developer tool. Do not enter or paste code you do not understand. Never share your tokens or any other info with anyone. If someone told you to do this, it is very likely a scam. font-size: 18px;
+2025-04-06 06:19:30,150 - DEBUG - PAGE CONSOLE: {result: Array(52)}
+2025-04-06 06:19:30,154 - DEBUG - PAGE CONSOLE: Detected injected providers: []
+2025-04-06 06:19:30,160 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 06:19:30,160 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-06 06:19:30,162 - DEBUG - PAGE CONSOLE: 2025-04-06T13:19:19.386Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-06 06:19:30,163 - DEBUG - PAGE CONSOLE: 2025-04-06T13:19:19.388Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-06 06:19:30,163 - DEBUG - PAGE CONSOLE: WebSocket connection to 'wss://history.oraclesecurity.org/trading-view/stream' failed: WebSocket is closed before the connection is established.
+2025-04-06 06:19:30,241 - DEBUG - Asset selected for withdrawal: SOL
+2025-04-06 06:19:30,285 - DEBUG - Position type selected for withdrawal: long
+2025-04-06 06:19:30,300 - DEBUG - Withdraw amount set to: 3
+2025-04-06 06:19:30,336 - DEBUG - Withdrawal request submitted.
+2025-04-06 06:19:48,038 - DEBUG - Initiating withdrawal: asset=SOL, position_type=long, amount=3
+2025-04-06 06:19:48,102 - DEBUG - Asset selected for withdrawal: SOL
+2025-04-06 06:19:48,133 - DEBUG - Position type selected for withdrawal: long
+2025-04-06 06:19:48,142 - DEBUG - Withdraw amount set to: 3
+2025-04-06 06:19:53,153 - ERROR - Error clicking withdraw button: Page.click: Timeout 5000ms exceeded.
+Call log:
+  - waiting for locator("button:has-text('Withdraw')")
+
+2025-04-06 06:29:41,914 - DEBUG - Launching browser with Solflare extension from C:\v0.7\sonic_labs\solflare_wallet
+2025-04-06 06:29:41,915 - DEBUG - Using proactor: IocpProactor
+2025-04-06 06:29:42,566 - DEBUG - Using service worker timeout: 2500 ms
+2025-04-06 06:29:42,566 - DEBUG - Waiting for service worker to register Solflare extension (timeout 2500 ms)...
+2025-04-06 06:29:45,082 - ERROR - Service worker not registered within timeout: Timeout 2500ms exceeded while waiting for event "serviceworker"
+2025-04-06 06:29:45,082 - DEBUG - Assuming Solflare extension ID as fallback: solflarefallbackid
+2025-04-06 06:29:45,082 - DEBUG - Navigating to dApp: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-06 06:29:45,454 - DEBUG - dApp page loaded. Current URL: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-06 06:29:45,454 - DEBUG - Checking if wallet is already connected using selector: text=Connected
+2025-04-06 06:29:45,485 - DEBUG - PAGE CONSOLE: Solflare was registered as a Standard Wallet. The Wallet Adapter for Solflare can be removed from your app.
+2025-04-06 06:29:45,535 - DEBUG - PAGE CONSOLE: Solflare was registered as a Standard Wallet. The Wallet Adapter for Solflare can be removed from your app.
+2025-04-06 06:29:45,608 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 06:29:45,612 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-06 06:29:45,664 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 06:29:45,877 - DEBUG - PAGE CONSOLE: 2025-04-06T13:29:45.874Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-06 06:29:45,877 - DEBUG - PAGE CONSOLE: 2025-04-06T13:29:45.875Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-06 06:29:45,898 - DEBUG - Wallet already connected on dApp. Skipping connect flow.
+2025-04-06 06:30:06,123 - DEBUG - Initiating withdrawal: asset=SOL, position_type=long, amount=3
+2025-04-06 06:30:06,125 - DEBUG - PAGE CONSOLE: {result: Array(52)}
+2025-04-06 06:30:06,126 - DEBUG - PAGE CONSOLE: The configured WalletConnect 'metadata.url':https://jup.ag/perps-legacy/short/SOL-SOL differs from the actual page url:https://jup.ag. This is probably unintended and can lead to issues.
+2025-04-06 06:30:06,126 - DEBUG - PAGE CONSOLE: Wallet did not respond to eth_accounts. Defaulting to prefetched accounts. mq: Must call 'eth_requestAccounts' before other methods
+    at pq (https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:1570413)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:1577638
+2025-04-06 06:30:06,127 - DEBUG - PAGE CONSOLE: %cWarning! color:#F16552; font-size:50px; font-weight: bold; -webkit-text-stroke: 1px black;
+2025-04-06 06:30:06,128 - DEBUG - PAGE CONSOLE: %cYou are reading this message because you opened the browser console, a developer tool. Do not enter or paste code you do not understand. Never share your tokens or any other info with anyone. If someone told you to do this, it is very likely a scam. font-size: 18px;
+2025-04-06 06:30:06,140 - DEBUG - PAGE CONSOLE: Detected injected providers: []
+2025-04-06 06:30:11,143 - ERROR - Error selecting asset for withdrawal: Page.click: Timeout 5000ms exceeded.
+Call log:
+  - waiting for locator("button.bg-v3-input-secondary-background")
+
+2025-04-06 06:30:58,582 - DEBUG - Initiating withdrawal: asset=SOL, position_type=long, amount=3
+2025-04-06 06:30:58,587 - DEBUG - PAGE CONSOLE: Failed to load resource: net::ERR_QUIC_PROTOCOL_ERROR
+2025-04-06 06:31:03,596 - ERROR - Error selecting asset for withdrawal: Page.click: Timeout 5000ms exceeded.
+Call log:
+  - waiting for locator("button.bg-v3-input-secondary-background")
+
+2025-04-06 06:35:54,994 - DEBUG - Initiating withdrawal: asset=SOL, position_type=long, amount=3
+2025-04-06 06:35:55,035 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 06:35:55,035 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-06 06:35:55,039 - DEBUG - PAGE CONSOLE: 2025-04-06T13:33:30.305Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-06 06:35:55,040 - DEBUG - PAGE CONSOLE: 2025-04-06T13:33:30.307Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-06 06:35:55,041 - DEBUG - PAGE CONSOLE: WebSocket connection to 'wss://history.oraclesecurity.org/trading-view/stream' failed: WebSocket is closed before the connection is established.
+2025-04-06 06:35:55,172 - DEBUG - Asset selected for withdrawal: SOL
+2025-04-06 06:35:55,216 - DEBUG - Position type selected for withdrawal: long
+2025-04-06 06:35:55,250 - DEBUG - Withdraw funds selection button clicked.
+2025-04-06 06:35:55,261 - DEBUG - Withdraw amount set to: 3
+2025-04-06 06:35:55,305 - DEBUG - Withdrawal request submitted.
+2025-04-06 06:36:15,819 - DEBUG - Initiating withdrawal: asset=SOL, position_type=long, amount=3
+2025-04-06 06:36:15,869 - DEBUG - Asset selected for withdrawal: SOL
+2025-04-06 06:36:15,936 - DEBUG - Position type selected for withdrawal: long
+2025-04-06 06:36:15,967 - DEBUG - Withdraw funds selection button clicked.
+2025-04-06 06:36:15,978 - DEBUG - Withdraw amount set to: 3
+2025-04-06 06:36:16,018 - DEBUG - Withdrawal request submitted.
+2025-04-06 06:36:37,452 - DEBUG - Initiating withdrawal: asset=SOL, position_type=long, amount=3
+2025-04-06 06:36:37,538 - DEBUG - Asset selected for withdrawal: SOL
+2025-04-06 06:36:37,565 - DEBUG - Position type selected for withdrawal: long
+2025-04-06 06:36:37,598 - DEBUG - Withdraw funds selection button clicked.
+2025-04-06 06:36:37,606 - DEBUG - Withdraw amount set to: 3
+2025-04-06 06:36:37,636 - DEBUG - Withdrawal request submitted.
+2025-04-06 06:41:14,670 - DEBUG - Launching browser with Solflare extension from C:\v0.7\sonic_labs\solflare_wallet
+2025-04-06 06:41:14,670 - DEBUG - Using proactor: IocpProactor
+2025-04-06 06:41:15,333 - DEBUG - Using service worker timeout: 2500 ms
+2025-04-06 06:41:15,333 - DEBUG - Waiting for service worker to register Solflare extension (timeout 2500 ms)...
+2025-04-06 06:41:17,842 - ERROR - Service worker not registered within timeout: Timeout 2500ms exceeded while waiting for event "serviceworker"
+2025-04-06 06:41:17,842 - DEBUG - Assuming Solflare extension ID as fallback: solflarefallbackid
+2025-04-06 06:41:17,842 - DEBUG - Navigating to dApp: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-06 06:41:18,210 - DEBUG - dApp page loaded. Current URL: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-06 06:41:18,210 - DEBUG - Checking if wallet is already connected using selector: text=Connected
+2025-04-06 06:41:18,246 - DEBUG - PAGE CONSOLE: Solflare was registered as a Standard Wallet. The Wallet Adapter for Solflare can be removed from your app.
+2025-04-06 06:41:18,298 - DEBUG - PAGE CONSOLE: Solflare was registered as a Standard Wallet. The Wallet Adapter for Solflare can be removed from your app.
+2025-04-06 06:41:18,378 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 06:41:18,381 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-06 06:41:18,431 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 06:41:18,557 - DEBUG - Wallet already connected on dApp. Skipping connect flow.
+2025-04-06 06:41:31,288 - DEBUG - PAGE CONSOLE: 2025-04-06T13:41:18.609Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-06 06:41:31,289 - DEBUG - PAGE CONSOLE: 2025-04-06T13:41:18.610Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-06 06:41:31,289 - DEBUG - PAGE CONSOLE: {result: Array(52)}
+2025-04-06 06:41:31,289 - DEBUG - PAGE CONSOLE: The configured WalletConnect 'metadata.url':https://jup.ag/perps-legacy/short/SOL-SOL differs from the actual page url:https://jup.ag. This is probably unintended and can lead to issues.
+2025-04-06 06:41:31,289 - DEBUG - PAGE CONSOLE: Wallet did not respond to eth_accounts. Defaulting to prefetched accounts. mq: Must call 'eth_requestAccounts' before other methods
+    at pq (https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:1570413)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:1577638
+2025-04-06 06:41:31,300 - DEBUG - PAGE CONSOLE: Detected injected providers: []
+2025-04-06 06:41:31,446 - DEBUG - PAGE CONSOLE: %cWarning! color:#F16552; font-size:50px; font-weight: bold; -webkit-text-stroke: 1px black;
+2025-04-06 06:41:31,447 - DEBUG - PAGE CONSOLE: %cYou are reading this message because you opened the browser console, a developer tool. Do not enter or paste code you do not understand. Never share your tokens or any other info with anyone. If someone told you to do this, it is very likely a scam. font-size: 18px;
+2025-04-06 06:41:46,856 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 06:41:46,857 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-06 06:41:46,862 - DEBUG - PAGE CONSOLE: 2025-04-06T13:41:38.035Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-06 06:41:46,862 - DEBUG - PAGE CONSOLE: 2025-04-06T13:41:38.036Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-06 06:41:46,863 - DEBUG - PAGE CONSOLE: WebSocket connection to 'wss://history.oraclesecurity.org/trading-view/stream' failed: WebSocket is closed before the connection is established.
+2025-04-06 07:18:32,089 - DEBUG - Launching browser with Solflare extension from C:\v0.7\sonic_labs\solflare_wallet
+2025-04-06 07:18:32,089 - DEBUG - Using proactor: IocpProactor
+2025-04-06 07:18:32,767 - DEBUG - Using service worker timeout: 2500 ms
+2025-04-06 07:18:32,767 - DEBUG - Waiting for service worker to register Solflare extension (timeout 2500 ms)...
+2025-04-06 07:18:35,286 - ERROR - Service worker not registered within timeout: Timeout 2500ms exceeded while waiting for event "serviceworker"
+2025-04-06 07:18:35,287 - DEBUG - Assuming Solflare extension ID as fallback: solflarefallbackid
+2025-04-06 07:18:35,287 - DEBUG - Navigating to dApp: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-06 07:18:35,631 - DEBUG - dApp page loaded. Current URL: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-06 07:18:35,631 - DEBUG - Checking if wallet is already connected using selector: text=Connected
+2025-04-06 07:18:35,663 - DEBUG - PAGE CONSOLE: Solflare was registered as a Standard Wallet. The Wallet Adapter for Solflare can be removed from your app.
+2025-04-06 07:18:35,716 - DEBUG - PAGE CONSOLE: Solflare was registered as a Standard Wallet. The Wallet Adapter for Solflare can be removed from your app.
+2025-04-06 07:18:35,803 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 07:18:35,807 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-06 07:18:35,861 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 07:18:36,031 - DEBUG - PAGE CONSOLE: 2025-04-06T14:18:36.028Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-06 07:18:36,031 - DEBUG - PAGE CONSOLE: 2025-04-06T14:18:36.029Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-06 07:18:36,062 - DEBUG - Wallet already connected on dApp. Skipping connect flow.
+2025-04-06 07:18:50,690 - DEBUG - PAGE CONSOLE: {result: Array(52)}
+2025-04-06 07:18:50,690 - DEBUG - PAGE CONSOLE: The configured WalletConnect 'metadata.url':https://jup.ag/perps-legacy/short/SOL-SOL differs from the actual page url:https://jup.ag. This is probably unintended and can lead to issues.
+2025-04-06 07:18:50,690 - DEBUG - PAGE CONSOLE: Wallet did not respond to eth_accounts. Defaulting to prefetched accounts. mq: Must call 'eth_requestAccounts' before other methods
+    at pq (https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:1570413)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:1577638
+2025-04-06 07:18:50,692 - DEBUG - PAGE CONSOLE: %cWarning! color:#F16552; font-size:50px; font-weight: bold; -webkit-text-stroke: 1px black;
+2025-04-06 07:18:50,692 - DEBUG - PAGE CONSOLE: %cYou are reading this message because you opened the browser console, a developer tool. Do not enter or paste code you do not understand. Never share your tokens or any other info with anyone. If someone told you to do this, it is very likely a scam. font-size: 18px;
+2025-04-06 07:18:50,703 - DEBUG - PAGE CONSOLE: Detected injected providers: []
+2025-04-06 07:18:50,704 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 07:18:50,705 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-06 07:18:50,711 - DEBUG - PAGE CONSOLE: 2025-04-06T14:18:40.798Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-06 07:18:50,711 - DEBUG - PAGE CONSOLE: 2025-04-06T14:18:40.799Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-06 07:18:50,712 - DEBUG - PAGE CONSOLE: WebSocket connection to 'wss://history.oraclesecurity.org/trading-view/stream' failed: WebSocket is closed before the connection is established.
+2025-04-06 07:40:19,318 - DEBUG - Launching browser with Solflare extension from C:\v0.7\sonic_labs\solflare_wallet
+2025-04-06 07:40:19,319 - DEBUG - Using proactor: IocpProactor
+2025-04-06 07:40:19,987 - DEBUG - Using service worker timeout: 2500 ms
+2025-04-06 07:40:19,987 - DEBUG - Waiting for service worker to register Solflare extension (timeout 2500 ms)...
+2025-04-06 07:40:22,494 - ERROR - Service worker not registered within timeout: Timeout 2500ms exceeded while waiting for event "serviceworker"
+2025-04-06 07:40:22,494 - DEBUG - Assuming Solflare extension ID as fallback: solflarefallbackid
+2025-04-06 07:40:22,494 - DEBUG - Navigating to dApp: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-06 07:40:22,904 - DEBUG - dApp page loaded. Current URL: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-06 07:40:22,904 - DEBUG - Checking if wallet is already connected using selector: text=Connected
+2025-04-06 07:40:22,936 - DEBUG - PAGE CONSOLE: Solflare was registered as a Standard Wallet. The Wallet Adapter for Solflare can be removed from your app.
+2025-04-06 07:40:22,986 - DEBUG - PAGE CONSOLE: Solflare was registered as a Standard Wallet. The Wallet Adapter for Solflare can be removed from your app.
+2025-04-06 07:40:23,044 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 07:40:23,047 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-06 07:40:23,083 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 07:40:23,290 - DEBUG - PAGE CONSOLE: 2025-04-06T14:40:23.288Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-06 07:40:23,290 - DEBUG - PAGE CONSOLE: 2025-04-06T14:40:23.289Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-06 07:40:23,332 - DEBUG - Wallet already connected on dApp. Skipping connect flow.
+2025-04-06 07:41:09,148 - DEBUG - PAGE CONSOLE: {result: Array(52)}
+2025-04-06 07:41:09,148 - DEBUG - PAGE CONSOLE: The configured WalletConnect 'metadata.url':https://jup.ag/perps-legacy/short/SOL-SOL differs from the actual page url:https://jup.ag. This is probably unintended and can lead to issues.
+2025-04-06 07:41:09,148 - DEBUG - PAGE CONSOLE: Wallet did not respond to eth_accounts. Defaulting to prefetched accounts. mq: Must call 'eth_requestAccounts' before other methods
+    at pq (https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:1570413)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:1577638
+2025-04-06 07:41:09,150 - DEBUG - PAGE CONSOLE: %cWarning! color:#F16552; font-size:50px; font-weight: bold; -webkit-text-stroke: 1px black;
+2025-04-06 07:41:09,151 - DEBUG - PAGE CONSOLE: %cYou are reading this message because you opened the browser console, a developer tool. Do not enter or paste code you do not understand. Never share your tokens or any other info with anyone. If someone told you to do this, it is very likely a scam. font-size: 18px;
+2025-04-06 07:41:09,162 - DEBUG - PAGE CONSOLE: Detected injected providers: []
+2025-04-06 07:41:13,068 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 07:41:13,070 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-06 07:41:13,160 - DEBUG - PAGE CONSOLE: 2025-04-06T14:41:13.155Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-06 07:41:13,161 - DEBUG - PAGE CONSOLE: 2025-04-06T14:41:13.157Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-06 07:41:13,217 - DEBUG - PAGE CONSOLE: WebSocket connection to 'wss://history.oraclesecurity.org/trading-view/stream' failed: WebSocket is closed before the connection is established.
+2025-04-06 07:44:11,371 - DEBUG - Launching browser with Solflare extension from C:\v0.7\sonic_labs\solflare_wallet
+2025-04-06 07:44:11,371 - DEBUG - Using proactor: IocpProactor
+2025-04-06 07:44:11,981 - DEBUG - Using service worker timeout: 2500 ms
+2025-04-06 07:44:11,981 - DEBUG - Waiting for service worker to register Solflare extension (timeout 2500 ms)...
+2025-04-06 07:44:14,492 - ERROR - Service worker not registered within timeout: Timeout 2500ms exceeded while waiting for event "serviceworker"
+2025-04-06 07:44:14,492 - DEBUG - Assuming Solflare extension ID as fallback: solflarefallbackid
+2025-04-06 07:44:14,493 - DEBUG - Navigating to dApp: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-06 07:44:14,884 - DEBUG - dApp page loaded. Current URL: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-06 07:44:14,885 - DEBUG - Checking if wallet is already connected using selector: text=Connected
+2025-04-06 07:44:14,918 - DEBUG - PAGE CONSOLE: Solflare was registered as a Standard Wallet. The Wallet Adapter for Solflare can be removed from your app.
+2025-04-06 07:44:14,969 - DEBUG - PAGE CONSOLE: Solflare was registered as a Standard Wallet. The Wallet Adapter for Solflare can be removed from your app.
+2025-04-06 07:44:15,055 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 07:44:15,059 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-06 07:44:15,110 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 07:44:15,279 - DEBUG - PAGE CONSOLE: 2025-04-06T14:44:15.276Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-06 07:44:15,279 - DEBUG - PAGE CONSOLE: 2025-04-06T14:44:15.278Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-06 07:44:15,301 - DEBUG - Wallet already connected on dApp. Skipping connect flow.
+2025-04-06 07:44:32,656 - DEBUG - PAGE CONSOLE: {result: Array(52)}
+2025-04-06 07:44:32,657 - DEBUG - PAGE CONSOLE: The configured WalletConnect 'metadata.url':https://jup.ag/perps-legacy/short/SOL-SOL differs from the actual page url:https://jup.ag. This is probably unintended and can lead to issues.
+2025-04-06 07:44:32,657 - DEBUG - PAGE CONSOLE: Wallet did not respond to eth_accounts. Defaulting to prefetched accounts. mq: Must call 'eth_requestAccounts' before other methods
+    at pq (https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:1570413)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:1577638
+2025-04-06 07:44:32,658 - DEBUG - PAGE CONSOLE: %cWarning! color:#F16552; font-size:50px; font-weight: bold; -webkit-text-stroke: 1px black;
+2025-04-06 07:44:32,658 - DEBUG - PAGE CONSOLE: %cYou are reading this message because you opened the browser console, a developer tool. Do not enter or paste code you do not understand. Never share your tokens or any other info with anyone. If someone told you to do this, it is very likely a scam. font-size: 18px;
+2025-04-06 07:44:32,661 - DEBUG - PAGE CONSOLE: Detected injected providers: []
+2025-04-06 07:44:36,872 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 07:44:36,875 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-06 07:44:36,932 - DEBUG - PAGE CONSOLE: 2025-04-06T14:44:36.927Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-06 07:44:36,932 - DEBUG - PAGE CONSOLE: 2025-04-06T14:44:36.928Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-06 07:44:37,007 - DEBUG - PAGE CONSOLE: WebSocket connection to 'wss://history.oraclesecurity.org/trading-view/stream' failed: WebSocket is closed before the connection is established.
+2025-04-06 07:44:40,278 - DEBUG - Closing browser context.
+2025-04-06 07:44:40,412 - DEBUG - Browser closed.
+2025-04-06 07:44:44,438 - DEBUG - Launching browser with Solflare extension from C:\v0.7\sonic_labs\solflare_wallet
+2025-04-06 07:44:44,439 - DEBUG - Using proactor: IocpProactor
+2025-04-06 07:44:45,055 - DEBUG - Using service worker timeout: 2500 ms
+2025-04-06 07:44:45,055 - DEBUG - Waiting for service worker to register Solflare extension (timeout 2500 ms)...
+2025-04-06 07:44:47,563 - ERROR - Service worker not registered within timeout: Timeout 2500ms exceeded while waiting for event "serviceworker"
+2025-04-06 07:44:47,563 - DEBUG - Assuming Solflare extension ID as fallback: solflarefallbackid
+2025-04-06 07:44:47,563 - DEBUG - Navigating to dApp: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-06 07:44:47,935 - DEBUG - dApp page loaded. Current URL: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-06 07:44:47,935 - DEBUG - Checking if wallet is already connected using selector: text=Connected
+2025-04-06 07:44:47,967 - DEBUG - PAGE CONSOLE: Solflare was registered as a Standard Wallet. The Wallet Adapter for Solflare can be removed from your app.
+2025-04-06 07:44:48,017 - DEBUG - PAGE CONSOLE: Solflare was registered as a Standard Wallet. The Wallet Adapter for Solflare can be removed from your app.
+2025-04-06 07:44:48,098 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 07:44:48,101 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-06 07:44:48,147 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 07:44:48,281 - DEBUG - Wallet already connected on dApp. Skipping connect flow.
+2025-04-06 07:45:03,881 - DEBUG - PAGE CONSOLE: 2025-04-06T14:44:48.338Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-06 07:45:03,881 - DEBUG - PAGE CONSOLE: 2025-04-06T14:44:48.339Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-06 07:45:03,882 - DEBUG - PAGE CONSOLE: {result: Array(52)}
+2025-04-06 07:45:03,882 - DEBUG - PAGE CONSOLE: The configured WalletConnect 'metadata.url':https://jup.ag/perps-legacy/short/SOL-SOL differs from the actual page url:https://jup.ag. This is probably unintended and can lead to issues.
+2025-04-06 07:45:03,882 - DEBUG - PAGE CONSOLE: Wallet did not respond to eth_accounts. Defaulting to prefetched accounts. mq: Must call 'eth_requestAccounts' before other methods
+    at pq (https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:1570413)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:1577638
+2025-04-06 07:45:03,893 - DEBUG - PAGE CONSOLE: Detected injected providers: []
+2025-04-06 07:45:03,899 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 07:45:03,899 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-06 07:45:03,905 - DEBUG - PAGE CONSOLE: 2025-04-06T14:45:01.914Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-06 07:45:03,905 - DEBUG - PAGE CONSOLE: 2025-04-06T14:45:01.916Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-06 07:45:03,907 - DEBUG - PAGE CONSOLE: WebSocket connection to 'wss://history.oraclesecurity.org/trading-view/stream' failed: WebSocket is closed before the connection is established.
+2025-04-06 07:45:04,045 - DEBUG - PAGE CONSOLE: %cWarning! color:#F16552; font-size:50px; font-weight: bold; -webkit-text-stroke: 1px black;
+2025-04-06 07:45:04,045 - DEBUG - PAGE CONSOLE: %cYou are reading this message because you opened the browser console, a developer tool. Do not enter or paste code you do not understand. Never share your tokens or any other info with anyone. If someone told you to do this, it is very likely a scam. font-size: 18px;
+2025-04-06 08:17:19,992 - DEBUG - Launching browser with Solflare extension from C:\v0.7\sonic_labs\solflare_wallet
+2025-04-06 08:17:19,992 - DEBUG - Using proactor: IocpProactor
+2025-04-06 08:17:20,648 - DEBUG - Using service worker timeout: 2500 ms
+2025-04-06 08:17:20,648 - DEBUG - Waiting for service worker to register Solflare extension (timeout 2500 ms)...
+2025-04-06 08:17:23,164 - ERROR - Service worker not registered within timeout: Timeout 2500ms exceeded while waiting for event "serviceworker"
+2025-04-06 08:17:23,164 - DEBUG - Assuming Solflare extension ID as fallback: solflarefallbackid
+2025-04-06 08:17:23,164 - DEBUG - Navigating to dApp: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-06 08:17:23,589 - DEBUG - dApp page loaded. Current URL: https://jup.ag/perps-legacy/short/SOL-SOL
+2025-04-06 08:17:23,589 - DEBUG - Checking if wallet is already connected using selector: text=Connected
+2025-04-06 08:17:23,621 - DEBUG - PAGE CONSOLE: Solflare was registered as a Standard Wallet. The Wallet Adapter for Solflare can be removed from your app.
+2025-04-06 08:17:23,671 - DEBUG - PAGE CONSOLE: Solflare was registered as a Standard Wallet. The Wallet Adapter for Solflare can be removed from your app.
+2025-04-06 08:17:23,753 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 08:17:23,756 - DEBUG - PAGE CONSOLE: TypeError: Cannot read properties of undefined (reading 'activeChart')
+    at Ve.activeChart (https://static.jup.ag/tv/charting_library/charting_library.js:1:35532)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:2491889
+    at ri (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:93735)
+    at Ss (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:113962)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112697
+    at ws (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:112763)
+    at is (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:106482)
+    at jl (https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:46918)
+    at https://jup.ag/_next/static/chunks/framework-758fe3daf2c0fbe0.js:1:103877
+2025-04-06 08:17:23,806 - DEBUG - PAGE CONSOLE: library_path option should contain a trailing forward slash
+2025-04-06 08:17:23,919 - DEBUG - Wallet already connected on dApp. Skipping connect flow.
+2025-04-06 08:17:38,829 - DEBUG - PAGE CONSOLE: 2025-04-06T15:17:23.972Z `resolveSymbol` should return result asynchronously. Use `setTimeout` with 0 interval to execute the callback function.
+2025-04-06 08:17:38,829 - DEBUG - PAGE CONSOLE: 2025-04-06T15:17:23.974Z SymbolInfo validation for SOLUSD: field has_no_volume is deprecated, use visible_plots_set instead
+2025-04-06 08:17:38,829 - DEBUG - PAGE CONSOLE: {result: Array(52)}
+2025-04-06 08:17:38,829 - DEBUG - PAGE CONSOLE: The configured WalletConnect 'metadata.url':https://jup.ag/perps-legacy/short/SOL-SOL differs from the actual page url:https://jup.ag. This is probably unintended and can lead to issues.
+2025-04-06 08:17:38,830 - DEBUG - PAGE CONSOLE: Wallet did not respond to eth_accounts. Defaulting to prefetched accounts. mq: Must call 'eth_requestAccounts' before other methods
+    at pq (https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:1570413)
+    at https://jup.ag/_next/static/chunks/pages/_app-c52b5b4e3316b673.js:11623:1577638
+2025-04-06 08:17:38,841 - DEBUG - PAGE CONSOLE: Detected injected providers: []
+2025-04-06 08:17:39,023 - DEBUG - PAGE CONSOLE: %cWarning! color:#F16552; font-size:50px; font-weight: bold; -webkit-text-stroke: 1px black;
+2025-04-06 08:17:39,023 - DEBUG - PAGE CONSOLE: %cYou are reading this message because you opened the browser console, a developer tool. Do not enter or paste code you do not understand. Never share your tokens or any other info with anyone. If someone told you to do this, it is very likely a scam. font-size: 18px;

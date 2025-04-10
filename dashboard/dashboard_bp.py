@@ -943,32 +943,44 @@ def dash_page():
 
     theme_mode = dl.get_theme_mode()
 
-    # --- Sonic Timer Calculation ---
+    # --- Timer Calculations ---
     try:
         timer_config_path = os.path.join(BASE_DIR, "config", "timer_config.json")
         with open(timer_config_path, "r") as f:
             timer_config = json.load(f)
-        sonic_start = timer_config.get("sonic_loop_start_time")
-        sonic_loop_interval = timer_config.get("sonic_loop_interval", 120)  # default 120 seconds
-        if sonic_start:
-            sonic_start_time = datetime.fromisoformat(sonic_start)
-            next_sonic_update = sonic_start_time + timedelta(seconds=sonic_loop_interval)
-            now = datetime.now(timezone.utc)
-            sonic_remaining = next_sonic_update - now
-            if sonic_remaining.total_seconds() < 0:
-                sonic_remaining = timedelta(seconds=0)
-        else:
-            sonic_remaining = timedelta(seconds=0)
     except Exception as e:
-        sonic_remaining = timedelta(seconds=0)
+        timer_config = {}
 
-    sonic_minutes = int(sonic_remaining.total_seconds() // 60)
-    sonic_seconds = int(sonic_remaining.total_seconds() % 60)
-    formatted_sonic_remaining = f"{sonic_minutes:02d}:{sonic_seconds:02d}"
-    # --- End Sonic Timer Calculation ---
+    def calculate_remaining(timer_key_start, timer_key_interval, default_interval):
+        now = datetime.now(timezone.utc)
+        start_str = timer_config.get(timer_key_start)
+        interval = timer_config.get(timer_key_interval, default_interval)
+        if start_str:
+            start_time = datetime.fromisoformat(start_str)
+            if now < start_time:
+                # Timer hasn't started yet; countdown until start time
+                remaining_seconds = (start_time - now).total_seconds()
+            else:
+                elapsed = (now - start_time).total_seconds()
+                remaining_seconds = interval - (elapsed % interval)
+            return remaining_seconds
+        return 0
+
+    sonic_remaining_sec = calculate_remaining("sonic_loop_start_time", "sonic_monitor_loop_interval", 120)
+    price_remaining_sec = calculate_remaining("price_loop_start_time", "price_monitor_loop_interval", 60)
+    den_mother_remaining_sec = calculate_remaining("den_mother_start_time", "den_mother_loop_interval", 600)
+
+    def format_seconds(secs):
+        minutes = int(secs // 60)
+        seconds = int(secs % 60)
+        return f"{minutes:02d}:{seconds:02d}"
+
+    formatted_sonic_remaining = format_seconds(sonic_remaining_sec)
+    formatted_price_remaining = format_seconds(price_remaining_sec)
+    formatted_den_mother_remaining = format_seconds(den_mother_remaining_sec)
 
     return render_template(
-        "dash.html",  # Your main dashboard template that includes the title bar partial
+        "dash.html",  # Your main dashboard template
         theme=theme_config,
         theme_mode=theme_mode,
         top_positions=top_positions,
@@ -996,5 +1008,11 @@ def dash_page():
         alert_entries=alert_entries,
         strategy_performance={},
         ledger_info=ledger_info,
-        sonic_timer_remaining=formatted_sonic_remaining
+        # Pass both formatted and raw remaining seconds for timers
+        sonic_timer_remaining=formatted_sonic_remaining,
+        price_timer_remaining=formatted_price_remaining,
+        den_mother_timer_remaining=formatted_den_mother_remaining,
+        sonic_timer_remaining_sec=sonic_remaining_sec,
+        price_timer_remaining_sec=price_remaining_sec,
+        den_mother_timer_remaining_sec=den_mother_remaining_sec
     )

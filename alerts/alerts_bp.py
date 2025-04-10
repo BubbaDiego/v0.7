@@ -37,6 +37,8 @@ def convert_types_in_dict(d):
     elif isinstance(d, list):
         return [convert_types_in_dict(item) for item in d]
     elif isinstance(d, str):
+        if d.strip() == "":
+            return None  # Return None for empty strings to avoid converting them to 0
         low = d.lower().strip()
         if low == "true":
             return True
@@ -49,6 +51,7 @@ def convert_types_in_dict(d):
                 return d
     else:
         return d
+
 
 def parse_nested_form(form: dict) -> dict:
     updated = {}
@@ -351,6 +354,7 @@ def config_page():
                            call_refractory_period=call_refractory_period)
 
 @alerts_bp.route('/update_config', methods=['POST'], endpoint="update_alert_config")
+@alerts_bp.route('/update_config', methods=['POST'], endpoint="update_alert_config")
 def update_alert_config_route():
     op_logger = OperationsLogger(log_filename=os.path.join(os.getcwd(), "operations_log.txt"))
     try:
@@ -360,18 +364,38 @@ def update_alert_config_route():
         logger.debug("Parsed Nested Form Data (raw):\n%s", json.dumps(nested_update, indent=2))
         nested_update = convert_types_in_dict(nested_update)
         logger.debug("Parsed Nested Form Data (converted):\n%s", json.dumps(nested_update, indent=2))
+
+        # Explicitly set defaults for global_alert_config if missing or incomplete.
+        global_update = nested_update.get("global_alert_config", {})
+        global_update.setdefault("enabled", False)
+        global_update.setdefault("data_fields", {
+            "price": False,
+            "profit": False,
+            "travel_percent": False,
+            "heat_index": False
+        })
+        global_update.setdefault("thresholds", {
+            "price": {"BTC": 0, "ETH": 0, "SOL": 0},
+            "profit": 0,
+            "travel_percent": 0,
+            "heat_index": 0
+        })
+        nested_update["global_alert_config"] = global_update
+
+        # Load the current config and merge with the new values.
         json_manager = current_app.json_manager
         current_config = json_manager.load("alert_limits.json", json_type=JsonType.ALERT_LIMITS)
         merged_config = json_manager.deep_merge(current_config, nested_update)
 
-        if "alert_cooldown_seconds" in merged_config and (merged_config["alert_cooldown_seconds"] == "" or merged_config["alert_cooldown_seconds"] is None):
+        # Ensure timing settings have proper defaults.
+        if not merged_config.get("alert_cooldown_seconds"):
             merged_config["alert_cooldown_seconds"] = 900
-        if "call_refractory_period" in merged_config and (merged_config["call_refractory_period"] == "" or merged_config["call_refractory_period"] is None):
+        if not merged_config.get("call_refractory_period"):
             merged_config["call_refractory_period"] = 1800
 
         json_manager.save("alert_limits.json", merged_config, json_type=JsonType.ALERT_LIMITS)
         updated_config = json_manager.load("alert_limits.json", json_type=JsonType.ALERT_LIMITS)
-        formatted_table = format_alert_config_table(updated_config.get("alert_ranges", {}))
+        formatted_table = format_alert_config_table(updated_config.get("alert_config", {}).get("limits", {}))
         logger.debug("New Config Loaded After Update:\n%s", json.dumps(updated_config, indent=2))
         return jsonify({"success": True, "formatted_table": formatted_table})
     except Exception as e:

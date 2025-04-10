@@ -1,0 +1,9 @@
+2025/04/06-07:44:45.236 2358 Reusing MANIFEST C:\v0.7\sonic_labs\playwright-data\Default\Local Storage\leveldb/MANIFEST-000001
+2025/04/06-07:44:45.239 2358 Recovering log #322
+2025/04/06-07:44:45.240 2358 Reusing old log C:\v0.7\sonic_labs\playwright-data\Default\Local Storage\leveldb/000322.log 
+2025/04/06-08:10:39.770 5f50 Level-0 table #327: started
+2025/04/06-08:10:39.775 5f50 Level-0 table #327: 26031 bytes OK
+2025/04/06-08:10:39.778 5f50 Delete type=0 #322
+2025/04/06-08:16:40.839 5f50 Level-0 table #329: started
+2025/04/06-08:16:40.842 5f50 Level-0 table #329: 29072 bytes OK
+2025/04/06-08:16:40.844 5f50 Delete type=0 #326

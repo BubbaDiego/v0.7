@@ -1,0 +1,9 @@
+2025/04/06-03:32:08.778 27d0 Reusing MANIFEST C:\v0.7\sonic_labs\playwright-data\Default\Local Extension Settings\bfnaelmomeimhlpmgjnjophhpkkoljpa/MANIFEST-000001
+2025/04/06-03:32:08.779 27d0 Recovering log #692
+2025/04/06-03:32:08.781 27d0 Reusing old log C:\v0.7\sonic_labs\playwright-data\Default\Local Extension Settings\bfnaelmomeimhlpmgjnjophhpkkoljpa/000692.log 
+2025/04/06-03:32:17.228 27d0 Compacting 1@0 + 1@1 files
+2025/04/06-03:32:17.231 27d0 Generated table #695@0: 4 keys, 38887 bytes
+2025/04/06-03:32:17.231 27d0 Compacted 1@0 + 1@1 files => 38887 bytes
+2025/04/06-03:32:17.233 27d0 compacted to: files[ 0 1 1 0 0 0 0 ]
+2025/04/06-03:32:17.233 27d0 Delete type=2 #691
+2025/04/06-03:32:17.233 27d0 Delete type=2 #693

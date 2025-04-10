@@ -1,0 +1,9 @@
+2025/04/06-07:44:45.415 37ec Reusing MANIFEST C:\v0.7\sonic_labs\playwright-data\Default\IndexedDB\chrome-extension_kdnfholmjenfmlmloibjcnocjeddnfbn_0.indexeddb.leveldb/MANIFEST-000001
+2025/04/06-07:44:45.415 37ec Recovering log #29
+2025/04/06-07:44:45.417 37ec Reusing old log C:\v0.7\sonic_labs\playwright-data\Default\IndexedDB\chrome-extension_kdnfholmjenfmlmloibjcnocjeddnfbn_0.indexeddb.leveldb/000029.log 
+2025/04/06-07:49:47.979 37ec Level-0 table #35: started
+2025/04/06-07:49:48.002 37ec Level-0 table #35: 4160167 bytes OK
+2025/04/06-07:49:48.008 37ec Delete type=0 #29
+2025/04/06-08:03:52.149 3738 Level-0 table #37: started
+2025/04/06-08:03:52.159 3738 Level-0 table #37: 4162459 bytes OK
+2025/04/06-08:03:52.161 3738 Delete type=0 #34
