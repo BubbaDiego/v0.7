@@ -38,11 +38,11 @@ def convert_types_in_dict(d):
         return [convert_types_in_dict(item) for item in d]
     elif isinstance(d, str):
         if d.strip() == "":
-            return None  # Return None for empty strings to avoid converting them to 0
+            return None  # Avoid converting empty strings to 0.
         low = d.lower().strip()
-        if low == "true":
+        if low in ["true", "on"]:
             return True
-        elif low == "false":
+        elif low in ["false", "off"]:
             return False
         else:
             try:
@@ -51,6 +51,7 @@ def convert_types_in_dict(d):
                 return d
     else:
         return d
+
 
 
 def parse_nested_form(form: dict) -> dict:
@@ -113,7 +114,7 @@ def refresh_alerts():
 @alerts_bp.route('/create_all_alerts', methods=['POST'], endpoint="create_all_alerts")
 def create_all_alerts():
     add_type = (request.json.get("add_type") or request.form.get("add_type", "all")).lower()
-    from cyclone import Cyclone
+    from cyclone.cyclone import Cyclone
     import asyncio
     cyc = Cyclone()
     messages = []
@@ -332,7 +333,9 @@ def config_page():
         config_data = json_manager.load("alert_limits.json", json_type=JsonType.ALERT_LIMITS)
         config_data = convert_types_in_dict(config_data)
     except Exception as e:
-        op_logger = OperationsLogger(log_filename=os.path.join(os.getcwd(), "operations_log.txt"))
+        op_logger = OperationsLogger(
+            log_filename=os.path.join(os.getcwd(), "operations_log.txt")
+        )
         op_logger.log("Alert Configuration Failed", source="System",
                       operation_type="Alert Configuration Failed",
                       file_name=str(ALERT_LIMITS_PATH))
@@ -342,6 +345,40 @@ def config_page():
     alert_config = config_data.get("alert_ranges", {})
     price_alerts = alert_config.get("price_alerts", {})
     theme_config = config_data.get("theme_config", {})
+    global_alert_config = config_data.get("global_alert_config", {
+        "enabled": False,
+        "data_fields": {"price": False, "profit": False, "travel_percent": False, "heat_index": False},
+        "thresholds": {"price": {"BTC": 0, "ETH": 0, "SOL": 0}, "profit": 0, "travel_percent": 0, "heat_index": 0}
+    })
+
+    # Get notifications from the JSON, then force defaults for missing metrics/subkeys.
+    notifications = config_data.get("alert_config", {}).get("notifications")
+    def fill_notifications_defaults(notif):
+        defaults = {
+            "low":    {"enabled": False, "notify_by": {"call": False, "sms": False, "email": False}},
+            "medium": {"enabled": False, "notify_by": {"call": False, "sms": False, "email": False}},
+            "high":   {"enabled": False, "notify_by": {"call": False, "sms": False, "email": False}}
+        }
+        if not isinstance(notif, dict):
+            return defaults
+        for level in ["low", "medium", "high"]:
+            if level not in notif:
+                notif[level] = defaults[level]
+            else:
+                if "enabled" not in notif[level]:
+                    notif[level]["enabled"] = defaults[level]["enabled"]
+                if "notify_by" not in notif[level]:
+                    notif[level]["notify_by"] = defaults[level]["notify_by"]
+                else:
+                    for method in ["call", "sms", "email"]:
+                        if method not in notif[level]["notify_by"]:
+                            notif[level]["notify_by"][method] = defaults[level]["notify_by"][method]
+        return notif
+
+    if notifications is None:
+        notifications = {}
+    for metric in ["heat_index", "travel_percent_liquid", "profit"]:
+        notifications[metric] = fill_notifications_defaults(notifications.get(metric, {}))
 
     alert_cooldown_seconds = config_data.get("alert_cooldown_seconds", 900)
     call_refractory_period = config_data.get("call_refractory_period", 3600)
@@ -349,11 +386,16 @@ def config_page():
     return render_template("alert_limits.html",
                            alert_ranges=alert_config,
                            price_alerts=price_alerts,
+                           global_alert_config=global_alert_config,
+                           notifications=notifications,
                            theme=theme_config,
                            alert_cooldown_seconds=alert_cooldown_seconds,
                            call_refractory_period=call_refractory_period)
 
-@alerts_bp.route('/update_config', methods=['POST'], endpoint="update_alert_config")
+
+
+
+
 @alerts_bp.route('/update_config', methods=['POST'], endpoint="update_alert_config")
 def update_alert_config_route():
     op_logger = OperationsLogger(log_filename=os.path.join(os.getcwd(), "operations_log.txt"))
@@ -365,7 +407,7 @@ def update_alert_config_route():
         nested_update = convert_types_in_dict(nested_update)
         logger.debug("Parsed Nested Form Data (converted):\n%s", json.dumps(nested_update, indent=2))
 
-        # Explicitly set defaults for global_alert_config if missing or incomplete.
+        # Ensure defaults for global_alert_config if missing.
         global_update = nested_update.get("global_alert_config", {})
         global_update.setdefault("enabled", False)
         global_update.setdefault("data_fields", {
@@ -382,22 +424,20 @@ def update_alert_config_route():
         })
         nested_update["global_alert_config"] = global_update
 
-        # Load the current config and merge with the new values.
+        # Merge with existing config.
         json_manager = current_app.json_manager
         current_config = json_manager.load("alert_limits.json", json_type=JsonType.ALERT_LIMITS)
         merged_config = json_manager.deep_merge(current_config, nested_update)
 
-        # Ensure timing settings have proper defaults.
+        # Ensure timing settings have defaults.
         if not merged_config.get("alert_cooldown_seconds"):
             merged_config["alert_cooldown_seconds"] = 900
         if not merged_config.get("call_refractory_period"):
             merged_config["call_refractory_period"] = 1800
 
         json_manager.save("alert_limits.json", merged_config, json_type=JsonType.ALERT_LIMITS)
-        updated_config = json_manager.load("alert_limits.json", json_type=JsonType.ALERT_LIMITS)
-        formatted_table = format_alert_config_table(updated_config.get("alert_config", {}).get("limits", {}))
-        logger.debug("New Config Loaded After Update:\n%s", json.dumps(updated_config, indent=2))
-        return jsonify({"success": True, "formatted_table": formatted_table})
+        logger.debug("New Config Loaded After Update:\n%s", json.dumps(merged_config, indent=2))
+        return jsonify({"success": True, "message": "Configuration successfully saved to the database!"})
     except Exception as e:
         logger.error("Error updating alert config: %s", str(e))
         op_logger.log("Alert Configuration Failed", source="System",

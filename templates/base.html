@@ -63,13 +63,6 @@
   <div class="wrapper">
     {% include "title_bar.html" %}
 
-    <!-- Theme toggle control (could be placed in a header or nav bar) -->
-    <div id="themeToggleContainer" class="p-2" style="position: absolute; top: 10px; right: 10px;">
-      <label class="form-check form-switch">
-        <input class="form-check-input" type="checkbox" id="themeToggle" {% if theme_mode == 'dark' %}checked{% endif %}>
-        <span class="form-check-label">Dark Mode</span>
-      </label>
-    </div>
 
     <!-- Use a single container with an id so client-side can switch its class -->
     <div class="content-wrapper">

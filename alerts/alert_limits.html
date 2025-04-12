@@ -1,366 +1,312 @@
 {% extends "base.html" %}
 
-{# Set up defaults for alert configuration #}
-{% set default_limits = {
-    "heat_index_ranges": {"enabled": true, "low": 12.0, "medium": 33.0, "high": 66.0},
-    "liquidation_distance_ranges": {"enabled": true, "low": 10.0, "medium": 25.0, "high": 50.0},
-    "travel_percent_liquid_ranges": {"enabled": true, "low": -25.0, "medium": -50.0, "high": -75.0},
-    "profit_ranges": {"enabled": true, "low": 22.0, "medium": 51.0, "high": 99.0},
-    "price_alerts": {
-        "BTC": {"enabled": true, "condition": "ABOVE", "trigger_value": 77667.0},
-        "ETH": {"enabled": true, "condition": "ABOVE", "trigger_value": 1926.84},
-        "SOL": {"enabled": true, "condition": "BELOW", "trigger_value": 133.9}
-    }
-} %}
-{% set default_notifications = {
-    "heat_index": {
-        "low": {"enabled": true, "notify_by": {"call": false, "sms": false, "email": true}},
-        "medium": {"enabled": true, "notify_by": {"call": false, "sms": true, "email": true}},
-        "high": {"enabled": true, "notify_by": {"call": true, "sms": true, "email": true}}
-    },
-    "travel_percent_liquid": {
-        "low": {"enabled": true, "notify_by": {"call": false, "sms": false, "email": true}},
-        "medium": {"enabled": false, "notify_by": {"call": false, "sms": false, "email": false}},
-        "high": {"enabled": true, "notify_by": {"call": true, "sms": true, "email": true}}
-    },
-    "profit": {
-        "low": {"enabled": false, "notify_by": {"call": false, "sms": false, "email": false}},
-        "medium": {"enabled": true, "notify_by": {"call": false, "sms": true, "email": false}},
-        "high": {"enabled": true, "notify_by": {"call": false, "sms": true, "email": true}}
-    },
-    "price_alerts": {
-        "low": {"enabled": true, "notify_by": {"call": false, "sms": false, "email": true}},
-        "medium": {"enabled": true, "notify_by": {"call": false, "sms": true, "email": true}},
-        "high": {"enabled": false, "notify_by": {"call": false, "sms": false, "email": false}}
-    }
-} %}
-{% set default_alert_config = {
-    "limits": default_limits,
-    "notifications": default_notifications
-} %}
-{% set alert_config = alert_config|default(default_alert_config) %}
-{% set global_alert_config = global_alert_config|default({
-    "enabled": false,
-    "data_fields": {"price": false, "profit": false, "travel_percent": false, "heat_index": false},
-    "thresholds": {"price": {"BTC": 0, "ETH": 0, "SOL": 0}, "profit": 0, "travel_percent": 0, "heat_index": 0}
-}, true) %}
+{% block title %}Alert Limits Configuration{% endblock %}
 
-{% block title %}Alert Limits & Notification Configuration{% endblock %}
-
-{% block extra_styles %}
-<style>
-  .card { margin-bottom: 1.5rem; }
-  .card-header h5 { font-size: 1.25rem; font-weight: bold; }
-  .alert-limits-wrapper { padding: 1.5rem; background: var(--card-background-color); border-radius: 12px; }
-  .consolidated-table, .price-alerts-table, .global-table { width: 100%; border-collapse: collapse; }
-  .consolidated-table th, .consolidated-table td,
-  .price-alerts-table th, .price-alerts-table td,
-  .global-table th, .global-table td {
-    border: 1px solid #ddd;
-    padding: 0.75rem;
-    text-align: center;
-  }
-  .notify-by label { margin-right: 0.5rem; }
-  .form-group { margin-bottom: 1rem; }
-</style>
+{% block page_title %}
+  <h1 class="mb-4">Alert Limits Configuration</h1>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-  <div class="alert-limits-wrapper">
-    <form method="POST" action="{{ url_for('alerts_bp.update_alert_config') }}">
-      <!-- Header -->
-      <section class="content-header">
-        <div class="container-fluid">
-          <h1>Alert Configuration</h1>
-        </div>
-      </section>
+<div class="container mt-4">
+  <form id="alertForm" method="POST" action="{{ url_for('alerts_bp.update_alert_config') }}">
 
-      <!-- Timing & Global Settings -->
-      <section class="content">
-        <div class="row">
-          <!-- Timing Settings Card -->
-          <div class="col-md-6">
-            <div class="card bg-info">
-              <div class="card-header">
-                <h5 class="card-title">⏱ Alert Timing</h5>
-              </div>
-              <div class="card-body">
-                <div class="form-group">
-                  <label>Alert Cooldown (seconds)</label>
-                  <input type="number" step="any" class="form-control" name="alert_cooldown_seconds" value="{{ alert_cooldown_seconds|default('') }}">
-                </div>
-                <div class="form-group">
-                  <label>Call Refractory Period (seconds)</label>
-                  <input type="number" step="any" class="form-control" name="call_refractory_period" value="{{ call_refractory_period|default('') }}">
-                </div>
-                <div class="form-group">
-                  <label>Snooze Countdown (seconds)</label>
-                  <input type="number" step="any" class="form-control" name="snooze_countdown" value="{{ alert_config.snooze_countdown|default(300) }}" readonly>
-                </div>
-              </div>
-            </div>
+    <!-- Price Alerts Section -->
+    <div class="card mb-4">
+      <div class="card-header bg-primary text-white">
+        <h2 class="mb-0"><i class="fas fa-dollar-sign"></i> Price Alerts</h2>
+      </div>
+      <div class="card-body">
+        {% for asset, config in price_alerts.items() %}
+        <div class="row mb-3 align-items-center">
+          <!-- Asset Icon -->
+          <div class="col-md-1 text-center">
+            {% if asset_icons and asset_icons[asset] %}
+              <img src="{{ asset_icons[asset] }}" alt="{{ asset }} icon" class="img-fluid" style="max-width: 30px;">
+            {% else %}
+              <i class="fas fa-coins"></i>
+            {% endif %}
           </div>
-          <!-- Global Settings Card -->
-          <div class="col-md-6">
-            <div class="card bg-secondary">
-              <div class="card-header">
-                <h5 class="card-title">🌐 Global Alert Settings</h5>
-              </div>
-              <div class="card-body">
-                <div class="form-group">
-                  <label>Enable Global Alerts</label>
-                  <input type="checkbox" name="global_alert_config[enabled]" {% if global_alert_config["enabled"] %}checked{% endif %}>
-                </div>
-                <div class="form-group">
-                  <label>Data Fields to Monitor</label>
-                  <div>
-                    <label><input type="checkbox" name="global_alert_config[data_fields][price]" {% if global_alert_config["data_fields"]["price"] %}checked{% endif %}> Price</label>
-                    <label><input type="checkbox" name="global_alert_config[data_fields][profit]" {% if global_alert_config["data_fields"]["profit"] %}checked{% endif %}> Profit</label>
-                    <label><input type="checkbox" name="global_alert_config[data_fields][travel_percent]" {% if global_alert_config["data_fields"]["travel_percent"] %}checked{% endif %}> Travel Percent</label>
-                    <label><input type="checkbox" name="global_alert_config[data_fields][heat_index]" {% if global_alert_config["data_fields"]["heat_index"] %}checked{% endif %}> Heat Index</label>
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label>Global Price Thresholds</label>
-                  <table class="global-table">
-                    <thead>
-                      <tr>
-                        <th>Asset</th>
-                        <th>Threshold</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td>BTC</td>
-                        <td><input type="number" step="any" class="form-control" name="global_alert_config[thresholds][price][BTC]" value="{{ global_alert_config['thresholds']['price']['BTC']|default('') }}"></td>
-                      </tr>
-                      <tr>
-                        <td>ETH</td>
-                        <td><input type="number" step="any" class="form-control" name="global_alert_config[thresholds][price][ETH]" value="{{ global_alert_config['thresholds']['price']['ETH']|default('') }}"></td>
-                      </tr>
-                      <tr>
-                        <td>SOL</td>
-                        <td><input type="number" step="any" class="form-control" name="global_alert_config[thresholds][price][SOL]" value="{{ global_alert_config['thresholds']['price']['SOL']|default('') }}"></td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-                <div class="form-group">
-                  <label>Profit Threshold</label>
-                  <input type="number" step="any" class="form-control" name="global_alert_config[thresholds][profit]" value="{{ global_alert_config['thresholds']['profit']|default('') }}">
-                </div>
-                <div class="form-group">
-                  <label>Travel Percent Threshold</label>
-                  <input type="number" step="any" class="form-control" name="global_alert_config[thresholds][travel_percent]" value="{{ global_alert_config['thresholds']['travel_percent']|default('') }}">
-                </div>
-                <div class="form-group">
-                  <label>Heat Index Threshold</label>
-                  <input type="number" step="any" class="form-control" name="global_alert_config[thresholds][heat_index]" value="{{ global_alert_config['thresholds']['heat_index']|default('') }}">
-                </div>
-              </div>
+          <!-- Trigger Value Input -->
+          <div class="col-md-3">
+            <label class="form-label">{{ asset }} Trigger:</label>
+            <input type="number" class="form-control" name="alert_ranges[price_alerts][{{ asset }}][trigger_value]" value="{{ config.trigger_value }}">
+          </div>
+          <!-- Condition Dropdown -->
+          <div class="col-md-3">
+            <label class="form-label">Condition</label>
+            <select class="form-select" name="alert_ranges[price_alerts][{{ asset }}][condition]">
+              <option value="ABOVE" {% if config.condition == 'ABOVE' %}selected{% endif %}>Above</option>
+              <option value="BELOW" {% if config.condition == 'BELOW' %}selected{% endif %}>Below</option>
+            </select>
+          </div>
+          <!-- Enabled Checkbox -->
+          <div class="col-md-2">
+            <div class="form-check mt-4">
+              <input type="checkbox" class="form-check-input" name="alert_ranges[price_alerts][{{ asset }}][enabled]" id="enabled_{{ asset }}" {% if config.enabled %}checked{% endif %}>
+              <label class="form-check-label" for="enabled_{{ asset }}">Enabled</label>
             </div>
           </div>
         </div>
-      </section>
+        {% endfor %}
+      </div>
+    </div>
 
-      <!-- Consolidated Metric Settings -->
-      <section class="content">
-        <div class="row">
-          <div class="col-12">
-            <div class="card bg-secondary">
-              <div class="card-header">
-                <h5 class="card-title">⚙️ Consolidated Metric Settings</h5>
-              </div>
-              <div class="card-body">
-                <table class="consolidated-table">
-                  <thead>
-                    <tr>
-                      <th rowspan="2">Metric</th>
-                      <th rowspan="2">Enabled</th>
-                      <th colspan="2" class="level-header">Low</th>
-                      <th colspan="2" class="level-header">Medium</th>
-                      <th colspan="2" class="level-header">High</th>
-                    </tr>
-                    <tr>
-                      <th>Threshold</th>
-                      <th>Notify By</th>
-                      <th>Threshold</th>
-                      <th>Notify By</th>
-                      <th>Threshold</th>
-                      <th>Notify By</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <!-- Heat Index Row -->
-                    <tr>
-                      <td>Heat Index</td>
-                      <td>
-                        <input type="checkbox" name="alert_config[limits][heat_index_ranges][enabled]" {% if alert_config.limits.heat_index_ranges.enabled %}checked{% endif %}>
-                      </td>
-                      <td>
-                        <input type="number" step="any" class="form-control" name="alert_config[limits][heat_index_ranges][low]" value="{{ alert_config.limits.heat_index_ranges.low|default(12.0) }}">
-                      </td>
-                      <td class="notify-by">
-                        <label><input type="checkbox" name="alert_config[notifications][heat_index][low][notify_by][call]" {% if alert_config.notifications.heat_index.low.notify_by.call %}checked{% endif %}> ☎</label>
-                        <label><input type="checkbox" name="alert_config[notifications][heat_index][low][notify_by][sms]" {% if alert_config.notifications.heat_index.low.notify_by.sms %}checked{% endif %}> 💬</label>
-                        <label><input type="checkbox" name="alert_config[notifications][heat_index][low][notify_by][email]" {% if alert_config.notifications.heat_index.low.notify_by.email %}checked{% endif %}> ✉</label>
-                      </td>
-                      <td>
-                        <input type="number" step="any" class="form-control" name="alert_config[limits][heat_index_ranges][medium]" value="{{ alert_config.limits.heat_index_ranges.medium|default(33.0) }}">
-                      </td>
-                      <td class="notify-by">
-                        <label><input type="checkbox" name="alert_config[notifications][heat_index][medium][notify_by][call]" {% if alert_config.notifications.heat_index.medium.notify_by.call %}checked{% endif %}> ☎</label>
-                        <label><input type="checkbox" name="alert_config[notifications][heat_index][medium][notify_by][sms]" {% if alert_config.notifications.heat_index.medium.notify_by.sms %}checked{% endif %}> 💬</label>
-                        <label><input type="checkbox" name="alert_config[notifications][heat_index][medium][notify_by][email]" {% if alert_config.notifications.heat_index.medium.notify_by.email %}checked{% endif %}> ✉</label>
-                      </td>
-                      <td>
-                        <input type="number" step="any" class="form-control" name="alert_config[limits][heat_index_ranges][high]" value="{{ alert_config.limits.heat_index_ranges.high|default(66.0) }}">
-                      </td>
-                      <td class="notify-by">
-                        <label><input type="checkbox" name="alert_config[notifications][heat_index][high][notify_by][call]" {% if alert_config.notifications.heat_index.high.notify_by.call %}checked{% endif %}> ☎</label>
-                        <label><input type="checkbox" name="alert_config[notifications][heat_index][high][notify_by][sms]" {% if alert_config.notifications.heat_index.high.notify_by.sms %}checked{% endif %}> 💬</label>
-                        <label><input type="checkbox" name="alert_config[notifications][heat_index][high][notify_by][email]" {% if alert_config.notifications.heat_index.high.notify_by.email %}checked{% endif %}> ✉</label>
-                      </td>
-                    </tr>
-                    <!-- Travel Percent Liquid Row -->
-                    <tr>
-                      <td>Travel % Liquid</td>
-                      <td>
-                        <input type="checkbox" name="alert_config[limits][travel_percent_liquid_ranges][enabled]" {% if alert_config.limits.travel_percent_liquid_ranges.enabled %}checked{% endif %}>
-                      </td>
-                      <td>
-                        <input type="number" step="any" class="form-control" name="alert_config[limits][travel_percent_liquid_ranges][low]" value="{{ alert_config.limits.travel_percent_liquid_ranges.low|default(-25.0) }}">
-                      </td>
-                      <td class="notify-by">
-                        <label><input type="checkbox" name="alert_config[notifications][travel_percent_liquid][low][notify_by][call]" {% if alert_config.notifications.travel_percent_liquid.low.notify_by.call %}checked{% endif %}> ☎</label>
-                        <label><input type="checkbox" name="alert_config[notifications][travel_percent_liquid][low][notify_by][sms]" {% if alert_config.notifications.travel_percent_liquid.low.notify_by.sms %}checked{% endif %}> 💬</label>
-                        <label><input type="checkbox" name="alert_config[notifications][travel_percent_liquid][low][notify_by][email]" {% if alert_config.notifications.travel_percent_liquid.low.notify_by.email %}checked{% endif %}> ✉</label>
-                      </td>
-                      <td>
-                        <input type="number" step="any" class="form-control" name="alert_config[limits][travel_percent_liquid_ranges][medium]" value="{{ alert_config.limits.travel_percent_liquid_ranges.medium|default(-50.0) }}">
-                      </td>
-                      <td class="notify-by">
-                        <label><input type="checkbox" name="alert_config[notifications][travel_percent_liquid][medium][notify_by][call]" {% if alert_config.notifications.travel_percent_liquid.medium.notify_by.call %}checked{% endif %}> ☎</label>
-                        <label><input type="checkbox" name="alert_config[notifications][travel_percent_liquid][medium][notify_by][sms]" {% if alert_config.notifications.travel_percent_liquid.medium.notify_by.sms %}checked{% endif %}> 💬</label>
-                        <label><input type="checkbox" name="alert_config[notifications][travel_percent_liquid][medium][notify_by][email]" {% if alert_config.notifications.travel_percent_liquid.medium.notify_by.email %}checked{% endif %}> ✉</label>
-                      </td>
-                      <td>
-                        <input type="number" step="any" class="form-control" name="alert_config[limits][travel_percent_liquid_ranges][high]" value="{{ alert_config.limits.travel_percent_liquid_ranges.high|default(-75.0) }}">
-                      </td>
-                      <td class="notify-by">
-                        <label><input type="checkbox" name="alert_config[notifications][travel_percent_liquid][high][notify_by][call]" {% if alert_config.notifications.travel_percent_liquid.high.notify_by.call %}checked{% endif %}> ☎</label>
-                        <label><input type="checkbox" name="alert_config[notifications][travel_percent_liquid][high][notify_by][sms]" {% if alert_config.notifications.travel_percent_liquid.high.notify_by.sms %}checked{% endif %}> 💬</label>
-                        <label><input type="checkbox" name="alert_config[notifications][travel_percent_liquid][high][notify_by][email]" {% if alert_config.notifications.travel_percent_liquid.high.notify_by.email %}checked{% endif %}> ✉</label>
-                      </td>
-                    </tr>
-                    <!-- Profit Row -->
-                    <tr>
-                      <td>Profit</td>
-                      <td>
-                        <input type="checkbox" name="alert_config[limits][profit_ranges][enabled]" {% if alert_config.limits.profit_ranges.enabled %}checked{% endif %}>
-                      </td>
-                      <td>
-                        <input type="number" step="any" class="form-control" name="alert_config[limits][profit_ranges][low]" value="{{ alert_config.limits.profit_ranges.low|default(22.0) }}">
-                      </td>
-                      <td class="notify-by">
-                        <label><input type="checkbox" name="alert_config[notifications][profit][low][notify_by][call]" {% if alert_config.notifications.profit.low.notify_by.call %}checked{% endif %}> ☎</label>
-                        <label><input type="checkbox" name="alert_config[notifications][profit][low][notify_by][sms]" {% if alert_config.notifications.profit.low.notify_by.sms %}checked{% endif %}> 💬</label>
-                        <label><input type="checkbox" name="alert_config[notifications][profit][low][notify_by][email]" {% if alert_config.notifications.profit.low.notify_by.email %}checked{% endif %}> ✉</label>
-                      </td>
-                      <td>
-                        <input type="number" step="any" class="form-control" name="alert_config[limits][profit_ranges][medium]" value="{{ alert_config.limits.profit_ranges.medium|default(51.0) }}">
-                      </td>
-                      <td class="notify-by">
-                        <label><input type="checkbox" name="alert_config[notifications][profit][medium][notify_by][call]" {% if alert_config.notifications.profit.medium.notify_by.call %}checked{% endif %}> ☎</label>
-                        <label><input type="checkbox" name="alert_config[notifications][profit][medium][notify_by][sms]" {% if alert_config.notifications.profit.medium.notify_by.sms %}checked{% endif %}> 💬</label>
-                        <label><input type="checkbox" name="alert_config[notifications][profit][medium][notify_by][email]" {% if alert_config.notifications.profit.medium.notify_by.email %}checked{% endif %}> ✉</label>
-                      </td>
-                      <td>
-                        <input type="number" step="any" class="form-control" name="alert_config[limits][profit_ranges][high]" value="{{ alert_config.limits.profit_ranges.high|default(99.0) }}">
-                      </td>
-                      <td class="notify-by">
-                        <label><input type="checkbox" name="alert_config[notifications][profit][high][notify_by][call]" {% if alert_config.notifications.profit.high.notify_by.call %}checked{% endif %}> ☎</label>
-                        <label><input type="checkbox" name="alert_config[notifications][profit][high][notify_by][sms]" {% if alert_config.notifications.profit.high.notify_by.sms %}checked{% endif %}> 💬</label>
-                        <label><input type="checkbox" name="alert_config[notifications][profit][high][notify_by][email]" {% if alert_config.notifications.profit.high.notify_by.email %}checked{% endif %}> ✉</label>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
+    <!-- Position Alerts Section -->
+    <div class="card mb-4">
+      <div class="card-header bg-secondary text-white">
+        <h2 class="mb-0"><i class="fas fa-chart-line"></i> Position Alerts</h2>
+      </div>
+      <div class="card-body">
+        <!-- Heat Index Alerts -->
+        <fieldset class="mb-4">
+          <legend><i class="fas fa-fire me-2"></i> Heat Index Alerts</legend>
+          <div class="table-responsive">
+            <table class="table table-bordered">
+              <thead class="table-light">
+                <tr>
+                  <th>Level</th>
+                  <th>Threshold</th>
+                  <th>Enabled</th>
+                  <th>Notifications</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for level in ["low", "medium", "high"] %}
+                <tr>
+                  <td class="text-capitalize">{{ level }}</td>
+                  <td>
+                    <input type="number" class="form-control" name="alert_ranges[heat_index_ranges][{{ level }}]" value="{{ alert_ranges.heat_index_ranges[level] }}">
+                  </td>
+                  <td class="text-center">
+                    <input type="checkbox" name="alert_config[notifications][heat_index][{{ level }}][enabled]" {% if notifications.heat_index[level].enabled %}checked{% endif %}>
+                  </td>
+                  <td>
+                    <div class="form-check form-check-inline">
+                      <input type="checkbox" class="form-check-input" name="alert_config[notifications][heat_index][{{ level }}][notify_by][call]" {% if notifications.heat_index[level].notify_by.call %}checked{% endif %}>
+                      <label class="form-check-label">Call</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input type="checkbox" class="form-check-input" name="alert_config[notifications][heat_index][{{ level }}][notify_by][sms]" {% if notifications.heat_index[level].notify_by.sms %}checked{% endif %}>
+                      <label class="form-check-label">SMS</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input type="checkbox" class="form-check-input" name="alert_config[notifications][heat_index][{{ level }}][notify_by][email]" {% if notifications.heat_index[level].notify_by.email %}checked{% endif %}>
+                      <label class="form-check-label">Email</label>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
           </div>
+        </fieldset>
 
-          <!-- Price Alerts Settings -->
-          <div class="row card-row">
-            <div class="col-12">
-              <div class="card bg-primary">
-                <div class="card-header">
-                  <h5 class="card-title"><strong>💲 Price Alerts Settings</strong></h5>
-                </div>
-                <div class="card-body">
-                  <table class="price-alerts-table">
-                    <thead>
-                      <tr>
-                        <th>Asset</th>
-                        <th>Enabled</th>
-                        <th>Condition</th>
-                        <th>Trigger Value</th>
-                        <th>Notifications (Low)</th>
-                        <th>Notifications (Medium)</th>
-                        <th>Notifications (High)</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {% for asset in ["BTC", "ETH", "SOL"] %}
-                      <tr>
-                        <td>{{ asset }}</td>
-                        <td>
-                          <input type="checkbox" name="alert_config[limits][price_alerts][{{ asset }}][enabled]" {% if alert_config.limits.price_alerts[asset].enabled %}checked{% endif %}>
-                        </td>
-                        <td>{{ alert_config.limits.price_alerts[asset].condition }}</td>
-                        <td>
-                          <input type="number" step="any" class="form-control" name="alert_config[limits][price_alerts][{{ asset }}][trigger_value]" value="{{ alert_config.limits.price_alerts[asset].trigger_value|default(0) }}">
-                        </td>
-                        <td class="notify-by">
-                          <label><input type="checkbox" name="alert_config[notifications][price_alerts][low][notify_by][call]" {% if alert_config.notifications.price_alerts.low.notify_by.call %}checked{% endif %}> ☎</label>
-                          <label><input type="checkbox" name="alert_config[notifications][price_alerts][low][notify_by][sms]" {% if alert_config.notifications.price_alerts.low.notify_by.sms %}checked{% endif %}> 💬</label>
-                          <label><input type="checkbox" name="alert_config[notifications][price_alerts][low][notify_by][email]" {% if alert_config.notifications.price_alerts.low.notify_by.email %}checked{% endif %}> ✉</label>
-                        </td>
-                        <td class="notify-by">
-                          <label><input type="checkbox" name="alert_config[notifications][price_alerts][medium][notify_by][call]" {% if alert_config.notifications.price_alerts.medium.notify_by.call %}checked{% endif %}> ☎</label>
-                          <label><input type="checkbox" name="alert_config[notifications][price_alerts][medium][notify_by][sms]" {% if alert_config.notifications.price_alerts.medium.notify_by.sms %}checked{% endif %}> 💬</label>
-                          <label><input type="checkbox" name="alert_config[notifications][price_alerts][medium][notify_by][email]" {% if alert_config.notifications.price_alerts.medium.notify_by.email %}checked{% endif %}> ✉</label>
-                        </td>
-                        <td class="notify-by">
-                          <label><input type="checkbox" name="alert_config[notifications][price_alerts][high][notify_by][call]" {% if alert_config.notifications.price_alerts.high.notify_by.call %}checked{% endif %}> ☎</label>
-                          <label><input type="checkbox" name="alert_config[notifications][price_alerts][high][notify_by][sms]" {% if alert_config.notifications.price_alerts.high.notify_by.sms %}checked{% endif %}> 💬</label>
-                          <label><input type="checkbox" name="alert_config[notifications][price_alerts][high][notify_by][email]" {% if alert_config.notifications.price_alerts.high.notify_by.email %}checked{% endif %}> ✉</label>
-                        </td>
-                      </tr>
-                      {% endfor %}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
+        <!-- Travel Percent Liquid Alerts -->
+        <fieldset class="mb-4">
+          <legend><i class="fas fa-route me-2"></i> Travel Percent Liquid Alerts</legend>
+          <div class="table-responsive">
+            <table class="table table-bordered">
+              <thead class="table-light">
+                <tr>
+                  <th>Level</th>
+                  <th>Threshold</th>
+                  <th>Enabled</th>
+                  <th>Notifications</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for level in ["low", "medium", "high"] %}
+                <tr>
+                  <td class="text-capitalize">{{ level }}</td>
+                  <td>
+                    <input type="number" class="form-control" name="alert_ranges[travel_percent_liquid_ranges][{{ level }}]" value="{{ alert_ranges.travel_percent_liquid_ranges[level] }}">
+                  </td>
+                  <td class="text-center">
+                    <input type="checkbox" name="alert_config[notifications][travel_percent_liquid][{{ level }}][enabled]" {% if notifications.travel_percent_liquid[level].enabled %}checked{% endif %}>
+                  </td>
+                  <td>
+                    <div class="form-check form-check-inline">
+                      <input type="checkbox" class="form-check-input" name="alert_config[notifications][travel_percent_liquid][{{ level }}][notify_by][call]" {% if notifications.travel_percent_liquid[level].notify_by.call %}checked{% endif %}>
+                      <label class="form-check-label">Call</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input type="checkbox" class="form-check-input" name="alert_config[notifications][travel_percent_liquid][{{ level }}][notify_by][sms]" {% if notifications.travel_percent_liquid[level].notify_by.sms %}checked{% endif %}>
+                      <label class="form-check-label">SMS</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input type="checkbox" class="form-check-input" name="alert_config[notifications][travel_percent_liquid][{{ level }}][notify_by][email]" {% if notifications.travel_percent_liquid[level].notify_by.email %}checked{% endif %}>
+                      <label class="form-check-label">Email</label>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
           </div>
+        </fieldset>
 
-          <!-- Save Button -->
-          <div class="row mt-4">
-            <div class="col-12 text-center">
-              <button type="submit" class="btn btn-success btn-lg">Save Configuration</button>
-            </div>
+        <!-- Profit Alerts -->
+        <fieldset>
+          <legend><i class="fas fa-coins me-2"></i> Profit Alerts</legend>
+          <div class="table-responsive">
+            <table class="table table-bordered">
+              <thead class="table-light">
+                <tr>
+                  <th>Level</th>
+                  <th>Threshold</th>
+                  <th>Enabled</th>
+                  <th>Notifications</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for level in ["low", "medium", "high"] %}
+                <tr>
+                  <td class="text-capitalize">{{ level }}</td>
+                  <td>
+                    <input type="number" class="form-control" name="alert_ranges[profit_ranges][{{ level }}]" value="{{ alert_ranges.profit_ranges[level] }}">
+                  </td>
+                  <td class="text-center">
+                    <input type="checkbox" name="alert_config[notifications][profit][{{ level }}][enabled]" {% if notifications.profit[level].enabled %}checked{% endif %}>
+                  </td>
+                  <td>
+                    <div class="form-check form-check-inline">
+                      <input type="checkbox" class="form-check-input" name="alert_config[notifications][profit][{{ level }}][notify_by][call]" {% if notifications.profit[level].notify_by.call %}checked{% endif %}>
+                      <label class="form-check-label">Call</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input type="checkbox" class="form-check-input" name="alert_config[notifications][profit][{{ level }}][notify_by][sms]" {% if notifications.profit[level].notify_by.sms %}checked{% endif %}>
+                      <label class="form-check-label">SMS</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input type="checkbox" class="form-check-input" name="alert_config[notifications][profit][{{ level }}][notify_by][email]" {% if notifications.profit[level].notify_by.email %}checked{% endif %}>
+                      <label class="form-check-label">Email</label>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </fieldset>
+      </div>
+    </div>
+
+    <!-- Global Alerts Section -->
+    <div class="card mb-4">
+      <div class="card-header bg-info text-white">
+        <h2 class="mb-0"><i class="fas fa-globe"></i> Global Alerts</h2>
+      </div>
+      <div class="card-body">
+        <div class="row mb-3 align-items-center">
+          <div class="col-md-4">
+            <label class="form-label">Enable Global Alerts:</label>
+            <input type="checkbox" class="form-check-input" name="global_alert_config[enabled]" {% if global_alert_config.enabled %}checked{% endif %}>
           </div>
         </div>
-      </section>
-    </form>
-  </div>
+        <div class="row mb-3">
+          <label class="form-label">Data Fields:</label>
+          <div class="col-md-3 form-check">
+            <input type="checkbox" class="form-check-input" name="global_alert_config[data_fields][price]" id="global_price" {% if global_alert_config.data_fields.price %}checked{% endif %}>
+            <label class="form-check-label" for="global_price">Price</label>
+          </div>
+          <div class="col-md-3 form-check">
+            <input type="checkbox" class="form-check-input" name="global_alert_config[data_fields][profit]" id="global_profit" {% if global_alert_config.data_fields.profit %}checked{% endif %}>
+            <label class="form-check-label" for="global_profit">Profit</label>
+          </div>
+          <div class="col-md-3 form-check">
+            <input type="checkbox" class="form-check-input" name="global_alert_config[data_fields][travel_percent]" id="global_travel" {% if global_alert_config.data_fields.travel_percent %}checked{% endif %}>
+            <label class="form-check-label" for="global_travel">Travel</label>
+          </div>
+          <div class="col-md-3 form-check">
+            <input type="checkbox" class="form-check-input" name="global_alert_config[data_fields][heat_index]" id="global_heat" {% if global_alert_config.data_fields.heat_index %}checked{% endif %}>
+            <label class="form-check-label" for="global_heat">Heat</label>
+          </div>
+        </div>
+        <div class="row mb-3">
+          <label class="form-label">Price Thresholds:</label>
+          <div class="col-md-4">
+            BTC: <input type="number" class="form-control" name="global_alert_config[thresholds][price][BTC]" value="{{ global_alert_config.thresholds.price.BTC }}">
+          </div>
+          <div class="col-md-4">
+            ETH: <input type="number" class="form-control" name="global_alert_config[thresholds][price][ETH]" value="{{ global_alert_config.thresholds.price.ETH }}">
+          </div>
+          <div class="col-md-4">
+            SOL: <input type="number" class="form-control" name="global_alert_config[thresholds][price][SOL]" value="{{ global_alert_config.thresholds.price.SOL }}">
+          </div>
+        </div>
+        <div class="row mb-3">
+          <div class="col-md-4">
+            <label class="form-label">Profit Threshold:</label>
+            <input type="number" class="form-control" name="global_alert_config[thresholds][profit]" value="{{ global_alert_config.thresholds.profit }}">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Travel Threshold:</label>
+            <input type="number" class="form-control" name="global_alert_config[thresholds][travel_percent]" value="{{ global_alert_config.thresholds.travel_percent }}">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Heat Index Threshold:</label>
+            <input type="number" class="form-control" name="global_alert_config[thresholds][heat_index]" value="{{ global_alert_config.thresholds.heat_index }}">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- System Alerts Section -->
+    <div class="card mb-4">
+      <div class="card-header bg-dark text-white">
+        <h2 class="mb-0"><i class="fas fa-cogs"></i> System Alerts</h2>
+      </div>
+      <div class="card-body">
+        <div class="row mb-3 align-items-center">
+          <div class="col-md-4">
+            <label class="form-label">Alert Cooldown (s):</label>
+            <input type="number" class="form-control" name="alert_cooldown_seconds" value="{{ alert_cooldown_seconds }}">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Call Refractory (s):</label>
+            <input type="number" class="form-control" name="call_refractory_period" value="{{ call_refractory_period }}">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Snooze Countdown (s):</label>
+            <input type="number" class="form-control" name="alert_config[snooze_countdown]" value="300" readonly>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Save Button -->
+    <div class="d-flex justify-content-end">
+      <button type="submit" class="btn btn-success">Save Configuration</button>
+      <span id="save-confirmation" class="text-success ms-2"></span>
+    </div>
+
+  </form>
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
-  // Additional JavaScript can be added here if necessary
+  // AJAX Form Submission with Save Confirmation
+  document.getElementById('alertForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    fetch(this.action, {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+      const confirmation = document.getElementById('save-confirmation');
+      if(data.success) {
+        confirmation.textContent = data.message;
+        setTimeout(() => { confirmation.textContent = ""; }, 3000);
+      } else {
+        confirmation.textContent = "Error: " + data.error;
+      }
+    })
+    .catch(error => {
+      document.getElementById('save-confirmation').textContent = "Error: " + error;
+    });
+  });
 </script>
 {% endblock %}

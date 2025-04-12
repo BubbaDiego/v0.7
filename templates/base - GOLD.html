@@ -1,181 +1,272 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset="UTF-8">
-  <title>Dual Circle + Animated Ring Timers</title>
+  <title>Sidebar Variations for Alert Layouts</title>
+  <!-- Load Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f0f0f0;
-      margin: 0; 
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+    /* Global Styles */
+    body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 20px; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    h1 { margin-bottom: 20px; }
+    .form-field { margin-bottom: 10px; }
+    .form-field label { margin-right: 8px; }
+    input[type="number"] { width: 100px; padding: 5px; }
+    button.save { margin-top: 10px; padding: 5px 10px; cursor: pointer; }
+    .save-confirmation { margin-left: 10px; color: green; }
+    
+    /* Variation Tabs */
+    .variation-tabs { margin-bottom: 20px; }
+    .variation-tab {
+      display: inline-block; padding: 10px 15px; margin-right: 5px; background: #ddd; cursor: pointer; border-radius: 4px;
     }
-
-    h1 {
-      margin-bottom: 1rem;
+    .variation-tab.active { background: #fff; border: 1px solid #ccc; }
+    
+    /* Variation 1: Classic Fixed Sidebar */
+    .classic-layout { display: flex; }
+    .classic-sidebar {
+      width: 220px; background: #2C3E50; color: #fff; padding: 15px; min-height: 300px;
     }
-
-    .timer-row {
-      display: flex;
-      gap: 60px;
-      flex-wrap: wrap;
-      justify-content: center;
-      margin-top: 20px;
+    .classic-sidebar ul { list-style: none; padding: 0; }
+    .classic-sidebar li { margin: 15px 0; cursor: pointer; }
+    .classic-sidebar li.active { font-weight: bold; }
+    .classic-sidebar li i { margin-right: 8px; }
+    .classic-content { flex: 1; background: #fff; padding: 20px; margin-left: 20px; box-shadow: 0 0 5px rgba(0,0,0,0.1); }
+    
+    /* Variation 2: Modern Sidebar with Gradient */
+    .modern-layout { display: flex; }
+    .modern-sidebar {
+      width: 200px; background: linear-gradient(135deg, #1abc9c, #16a085); color: #fff; padding: 15px; border-radius: 8px;
     }
-
-    /* Outer wrapper: layers the background, the animated ring, and the inner icon */
-    .timer-wrapper {
-      position: relative;
-      width: 120px;
-      height: 120px;
+    .modern-sidebar ul { list-style: none; padding: 0; }
+    .modern-sidebar li {
+      margin: 12px 0; cursor: pointer; padding: 8px; border-radius: 4px; transition: background 0.3s;
     }
-
-    /* Big colored background circle */
-    .background-circle {
-      position: absolute;
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-      top: 0;
-      left: 0;
-      z-index: 1;
+    .modern-sidebar li:hover { background: rgba(255,255,255,0.2); }
+    .modern-sidebar li.active { background: rgba(0,0,0,0.2); font-weight: bold; }
+    .modern-sidebar li i { margin-right: 8px; }
+    .modern-content { flex: 1; background: #fff; padding: 20px; margin-left: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    
+    /* Variation 3: Overlay Sidebar */
+    .overlay-layout { position: relative; }
+    .overlay-sidebar { 
+      position: fixed; top: 0; left: -250px; width: 250px; height: 100%; background: #34495e; color: #fff; padding: 20px; transition: left 0.3s ease; z-index: 1000;
     }
-
-    /* Animated ring using an SVG circle */
-    .progress-ring {
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 2;
-    }
-    .progress-ring__circle {
-      transition: stroke-dashoffset 1s linear;
-      transform: rotate(-90deg); /* Start at the top */
-      transform-origin: 50% 50%;
-    }
-
-    /* White inner circle with the icon; increased size to 60px */
-    .inner-icon-circle {
-      position: absolute;
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: #fff;
-      z-index: 3;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .inner-icon-circle svg {
-      width: 80%;
-      height: 80%;
-    }
+    .overlay-sidebar ul { list-style: none; padding: 0; }
+    .overlay-sidebar li { margin: 15px 0; cursor: pointer; }
+    .overlay-sidebar li.active { font-weight: bold; }
+    .overlay-sidebar li i { margin-right: 8px; }
+    .overlay-content { margin-left: 0; padding: 20px; background: #fff; box-shadow: 0 0 5px rgba(0,0,0,0.1); min-height: 300px; }
+    .menu-button { background: #2980b9; color: #fff; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; }
+    .overlay-active { left: 0; }
   </style>
 </head>
 <body>
-  <h1>Den Mother &amp; Price Monitor with Bigger Inner Icons</h1>
-
-  <div class="timer-row">
-
-    <!-- Den Mother Timer -->
-    <div class="timer-wrapper">
-      <!-- Background circle -->
-      <div class="background-circle" style="background-color: #8ac575;"></div>
-      <!-- Animated ring -->
-      <svg class="progress-ring" width="120" height="120">
-        <circle
-          id="denRing"
-          class="progress-ring__circle"
-          stroke="#5a9245"
-          stroke-width="8"
-          fill="transparent"
-          r="56"
-          cx="60"
-          cy="60"
-        />
-      </svg>
-      <!-- White inner circle with larger Shield Check icon -->
-      <div class="inner-icon-circle">
-        <svg viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 1L4 5v6c0 5.5 3.7 10.5 8 12 4.3-1.5 8-6.5 8-12V5l-8-4z"/>
-          <path d="M9 11l2 2 4-4" stroke="#fff" stroke-width="2" fill="none"/>
-        </svg>
+  <div class="container">
+    <h1>Sidebar Variations for Alert Layouts</h1>
+    <p>Hey babie, below you'll find 3 variations of the sidebar approach. Click the tabs above to switch among the designs.</p>
+    
+    <!-- Variation Tabs -->
+    <div class="variation-tabs">
+      <span class="variation-tab active" data-variation="variation1">Variation 1: Classic</span>
+      <span class="variation-tab" data-variation="variation2">Variation 2: Modern</span>
+      <span class="variation-tab" data-variation="variation3">Variation 3: Overlay</span>
+    </div>
+    
+    <!-- Variation 1: Classic Fixed Sidebar -->
+    <div id="variation1" class="variation-content">
+      <div class="classic-layout">
+        <div class="classic-sidebar">
+          <ul>
+            <li class="active" onclick="showContent('classic', 'price')"><i class="fas fa-dollar-sign"></i> Price Alerts</li>
+            <li onclick="showContent('classic', 'position')"><i class="fas fa-chart-line"></i> Position Alerts</li>
+            <li onclick="showContent('classic', 'global')"><i class="fas fa-globe"></i> Global Alerts</li>
+            <li onclick="showContent('classic', 'system')"><i class="fas fa-cogs"></i> System Alerts</li>
+          </ul>
+        </div>
+        <div class="classic-content" id="classic-content">
+          <!-- Default: Price Alerts -->
+          <h2><i class="fas fa-dollar-sign"></i> Price Alerts</h2>
+          <div class="form-field">
+            <label>BTC Trigger Value:</label>
+            <input type="number" value="77667.0">
+            <label>Enabled: <input type="checkbox" checked></label>
+          </div>
+          <div class="form-field">
+            <label>ETH Trigger Value:</label>
+            <input type="number" value="1926.84">
+            <label>Enabled: <input type="checkbox" checked></label>
+          </div>
+          <div class="form-field">
+            <label>SOL Trigger Value:</label>
+            <input type="number" value="133.9">
+            <label>Enabled: <input type="checkbox" checked></label>
+          </div>
+          <button class="save" onclick="confirmSave('classic-confirm')">Save Price Alerts</button>
+          <span id="classic-confirm" class="save-confirmation"></span>
+        </div>
       </div>
     </div>
-
-    <!-- Price Monitor Timer -->
-    <div class="timer-wrapper">
-      <!-- Background circle -->
-      <div class="background-circle" style="background-color: #7db3f5;"></div>
-      <!-- Animated ring -->
-      <svg class="progress-ring" width="120" height="120">
-        <circle
-          id="priceRing"
-          class="progress-ring__circle"
-          stroke="#5f9de0"
-          stroke-width="8"
-          fill="transparent"
-          r="56"
-          cx="60"
-          cy="60"
-        />
-      </svg>
-      <!-- White inner circle with larger Dollar Circle icon -->
-      <div class="inner-icon-circle">
-        <svg viewBox="0 0 24 24" fill="#fff">
-          <circle cx="12" cy="12" r="10"/>
-          <text x="12" y="16" text-anchor="middle" font-size="12" fill="#7db3f5">$</text>
-        </svg>
+    
+    <!-- Variation 2: Modern Sidebar with Gradient -->
+    <div id="variation2" class="variation-content" style="display:none;">
+      <div class="modern-layout">
+        <div class="modern-sidebar">
+          <ul>
+            <li class="active" onclick="showContent('modern', 'price')"><i class="fas fa-dollar-sign"></i> Price Alerts</li>
+            <li onclick="showContent('modern', 'position')"><i class="fas fa-chart-line"></i> Position Alerts</li>
+            <li onclick="showContent('modern', 'global')"><i class="fas fa-globe"></i> Global Alerts</li>
+            <li onclick="showContent('modern', 'system')"><i class="fas fa-cogs"></i> System Alerts</li>
+          </ul>
+        </div>
+        <div class="modern-content" id="modern-content">
+          <!-- Default: Price Alerts -->
+          <h2><i class="fas fa-dollar-sign"></i> Price Alerts</h2>
+          <div class="form-field">
+            <label>BTC Trigger Value:</label>
+            <input type="number" value="77667.0">
+            <label>Enabled: <input type="checkbox" checked></label>
+          </div>
+          <div class="form-field">
+            <label>ETH Trigger Value:</label>
+            <input type="number" value="1926.84">
+            <label>Enabled: <input type="checkbox" checked></label>
+          </div>
+          <div class="form-field">
+            <label>SOL Trigger Value:</label>
+            <input type="number" value="133.9">
+            <label>Enabled: <input type="checkbox" checked></label>
+          </div>
+          <button class="save" onclick="confirmSave('modern-confirm')">Save Price Alerts</button>
+          <span id="modern-confirm" class="save-confirmation"></span>
+        </div>
       </div>
     </div>
-
+    
+    <!-- Variation 3: Overlay Sidebar -->
+    <div id="variation3" class="variation-content" style="display:none;">
+      <div class="overlay-layout">
+        <button class="menu-button" onclick="toggleOverlay()">☰ Menu</button>
+        <div class="overlay-sidebar" id="overlay-sidebar">
+          <ul>
+            <li class="active" onclick="showContent('overlay', 'price'); toggleOverlay()"><i class="fas fa-dollar-sign"></i> Price Alerts</li>
+            <li onclick="showContent('overlay', 'position'); toggleOverlay()"><i class="fas fa-chart-line"></i> Position Alerts</li>
+            <li onclick="showContent('overlay', 'global'); toggleOverlay()"><i class="fas fa-globe"></i> Global Alerts</li>
+            <li onclick="showContent('overlay', 'system'); toggleOverlay()"><i class="fas fa-cogs"></i> System Alerts</li>
+          </ul>
+        </div>
+        <div class="overlay-content" id="overlay-content">
+          <!-- Default: Price Alerts -->
+          <h2><i class="fas fa-dollar-sign"></i> Price Alerts</h2>
+          <div class="form-field">
+            <label>BTC Trigger Value:</label>
+            <input type="number" value="77667.0">
+            <label>Enabled: <input type="checkbox" checked></label>
+          </div>
+          <div class="form-field">
+            <label>ETH Trigger Value:</label>
+            <input type="number" value="1926.84">
+            <label>Enabled: <input type="checkbox" checked></label>
+          </div>
+          <div class="form-field">
+            <label>SOL Trigger Value:</label>
+            <input type="number" value="133.9">
+            <label>Enabled: <input type="checkbox" checked></label>
+          </div>
+          <button class="save" onclick="confirmSave('overlay-confirm')">Save Price Alerts</button>
+          <span id="overlay-confirm" class="save-confirmation"></span>
+        </div>
+      </div>
+    </div>
   </div>
-
+  
   <script>
-    // Both timers are 60 seconds for demo purposes.
-    let denTimeLeft = 60;
-    let priceTimeLeft = 60;
-
-    // Den Mother ring setup.
-    const denCircle = document.getElementById('denRing');
-    const denRadius = denCircle.r.baseVal.value;
-    const denCircumference = 2 * Math.PI * denRadius;
-    denCircle.style.strokeDasharray = denCircumference;
-    denCircle.style.strokeDashoffset = 0;
-
-    function updateDenMother() {
-      denTimeLeft--;
-      if (denTimeLeft < 0) denTimeLeft = 0;
-      const fraction = denTimeLeft / 60;
-      const offset = denCircumference - (fraction * denCircumference);
-      denCircle.style.strokeDashoffset = offset;
+    // Variation Tabs Switching
+    document.querySelectorAll('.variation-tab').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.variation-tab').forEach(function(t) { t.classList.remove('active'); });
+        document.querySelectorAll('.variation-content').forEach(function(c) { c.style.display = 'none'; });
+        tab.classList.add('active');
+        document.getElementById(tab.getAttribute('data-variation')).style.display = 'block';
+      });
+    });
+    
+    // Generic function to switch content in each variation's main area
+    function showContent(layout, category) {
+      let contentId;
+      if(layout === 'classic') { contentId = 'classic-content'; }
+      else if(layout === 'modern') { contentId = 'modern-content'; }
+      else if(layout === 'overlay') { contentId = 'overlay-content'; }
+      
+      let content = document.getElementById(contentId);
+      if(category === 'price') {
+        content.innerHTML = '<h2><i class="fas fa-dollar-sign"></i> Price Alerts</h2>' +
+          '<div class="form-field"><label>BTC Trigger Value:</label><input type="number" value="77667.0"><label>Enabled: <input type="checkbox" checked></label></div>' +
+          '<div class="form-field"><label>ETH Trigger Value:</label><input type="number" value="1926.84"><label>Enabled: <input type="checkbox" checked></label></div>' +
+          '<div class="form-field"><label>SOL Trigger Value:</label><input type="number" value="133.9"><label>Enabled: <input type="checkbox" checked></label></div>' +
+          '<button class="save" onclick="confirmSave(\''+layout+'-confirm\')">Save Price Alerts</button>' +
+          '<span id="'+layout+'-confirm" class="save-confirmation"></span>';
+      } else if(category === 'position') {
+        content.innerHTML = '<h2><i class="fas fa-chart-line"></i> Position Alerts</h2>' +
+          '<h3>Heat Index</h3>' +
+          '<div class="form-field"><label>Enabled:</label><input type="checkbox" checked></div>' +
+          '<div class="form-field"><label>Low:</label><input type="number" value="12.0"></div>' +
+          '<div class="form-field"><label>Medium:</label><input type="number" value="33.0"></div>' +
+          '<div class="form-field"><label>High:</label><input type="number" value="66.0"></div>' +
+          '<h3>Travel Percent Liquid</h3>' +
+          '<div class="form-field"><label>Enabled:</label><input type="checkbox" checked></div>' +
+          '<div class="form-field"><label>Low:</label><input type="number" value="-25.0"></div>' +
+          '<div class="form-field"><label>Medium:</label><input type="number" value="-50.0"></div>' +
+          '<div class="form-field"><label>High:</label><input type="number" value="-75.0"></div>' +
+          '<h3>Profit</h3>' +
+          '<div class="form-field"><label>Enabled:</label><input type="checkbox" checked></div>' +
+          '<div class="form-field"><label>Low:</label><input type="number" value="22.0"></div>' +
+          '<div class="form-field"><label>Medium:</label><input type="number" value="51.0"></div>' +
+          '<div class="form-field"><label>High:</label><input type="number" value="99.0"></div>' +
+          '<button class="save" onclick="confirmSave(\''+layout+'-confirm\')">Save Position Alerts</button>' +
+          '<span id="'+layout+'-confirm" class="save-confirmation"></span>';
+      } else if(category === 'global') {
+        content.innerHTML = '<h2><i class="fas fa-globe"></i> Global Alerts</h2>' +
+          '<div class="form-field"><label>Enabled:</label><input type="checkbox"></div>' +
+          '<div class="form-field"><strong>Data Fields:</strong><br>' +
+          'Price <input type="checkbox"> ' +
+          'Profit <input type="checkbox"> ' +
+          'Travel Percent <input type="checkbox"> ' +
+          'Heat Index <input type="checkbox"></div>' +
+          '<div class="form-field"><strong>Price Thresholds:</strong><br>' +
+          'BTC: <input type="number" value="0.0"><br>' +
+          'ETH: <input type="number" value="0.0"><br>' +
+          'SOL: <input type="number" value="0.0"></div>' +
+          '<div class="form-field">Profit Threshold: <input type="number" value="0.0"></div>' +
+          '<div class="form-field">Travel Percent Threshold: <input type="number" value="0.0"></div>' +
+          '<div class="form-field">Heat Index Threshold: <input type="number" value="0.0"></div>' +
+          '<button class="save" onclick="confirmSave(\''+layout+'-confirm\')">Save Global Alerts</button>' +
+          '<span id="'+layout+'-confirm" class="save-confirmation"></span>';
+      } else if(category === 'system') {
+        content.innerHTML = '<h2><i class="fas fa-cogs"></i> System Alerts</h2>' +
+          '<div class="form-field"><label>Alert Cooldown (sec):</label><input type="number" value="133.0"></div>' +
+          '<div class="form-field"><label>Call Refractory (sec):</label><input type="number" value="873.0"></div>' +
+          '<div class="form-field"><label>Snooze Countdown (sec):</label><input type="number" value="300.0"></div>' +
+          '<button class="save" onclick="confirmSave(\''+layout+'-confirm\')">Save System Alerts</button>' +
+          '<span id="'+layout+'-confirm" class="save-confirmation"></span>';
+      }
     }
-
-    // Price Monitor ring setup.
-    const priceCircle = document.getElementById('priceRing');
-    const priceRadius = priceCircle.r.baseVal.value;
-    const priceCircumference = 2 * Math.PI * priceRadius;
-    priceCircle.style.strokeDasharray = priceCircumference;
-    priceCircle.style.strokeDashoffset = 0;
-
-    function updatePrice() {
-      priceTimeLeft--;
-      if (priceTimeLeft < 0) priceTimeLeft = 0;
-      const fraction = priceTimeLeft / 60;
-      const offset = priceCircumference - (fraction * priceCircumference);
-      priceCircle.style.strokeDashoffset = offset;
+    
+    // Save Confirmation
+    function confirmSave(elementId) {
+      let el = document.getElementById(elementId);
+      if(el) {
+        el.textContent = "Saved!";
+        setTimeout(() => { el.textContent = ""; }, 2000);
+      }
     }
-
-    setInterval(() => {
-      updateDenMother();
-      updatePrice();
-    }, 1000);
+    
+    // Overlay Sidebar Toggle (Variation 3)
+    function toggleOverlay() {
+      let overlay = document.getElementById('overlay-sidebar');
+      overlay.classList.toggle('overlay-active');
+    }
   </script>
 </body>
 </html>

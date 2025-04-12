@@ -1,0 +1,1 @@
+when responding regarding code snippets.  always reference the filename and give full methods of modification and full files for html files.  Asking for clarity is fine.[alerts_bp.py](alerts_bp.py)
