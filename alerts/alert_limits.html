@@ -10,46 +10,114 @@
 <div class="container mt-4">
   <form id="alertForm" method="POST" action="{{ url_for('alerts_bp.update_alert_config') }}">
 
-    <!-- Price Alerts Section -->
-    <div class="card mb-4">
-      <div class="card-header bg-primary text-white">
-        <h2 class="mb-0"><i class="fas fa-dollar-sign"></i> Price Alerts</h2>
+    <!-- Row for Price Alerts and Global Alerts -->
+    <div class="row">
+      <!-- Price Alerts Section (Half Width) -->
+      <div class="col-md-6">
+        <div class="card mb-4">
+          <div class="card-header bg-primary text-white">
+            <h2 class="mb-0"><i class="fas fa-dollar-sign"></i> Price Alerts</h2>
+          </div>
+          <div class="card-body">
+            {% for asset, config in price_alerts.items() %}
+            <div class="row mb-3 align-items-center">
+              <!-- Asset Icon -->
+              <div class="col-md-1 text-center">
+                {% if asset_icons and asset_icons[asset] %}
+                  <img src="{{ asset_icons[asset] }}" alt="{{ asset }} icon" class="img-fluid" style="max-width: 30px;">
+                {% else %}
+                  <i class="fas fa-coins"></i>
+                {% endif %}
+              </div>
+              <!-- Trigger Value Input -->
+              <div class="col-md-3">
+                <label class="form-label">{{ asset }} Trigger:</label>
+                <input type="number" class="form-control" name="alert_ranges[price_alerts][{{ asset }}][trigger_value]" value="{{ config.trigger_value }}">
+              </div>
+              <!-- Condition Dropdown -->
+              <div class="col-md-3">
+                <label class="form-label">Condition</label>
+                <select class="form-select" name="alert_ranges[price_alerts][{{ asset }}][condition]">
+                  <option value="ABOVE" {% if config.condition == 'ABOVE' %}selected{% endif %}>Above</option>
+                  <option value="BELOW" {% if config.condition == 'BELOW' %}selected{% endif %}>Below</option>
+                </select>
+              </div>
+              <!-- Enabled Checkbox with Hidden Field -->
+              <div class="col-md-2">
+                <div class="form-check mt-4">
+                  <input type="hidden" name="alert_ranges[price_alerts][{{ asset }}][enabled]" value="false">
+                  <input type="checkbox" class="form-check-input" name="alert_ranges[price_alerts][{{ asset }}][enabled]" id="enabled_{{ asset }}" value="true" {% if config.enabled %}checked{% endif %}>
+                  <label class="form-check-label" for="enabled_{{ asset }}">Enabled</label>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
       </div>
-      <div class="card-body">
-        {% for asset, config in price_alerts.items() %}
-        <div class="row mb-3 align-items-center">
-          <!-- Asset Icon -->
-          <div class="col-md-1 text-center">
-            {% if asset_icons and asset_icons[asset] %}
-              <img src="{{ asset_icons[asset] }}" alt="{{ asset }} icon" class="img-fluid" style="max-width: 30px;">
-            {% else %}
-              <i class="fas fa-coins"></i>
-            {% endif %}
+
+      <!-- Global Alerts Section (Half Width) -->
+      <div class="col-md-6">
+        <div class="card mb-4">
+          <div class="card-header bg-info text-white">
+            <h2 class="mb-0"><i class="fas fa-globe"></i> Global Alerts</h2>
           </div>
-          <!-- Trigger Value Input -->
-          <div class="col-md-3">
-            <label class="form-label">{{ asset }} Trigger:</label>
-            <input type="number" class="form-control" name="alert_ranges[price_alerts][{{ asset }}][trigger_value]" value="{{ config.trigger_value }}">
-          </div>
-          <!-- Condition Dropdown -->
-          <div class="col-md-3">
-            <label class="form-label">Condition</label>
-            <select class="form-select" name="alert_ranges[price_alerts][{{ asset }}][condition]">
-              <option value="ABOVE" {% if config.condition == 'ABOVE' %}selected{% endif %}>Above</option>
-              <option value="BELOW" {% if config.condition == 'BELOW' %}selected{% endif %}>Below</option>
-            </select>
-          </div>
-          <!-- Enabled Checkbox -->
-          <div class="col-md-2">
-            <div class="form-check mt-4">
-              <input type="checkbox" class="form-check-input" name="alert_ranges[price_alerts][{{ asset }}][enabled]" id="enabled_{{ asset }}" {% if config.enabled %}checked{% endif %}>
-              <label class="form-check-label" for="enabled_{{ asset }}">Enabled</label>
+          <div class="card-body">
+            <div class="row mb-3 align-items-center">
+              <div class="col-md-4">
+                <label class="form-label">Enable Global Alerts:</label>
+                <input type="checkbox" class="form-check-input" name="global_alert_config[enabled]" value="true" {% if global_alert_config.enabled %}checked{% endif %}>
+              </div>
+            </div>
+            <div class="row mb-3">
+              <label class="form-label">Data Fields:</label>
+              <div class="col-md-3 form-check">
+                <input type="checkbox" class="form-check-input" name="global_alert_config[data_fields][price]" id="global_price" value="true" {% if global_alert_config.data_fields.price %}checked{% endif %}>
+                <label class="form-check-label" for="global_price">Price</label>
+              </div>
+              <div class="col-md-3 form-check">
+                <input type="checkbox" class="form-check-input" name="global_alert_config[data_fields][profit]" id="global_profit" value="true" {% if global_alert_config.data_fields.profit %}checked{% endif %}>
+                <label class="form-check-label" for="global_profit">Profit</label>
+              </div>
+              <div class="col-md-3 form-check">
+                <input type="checkbox" class="form-check-input" name="global_alert_config[data_fields][travel_percent]" id="global_travel" value="true" {% if global_alert_config.data_fields.travel_percent %}checked{% endif %}>
+                <label class="form-check-label" for="global_travel">Travel</label>
+              </div>
+              <div class="col-md-3 form-check">
+                <input type="checkbox" class="form-check-input" name="global_alert_config[data_fields][heat_index]" id="global_heat" value="true" {% if global_alert_config.data_fields.heat_index %}checked{% endif %}>
+                <label class="form-check-label" for="global_heat">Heat</label>
+              </div>
+            </div>
+            <div class="row mb-3">
+              <label class="form-label">Price Thresholds:</label>
+              <div class="col-md-4">
+                BTC: <input type="number" class="form-control" name="global_alert_config[thresholds][price][BTC]" value="{{ global_alert_config.thresholds.price.BTC }}">
+              </div>
+              <div class="col-md-4">
+                ETH: <input type="number" class="form-control" name="global_alert_config[thresholds][price][ETH]" value="{{ global_alert_config.thresholds.price.ETH }}">
+              </div>
+              <div class="col-md-4">
+                SOL: <input type="number" class="form-control" name="global_alert_config[thresholds][price][SOL]" value="{{ global_alert_config.thresholds.price.SOL }}">
+              </div>
+            </div>
+            <div class="row mb-3">
+              <div class="col-md-4">
+                <label class="form-label">Profit Threshold:</label>
+                <input type="number" class="form-control" name="global_alert_config[thresholds][profit]" value="{{ global_alert_config.thresholds.profit }}">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Travel Threshold:</label>
+                <input type="number" class="form-control" name="global_alert_config[thresholds][travel_percent]" value="{{ global_alert_config.thresholds.travel_percent }}">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Heat Index Threshold:</label>
+                <input type="number" class="form-control" name="global_alert_config[thresholds][heat_index]" value="{{ global_alert_config.thresholds.heat_index }}">
+              </div>
             </div>
           </div>
         </div>
-        {% endfor %}
       </div>
-    </div>
+    </div> <!-- End of Row for Price Alerts and Global Alerts -->
 
     <!-- Position Alerts Section -->
     <div class="card mb-4">
@@ -188,66 +256,6 @@
             </table>
           </div>
         </fieldset>
-      </div>
-    </div>
-
-    <!-- Global Alerts Section -->
-    <div class="card mb-4">
-      <div class="card-header bg-info text-white">
-        <h2 class="mb-0"><i class="fas fa-globe"></i> Global Alerts</h2>
-      </div>
-      <div class="card-body">
-        <div class="row mb-3 align-items-center">
-          <div class="col-md-4">
-            <label class="form-label">Enable Global Alerts:</label>
-            <input type="checkbox" class="form-check-input" name="global_alert_config[enabled]" {% if global_alert_config.enabled %}checked{% endif %}>
-          </div>
-        </div>
-        <div class="row mb-3">
-          <label class="form-label">Data Fields:</label>
-          <div class="col-md-3 form-check">
-            <input type="checkbox" class="form-check-input" name="global_alert_config[data_fields][price]" id="global_price" {% if global_alert_config.data_fields.price %}checked{% endif %}>
-            <label class="form-check-label" for="global_price">Price</label>
-          </div>
-          <div class="col-md-3 form-check">
-            <input type="checkbox" class="form-check-input" name="global_alert_config[data_fields][profit]" id="global_profit" {% if global_alert_config.data_fields.profit %}checked{% endif %}>
-            <label class="form-check-label" for="global_profit">Profit</label>
-          </div>
-          <div class="col-md-3 form-check">
-            <input type="checkbox" class="form-check-input" name="global_alert_config[data_fields][travel_percent]" id="global_travel" {% if global_alert_config.data_fields.travel_percent %}checked{% endif %}>
-            <label class="form-check-label" for="global_travel">Travel</label>
-          </div>
-          <div class="col-md-3 form-check">
-            <input type="checkbox" class="form-check-input" name="global_alert_config[data_fields][heat_index]" id="global_heat" {% if global_alert_config.data_fields.heat_index %}checked{% endif %}>
-            <label class="form-check-label" for="global_heat">Heat</label>
-          </div>
-        </div>
-        <div class="row mb-3">
-          <label class="form-label">Price Thresholds:</label>
-          <div class="col-md-4">
-            BTC: <input type="number" class="form-control" name="global_alert_config[thresholds][price][BTC]" value="{{ global_alert_config.thresholds.price.BTC }}">
-          </div>
-          <div class="col-md-4">
-            ETH: <input type="number" class="form-control" name="global_alert_config[thresholds][price][ETH]" value="{{ global_alert_config.thresholds.price.ETH }}">
-          </div>
-          <div class="col-md-4">
-            SOL: <input type="number" class="form-control" name="global_alert_config[thresholds][price][SOL]" value="{{ global_alert_config.thresholds.price.SOL }}">
-          </div>
-        </div>
-        <div class="row mb-3">
-          <div class="col-md-4">
-            <label class="form-label">Profit Threshold:</label>
-            <input type="number" class="form-control" name="global_alert_config[thresholds][profit]" value="{{ global_alert_config.thresholds.profit }}">
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Travel Threshold:</label>
-            <input type="number" class="form-control" name="global_alert_config[thresholds][travel_percent]" value="{{ global_alert_config.thresholds.travel_percent }}">
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Heat Index Threshold:</label>
-            <input type="number" class="form-control" name="global_alert_config[thresholds][heat_index]" value="{{ global_alert_config.thresholds.heat_index }}">
-          </div>
-        </div>
       </div>
     </div>
 

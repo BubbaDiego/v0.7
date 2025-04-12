@@ -26,12 +26,12 @@
     },
     "price_alerts": {
       "BTC": {
-        "enabled": true,
+        "enabled": false,
         "condition": "BELOW",
         "trigger_value": 55555.0
       },
       "ETH": {
-        "enabled": true,
+        "enabled": false,
         "condition": "ABOVE",
         "trigger_value": 2222.84
       },
@@ -50,10 +50,10 @@
   "global_alert_config": {
     "enabled": false,
     "data_fields": {
-      "price": false,
-      "profit": false,
-      "travel_percent": false,
-      "heat_index": false
+      "price": true,
+      "profit": true,
+      "travel_percent": true,
+      "heat_index": true
     },
     "thresholds": {
       "price": {
@@ -61,9 +61,9 @@
         "ETH": 0.0,
         "SOL": 0.0
       },
-      "profit": 0.0,
-      "travel_percent": 0.0,
-      "heat_index": 0.0
+      "profit": 101.0,
+      "travel_percent": -75.0,
+      "heat_index": 60.0
     }
   },
   "price_alerts": {
