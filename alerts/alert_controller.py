@@ -540,6 +540,16 @@ class AlertController:
             print(f"[DEBUG] _update_alert_level: Exception while updating alert '{alert_id}': {e}")
 
     def create_travel_percent_alerts(self):
+        from utils.json_manager import JsonManager, JsonType  # Ensure proper imports
+        jm = JsonManager()
+        alert_limits = jm.load("", JsonType.ALERT_LIMITS)
+        travel_config = alert_limits.get("alert_ranges", {}).get("travel_percent_liquid_ranges", {})
+
+        # Check if travel percent alerts are enabled
+        if not travel_config.get("enabled", False):
+            print("Travel percent alerts are not enabled in configuration.")
+            return []
+
         created_alerts = []
         positions = self.data_locker.read_positions()  # Consistent data retrieval
         self.logger.debug(f"Retrieved {len(positions)} positions for travel percent alert creation.")
@@ -762,9 +772,12 @@ class AlertController:
         return total_updated
 
     def create_heat_index_alerts(self):
+
+        print("✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨")
         jm = JsonManager()
         alert_limits = jm.load("", JsonType.ALERT_LIMITS)
-        heat_config = alert_limits.get("alert_ranges", {}).get("heat_index_alerts", {})
+        # Change key from "heat_index_alerts" to "heat_index_ranges"
+        heat_config = alert_limits.get("alert_ranges", {}).get("heat_index_ranges", {})
         if not heat_config.get("enabled", False):
             print("Heat index alerts are not enabled in configuration.")
             return []
@@ -777,10 +790,19 @@ class AlertController:
             notifications = heat_config.get("notifications", {})
             notification_type = "Call" if notifications.get("call", False) else "Email"
             position_id = pos.get("id")
-            alert_obj = DummyPositionAlert(AlertType.HEAT_INDEX.value, AlertClass.POSITION.value, asset, trigger_value, condition, notification_type, position_id)
+            alert_obj = DummyPositionAlert(
+                AlertType.HEAT_INDEX.value,
+                AlertClass.POSITION.value,
+                asset,
+                trigger_value,
+                condition,
+                notification_type,
+                position_id
+            )
             if self.create_alert(alert_obj):
                 created_alerts.append(alert_obj.to_dict())
-                print(f"Created heat index alert for position {position_id} ({asset}): condition {condition}, trigger {trigger_value}, notification {notification_type}.")
+                print(
+                    f"Created heat index alert for position {position_id} ({asset}): condition {condition}, trigger {trigger_value}, notification {notification_type}.")
             else:
                 print(f"Failed to create heat index alert for position {position_id}.")
         return created_alerts
@@ -899,6 +921,7 @@ class AlertController:
             return []
 
     def create_all_alerts(self):
+        print("✨✨✨✨✨✨✨✨                ✨✨✨✨✨✨✨✨✨✨✨✨✨")
         print("DEBUG: create_all_alerts method called")
         self.u_logger.log_operation(
             operation_type="Create Alerts",

@@ -23,8 +23,15 @@
             <div class="row mb-3 align-items-center">
               <!-- Asset Icon -->
               <div class="col-md-1 text-center">
-                {% if asset_icons and asset_icons[asset] %}
-                  <img src="{{ asset_icons[asset] }}" alt="{{ asset }} icon" class="img-fluid" style="max-width: 30px;">
+                {% if asset == "BTC" %}
+                  <!-- Bitcoin icon from online source -->
+                  <img src="https://cryptologos.cc/logos/bitcoin-btc-logo.svg?v=023" alt="BTC icon" style="max-width: 30px;">
+                {% elif asset == "ETH" %}
+                  <!-- Ethereum icon from online source -->
+                  <img src="https://cryptologos.cc/logos/ethereum-eth-logo.svg?v=023" alt="ETH icon" style="max-width: 30px;">
+                {% elif asset == "SOL" %}
+                  <!-- Solana icon from online source -->
+                  <img src="https://cryptologos.cc/logos/solana-sol-logo.svg?v=023" alt="SOL icon" style="max-width: 30px;">
                 {% else %}
                   <i class="fas fa-coins"></i>
                 {% endif %}
@@ -32,7 +39,8 @@
               <!-- Trigger Value Input -->
               <div class="col-md-3">
                 <label class="form-label">{{ asset }} Trigger:</label>
-                <input type="number" class="form-control" name="alert_ranges[price_alerts][{{ asset }}][trigger_value]" value="{{ config.trigger_value }}">
+                <input type="number" class="form-control" name="alert_ranges[price_alerts][{{ asset }}][trigger_value]"
+                       value="{{ config.trigger_value }}">
               </div>
               <!-- Condition Dropdown -->
               <div class="col-md-3">
@@ -46,7 +54,10 @@
               <div class="col-md-2">
                 <div class="form-check mt-4">
                   <input type="hidden" name="alert_ranges[price_alerts][{{ asset }}][enabled]" value="false">
-                  <input type="checkbox" class="form-check-input" name="alert_ranges[price_alerts][{{ asset }}][enabled]" id="enabled_{{ asset }}" value="true" {% if config.enabled %}checked{% endif %}>
+                  <input type="checkbox" class="form-check-input"
+                         name="alert_ranges[price_alerts][{{ asset }}][enabled]"
+                         id="enabled_{{ asset }}" value="true"
+                         {% if config.enabled %}checked{% endif %}>
                   <label class="form-check-label" for="enabled_{{ asset }}">Enabled</label>
                 </div>
               </div>
@@ -66,52 +77,79 @@
             <div class="row mb-3 align-items-center">
               <div class="col-md-4">
                 <label class="form-label">Enable Global Alerts:</label>
-                <input type="checkbox" class="form-check-input" name="global_alert_config[enabled]" value="true" {% if global_alert_config.enabled %}checked{% endif %}>
+                <input type="hidden" name="global_alert_config[enabled]" value="false">
+                <input type="checkbox" class="form-check-input" name="global_alert_config[enabled]" value="true"
+                       {% if global_alert_config.enabled %}checked{% endif %}>
               </div>
             </div>
             <div class="row mb-3">
               <label class="form-label">Data Fields:</label>
               <div class="col-md-3 form-check">
-                <input type="checkbox" class="form-check-input" name="global_alert_config[data_fields][price]" id="global_price" value="true" {% if global_alert_config.data_fields.price %}checked{% endif %}>
+                <input type="hidden" name="global_alert_config[data_fields][price]" value="false">
+                <input type="checkbox" class="form-check-input"
+                       name="global_alert_config[data_fields][price]"
+                       id="global_price" value="true"
+                       {% if global_alert_config.data_fields.price %}checked{% endif %}>
                 <label class="form-check-label" for="global_price">Price</label>
               </div>
               <div class="col-md-3 form-check">
-                <input type="checkbox" class="form-check-input" name="global_alert_config[data_fields][profit]" id="global_profit" value="true" {% if global_alert_config.data_fields.profit %}checked{% endif %}>
+                <input type="hidden" name="global_alert_config[data_fields][profit]" value="false">
+                <input type="checkbox" class="form-check-input"
+                       name="global_alert_config[data_fields][profit]"
+                       id="global_profit" value="true"
+                       {% if global_alert_config.data_fields.profit %}checked{% endif %}>
                 <label class="form-check-label" for="global_profit">Profit</label>
               </div>
               <div class="col-md-3 form-check">
-                <input type="checkbox" class="form-check-input" name="global_alert_config[data_fields][travel_percent]" id="global_travel" value="true" {% if global_alert_config.data_fields.travel_percent %}checked{% endif %}>
+                <input type="hidden" name="global_alert_config[data_fields][travel_percent]" value="false">
+                <input type="checkbox" class="form-check-input"
+                       name="global_alert_config[data_fields][travel_percent]"
+                       id="global_travel" value="true"
+                       {% if global_alert_config.data_fields.travel_percent %}checked{% endif %}>
                 <label class="form-check-label" for="global_travel">Travel</label>
               </div>
               <div class="col-md-3 form-check">
-                <input type="checkbox" class="form-check-input" name="global_alert_config[data_fields][heat_index]" id="global_heat" value="true" {% if global_alert_config.data_fields.heat_index %}checked{% endif %}>
+                <input type="hidden" name="global_alert_config[data_fields][heat_index]" value="false">
+                <input type="checkbox" class="form-check-input"
+                       name="global_alert_config[data_fields][heat_index]"
+                       id="global_heat" value="true"
+                       {% if global_alert_config.data_fields.heat_index %}checked{% endif %}>
                 <label class="form-check-label" for="global_heat">Heat</label>
               </div>
             </div>
             <div class="row mb-3">
               <label class="form-label">Price Thresholds:</label>
               <div class="col-md-4">
-                BTC: <input type="number" class="form-control" name="global_alert_config[thresholds][price][BTC]" value="{{ global_alert_config.thresholds.price.BTC }}">
+                BTC: <input type="number" class="form-control" name="global_alert_config[thresholds][price][BTC]"
+                            value="{{ global_alert_config.thresholds.price.BTC }}">
               </div>
               <div class="col-md-4">
-                ETH: <input type="number" class="form-control" name="global_alert_config[thresholds][price][ETH]" value="{{ global_alert_config.thresholds.price.ETH }}">
+                ETH: <input type="number" class="form-control" name="global_alert_config[thresholds][price][ETH]"
+                            value="{{ global_alert_config.thresholds.price.ETH }}">
               </div>
               <div class="col-md-4">
-                SOL: <input type="number" class="form-control" name="global_alert_config[thresholds][price][SOL]" value="{{ global_alert_config.thresholds.price.SOL }}">
+                SOL: <input type="number" class="form-control" name="global_alert_config[thresholds][price][SOL]"
+                            value="{{ global_alert_config.thresholds.price.SOL }}">
               </div>
             </div>
             <div class="row mb-3">
               <div class="col-md-4">
                 <label class="form-label">Profit Threshold:</label>
-                <input type="number" class="form-control" name="global_alert_config[thresholds][profit]" value="{{ global_alert_config.thresholds.profit }}">
+                <input type="number" class="form-control"
+                       name="global_alert_config[thresholds][profit]"
+                       value="{{ global_alert_config.thresholds.profit }}">
               </div>
               <div class="col-md-4">
                 <label class="form-label">Travel Threshold:</label>
-                <input type="number" class="form-control" name="global_alert_config[thresholds][travel_percent]" value="{{ global_alert_config.thresholds.travel_percent }}">
+                <input type="number" class="form-control"
+                       name="global_alert_config[thresholds][travel_percent]"
+                       value="{{ global_alert_config.thresholds.travel_percent }}">
               </div>
               <div class="col-md-4">
                 <label class="form-label">Heat Index Threshold:</label>
-                <input type="number" class="form-control" name="global_alert_config[thresholds][heat_index]" value="{{ global_alert_config.thresholds.heat_index }}">
+                <input type="number" class="form-control"
+                       name="global_alert_config[thresholds][heat_index]"
+                       value="{{ global_alert_config.thresholds.heat_index }}">
               </div>
             </div>
           </div>
@@ -143,22 +181,49 @@
                 <tr>
                   <td class="text-capitalize">{{ level }}</td>
                   <td>
-                    <input type="number" class="form-control" name="alert_ranges[heat_index_ranges][{{ level }}]" value="{{ alert_ranges.heat_index_ranges[level] }}">
+                    <input type="number" class="form-control"
+                           name="alert_ranges[heat_index_ranges][{{ level }}]"
+                           value="{{ alert_ranges.heat_index_ranges[level] }}">
                   </td>
                   <td class="text-center">
-                    <input type="checkbox" name="alert_config[notifications][heat_index][{{ level }}][enabled]" {% if notifications.heat_index[level].enabled %}checked{% endif %}>
+                    <!-- Hidden input ensures we get a false value if unchecked -->
+                    <input type="hidden"
+                           name="alert_config[notifications][heat_index][{{ level }}][enabled]"
+                           value="false">
+                    <input type="checkbox"
+                           name="alert_config[notifications][heat_index][{{ level }}][enabled]"
+                           value="true"
+                           {% if notifications.heat_index[level].enabled %}checked{% endif %}>
                   </td>
                   <td>
                     <div class="form-check form-check-inline">
-                      <input type="checkbox" class="form-check-input" name="alert_config[notifications][heat_index][{{ level }}][notify_by][call]" {% if notifications.heat_index[level].notify_by.call %}checked{% endif %}>
+                      <input type="hidden"
+                             name="alert_config[notifications][heat_index][{{ level }}][notify_by][call]"
+                             value="false">
+                      <input type="checkbox" class="form-check-input"
+                             name="alert_config[notifications][heat_index][{{ level }}][notify_by][call]"
+                             value="true"
+                             {% if notifications.heat_index[level].notify_by.call %}checked{% endif %}>
                       <label class="form-check-label">Call</label>
                     </div>
                     <div class="form-check form-check-inline">
-                      <input type="checkbox" class="form-check-input" name="alert_config[notifications][heat_index][{{ level }}][notify_by][sms]" {% if notifications.heat_index[level].notify_by.sms %}checked{% endif %}>
+                      <input type="hidden"
+                             name="alert_config[notifications][heat_index][{{ level }}][notify_by][sms]"
+                             value="false">
+                      <input type="checkbox" class="form-check-input"
+                             name="alert_config[notifications][heat_index][{{ level }}][notify_by][sms]"
+                             value="true"
+                             {% if notifications.heat_index[level].notify_by.sms %}checked{% endif %}>
                       <label class="form-check-label">SMS</label>
                     </div>
                     <div class="form-check form-check-inline">
-                      <input type="checkbox" class="form-check-input" name="alert_config[notifications][heat_index][{{ level }}][notify_by][email]" {% if notifications.heat_index[level].notify_by.email %}checked{% endif %}>
+                      <input type="hidden"
+                             name="alert_config[notifications][heat_index][{{ level }}][notify_by][email]"
+                             value="false">
+                      <input type="checkbox" class="form-check-input"
+                             name="alert_config[notifications][heat_index][{{ level }}][notify_by][email]"
+                             value="true"
+                             {% if notifications.heat_index[level].notify_by.email %}checked{% endif %}>
                       <label class="form-check-label">Email</label>
                     </div>
                   </td>
@@ -187,22 +252,48 @@
                 <tr>
                   <td class="text-capitalize">{{ level }}</td>
                   <td>
-                    <input type="number" class="form-control" name="alert_ranges[travel_percent_liquid_ranges][{{ level }}]" value="{{ alert_ranges.travel_percent_liquid_ranges[level] }}">
+                    <input type="number" class="form-control"
+                           name="alert_ranges[travel_percent_liquid_ranges][{{ level }}]"
+                           value="{{ alert_ranges.travel_percent_liquid_ranges[level] }}">
                   </td>
                   <td class="text-center">
-                    <input type="checkbox" name="alert_config[notifications][travel_percent_liquid][{{ level }}][enabled]" {% if notifications.travel_percent_liquid[level].enabled %}checked{% endif %}>
+                    <input type="hidden"
+                           name="alert_config[notifications][travel_percent_liquid][{{ level }}][enabled]"
+                           value="false">
+                    <input type="checkbox"
+                           name="alert_config[notifications][travel_percent_liquid][{{ level }}][enabled]"
+                           value="true"
+                           {% if notifications.travel_percent_liquid[level].enabled %}checked{% endif %}>
                   </td>
                   <td>
                     <div class="form-check form-check-inline">
-                      <input type="checkbox" class="form-check-input" name="alert_config[notifications][travel_percent_liquid][{{ level }}][notify_by][call]" {% if notifications.travel_percent_liquid[level].notify_by.call %}checked{% endif %}>
+                      <input type="hidden"
+                             name="alert_config[notifications][travel_percent_liquid][{{ level }}][notify_by][call]"
+                             value="false">
+                      <input type="checkbox" class="form-check-input"
+                             name="alert_config[notifications][travel_percent_liquid][{{ level }}][notify_by][call]"
+                             value="true"
+                             {% if notifications.travel_percent_liquid[level].notify_by.call %}checked{% endif %}>
                       <label class="form-check-label">Call</label>
                     </div>
                     <div class="form-check form-check-inline">
-                      <input type="checkbox" class="form-check-input" name="alert_config[notifications][travel_percent_liquid][{{ level }}][notify_by][sms]" {% if notifications.travel_percent_liquid[level].notify_by.sms %}checked{% endif %}>
+                      <input type="hidden"
+                             name="alert_config[notifications][travel_percent_liquid][{{ level }}][notify_by][sms]"
+                             value="false">
+                      <input type="checkbox" class="form-check-input"
+                             name="alert_config[notifications][travel_percent_liquid][{{ level }}][notify_by][sms]"
+                             value="true"
+                             {% if notifications.travel_percent_liquid[level].notify_by.sms %}checked{% endif %}>
                       <label class="form-check-label">SMS</label>
                     </div>
                     <div class="form-check form-check-inline">
-                      <input type="checkbox" class="form-check-input" name="alert_config[notifications][travel_percent_liquid][{{ level }}][notify_by][email]" {% if notifications.travel_percent_liquid[level].notify_by.email %}checked{% endif %}>
+                      <input type="hidden"
+                             name="alert_config[notifications][travel_percent_liquid][{{ level }}][notify_by][email]"
+                             value="false">
+                      <input type="checkbox" class="form-check-input"
+                             name="alert_config[notifications][travel_percent_liquid][{{ level }}][notify_by][email]"
+                             value="true"
+                             {% if notifications.travel_percent_liquid[level].notify_by.email %}checked{% endif %}>
                       <label class="form-check-label">Email</label>
                     </div>
                   </td>
@@ -231,22 +322,48 @@
                 <tr>
                   <td class="text-capitalize">{{ level }}</td>
                   <td>
-                    <input type="number" class="form-control" name="alert_ranges[profit_ranges][{{ level }}]" value="{{ alert_ranges.profit_ranges[level] }}">
+                    <input type="number" class="form-control"
+                           name="alert_ranges[profit_ranges][{{ level }}]"
+                           value="{{ alert_ranges.profit_ranges[level] }}">
                   </td>
                   <td class="text-center">
-                    <input type="checkbox" name="alert_config[notifications][profit][{{ level }}][enabled]" {% if notifications.profit[level].enabled %}checked{% endif %}>
+                    <input type="hidden"
+                           name="alert_config[notifications][profit][{{ level }}][enabled]"
+                           value="false">
+                    <input type="checkbox"
+                           name="alert_config[notifications][profit][{{ level }}][enabled]"
+                           value="true"
+                           {% if notifications.profit[level].enabled %}checked{% endif %}>
                   </td>
                   <td>
                     <div class="form-check form-check-inline">
-                      <input type="checkbox" class="form-check-input" name="alert_config[notifications][profit][{{ level }}][notify_by][call]" {% if notifications.profit[level].notify_by.call %}checked{% endif %}>
+                      <input type="hidden"
+                             name="alert_config[notifications][profit][{{ level }}][notify_by][call]"
+                             value="false">
+                      <input type="checkbox" class="form-check-input"
+                             name="alert_config[notifications][profit][{{ level }}][notify_by][call]"
+                             value="true"
+                             {% if notifications.profit[level].notify_by.call %}checked{% endif %}>
                       <label class="form-check-label">Call</label>
                     </div>
                     <div class="form-check form-check-inline">
-                      <input type="checkbox" class="form-check-input" name="alert_config[notifications][profit][{{ level }}][notify_by][sms]" {% if notifications.profit[level].notify_by.sms %}checked{% endif %}>
+                      <input type="hidden"
+                             name="alert_config[notifications][profit][{{ level }}][notify_by][sms]"
+                             value="false">
+                      <input type="checkbox" class="form-check-input"
+                             name="alert_config[notifications][profit][{{ level }}][notify_by][sms]"
+                             value="true"
+                             {% if notifications.profit[level].notify_by.sms %}checked{% endif %}>
                       <label class="form-check-label">SMS</label>
                     </div>
                     <div class="form-check form-check-inline">
-                      <input type="checkbox" class="form-check-input" name="alert_config[notifications][profit][{{ level }}][notify_by][email]" {% if notifications.profit[level].notify_by.email %}checked{% endif %}>
+                      <input type="hidden"
+                             name="alert_config[notifications][profit][{{ level }}][notify_by][email]"
+                             value="false">
+                      <input type="checkbox" class="form-check-input"
+                             name="alert_config[notifications][profit][{{ level }}][notify_by][email]"
+                             value="true"
+                             {% if notifications.profit[level].notify_by.email %}checked{% endif %}>
                       <label class="form-check-label">Email</label>
                     </div>
                   </td>
@@ -268,15 +385,18 @@
         <div class="row mb-3 align-items-center">
           <div class="col-md-4">
             <label class="form-label">Alert Cooldown (s):</label>
-            <input type="number" class="form-control" name="alert_cooldown_seconds" value="{{ alert_cooldown_seconds }}">
+            <input type="number" class="form-control" name="alert_cooldown_seconds"
+                   value="{{ alert_cooldown_seconds }}">
           </div>
           <div class="col-md-4">
             <label class="form-label">Call Refractory (s):</label>
-            <input type="number" class="form-control" name="call_refractory_period" value="{{ call_refractory_period }}">
+            <input type="number" class="form-control" name="call_refractory_period"
+                   value="{{ call_refractory_period }}">
           </div>
           <div class="col-md-4">
             <label class="form-label">Snooze Countdown (s):</label>
-            <input type="number" class="form-control" name="alert_config[snooze_countdown]" value="300" readonly>
+            <input type="number" class="form-control" name="alert_config[snooze_countdown]"
+                   value="300" readonly>
           </div>
         </div>
       </div>
@@ -305,7 +425,7 @@
     .then(response => response.json())
     .then(data => {
       const confirmation = document.getElementById('save-confirmation');
-      if(data.success) {
+      if (data.success) {
         confirmation.textContent = data.message;
         setTimeout(() => { confirmation.textContent = ""; }, 3000);
       } else {
