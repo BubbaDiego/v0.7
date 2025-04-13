@@ -1,5 +1,7 @@
 import logging
 import time
+from typing import Optional
+
 from config.unified_config_manager import UnifiedConfigManager
 from config.config_constants import CONFIG_PATH
 from utils.unified_logger import UnifiedLogger
@@ -11,19 +13,21 @@ from uuid import uuid4
 u_logger = UnifiedLogger()
 
 class AlertEvaluator:
-    def __init__(self, config, data_locker):
+    def __init__(self, config, data_locker, alert_controller):
         """
-        :param config: The loaded configuration (e.g. from alert_limits.json)
-        :param data_locker: Instance of DataLocker for DB operations.
+        :param config: The loaded configuration.
+        :param data_locker: Instance of DataLocker.
+        :param alert_controller: Reference to the AlertController for alert creation.
         """
         self.config = config
         self.data_locker = data_locker
+        self.alert_controller = alert_controller  # Store reference to AlertController
         self.calc_services = CalcServices()
-        # For cooldown management (in seconds)
         self.cooldown = self.config.get("alert_cooldown_seconds", 900)
         self.last_triggered = {}
         self.suppressed_count = 0
         self.logger = logging.getLogger("AlertEvaluatorLogger")
+
 
     def _debug_log(self, message: str):
         """Helper method to print messages to console and write to a debug log file."""
@@ -137,36 +141,57 @@ class AlertEvaluator:
         try:
             pos_updated = pos.copy()
             pos_updated["current_price"] = current_price
-            current_heat = self.calc_services.calculate_composite_risk_index(pos_updated) or 0.0
+            current_heat = self.calc_services.calculate_composite_risk_index(pos_updated)
+            if current_heat is None:
+                current_heat = 0.0
         except Exception as e:
             self._debug_log(f"[Heat Alert] Error calculating composite risk index: {e}")
             return ""
 
-        try:
-            trigger_value = float(pos.get("heat_index_trigger", 12.0))
-        except Exception:
-            trigger_value = 12.0
+        # Load explicit heat index thresholds from configuration
+        from utils.json_manager import JsonManager, JsonType
+        jm = JsonManager()
+        alert_limits = jm.load("", JsonType.ALERT_LIMITS)
+        heat_config = alert_limits.get("alert_ranges", {}).get("heat_index_ranges", {})
+        low_thresh = float(heat_config.get("low", 12.0))
+        medium_thresh = float(heat_config.get("medium", 33.0))
+        high_thresh = float(heat_config.get("high", 66.0))
 
-        self._debug_log(f"[Heat Alert] current_heat = {current_heat}, trigger_value = {trigger_value}")
+        self._debug_log(
+            f"[Heat Alert] current_heat = {current_heat}, thresholds: low={low_thresh}, medium={medium_thresh}, high={high_thresh}")
 
-        if current_heat <= trigger_value:
-            self._debug_log(
-                "[DEBUG] evaluate_heat_index_alert: current_heat is below or equal to trigger, setting level to Normal.")
-            self._update_alert_level(pos, "Normal", evaluated_value=current_heat, custom_alert_type="HEAT_INDEX")
-            return ""
-        if current_heat < trigger_value * 1.5:
-            current_level = "Low"
-        elif current_heat < trigger_value * 2:
-            current_level = "Medium"
+        # Determine alert level based on explicit thresholds:
+        if current_heat < low_thresh:
+            level = "Normal"
+        elif current_heat < medium_thresh:
+            level = "Low"
+        elif current_heat < high_thresh:
+            level = "Medium"
         else:
-            current_level = "High"
+            level = "High"
 
-        self._debug_log(f"[DEBUG] evaluate_heat_index_alert: Determined alert level as {current_level}")
-        self._update_alert_level(pos, current_level, evaluated_value=current_heat, custom_alert_type="HEAT_INDEX")
-        msg = (f"Heat Index ALERT: Position {pos.get('id')} heat index {current_heat:.2f} "
-               f"exceeds trigger {trigger_value} (Level: {current_level})")
-        self._debug_log(f"[Heat Alert] {msg}")
-        return msg
+        # Determine next trigger threshold based on level:
+        if level == "Normal":
+            next_trigger = low_thresh
+        elif level == "Low":
+            next_trigger = medium_thresh
+        elif level in ["Medium", "High"]:
+            next_trigger = high_thresh
+        else:
+            next_trigger = 0.0
+
+        self._debug_log(f"[Heat Alert] Determined level: {level}, next trigger should be: {next_trigger}")
+
+        if level == "Normal":
+            self._update_alert_level(pos, "Normal", evaluated_value=current_heat,
+                                     custom_alert_type=AlertType.HEAT_INDEX.value)
+            return ""
+        else:
+            self._update_alert_level(pos, level, evaluated_value=current_heat,
+                                     custom_alert_type=AlertType.HEAT_INDEX.value)
+            msg = f"Heat Index ALERT: Position {pos.get('id')} heat index {current_heat:.2f} exceeds threshold (Level: {level}). Next trigger: {next_trigger}"
+            self._debug_log(f"[Heat Alert] {msg}")
+            return msg
 
     def enrich_alert(self, alert: dict) -> dict:
         """
@@ -659,41 +684,29 @@ class AlertEvaluator:
         self.logger.debug("Global alert evaluation complete with alerts: " + str(alerts))
         return alerts
 
-    def _update_alert_level(self, pos: dict, new_level: str, evaluated_value: float = None,
+    def _update_alert_level(self, pos: dict, new_level: str, evaluated_value: Optional[float] = None,
                             custom_alert_type: str = None):
         alert_id = pos.get("alert_reference_id")
-        if not alert_id:
-            u_logger.log_operation(
-                operation_type="Alert Update Skipped",
-                primary_text="No alert_reference_id found for position. Creating new alert record.",
-                source="AlertEvaluator",
-                file="alert_evaluator.py"
-            )
-            print("[DEBUG] _update_alert_level: No alert_reference_id found. Creating new alert record.")
+        # Check if alert_reference_id is missing or empty.
+        if not alert_id or (isinstance(alert_id, str) and alert_id.strip() == ""):
+            self._debug_log("[AlertEvaluator] No alert_reference_id found. Creating new alert record.")
             new_alert_type = custom_alert_type if custom_alert_type is not None else AlertType.TRAVEL_PERCENT_LIQUID.value
             if new_alert_type == AlertType.HEAT_INDEX.value:
                 new_trigger = pos.get("heat_index_trigger", 12.0)
             else:
                 new_trigger = pos.get("travel_percent", 0.0)
-            new_alert = Alert(
-                id=str(uuid4()),
-                alert_type=new_alert_type,
-                alert_class=AlertClass.POSITION.value,
-                trigger_value=new_trigger,
-                notification_type=NotificationType.ACTION.value,
-                last_triggered=None,
-                status=Status.ACTIVE.value,
-                frequency=1,
-                counter=0,
-                liquidation_distance=pos.get("liquidation_distance", 0.0),
-                travel_percent=pos.get("travel_percent", 0.0),
-                liquidation_price=pos.get("liquidation_price", 0.0),
-                notes="Auto-created alert record",
-                position_reference_id=pos.get("id"),
-                level=new_level,
-                evaluated_value=evaluated_value or 0.0
+            # Retrieve position_type from position; default to "LONG"
+            position_type = pos.get("position_type", "LONG").upper()
+            new_alert = DummyPositionAlert(
+                new_alert_type,
+                pos.get("asset_type", "BTC"),
+                new_trigger,
+                "BELOW",
+                "Call",
+                pos.get("id"),
+                position_type
             )
-            created = self.create_alert(new_alert)
+            created = self.alert_controller.create_alert(new_alert)
             if created:
                 pos["alert_reference_id"] = new_alert.id
                 conn = self.data_locker.get_db_connection()
@@ -701,87 +714,28 @@ class AlertEvaluator:
                 cursor.execute("UPDATE positions SET alert_reference_id=? WHERE id=?", (new_alert.id, pos.get("id")))
                 conn.commit()
                 alert_id = new_alert.id
-                u_logger.log_operation(
-                    operation_type="Alert Creation",
-                    primary_text=f"Created new alert record for position {pos.get('id')} with alert id {new_alert.id}",
-                    source="AlertEvaluator",
-                    file="alert_evaluator.py"
-                )
-                print(
-                    f"[DEBUG] _update_alert_level: Created new alert with id {new_alert.id} and updated position record.")
+                self._debug_log(
+                    f"[AlertEvaluator] Created new alert with id {new_alert.id} for position {pos.get('id')}.")
             else:
-                u_logger.log_operation(
-                    operation_type="Alert Creation Failed",
-                    primary_text=f"Failed to create new alert record for position {pos.get('id')}",
-                    source="AlertEvaluator",
-                    file="alert_evaluator.py"
-                )
-                print("[DEBUG] _update_alert_level: Failed to create new alert record.")
+                self._debug_log("[AlertEvaluator] Failed to create new alert record.")
                 return
 
+        old_level = pos.get("level", "Normal")
         update_fields = {"level": new_level}
         if evaluated_value is not None:
             update_fields["evaluated_value"] = evaluated_value
-
         if pos.get("alert_reference_id") and pos.get("id"):
             update_fields["position_reference_id"] = pos.get("id")
 
-        # --- Updated: Set the trigger_value to the next threshold for travel percent alerts ---
-        if custom_alert_type is None or custom_alert_type == AlertType.TRAVEL_PERCENT_LIQUID.value:
-            tp_config = self.config.get("alert_ranges", {}).get("travel_percent_liquid_ranges", {})
-            try:
-                low_threshold = float(tp_config.get("low", -25.0))
-                medium_threshold = float(tp_config.get("medium", -50.0))
-                high_threshold = float(tp_config.get("high", -75.0))
-            except Exception as e:
-                low_threshold, medium_threshold, high_threshold = -25.0, -50.0, -75.0
-            if new_level == "Normal":
-                next_trigger = low_threshold
-            elif new_level == "Low":
-                next_trigger = medium_threshold
-            elif new_level == "Medium":
-                next_trigger = high_threshold
-            elif new_level == "High":
-                next_trigger = high_threshold
-            else:
-                next_trigger = update_fields.get("trigger_value", 0.0)
-            update_fields["trigger_value"] = next_trigger
-        # --- End updated block ---
-
-        print(f"[DEBUG] _update_alert_level: Updating alert '{alert_id}' with fields: {update_fields}")
-        u_logger.log_operation(
-            operation_type="Alert Level Update",
-            primary_text=f"Updating alert '{alert_id}' with {update_fields}",
-            source="AlertEvaluator",
-            file="alert_evaluator.py"
-        )
+        self._debug_log(f"[AlertEvaluator] Updating alert '{alert_id}' with fields: {update_fields}")
         try:
             num_updated = self.data_locker.update_alert_conditions(alert_id, update_fields)
-            print(f"[DEBUG] _update_alert_level: Number of rows updated: {num_updated}")
             if num_updated == 0:
-                u_logger.log_operation(
-                    operation_type="Alert Update",
-                    primary_text=f"No alert record found for id '{alert_id}' even after creation.",
-                    source="AlertEvaluator",
-                    file="alert_evaluator.py"
-                )
-                print(f"[DEBUG] _update_alert_level: No alert record found for id '{alert_id}'.")
+                self._debug_log(f"[AlertEvaluator] No alert record found for id '{alert_id}'.")
             else:
-                u_logger.log_operation(
-                    operation_type="Alert Level Updated",
-                    primary_text=f"Updated alert '{alert_id}' to level '{new_level}' with evaluated value '{evaluated_value}'.",
-                    source="AlertEvaluator",
-                    file="alert_evaluator.py"
-                )
-                print(f"[DEBUG] _update_alert_level: Successfully updated alert '{alert_id}' to level '{new_level}'.")
+                self._debug_log(f"[AlertEvaluator] Successfully updated alert '{alert_id}' to level '{new_level}'.")
         except Exception as e:
-            u_logger.log_operation(
-                operation_type="Alert Update Error",
-                primary_text=f"Error updating alert level for id '{alert_id}': {e}",
-                source="AlertEvaluator",
-                file="alert_evaluator.py"
-            )
-            print(f"[DEBUG] _update_alert_level: Exception while updating alert '{alert_id}': {e}")
+            self._debug_log(f"[AlertEvaluator] Exception while updating alert '{alert_id}': {e}")
 
 
 def create_alert(self, alert_obj) -> bool:

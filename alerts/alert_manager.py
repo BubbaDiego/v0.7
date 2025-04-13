@@ -18,6 +18,7 @@ from utils.unified_logger import UnifiedLogger
 from data.models import NotificationType, Status, Alert, Position
 from data.models import AlertType, Alert, AlertClass  # for standardizing alert types
 from xcom.xcom import send_sms
+from alerts.alert_evaluator import AlertEvaluator
 
 try:
     from .alert_controller import AlertController
@@ -160,8 +161,7 @@ class AlertManager:
         )
 
         self.alert_controller = AlertController(db_path=self.db_path)
-        from alerts.alert_evaluator import AlertEvaluator
-        self.alert_evaluator = AlertEvaluator(self.config, self.data_locker)
+        self.alert_evaluator = AlertEvaluator(self.config, self.data_locker, self.alert_controller)
 
     def reload_config(self):
         from config.config_manager import load_config

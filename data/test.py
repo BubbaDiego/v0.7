@@ -1,191 +1,115 @@
-#!/usr/bin/env python3
-"""
-rebuild_db.py
-
-This script will drop all tables in the SQLite database except for the
-'wallets' table, and then rebuild the remaining tables using new definitions.
-Be sure to back up your data before running this script!
-"""
-
+import unittest
 import sqlite3
-from config.config_constants import DB_PATH
+from datetime import datetime
+from data.data_locker import DataLocker
+from alerts.alert_controller import AlertController
+from data.models import AlertType
 import os
 
-def get_existing_tables(conn):
-    cursor = conn.cursor()
-    cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
-    tables = [row[0] for row in cursor.fetchall()]
-    return tables
+class TestPositionAlertCreation(unittest.TestCase):
+    def setUp(self):
+        # Use an in-memory SQLite database.
+        self.db_path = ":memory:"
+        # Instantiate DataLocker with in-memory DB
+        self.data_locker = DataLocker(self.db_path)
+        # Force table creation by initializing database.
+        self.data_locker._initialize_database()
 
-def drop_tables(conn, tables_to_keep):
-    existing_tables = get_existing_tables(conn)
-    cursor = conn.cursor()
-    for table in existing_tables:
-        if table not in tables_to_keep:
-            print(f"Dropping table: {table}")
-            cursor.execute(f"DROP TABLE IF EXISTS {table}")
-    conn.commit()
+        # Insert a test position that has no alert_reference_id.
+        self.test_position = {
+            "id": "testpos1",
+            "asset_type": "BTC",
+            "position_type": "SHORT",
+            "entry_price": 50000.0,
+            "liquidation_price": 45000.0,
+            "travel_percent": 0.0,
+            "alert_reference_id": "",   # Explicitly empty
+            "pnl_after_fees_usd": 1000.0,
+            "current_heat_index": 0.0,
+            "current_price": 51000.0,
+            "last_updated": datetime.now().isoformat()
+        }
+        cursor = self.data_locker.conn.cursor()
+        cursor.execute("""
+            INSERT INTO positions 
+            (id, asset_type, position_type, entry_price, liquidation_price, travel_percent,
+             alert_reference_id, pnl_after_fees_usd, current_heat_index, current_price, last_updated)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            self.test_position["id"],
+            self.test_position["asset_type"],
+            self.test_position["position_type"],
+            self.test_position["entry_price"],
+            self.test_position["liquidation_price"],
+            self.test_position["travel_percent"],
+            self.test_position["alert_reference_id"],
+            self.test_position["pnl_after_fees_usd"],
+            self.test_position["current_heat_index"],
+            self.test_position["current_price"],
+            self.test_position["last_updated"]
+        ))
+        self.data_locker.conn.commit()
 
-def create_tables(conn):
-    cursor = conn.cursor()
-    
-    # Create system_vars table with additional columns (including theme_mode)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS system_vars (
-            id INTEGER PRIMARY KEY,
-            last_update_time_positions DATETIME,
-            last_update_positions_source TEXT,
-            last_update_time_prices DATETIME,
-            last_update_prices_source TEXT,
-            last_update_time_jupiter DATETIME,
-            theme_mode TEXT DEFAULT 'light',
-            total_brokerage_balance REAL DEFAULT 0.0,
-            total_wallet_balance REAL DEFAULT 0.0,
-            total_balance REAL DEFAULT 0.0,
-            strategy_start_value REAL DEFAULT 0.0,
-            strategy_description TEXT DEFAULT ''
-        )
-    """)
-    cursor.execute("""
-        INSERT OR IGNORE INTO system_vars (
-            id,
-            last_update_time_positions,
-            last_update_positions_source,
-            last_update_time_prices,
-            last_update_prices_source,
-            last_update_time_jupiter,
-            theme_mode,
-            total_brokerage_balance,
-            total_wallet_balance,
-            total_balance,
-            strategy_start_value,
-            strategy_description
-        )
-        VALUES (1, NULL, NULL, NULL, NULL, NULL, 'light', 0.0, 0.0, 0.0, 0.0, '')
-    """)
+        # Create a dummy configuration that enables travel alerts.
+        self.config = {
+            "alert_ranges": {
+                "travel_percent_liquid_ranges": {
+                    "enabled": True,
+                    "low": -25.0,
+                    "medium": -50.0,
+                    "high": -75.0
+                },
+                "profit_ranges": {
+                    "enabled": True,
+                    "low": 50.0,
+                    "medium": 100.0,
+                    "high": 150.0
+                },
+                "heat_index_ranges": {
+                    "enabled": True,
+                    "low": 10.0,
+                    "medium": 20.0,
+                    "high": 30.0,
+                    "condition": "ABOVE"
+                },
+                "price_alerts": {}
+            },
+            "alert_cooldown_seconds": 900,
+            "call_refractory_period": 3600,
+            "snooze_countdown": 300
+        }
 
-    # Create prices table
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS prices (
-            id TEXT PRIMARY KEY,
-            asset_type TEXT,
-            current_price REAL,
-            previous_price REAL,
-            last_update_time DATETIME,
-            previous_update_time DATETIME,
-            source TEXT
-        )
-    """)
+        # Instantiate AlertController and override its DataLocker with our in-memory instance.
+        self.alert_controller = AlertController(db_path=self.db_path)
+        self.alert_controller.data_locker = self.data_locker
 
-    # Create positions table
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS positions (
-            id TEXT PRIMARY KEY,
-            asset_type TEXT,
-            position_type TEXT,
-            entry_price REAL,
-            liquidation_price REAL,
-            travel_percent REAL,
-            value REAL,
-            collateral REAL,
-            size REAL,
-            leverage REAL,
-            wallet_name TEXT,
-            last_updated DATETIME,
-            alert_reference_id TEXT,
-            hedge_buddy_id TEXT,
-            current_price REAL,
-            liquidation_distance REAL,
-            heat_index REAL,
-            current_heat_index REAL,
-            pnl_after_fees_usd REAL
-        )
-    """)
+    def tearDown(self):
+        self.data_locker.conn.close()
 
-    # Create alerts table
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS alerts (
-            id TEXT PRIMARY KEY,
-            created_at DATETIME,
-            alert_type TEXT,
-            alert_class TEXT,
-            asset_type TEXT,
-            trigger_value REAL,
-            condition TEXT,
-            notification_type TEXT,
-            level TEXT,
-            last_triggered DATETIME,
-            status TEXT,
-            frequency INTEGER,
-            counter INTEGER,
-            liquidation_distance REAL,
-            travel_percent REAL,
-            liquidation_price REAL,
-            notes TEXT,
-            description TEXT,
-            position_reference_id TEXT,
-            evaluated_value REAL
-        )
-    """)
+    def test_create_position_alerts(self):
+        # Invoke the creation of position alerts.
+        created_alerts = self.alert_controller.create_position_alerts()
+        # Check that at least one alert was created.
+        self.assertIsInstance(created_alerts, list)
+        self.assertGreater(len(created_alerts), 0, "No position alerts were created.")
 
-    # Create alert_ledger table
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS alert_ledger (
-            id TEXT PRIMARY KEY,
-            alert_id TEXT,
-            modified_by TEXT,
-            reason TEXT,
-            before_value TEXT,
-            after_value TEXT,
-            timestamp DATETIME
-        )
-    """)
+        # Check that the created alert has the correct position_type ("SHORT")
+        # Fetch alert record from the database.
+        cursor = self.data_locker.conn.cursor()
+        cursor.execute("SELECT * FROM alerts WHERE position_reference_id=?", (self.test_position["id"],))
+        alert_row = cursor.fetchone()
+        cursor.close()
 
-    # Create brokers table
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS brokers (
-            name TEXT PRIMARY KEY,
-            image_path TEXT,
-            web_address TEXT,
-            total_holding REAL DEFAULT 0.0
-        )
-    """)
+        self.assertIsNotNone(alert_row, "Alert record not found in database for test position.")
+        self.assertEqual(alert_row["position_type"], "SHORT", "position_type not correctly propagated to alert.")
 
-    # Create portfolio_entries table
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS portfolio_entries (
-            id TEXT PRIMARY KEY,
-            snapshot_time DATETIME,
-            total_value REAL NOT NULL
-        )
-    """)
+        # Also check that the position record now has a non-empty alert_reference_id.
+        cursor = self.data_locker.conn.cursor()
+        cursor.execute("SELECT alert_reference_id FROM positions WHERE id=?", (self.test_position["id"],))
+        pos_row = cursor.fetchone()
+        cursor.close()
+        self.assertTrue(pos_row and pos_row["alert_reference_id"].strip() != "",
+                        "Position alert_reference_id not updated.")
 
-    # Create positions_totals_history table
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS positions_totals_history (
-            id TEXT PRIMARY KEY,
-            snapshot_time DATETIME,
-            total_size REAL,
-            total_value REAL,
-            total_collateral REAL,
-            avg_leverage REAL,
-            avg_travel_percent REAL,
-            avg_heat_index REAL
-        )
-    """)
-
-    conn.commit()
-    print("New tables created.")
-
-def main():
-    # Connect to the database
-    conn = sqlite3.connect(str(DB_PATH))
-    # We want to keep the "wallets" table
-    tables_to_keep = ["wallets"]
-    drop_tables(conn, tables_to_keep)
-    create_tables(conn)
-    conn.close()
-    print("Database rebuild complete.")
-
-if __name__ == '__main__':
-    main()
+if __name__ == "__main__":
+    unittest.main()

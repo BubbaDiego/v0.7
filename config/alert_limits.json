@@ -2,7 +2,7 @@
   "alert_ranges": {
     "heat_index_ranges": {
       "enabled": true,
-      "low": 12.0,
+      "low": 7.0,
       "medium": 33.0,
       "high": 66.0
     },
@@ -26,18 +26,18 @@
     },
     "price_alerts": {
       "BTC": {
-        "enabled": false,
+        "enabled": true,
         "condition": "ABOVE",
         "trigger_value": 77667.0
       },
       "ETH": {
-        "enabled": false,
+        "enabled": true,
         "condition": "ABOVE",
         "trigger_value": 1926.84
       },
       "SOL": {
-        "enabled": false,
-        "condition": "BELOW",
+        "enabled": true,
+        "condition": "ABOVE",
         "trigger_value": 133.9
       }
     }
@@ -219,7 +219,7 @@
       },
       "profit": {
         "low": {
-          "enabled": false,
+          "enabled": true,
           "notify_by": {
             "call": false,
             "sms": false,
@@ -227,7 +227,7 @@
           }
         },
         "medium": {
-          "enabled": false,
+          "enabled": true,
           "notify_by": {
             "call": false,
             "sms": false,
@@ -235,7 +235,7 @@
           }
         },
         "high": {
-          "enabled": false,
+          "enabled": true,
           "notify_by": {
             "call": false,
             "sms": false,

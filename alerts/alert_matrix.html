@@ -51,6 +51,7 @@
     overflow: hidden;
     cursor: pointer;
     transition: width 0.3s ease, height 0.3s ease;
+    position: relative; /* for absolute positioning of wallet icon in the corner */
   }
   details.info-box[open] {
     width: 350px;
@@ -149,6 +150,21 @@
   .nowrap-line {
     white-space: nowrap;
   }
+  /* Wallet Icon in the corner - smaller */
+  .wallet-corner {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    overflow: hidden;
+  }
+  .wallet-corner img {
+    width: 100%;
+    height: auto;
+    border-radius: 50%;
+  }
 </style>
 {% endblock %}
 
@@ -201,7 +217,7 @@
       <div class="row">
         {% for alert in alerts %}
           {% set atype = alert.alert_type|upper %}
-          <div class="col-auto" style="margin-bottom: 1rem;">
+          <div class="col-auto" style="margin-bottom: 1rem; position: relative;">
             <details class="info-box
               {% if atype == 'PRICETHRESHOLD' and alert.level == 'High' %}
                 price-high
@@ -217,6 +233,14 @@
                 unknown
               {% endif %} shadow-sm">
               <summary class="info-header">
+                <!-- Move the wallet image to the upper right corner -->
+                <div class="wallet-corner">
+                  {% if alert.wallet_image %}
+                    <img src="{{ alert.wallet_image }}" alt="Wallet">
+                  {% else %}
+                    <img src="{{ wallet_default }}" alt="Default Wallet">
+                  {% endif %}
+                </div>
                 <div class="icon-container">
                   <!-- Alert Icon -->
                   <div class="alert-icon">
@@ -248,12 +272,17 @@
                       {% endif %}
                     {% endif %}
                   </div>
-                  <!-- Wallet Icon -->
-                  <div class="wallet-icon">
-                    {% if alert.wallet_image %}
-                      <img src="{{ alert.wallet_image }}" alt="Wallet">
+                  <!-- Now place the long/short icon where the wallet used to be -->
+                  <div class="long-short-icon">
+                    {% if alert.position_type %}
+                      {% if alert.position_type|lower == 'short' %}
+                        <span style="color: red; font-size: 1.5rem;">📉</span>
+                      {% else %}
+                        <span style="color: green; font-size: 1.5rem;">📈</span>
+                      {% endif %}
                     {% else %}
-                      <img src="{{ wallet_default }}" alt="Default Wallet">
+                      <!-- default to long if not specified -->
+                      <span style="color: green; font-size: 1.5rem;">📈</span>
                     {% endif %}
                   </div>
                 </div>

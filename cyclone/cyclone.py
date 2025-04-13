@@ -427,22 +427,38 @@ class Cyclone:
                 print("No positions available to create alerts.")
                 return
 
-            created_count = 0
-            for pos in positions:
-                pos_dict = dict(pos)
-                if not pos_dict.get("alert_reference_id"):
-                    result = self.alert_manager.create_and_link_alert(
-                        position=pos_dict,
-                        alert_type="TravelPercent",
-                        trigger_value=-4.0,
-                        condition="BELOW",
-                        notification_type="Action",
-                        level="Normal"
-                    )
-                    if result is not None:
-                        created_count += 1
+            # Load alert configuration
+            from utils.json_manager import JsonManager, JsonType
+            jm = JsonManager()
+            alert_limits = jm.load("", JsonType.ALERT_LIMITS)
 
-            print(f"Created {created_count} position alert(s) using the new linking method.")
+            # Check if each alert type is enabled
+            travel_enabled = alert_limits.get("alert_ranges", {}).get("travel_percent_liquid_ranges", {}).get("enabled",
+                                                                                                              False)
+            profit_enabled = alert_limits.get("alert_ranges", {}).get("profit_ranges", {}).get("enabled", False)
+            heat_enabled = alert_limits.get("alert_ranges", {}).get("heat_index_ranges", {}).get("enabled", False)
+
+            created_count = 0
+
+            if travel_enabled:
+                travel_alerts = self.alert_manager.alert_controller.create_travel_percent_alerts()
+                created_count += len(travel_alerts)
+            else:
+                print("Travel percent alerts are disabled in configuration.")
+
+            if profit_enabled:
+                profit_alerts = self.alert_manager.alert_controller.create_profit_alerts()
+                created_count += len(profit_alerts)
+            else:
+                print("Profit alerts are disabled in configuration.")
+
+            if heat_enabled:
+                heat_alerts = self.alert_manager.alert_controller.create_heat_index_alerts()
+                created_count += len(heat_alerts)
+            else:
+                print("Heat index alerts are disabled in configuration.")
+
+            print(f"Created {created_count} position alert(s) using the updated workflow.")
             self.u_logger.log_cyclone(
                 operation_type="Create Position Alerts",
                 primary_text=f"Created {created_count} position alert(s)",

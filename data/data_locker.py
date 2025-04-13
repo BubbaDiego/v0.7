@@ -175,6 +175,13 @@ class DataLocker:
                 )
             """)
 
+            # Now, check if 'position_type' column exists in alerts table:
+            cursor.execute("PRAGMA table_info(alerts)")
+            existing_cols = [row["name"] for row in cursor.fetchall()]
+            if "position_type" not in existing_cols:
+                cursor.execute("ALTER TABLE alerts ADD COLUMN position_type TEXT")
+                self.logger.info("Added 'position_type' column to 'alerts' table.")
+
             # Create new ledger table for update ledger (alert ledger)
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS alert_ledger (
