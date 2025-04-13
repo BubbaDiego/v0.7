@@ -12,6 +12,8 @@ from utils.unified_logger import UnifiedLogger
 from sonic_labs.hedge_manager import HedgeManager  # Import HedgeManager directly
 from positions.position_service import PositionService
 from alerts.alert_controller import AlertController, DummyPositionAlert
+from data.models import AlertType, AlertClass
+
 from alerts.alert_evaluator import AlertEvaluator
 from config.unified_config_manager import UnifiedConfigManager
 from config.config_constants import CONFIG_PATH
@@ -421,53 +423,81 @@ class Cyclone:
 
     async def run_create_position_alerts(self):
         self.logger.info("Creating Position Alerts using AlertManager linking")
+        print("🔥1🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥")
         try:
             positions = self.data_locker.read_positions()
             if not positions:
                 print("No positions available to create alerts.")
                 return
+            print("🔥1🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥")
 
             # Load alert configuration
             from utils.json_manager import JsonManager, JsonType
             jm = JsonManager()
             alert_limits = jm.load("", JsonType.ALERT_LIMITS)
 
-            # Check if each alert type is enabled
+            # Check if each alert type is enabled (for reference)
             travel_enabled = alert_limits.get("alert_ranges", {}).get("travel_percent_liquid_ranges", {}).get("enabled",
                                                                                                               False)
             profit_enabled = alert_limits.get("alert_ranges", {}).get("profit_ranges", {}).get("enabled", False)
             heat_enabled = alert_limits.get("alert_ranges", {}).get("heat_index_ranges", {}).get("enabled", False)
 
             created_count = 0
-
-            if travel_enabled:
-                travel_alerts = self.alert_manager.alert_controller.create_travel_percent_alerts()
-                created_count += len(travel_alerts)
-            else:
-                print("Travel percent alerts are disabled in configuration.")
-
-            if profit_enabled:
-                profit_alerts = self.alert_manager.alert_controller.create_profit_alerts()
-                created_count += len(profit_alerts)
-            else:
-                print("Profit alerts are disabled in configuration.")
-
-            if heat_enabled:
-                heat_alerts = self.alert_manager.alert_controller.create_heat_index_alerts()
-                created_count += len(heat_alerts)
-            else:
-                print("Heat index alerts are disabled in configuration.")
-
-            print(f"Created {created_count} position alert(s) using the updated workflow.")
-            self.u_logger.log_cyclone(
-                operation_type="Create Position Alerts",
-                primary_text=f"Created {created_count} position alert(s)",
-                source="Cyclone",
-                file="cyclone.py"
-            )
+            for pos in positions:
+                pos_id = pos.get("id")
+                print(f"[DEBUG] Position {pos_id} has position_type: {pos.get('position_type')}")
+                # Only create a new alert if there is no alert reference
+                if not pos.get("alert_reference_id") or pos.get("alert_reference_id").strip() == "":
+                    asset = pos.get("asset_type", "BTC")
+                    # Use the alert_controller's get_position_type() method to retrieve a normalized position type from DB
+                    position_type = self.alert_manager.alert_controller.get_position_type(pos_id)
+                    self.logger.debug(
+                        "Creating alert for position {} with position_type: {}".format(pos_id, position_type))
+                    try:
+                        trigger_value = float(0.0)
+                        self.logger.debug("Using trigger_value {} for position {}.".format(trigger_value, pos_id))
+                    except Exception as e:
+                        self.logger.error("Error converting trigger_value for position {}: {}".format(pos_id, e))
+                        trigger_value = 0.0
+                    condition = "BELOW"
+                    notification_type = "Call"
+                    alert_obj = DummyPositionAlert(
+                        AlertType.TRAVEL_PERCENT_LIQUID.value,
+                        asset,
+                        trigger_value,
+                        condition,
+                        notification_type,
+                        pos_id,
+                        position_type  # Use the looked-up position_type
+                    )
+                    self.logger.debug(
+                        "Created DummyPositionAlert for position {}: {}".format(pos_id, alert_obj.to_dict()))
+                    # Use the alert_controller to create the alert
+                    if self.alert_manager.alert_controller.create_alert(alert_obj):
+                        self.logger.debug("Alert created successfully for position {}.".format(pos_id))
+                        created_count += 1
+                        try:
+                            conn = self.data_locker.get_db_connection()
+                            cursor = conn.cursor()
+                            cursor.execute("UPDATE positions SET alert_reference_id=? WHERE id=?",
+                                           (alert_obj.id, pos_id))
+                            conn.commit()
+                            self.logger.debug(
+                                "Updated position {} with alert_reference_id {}.".format(pos_id, alert_obj.id))
+                            cursor.close()
+                        except Exception as e:
+                            self.logger.error(
+                                "Error updating position {} with alert_reference_id: {}".format(pos_id, e))
+                    else:
+                        self.logger.error("Failed to create alert for position {}.".format(pos_id))
+                else:
+                    self.logger.debug(
+                        "Position {} already has alert_reference_id: '{}'. Skipping alert creation.".format(
+                            pos_id, pos.get("alert_reference_id")))
+            self.logger.debug("run_create_position_alerts completed. Created {} alerts.".format(created_count))
         except Exception as e:
-            print(f"Error creating position alerts: {e}")
-            self.logger.error(f"Error creating position alerts: {e}", exc_info=True)
+            self.logger.error("Error in run_create_position_alerts: {}".format(e))
+        return
 
     async def run_create_system_alerts(self):
         self.logger.info("Creating System Alerts")

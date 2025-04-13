@@ -3,6 +3,7 @@ from utils.json_manager import JsonManager, JsonType
 from uuid import uuid4
 from data.models import Alert, AlertType, AlertClass, NotificationType, Status
 from typing import Optional
+from datetime import datetime
 import logging
 import sqlite3
 from utils.unified_logger import UnifiedLogger
@@ -73,42 +74,66 @@ class AlertController:
             self.data_locker = DataLocker.get_instance()
         self.json_manager = JsonManager()
 
-    def create_alert(self, alert_obj) -> bool:
+    def get_position_type(self, position_id: str) -> str:
+        """
+        Looks up the position from the database using its ID and returns its normalized position type.
+        Defaults to 'LONG' if not found or if the position_type is blank.
+        """
         try:
-            print("[DEBUG] Starting create_alert process.")
-            self.logger.debug("[DEBUG] Starting create_alert process.")
+            positions = self.data_locker.read_positions()
+            pos = next((p for p in positions if p.get("id") == position_id), None)
+            if pos is None:
+                self.logger.warning("Position with id %s not found. Defaulting to LONG.", position_id)
+                return "LONG"
+            ptype = pos.get("position_type")
+            if not ptype or ptype.strip() == "":
+                return "LONG"
+            return ptype.upper()
+        except Exception as e:
+            self.logger.error("Error retrieving position type for id %s: %s", position_id, e, exc_info=True)
+            return "LONG"
 
+    def create_alert(self, alert_obj) -> bool:
+        """
+        Creates an alert record in the database. For market alerts (PriceThreshold), position_type is set to None.
+        For other alerts, the position type is determined by calling get_position_type() using the position_reference_id.
+        After insertion, the inserted alert is queried from the database to verify that position_type is stored.
+        """
+        try:
+            self.logger.debug("[DEBUG] Starting create_alert process.")
             # Convert alert object to dictionary if needed.
             if not isinstance(alert_obj, dict):
                 alert_dict = alert_obj.to_dict()
-                print("[DEBUG] Converted alert object to dict.")
-                self.logger.debug("Converted alert object to dict.")
+                self.logger.debug("[DEBUG] Converted alert object to dict.")
             else:
                 alert_dict = alert_obj
-                print("[DEBUG] Alert object is already a dict.")
-                self.logger.debug("Alert object is already a dict.")
+                self.logger.debug("[DEBUG] Alert object is already a dict.")
 
-            print(f"[DEBUG] Alert before processing: {alert_dict}")
-            self.logger.debug(f"Alert before processing: {alert_dict}")
+            self.logger.debug(f"[DEBUG] Alert before processing: {alert_dict}")
 
             # Set alert_class based on alert type.
             if alert_dict["alert_type"] == AlertType.PRICE_THRESHOLD.value:
                 alert_dict["alert_class"] = AlertClass.MARKET.value
             else:
                 alert_dict["alert_class"] = AlertClass.POSITION.value
-            print(f"[DEBUG] Set alert_class to: {alert_dict['alert_class']}")
-            self.logger.debug(f"Set alert_class to: {alert_dict['alert_class']}")
+            self.logger.debug(f"[DEBUG] Set alert_class to: {alert_dict['alert_class']}")
 
             # Initialize alert defaults.
             alert_dict = self.initialize_alert_data(alert_dict)
-            print(f"[DEBUG] Alert after initializing defaults: {alert_dict}")
-            self.logger.debug(f"Alert after initializing defaults: {alert_dict}")
+            self.logger.debug(f"[DEBUG] Alert after initializing defaults: {alert_dict}")
 
-            print(f"[DEBUG] Final alert_dict to insert: {alert_dict}")
-            self.logger.debug(f"Final alert_dict to insert: {alert_dict}")
+            # Set position_type:
+            if alert_dict["alert_type"] == AlertType.PRICE_THRESHOLD.value:
+                # Market alerts don't need position type.
+                alert_dict["position_type"] = None
+            else:
+                pos_ref_id = alert_dict.get("position_reference_id")
+                if pos_ref_id:
+                    alert_dict["position_type"] = self.get_position_type(pos_ref_id)
+                else:
+                    alert_dict["position_type"] = "LONG"
+            self.logger.debug(f"[DEBUG] Final alert_dict to insert (including position_type): {alert_dict}")
 
-            # Insert alert into the database.
-            cursor = self.data_locker.conn.cursor()
             sql = """
                 INSERT INTO alerts (
                     id,
@@ -130,7 +155,8 @@ class AlertController:
                     notes,
                     description,
                     position_reference_id,
-                    evaluated_value
+                    evaluated_value,
+                    position_type
                 ) VALUES (
                     :id,
                     :created_at,
@@ -151,34 +177,39 @@ class AlertController:
                     :notes,
                     :description,
                     :position_reference_id,
-                    :evaluated_value
+                    :evaluated_value,
+                    :position_type
                 )
             """
-            print(f"[DEBUG] Executing SQL: {sql}")
-            self.logger.debug(f"Executing SQL for alert creation: {sql}")
+            self.logger.debug(f"[DEBUG] Executing SQL for alert creation: {sql}")
+            cursor = self.data_locker.conn.cursor()
             cursor.execute(sql, alert_dict)
             self.data_locker.conn.commit()
-            print(f"[DEBUG] Alert inserted successfully with ID: {alert_dict['id']}")
-            self.logger.debug(f"Alert inserted successfully with ID: {alert_dict['id']}")
+            self.logger.debug(f"[DEBUG] Alert inserted successfully with ID: {alert_dict['id']}")
 
-            # Log initial creation to the ledger.
-            # This logs an entry with empty before value and "Created" as the after value.
+            # Immediately verify by fetching the stored position_type from the DB.
+            cursor.execute("SELECT position_type FROM alerts WHERE id = ?", (alert_dict["id"],))
+            row = cursor.fetchone()
+            if row is not None:
+                self.logger.debug(
+                    f"[DEBUG] Retrieved position_type from DB for alert {alert_dict['id']}: {row['position_type']}")
+                print(f"[DEBUG] Inserted alert position_type from DB: {row['position_type']}")
+            else:
+                self.logger.error(f"[DEBUG] No DB record found for alert {alert_dict['id']} after insertion.")
+
             from utils.update_ledger import log_alert_update
             log_alert_update(self.data_locker, alert_dict['id'], 'system', 'Initial creation', '', 'Created')
             self.logger.debug("Initial creation logged to ledger.")
 
             enriched_alert = self.enrich_alert(alert_dict)
-            print(f"[DEBUG] Alert after enrichment: {enriched_alert}")
-            self.logger.debug(f"Alert after enrichment: {enriched_alert}")
+            self.logger.debug(f"[DEBUG] Alert after enrichment: {enriched_alert}")
 
             return True
         except sqlite3.IntegrityError as ie:
             self.logger.error("CREATE ALERT: IntegrityError creating alert: %s", ie, exc_info=True)
-            print(f"[ERROR] IntegrityError creating alert: {ie}")
             return False
         except Exception as ex:
             self.logger.exception("CREATE ALERT: Unexpected error in create_alert: %s", ex)
-            print(f"[ERROR] Unexpected error in create_alert: {ex}")
             raise
 
     def create_position_alerts(self):
@@ -186,30 +217,33 @@ class AlertController:
         Create position alerts for each position that doesn't have a valid alert_reference_id.
         Returns a list of created alert dictionaries.
         """
-        self.logger.debug("Starting create_position_alerts method.")
+        print("📈📈📈📈📈📈📈📈📈📈📈📈📈📈📈📈📈📈📈📈📈📈📈📈📈📈📈📈Starting create_position_alerts method.")
         created_alerts = []
         positions = self.data_locker.read_positions()
-        self.logger.debug(f"Retrieved {len(positions)} positions from the database.")
+        self.logger.debug("Retrieved {} positions from the database.".format(len(positions)))
 
         for pos in positions:
             pos_id = pos.get("id")
-            # Check if alert_reference_id is missing or empty
+            # Check if alert_reference_id is missing or empty.
             if not pos.get("alert_reference_id") or pos.get("alert_reference_id").strip() == "":
-                self.logger.debug(f"Position {pos_id} has no valid alert_reference_id. Creating alert...")
                 asset = pos.get("asset_type", "BTC")
-                # Retrieve position_type from the position record, defaulting to "LONG"
-                position_type = pos.get("position_type", "LONG").upper()
-                self.logger.debug(f"Position {pos_id}: asset type = {asset}, position_type = {position_type}")
+                # Retrieve position_type robustly:
+                position_type = pos.get("position_type")
+                if not position_type or (isinstance(position_type, str) and position_type.strip() == ""):
+                    position_type = "LONG"
+                else:
+                    position_type = position_type.upper()
+                self.logger.debug("Creating alert for position {} with position_type: {}".format(pos_id, position_type))
+
+                # For testing, set trigger_value to 0.0 (which triggers enrichment later)
                 try:
-                    trigger_value = float(-4.0)
-                    self.logger.debug(f"Using trigger_value {trigger_value} for position {pos_id}.")
+                    trigger_value = float(0.0)
+                    self.logger.debug("Using trigger_value {} for position {}.".format(trigger_value, pos_id))
                 except Exception as e:
-                    self.logger.error(f"Error converting trigger_value for position {pos_id}: {e}")
-                    trigger_value = -4.0
+                    self.logger.error("Error converting trigger_value for position {}: {}".format(pos_id, e))
+                    trigger_value = 0.0
                 condition = "BELOW"
                 notification_type = "Call"
-                self.logger.debug(
-                    f"Position {pos_id}: condition set to {condition} and notification_type set to {notification_type}.")
 
                 alert_obj = DummyPositionAlert(
                     AlertType.TRAVEL_PERCENT_LIQUID.value,
@@ -218,27 +252,50 @@ class AlertController:
                     condition,
                     notification_type,
                     pos_id,
-                    position_type  # Pass position_type
+                    position_type  # New parameter passed
                 )
-                self.logger.debug(f"Created DummyPositionAlert for position {pos_id}: {alert_obj.to_dict()}")
+                # Log the created alert object's dictionary (should include position_type)
+                self.logger.debug("Created DummyPositionAlert for position {}: {}".format(pos_id, alert_obj.to_dict()))
+                print("DEBUG: Created alert object for position {} with position_type: {}".format(pos_id,
+                                                                                                  alert_obj.position_type))
 
                 if self.create_alert(alert_obj):
-                    self.logger.debug(f"Alert created successfully for position {pos_id}.")
+                    self.logger.debug(
+                        "Alert created successfully for position {}: {}".format(pos_id, alert_obj.to_dict()))
                     created_alerts.append(alert_obj.to_dict())
+                    # Query DB to log inserted alert's position_type
+                    try:
+                        conn = self.data_locker.get_db_connection()
+                        cursor = conn.cursor()
+                        cursor.execute("SELECT position_type FROM alerts WHERE id=?", (alert_obj.id,))
+                        row = cursor.fetchone()
+                        if row:
+                            self.logger.debug(
+                                "DB record for alert {}: position_type={}".format(alert_obj.id, row["position_type"]))
+                            print("DEBUG: DB record for alert {}: position_type={}".format(alert_obj.id,
+                                                                                           row["position_type"]))
+                        else:
+                            self.logger.error("No alert record found in DB for alert id {}".format(alert_obj.id))
+                        cursor.close()
+                    except Exception as e:
+                        self.logger.error("Error querying alert record for alert id {}: {}".format(alert_obj.id, e),
+                                          exc_info=True)
+                    # Update the position record with the alert_reference_id.
                     try:
                         conn = self.data_locker.get_db_connection()
                         cursor = conn.cursor()
                         cursor.execute("UPDATE positions SET alert_reference_id=? WHERE id=?", (alert_obj.id, pos_id))
                         conn.commit()
-                        self.logger.debug(f"Updated position {pos_id} with alert_reference_id {alert_obj.id}.")
+                        self.logger.debug("Updated position {} with alert_reference_id {}".format(pos_id, alert_obj.id))
+                        cursor.close()
                     except Exception as e:
-                        self.logger.error(f"Error updating position {pos_id} with alert_reference_id: {e}")
+                        self.logger.error("Error updating position {} with alert_reference_id: {}".format(pos_id, e))
                 else:
-                    self.logger.error(f"Failed to create alert for position {pos_id}.")
+                    self.logger.error("Failed to create alert for position {}.".format(pos_id))
             else:
-                self.logger.debug(
-                    f"Position {pos_id} already has alert_reference_id: '{pos.get('alert_reference_id')}'. Skipping alert creation.")
-        self.logger.debug(f"create_position_alerts completed. Created {len(created_alerts)} alerts.")
+                self.logger.debug("Position {} already has alert_reference_id: '{}'. Skipping alert creation.".format(
+                    pos_id, pos.get("alert_reference_id")))
+        self.logger.debug("create_position_alerts completed. Created {} alerts.".format(len(created_alerts)))
         return created_alerts
 
     def enrich_alert(self, alert: dict) -> dict:
@@ -332,10 +389,10 @@ class AlertController:
             return []
 
     def initialize_alert_data(self, alert_data: dict = None) -> dict:
+        """
+        Sets default values for alert fields if they are not provided.
+        """
         from data.models import Status
-        from uuid import uuid4
-        from datetime import datetime
-
         defaults = {
             "id": str(uuid4()),
             "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -345,7 +402,6 @@ class AlertController:
             "trigger_value": 0.0,
             "condition": "ABOVE",
             "notification_type": "Email",
-            # Replace default key "state" with "level"
             "level": "Normal",
             "last_triggered": None,
             "status": Status.ACTIVE.value,
@@ -361,17 +417,25 @@ class AlertController:
         }
         if alert_data is None:
             alert_data = {}
-
-        for key, default_val in defaults.items():
+        for key, value in defaults.items():
             if key not in alert_data or alert_data.get(key) is None:
-                alert_data[key] = default_val
-            elif key == "position_reference_id":
-                value = alert_data.get(key)
-                if isinstance(value, str) and value.strip() == "":
-                    self.logger.error("initialize_alert_data: position_reference_id is empty for a position alert")
+                alert_data[key] = value
         return alert_data
 
+    def enrich_alert(self, alert: dict) -> dict:
+        """
+        Enriches an alert using the shared enrichment routine.
+        Passes self as the alert controller.
+        """
+        from alerts.alert_enrichment import enrich_alert_data
+        enriched_alert = enrich_alert_data(alert, self.data_locker, self.logger, self)
+        return enriched_alert
+
     def create_price_alerts(self):
+        """
+        Create market (price threshold) alerts for assets BTC, ETH, and SOL using configuration.
+        """
+        from utils.json_manager import JsonManager, JsonType
         jm = JsonManager()
         alert_limits = jm.load("", JsonType.ALERT_LIMITS)
         price_alerts_config = alert_limits.get("alert_ranges", {}).get("price_alerts", {})
@@ -379,59 +443,27 @@ class AlertController:
         created_alerts = []
         assets = ["BTC", "ETH", "SOL"]
 
-        class DummyAlert:
-            def __init__(self, alert_type, alert_class, asset_type, trigger_value, condition, notification_type,
-                         level="Normal", position_reference_id=None, status="Active"):
-                self.id = str(uuid4())
-                self.alert_type = alert_type
-                self.alert_class = alert_class
-                self.asset_type = asset_type
-                self.trigger_value = trigger_value
-                self.condition = condition
-                self.notification_type = notification_type
-                # Use 'level' consistently
-                self.level = level
-                self.last_triggered = None
-                self.status = status
-                self.frequency = 1
-                self.counter = 0
-                self.liquidation_distance = 0.0
-                self.travel_percent = 0.0
-                self.liquidation_price = 0.0
-                self.notes = ""
-                self.position_reference_id = position_reference_id
-
-            def to_dict(self):
-                return {
-                    "id": self.id,
-                    "alert_type": self.alert_type,
-                    "alert_class": self.alert_class,
-                    "asset_type": self.asset_type,
-                    "trigger_value": self.trigger_value,
-                    "condition": self.condition,
-                    "notification_type": self.notification_type,
-                    "level": self.level,  # key is now "level"
-                    "last_triggered": self.last_triggered,
-                    "status": self.status,
-                    "frequency": self.frequency,
-                    "counter": self.counter,
-                    "liquidation_distance": self.liquidation_distance,
-                    "travel_percent": self.travel_percent,
-                    "liquidation_price": self.liquidation_price,
-                    "notes": self.notes,
-                    "position_reference_id": self.position_reference_id
-                }
-
-        existing_alerts = self.get_all_alerts()
+        # Log the entire price_alerts_config for debugging.
+        self._debug_log(f"[Price Alert] Full price_alerts_config: {price_alerts_config}")
 
         for asset in assets:
-            config = price_alerts_config.get(asset, {})
+            # Retrieve config for each asset; log the result.
+            config = price_alerts_config.get(asset)
+            self._debug_log(f"[Price Alert] Retrieved config for {asset}: {config}")
+            if config is None:
+                self._debug_log(f"[Price Alert] WARNING: No configuration found for asset {asset}.")
+                continue
             if config.get("enabled", False):
                 condition = config.get("condition", "ABOVE").upper()
-                trigger_value = float(config.get("trigger_value", 0.0))
-                notifications = config.get("notifications", {})
-                notification_type = "Call" if notifications.get("call", False) else "Email"
+                try:
+                    trigger_value = float(config.get("trigger_value", 0.0))
+                except Exception as e:
+                    self.logger.error(f"Error parsing trigger value for {asset}: {e}", exc_info=True)
+                    continue
+                self._debug_log(f"[Price Alert] {asset}: trigger_value={trigger_value}, condition={condition}")
 
+                # Check if an alert for this asset with the same condition already exists.
+                existing_alerts = self.get_all_alerts()
                 alert_exists = any(
                     alert.get("alert_type") == AlertType.PRICE_THRESHOLD.value and
                     alert.get("asset_type") == asset and
@@ -439,8 +471,53 @@ class AlertController:
                     for alert in existing_alerts
                 )
                 if alert_exists:
-                    print(f"Price alert for {asset} with condition {condition} already exists; skipping creation.")
+                    self._debug_log(
+                        f"[Price Alert] Alert for {asset} with condition {condition} already exists; skipping creation.")
                     continue
+
+                # Create a dummy alert instance.
+                class DummyAlert:
+                    def __init__(self, alert_type, alert_class, asset_type, trigger_value, condition, notification_type,
+                                 level="Normal", position_reference_id=None):
+                        from uuid import uuid4
+                        self.id = str(uuid4())
+                        self.alert_type = alert_type
+                        self.alert_class = alert_class
+                        self.asset_type = asset_type
+                        self.trigger_value = trigger_value
+                        self.condition = condition
+                        self.notification_type = notification_type
+                        self.level = level
+                        self.last_triggered = None
+                        self.status = "Active"
+                        self.frequency = 1
+                        self.counter = 0
+                        self.liquidation_distance = 0.0
+                        self.travel_percent = 0.0
+                        self.liquidation_price = 0.0
+                        self.notes = ""
+                        self.position_reference_id = position_reference_id
+
+                    def to_dict(self):
+                        return {
+                            "id": self.id,
+                            "alert_type": self.alert_type,
+                            "alert_class": self.alert_class,
+                            "asset_type": self.asset_type,
+                            "trigger_value": self.trigger_value,
+                            "condition": self.condition,
+                            "notification_type": self.notification_type,
+                            "level": self.level,
+                            "last_triggered": self.last_triggered,
+                            "status": self.status,
+                            "frequency": self.frequency,
+                            "counter": self.counter,
+                            "liquidation_distance": self.liquidation_distance,
+                            "travel_percent": self.travel_percent,
+                            "liquidation_price": self.liquidation_price,
+                            "notes": self.notes,
+                            "position_reference_id": self.position_reference_id
+                        }
 
                 dummy_alert = DummyAlert(
                     alert_type=AlertType.PRICE_THRESHOLD.value,
@@ -448,16 +525,24 @@ class AlertController:
                     asset_type=asset,
                     trigger_value=trigger_value,
                     condition=condition,
-                    notification_type=notification_type,
-                    state="Normal",
-                    status=Status.ACTIVE.value
+                    notification_type="Call" if config.get("notifications", {}).get("call", False) else "Email",
+                    level="Normal",
+                    position_reference_id=None
                 )
+                # Log created dummy_alert details.
+                self._debug_log(f"[Price Alert] Created dummy alert for {asset}: {dummy_alert.to_dict()}")
+
                 if self.create_alert(dummy_alert):
                     created_alerts.append(dummy_alert.to_dict())
-                    print(f"Created price alert for {asset}: condition {condition}, trigger {trigger_value}, notification {notification_type}.")
+                    self._debug_log(
+                        f"[Price Alert] Created alert for {asset}: condition {condition}, trigger {trigger_value}, notification {dummy_alert.notification_type}.")
+                    print(
+                        f"Created price alert for {asset}: condition {condition}, trigger {trigger_value}, notification {dummy_alert.notification_type}.")
                 else:
+                    self._debug_log(f"[Price Alert] Failed to create alert for {asset}.")
                     print(f"Failed to create price alert for {asset}.")
             else:
+                self._debug_log(f"[Price Alert] Alert for {asset} is not enabled in configuration.")
                 print(f"Price alert for {asset} is not enabled in configuration.")
         return created_alerts
 
@@ -585,8 +670,12 @@ class AlertController:
                 trigger_value = 0.0
                 condition = "BELOW"
                 notification_type = "Call"
-                # Retrieve position_type from the position record; default to LONG.
-                position_type = pos.get("position_type", "LONG").upper()
+                # Retrieve position_type robustly:
+                position_type = pos.get("position_type")
+                if not position_type or (isinstance(position_type, str) and position_type.strip() == ""):
+                    position_type = "LONG"
+                else:
+                    position_type = position_type.upper()
                 self.logger.debug(
                     f"Creating travel percent alert for position {pos_id} with trigger_value {trigger_value} and position_type {position_type}.")
 
@@ -635,6 +724,8 @@ class AlertController:
                 profit_val = float(pos.get("pnl_after_fees_usd", 0.0))
             except Exception:
                 continue
+            # If profit is negative or zero, the code previously would update to Normal and skip creation.
+            # If you want to create a profit alert regardless, remove or adjust this check.
             if profit_val <= 0:
                 self._update_alert_level(pos, "Normal")
                 continue
@@ -660,8 +751,12 @@ class AlertController:
             notifications = profit_config.get("notifications", {})
             notification_type = "Call" if notifications.get("call", False) else "Email"
             position_id = pos.get("id")
-            # Retrieve position_type from the position record, default to LONG.
-            position_type = pos.get("position_type", "LONG").upper()
+            # Retrieve position_type robustly:
+            position_type = pos.get("position_type")
+            if not position_type or (isinstance(position_type, str) and position_type.strip() == ""):
+                position_type = "LONG"
+            else:
+                position_type = position_type.upper()
             alert_obj = DummyPositionAlert(
                 AlertType.PROFIT.value,
                 asset,
@@ -669,7 +764,7 @@ class AlertController:
                 condition,
                 notification_type,
                 position_id,
-                position_type  # New parameter!
+                position_type  # NEW parameter passed
             )
             alert_obj.level = current_level
             if self.create_alert(alert_obj):
@@ -802,8 +897,12 @@ class AlertController:
         for pos in positions:
             position_id = pos.get("id")
             asset = pos.get("asset_type", "BTC")
-            # Retrieve position_type from position record, defaulting to LONG.
-            position_type = pos.get("position_type", "LONG").upper()
+            # Retrieve position_type robustly:
+            position_type = pos.get("position_type")
+            if not position_type or (isinstance(position_type, str) and position_type.strip() == ""):
+                position_type = "LONG"
+            else:
+                position_type = position_type.upper()
             alert_obj = DummyPositionAlert(
                 AlertType.HEAT_INDEX.value,
                 asset,

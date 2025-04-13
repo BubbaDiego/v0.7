@@ -248,8 +248,12 @@ def validate_alert_level(alert: dict, logger: logging.Logger) -> str:
 import logging
 from utils.json_manager import JsonManager, JsonType
 from data.models import AlertType  # Import the model for consistent alert type values
-from alerts.alert_evaluator import AlertEvaluator
 from alerts.alert_enrichment import normalize_alert_type
+
+import logging
+from utils.json_manager import JsonManager, JsonType
+from data.models import AlertType
+#from alerts.alert_enrichment_helper import normalize_alert_type  # if you have a helper for normalization
 
 
 def enrich_alert_data(alert: dict, data_locker, logger: logging.Logger, alert_controller) -> dict:
@@ -269,6 +273,7 @@ def enrich_alert_data(alert: dict, data_locker, logger: logging.Logger, alert_co
     logger.debug("Initial alert: %s", alert)
 
     try:
+        # Normalize the alert type (this function should adjust alert["alert_type"] accordingly)
         alert = normalize_alert_type(alert)
         normalized_alert_type = alert.get("alert_type")
         logger.debug("Normalized alert_type: %s", normalized_alert_type)
@@ -276,7 +281,7 @@ def enrich_alert_data(alert: dict, data_locker, logger: logging.Logger, alert_co
         logger.error("Error normalizing alert type: %s", e)
         return alert
 
-    # For position alerts, enforce alert_class "Position"
+    # Enforce classification based on alert type.
     if normalized_alert_type in [AlertType.TRAVEL_PERCENT_LIQUID.value,
                                  AlertType.PROFIT.value,
                                  AlertType.HEAT_INDEX.value]:
@@ -288,12 +293,12 @@ def enrich_alert_data(alert: dict, data_locker, logger: logging.Logger, alert_co
     else:
         logger.error("Unrecognized alert type: %s", alert["alert_type"])
 
-    # Load alert_limits from configuration.
+    # Load configuration (alert_limits).
     jm = JsonManager()
     alert_limits = jm.load("", JsonType.ALERT_LIMITS)
     logger.debug("Loaded alert_limits: %s", alert_limits)
 
-    # For price alerts, adjust settings based on asset configuration.
+    # For price alerts: adjust notification type, trigger, and condition if applicable.
     if alert["alert_type"] == AlertType.PRICE_THRESHOLD.value:
         asset = alert.get("asset_type", "BTC")
         asset_config = alert_limits.get("alert_ranges", {}).get("price_alerts", {}).get(asset, {})
@@ -327,8 +332,10 @@ def enrich_alert_data(alert: dict, data_locker, logger: logging.Logger, alert_co
             logger.debug("Retrieved positions from DB: %s", positions)
             position = next((p for p in positions if p.get("id") == alert.get("position_reference_id")), None)
             if position:
-                # Use AlertEvaluator to compute travel alert changes.
+                # Import AlertEvaluator locally to avoid circular import.
+                from alerts.alert_evaluator import AlertEvaluator
                 evaluator = AlertEvaluator(alert_limits, data_locker, alert_controller)
+                logger.debug("AlertEvaluator instantiated successfully with alert_controller reference.")
                 level, current_val = evaluator.evaluate_travel_alert(position)
                 updated_alert = data_locker.get_alert(alert.get("id"))
                 if updated_alert:
@@ -381,10 +388,11 @@ def enrich_alert_data(alert: dict, data_locker, logger: logging.Logger, alert_co
         else:
             logger.error("Position alert missing position_reference_id during enrichment.")
 
+    # Populate evaluated_value using a helper function.
+    from alerts.alert_enrichment import populate_evaluated_value_for_alert
     alert["evaluated_value"] = populate_evaluated_value_for_alert(alert, data_locker, logger)
     logger.debug("After populating evaluated value: %s", alert)
 
-    # Validate and normalize the alert level.
     def validate_level(level_str: str) -> str:
         valid_levels = ["Normal", "Low", "Medium", "High"]
         norm = level_str.capitalize()
@@ -397,7 +405,6 @@ def enrich_alert_data(alert: dict, data_locker, logger: logging.Logger, alert_co
     logger.debug("Final validated level: %s", current_level_normalized)
     alert["level"] = current_level_normalized
 
-    # Prepare update fields for persisting changes.
     update_fields = {
         "liquidation_distance": alert.get("liquidation_distance", 0.0),
         "liquidation_price": alert.get("liquidation_price", 0.0),
