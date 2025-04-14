@@ -100,6 +100,18 @@ class DataLocker:
                     cursor.execute(sql)
                     self.logger.info(f"Added '{col}' column to 'system_vars' table.")
 
+            # NEW: Create position_alert_map table to support multiple alerts per position.
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS position_alert_map (
+                    id TEXT PRIMARY KEY,
+                    position_id TEXT NOT NULL,
+                    alert_id TEXT NOT NULL,
+                    FOREIGN KEY(position_id) REFERENCES positions(id),
+                    FOREIGN KEY(alert_id) REFERENCES alerts(id)
+                )
+            """)
+            self.logger.debug("Created table 'position_alert_map' if it did not exist.")
+
             # NEW: Add columns for strategy performance persistence
             cursor.execute("PRAGMA table_info(system_vars)")
             existing_cols = [row["name"] for row in cursor.fetchall()]
@@ -263,6 +275,34 @@ class DataLocker:
     def get_db_connection(self) -> sqlite3.Connection:
         self._init_sqlite_if_needed()
         return self.conn
+
+    def add_position_alert_mapping(self, position_id: str, alert_id: str) -> None:
+        """Adds a mapping record linking a position to an alert."""
+        cursor = self.conn.cursor()
+        sql = """
+            INSERT INTO position_alert_map (id, position_id, alert_id)
+            VALUES (?, ?, ?)
+        """
+        mapping_id = str(uuid4())
+        cursor.execute(sql, (mapping_id, position_id, alert_id))
+        self.conn.commit()
+        cursor.close()
+
+    def has_alert_mapping(self, position_id: str, alert_type: str) -> bool:
+        """
+        Checks whether an alert of a specific type already exists for a position,
+        by joining the alerts table with the mapping table.
+        """
+        cursor = self.conn.cursor()
+        sql = """
+            SELECT a.id FROM alerts a
+            JOIN position_alert_map pam ON a.id = pam.alert_id
+            WHERE pam.position_id = ? AND a.alert_type = ?
+        """
+        cursor.execute(sql, (position_id, alert_type))
+        row = cursor.fetchone()
+        cursor.close()
+        return row is not None
 
     def get_theme_mode(self) -> str:
         self._init_sqlite_if_needed()

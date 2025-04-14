@@ -199,18 +199,11 @@
         <a id="alertSettings" href="{{ url_for('alerts_bp.alert_config_page') }}" title="Alert Settings" style="color: #fff; margin-left: 10px;">
           <i class="fas fa-sliders-h"></i>
         </a>
-        <!-- Delete Alerts Dropdown -->
-        <div class="dropdown" style="display:inline-block; margin-left: 10px;">
-          <a id="deleteAllAlerts" href="#" class="dropdown-toggle" data-bs-toggle="dropdown"
-             aria-expanded="false" role="button" title="Delete Alerts" style="color: #fff;">
-            <i class="fas fa-trash-alt"></i>
-          </a>
-          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="deleteAllAlerts">
-            <li><a class="dropdown-item" href="#" data-delete-type="price">Delete Price</a></li>
-            <li><a class="dropdown-item" href="#" data-delete-type="alerts">Delete Alerts</a></li>
-            <li><a class="dropdown-item" href="#" data-delete-type="all">Delete All</a></li>
-          </ul>
-        </div>
+        <!--
+            DELETE functionality has been removed as deletion is now managed
+            via the Cyclone console. If deletion is needed, please use the
+            dedicated Cyclone interface.
+         -->
       </div>
     </div>
     <div class="card-body" style="background-color: var(--card-background-color); color: var(--text-color);">
@@ -272,7 +265,7 @@
                       {% endif %}
                     {% endif %}
                   </div>
-                  <!-- Now place the long/short icon where the wallet used to be -->
+                  <!-- Long/Short Icon -->
                   <div class="long-short-icon">
                     {% if alert.position_type %}
                       {% if alert.position_type|lower == 'short' %}
@@ -281,7 +274,6 @@
                         <span style="color: green; font-size: 1.5rem;">📈</span>
                       {% endif %}
                     {% else %}
-                      <!-- default to long if not specified -->
                       <span style="color: green; font-size: 1.5rem;">📈</span>
                     {% endif %}
                   </div>
@@ -538,32 +530,7 @@
         });
       });
     });
-    // Delete alerts dropdown selections
-    document.querySelectorAll('[data-delete-type]').forEach(item => {
-      item.addEventListener("click", function(e) {
-        e.preventDefault();
-        let deleteType = this.getAttribute("data-delete-type");
-        if (!confirm("Are you sure you want to delete " + deleteType + "?")) return;
-        fetch("{{ url_for('alerts_bp.delete_all_alerts') }}", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ delete_type: deleteType })
-        })
-        .then(response => response.json())
-        .then(data => {
-          if (data.success) {
-            alert(data.message);
-            window.location.reload();
-          } else {
-            alert("Error deleting alerts: " + data.error);
-          }
-        })
-        .catch(err => {
-          console.error("Error deleting alerts:", err);
-          alert("Error deleting alerts: " + err);
-        });
-      });
-    });
+    // The delete alerts functionality has been removed from this interface.
   });
 </script>
 <style>

@@ -212,7 +212,54 @@ class AlertController:
             self.logger.exception("CREATE ALERT: Unexpected error in create_alert: %s", ex)
             raise
 
-    def create_position_alerts(self):
+    def create_all_position_alerts(self) -> list:
+        """
+        Iterates over each position and creates individual alerts for each enabled
+        metric (travel percent, profit, and heat index) if not already mapped.
+        Returns a list of created alert dictionaries.
+        """
+        created_alerts = []
+        positions = self.data_locker.read_positions()
+        # Load configuration for enabled alert types.
+        alert_limits = self.json_manager.load("", JsonType.ALERT_LIMITS)
+
+        for pos in positions:
+            position_id = pos.get("id")
+            # 1. Travel Percent Alert
+            travel_config = alert_limits.get("alert_ranges", {}).get("travel_percent_liquid_ranges", {})
+            if travel_config.get("enabled", False):
+                if not self.data_locker.has_alert_mapping(position_id, AlertType.TRAVEL_PERCENT_LIQUID.value):
+                    travel_alert = self.create_alert_for_position(pos, AlertType.TRAVEL_PERCENT_LIQUID.value,
+                                                                  0.0, "BELOW", "Call")
+                    if travel_alert:
+                        created_alerts.append(travel_alert)
+            # 2. Profit Alert
+            profit_config = alert_limits.get("alert_ranges", {}).get("profit_ranges", {})
+            if profit_config.get("enabled", False):
+                if not self.data_locker.has_alert_mapping(position_id, AlertType.PROFIT.value):
+                    try:
+                        profit_val = float(pos.get("pnl_after_fees_usd", 0.0))
+                    except Exception:
+                        profit_val = 0.0
+                    profit_alert = self.create_alert_for_position(pos, AlertType.PROFIT.value,
+                                                                  profit_val, "ABOVE", "Call")
+                    if profit_alert:
+                        created_alerts.append(profit_alert)
+            # 3. Heat Index Alert
+            heat_config = alert_limits.get("alert_ranges", {}).get("heat_index_ranges", {})
+            if heat_config.get("enabled", False):
+                if not self.data_locker.has_alert_mapping(position_id, AlertType.HEAT_INDEX.value):
+                    try:
+                        heat_val = float(pos.get("current_heat_index", 0.0))
+                    except Exception:
+                        heat_val = 0.0
+                    heat_alert = self.create_alert_for_position(pos, AlertType.HEAT_INDEX.value,
+                                                                heat_val, "ABOVE", "Call")
+                    if heat_alert:
+                        created_alerts.append(heat_alert)
+        return created_alerts
+
+    def create_position_alertsff(self):
         """
         Create position alerts for each position that doesn't have a valid alert_reference_id.
         Returns a list of created alert dictionaries.
@@ -433,118 +480,151 @@ class AlertController:
 
     def create_price_alerts(self):
         """
-        Create market (price threshold) alerts for assets BTC, ETH, and SOL using configuration.
+        Creates market (price threshold) alerts for assets.
+        Follows the BTC model—position type is not used, so it is set to None.
         """
+        created_alerts = []
         from utils.json_manager import JsonManager, JsonType
         jm = JsonManager()
         alert_limits = jm.load("", JsonType.ALERT_LIMITS)
         price_alerts_config = alert_limits.get("alert_ranges", {}).get("price_alerts", {})
 
-        created_alerts = []
-        assets = ["BTC", "ETH", "SOL"]
-
-        # Log the entire price_alerts_config for debugging.
-        self._debug_log(f"[Price Alert] Full price_alerts_config: {price_alerts_config}")
-
-        for asset in assets:
-            # Retrieve config for each asset; log the result.
-            config = price_alerts_config.get(asset)
-            self._debug_log(f"[Price Alert] Retrieved config for {asset}: {config}")
-            if config is None:
-                self._debug_log(f"[Price Alert] WARNING: No configuration found for asset {asset}.")
+        # Use case-insensitive keys for configuration.
+        config_by_asset = {k.upper(): v for k, v in price_alerts_config.items()}
+        for asset in ["BTC", "ETH", "SOL"]:
+            config = config_by_asset.get(asset.upper())
+            if config is None or not config.get("enabled", False):
+                self.logger.debug("Price alert for asset %s is not enabled or missing.", asset)
                 continue
-            if config.get("enabled", False):
-                condition = config.get("condition", "ABOVE").upper()
-                try:
-                    trigger_value = float(config.get("trigger_value", 0.0))
-                except Exception as e:
-                    self.logger.error(f"Error parsing trigger value for {asset}: {e}", exc_info=True)
-                    continue
-                self._debug_log(f"[Price Alert] {asset}: trigger_value={trigger_value}, condition={condition}")
-
-                # Check if an alert for this asset with the same condition already exists.
-                existing_alerts = self.get_all_alerts()
-                alert_exists = any(
-                    alert.get("alert_type") == AlertType.PRICE_THRESHOLD.value and
-                    alert.get("asset_type") == asset and
-                    alert.get("condition", "").upper() == condition
-                    for alert in existing_alerts
-                )
-                if alert_exists:
-                    self._debug_log(
-                        f"[Price Alert] Alert for {asset} with condition {condition} already exists; skipping creation.")
-                    continue
-
-                # Create a dummy alert instance.
-                class DummyAlert:
-                    def __init__(self, alert_type, alert_class, asset_type, trigger_value, condition, notification_type,
-                                 level="Normal", position_reference_id=None):
-                        from uuid import uuid4
-                        self.id = str(uuid4())
-                        self.alert_type = alert_type
-                        self.alert_class = alert_class
-                        self.asset_type = asset_type
-                        self.trigger_value = trigger_value
-                        self.condition = condition
-                        self.notification_type = notification_type
-                        self.level = level
-                        self.last_triggered = None
-                        self.status = "Active"
-                        self.frequency = 1
-                        self.counter = 0
-                        self.liquidation_distance = 0.0
-                        self.travel_percent = 0.0
-                        self.liquidation_price = 0.0
-                        self.notes = ""
-                        self.position_reference_id = position_reference_id
-
-                    def to_dict(self):
-                        return {
-                            "id": self.id,
-                            "alert_type": self.alert_type,
-                            "alert_class": self.alert_class,
-                            "asset_type": self.asset_type,
-                            "trigger_value": self.trigger_value,
-                            "condition": self.condition,
-                            "notification_type": self.notification_type,
-                            "level": self.level,
-                            "last_triggered": self.last_triggered,
-                            "status": self.status,
-                            "frequency": self.frequency,
-                            "counter": self.counter,
-                            "liquidation_distance": self.liquidation_distance,
-                            "travel_percent": self.travel_percent,
-                            "liquidation_price": self.liquidation_price,
-                            "notes": self.notes,
-                            "position_reference_id": self.position_reference_id
-                        }
-
-                dummy_alert = DummyAlert(
-                    alert_type=AlertType.PRICE_THRESHOLD.value,
-                    alert_class=AlertClass.MARKET.value,
-                    asset_type=asset,
-                    trigger_value=trigger_value,
-                    condition=condition,
-                    notification_type="Call" if config.get("notifications", {}).get("call", False) else "Email",
-                    level="Normal",
-                    position_reference_id=None
-                )
-                # Log created dummy_alert details.
-                self._debug_log(f"[Price Alert] Created dummy alert for {asset}: {dummy_alert.to_dict()}")
-
-                if self.create_alert(dummy_alert):
-                    created_alerts.append(dummy_alert.to_dict())
-                    self._debug_log(
-                        f"[Price Alert] Created alert for {asset}: condition {condition}, trigger {trigger_value}, notification {dummy_alert.notification_type}.")
-                    print(
-                        f"Created price alert for {asset}: condition {condition}, trigger {trigger_value}, notification {dummy_alert.notification_type}.")
-                else:
-                    self._debug_log(f"[Price Alert] Failed to create alert for {asset}.")
-                    print(f"Failed to create price alert for {asset}.")
+            condition = config.get("condition", "ABOVE").upper()
+            try:
+                trigger_value = float(config.get("trigger_value", 0.0))
+            except Exception as e:
+                self.logger.error("Error parsing trigger value for %s: %s", asset, e)
+                continue
+            notification_type = "Call" if config.get("notifications", {}).get("call", False) else "Email"
+            # For market alerts, ignore position_reference_id and position_type.
+            alert_obj = DummyPositionAlert(
+                AlertType.PRICE_THRESHOLD.value,
+                asset.upper(),
+                trigger_value,
+                condition,
+                notification_type,
+                None,  # No position_reference_id
+                None  # Position type is not relevant.
+            )
+            alert_obj.level = "Normal"
+            if self.create_alert(alert_obj):
+                created_alerts.append(alert_obj.to_dict())
             else:
-                self._debug_log(f"[Price Alert] Alert for {asset} is not enabled in configuration.")
-                print(f"Price alert for {asset} is not enabled in configuration.")
+                self.logger.error("Failed to create price alert for asset %s", asset)
         return created_alerts
+
+    def create_alert_for_position(self, pos: dict, alert_type: str, trigger_value: float,
+                                  condition: str, notification_type: str) -> dict:
+        """
+        Creates an alert of the specified type for the given position,
+        then records the mapping to allow multiple alerts per position.
+        """
+        position_id = pos.get("id")
+        asset = pos.get("asset_type", "BTC")
+        position_type = self.get_position_type(position_id)
+        alert_obj = DummyPositionAlert(
+            alert_type,
+            asset,
+            trigger_value,
+            condition,
+            notification_type,
+            position_id,
+            position_type
+        )
+        if self.create_alert(alert_obj):
+            # After creating the alert, add a mapping record in the new table.
+            self.data_locker.add_position_alert_mapping(position_id, alert_obj.id)
+            return alert_obj.to_dict()
+        else:
+            return None
+
+    # In alert_controller.py
+
+    from data.models import AlertType
+    from utils.json_manager import JsonManager, JsonType
+    from uuid import uuid4
+
+    class AlertController:
+        # ... existing __init__ and other methods ...
+
+        def create_alert_for_position(self, pos: dict, alert_type: str, trigger_value: float,
+                                      condition: str, notification_type: str) -> dict:
+            """
+            Creates an alert of the specified type for the given position,
+            then records the mapping to allow multiple alerts per position.
+            """
+            position_id = pos.get("id")
+            asset = pos.get("asset_type", "BTC")
+            position_type = self.get_position_type(position_id)
+            alert_obj = DummyPositionAlert(
+                alert_type,
+                asset,
+                trigger_value,
+                condition,
+                notification_type,
+                position_id,
+                position_type
+            )
+            if self.create_alert(alert_obj):
+                # After creating the alert, add a mapping record in the new table.
+                self.data_locker.add_position_alert_mapping(position_id, alert_obj.id)
+                return alert_obj.to_dict()
+            else:
+                return None
+
+        def create_all_position_alerts(self) -> list:
+            """
+            Iterates over each position and creates individual alerts for each enabled
+            metric (travel percent, profit, and heat index) if not already mapped.
+            """
+            created_alerts = []
+            positions = self.data_locker.read_positions()
+            # Load configuration for enabled alert types.
+            jm = self.json_manager
+            alert_limits = jm.load("", JsonType.ALERT_LIMITS)
+
+            for pos in positions:
+                position_id = pos.get("id")
+                # 1. Travel Percent Alert
+                travel_config = alert_limits.get("alert_ranges", {}).get("travel_percent_liquid_ranges", {})
+                if travel_config.get("enabled", False):
+                    if not self.data_locker.has_alert_mapping(position_id, AlertType.TRAVEL_PERCENT_LIQUID.value):
+                        travel_alert = self.create_alert_for_position(pos, AlertType.TRAVEL_PERCENT_LIQUID.value,
+                                                                      0.0, "BELOW", "Call")
+                        if travel_alert:
+                            created_alerts.append(travel_alert)
+                # 2. Profit Alert
+                profit_config = alert_limits.get("alert_ranges", {}).get("profit_ranges", {})
+                if profit_config.get("enabled", False):
+                    if not self.data_locker.has_alert_mapping(position_id, AlertType.PROFIT.value):
+                        try:
+                            profit_val = float(pos.get("pnl_after_fees_usd", 0.0))
+                        except Exception:
+                            profit_val = 0.0
+                        profit_alert = self.create_alert_for_position(pos, AlertType.PROFIT.value,
+                                                                      profit_val, "ABOVE", "Call")
+                        if profit_alert:
+                            created_alerts.append(profit_alert)
+                # 3. Heat Index Alert
+                heat_config = alert_limits.get("alert_ranges", {}).get("heat_index_ranges", {})
+                if heat_config.get("enabled", False):
+                    if not self.data_locker.has_alert_mapping(position_id, AlertType.HEAT_INDEX.value):
+                        try:
+                            heat_val = float(pos.get("current_heat_index", 0.0))
+                        except Exception:
+                            heat_val = 0.0
+                        heat_alert = self.create_alert_for_position(pos, AlertType.HEAT_INDEX.value,
+                                                                    heat_val, "ABOVE", "Call")
+                        if heat_alert:
+                            created_alerts.append(heat_alert)
+            return created_alerts
 
     def _update_alert_level(self, pos: dict, new_level: str, evaluated_value: Optional[float] = None,
                             updated_by: str = "system", reason: str = "Automatic update"):
@@ -709,70 +789,37 @@ class AlertController:
         return created_alerts
 
     def create_profit_alerts(self):
-        from utils.json_manager import JsonManager, JsonType
-        jm = JsonManager()
-        alert_limits = jm.load("", JsonType.ALERT_LIMITS)
-        profit_config = alert_limits.get("alert_ranges", {}).get("profit_ranges", {})
-        if not profit_config.get("enabled", False):
-            print("Profit alerts are not enabled in configuration.")
-            return []
+        """
+        Creates a profit alert for each position, regardless of whether the calculated profit is positive or negative.
+        """
         created_alerts = []
         positions = self.data_locker.read_positions()
         for pos in positions:
             asset = pos.get("asset_type", "BTC")
+            pos_id = pos.get("id")
             try:
                 profit_val = float(pos.get("pnl_after_fees_usd", 0.0))
-            except Exception:
-                continue
-            # If profit is negative or zero, the code previously would update to Normal and skip creation.
-            # If you want to create a profit alert regardless, remove or adjust this check.
-            if profit_val <= 0:
-                self._update_alert_level(pos, "Normal")
-                continue
-            try:
-                low_thresh = float(profit_config.get("low", 46.23))
-                med_thresh = float(profit_config.get("medium", 101.3))
-                high_thresh = float(profit_config.get("high", 202.0))
-            except Exception:
-                continue
-            if profit_val < low_thresh:
-                self._update_alert_level(pos, "Normal")
-                continue
-            elif profit_val < med_thresh:
-                current_level = "Low"
-                computed_trigger = low_thresh
-            elif profit_val < high_thresh:
-                current_level = "Medium"
-                computed_trigger = med_thresh
-            else:
-                current_level = "High"
-                computed_trigger = high_thresh
-            condition = profit_config.get("condition", "ABOVE")
-            notifications = profit_config.get("notifications", {})
-            notification_type = "Call" if notifications.get("call", False) else "Email"
-            position_id = pos.get("id")
-            # Retrieve position_type robustly:
-            position_type = pos.get("position_type")
-            if not position_type or (isinstance(position_type, str) and position_type.strip() == ""):
-                position_type = "LONG"
-            else:
-                position_type = position_type.upper()
+            except Exception as e:
+                self.logger.error("Error parsing profit for position %s: %s", pos_id, e)
+                profit_val = 0.0
+            condition = "ABOVE"  # Use a default condition (adjustable as needed)
+            notification_type = "Call"  # Default notification type
+            # Retrieve position type via DB lookup
+            position_type = self.get_position_type(pos_id)
             alert_obj = DummyPositionAlert(
                 AlertType.PROFIT.value,
                 asset,
-                computed_trigger,
+                profit_val,  # Use profit as the trigger value
                 condition,
                 notification_type,
-                position_id,
-                position_type  # NEW parameter passed
+                pos_id,
+                position_type
             )
-            alert_obj.level = current_level
+            alert_obj.level = "Normal"  # Set default level; adjust if you want level logic later
             if self.create_alert(alert_obj):
                 created_alerts.append(alert_obj.to_dict())
-                print(
-                    f"Created profit alert for position {position_id} ({asset}): level {current_level}, computed trigger {computed_trigger}, notification {notification_type}.")
             else:
-                print(f"Failed to create profit alert for position {position_id}.")
+                self.logger.error("Failed to create profit alert for position %s", pos_id)
         return created_alerts
 
     def refresh_position_alerts(self) -> int:
@@ -878,54 +925,39 @@ class AlertController:
         return total_updated
 
     def create_heat_index_alerts(self):
-        print("✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨")
-        from utils.json_manager import JsonManager, JsonType
-        jm = JsonManager()
-        alert_limits = jm.load("", JsonType.ALERT_LIMITS)
-        # Use "heat_index_ranges" as the configuration key
-        heat_config = alert_limits.get("alert_ranges", {}).get("heat_index_ranges", {})
-        if not heat_config.get("enabled", False):
-            print("Heat index alerts are not enabled in configuration.")
-            return []
+        """
+        Creates a heat index alert for each position regardless of the current heat index value.
+        """
         created_alerts = []
         positions = self.data_locker.read_positions()
-        # Set initial trigger to the low threshold (default 12.0)
-        initial_trigger = float(heat_config.get("low", 12.0))
-        condition = heat_config.get("condition", "ABOVE")
-        notifications = heat_config.get("notifications", {})
-        notification_type = "Call" if notifications.get("call", False) else "Email"
         for pos in positions:
-            position_id = pos.get("id")
             asset = pos.get("asset_type", "BTC")
-            # Retrieve position_type robustly:
-            position_type = pos.get("position_type")
-            if not position_type or (isinstance(position_type, str) and position_type.strip() == ""):
-                position_type = "LONG"
-            else:
-                position_type = position_type.upper()
+            pos_id = pos.get("id")
+            try:
+                current_heat = float(pos.get("current_heat_index", 0.0))
+            except Exception as e:
+                self.logger.error("Error parsing heat index for position %s: %s", pos_id, e)
+                current_heat = 0.0
+            # Use a default trigger for heat alerts (could also be pulled from config)
+            trigger_value = 12.0
+            condition = "ABOVE"  # Heat alert triggers when current_heat exceeds trigger_value
+            notification_type = "Call"
+            position_type = self.get_position_type(pos_id)
             alert_obj = DummyPositionAlert(
                 AlertType.HEAT_INDEX.value,
                 asset,
-                initial_trigger,
+                trigger_value,
                 condition,
                 notification_type,
-                position_id,
-                position_type  # New parameter!
+                pos_id,
+                position_type
             )
+            alert_obj.level = "Normal"  # Set default level
             if self.create_alert(alert_obj):
                 created_alerts.append(alert_obj.to_dict())
-                print(
-                    f"Created heat index alert for position {position_id} ({asset}): condition {condition}, trigger {initial_trigger}, notification {notification_type}.")
             else:
-                print(f"Failed to create heat index alert for position {position_id}.")
+                self.logger.error("Failed to create heat alert for position %s", pos_id)
         return created_alerts
-
-    def get_all_alerts(self):
-        try:
-            return self.data_locker.get_alerts()
-        except Exception as e:
-            print(f"Error retrieving alerts: {e}")
-            return []
 
     def create_all_alerts(self):
         print("✨✨✨✨✨✨✨✨                ✨✨✨✨✨✨✨✨✨✨✨✨✨")
