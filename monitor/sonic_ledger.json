@@ -525,3 +525,4 @@
 {"timestamp": "2025-04-06T11:05:53.047358+00:00", "component": "sonic_monitor", "operation": "heartbeat_update", "status": "Success", "message": "Heartbeat updated successfully.", "metadata": {"loop_counter": 26}}
 {"timestamp": "2025-04-06T11:08:06.135834+00:00", "component": "sonic_monitor", "operation": "heartbeat_update", "status": "Success", "message": "Heartbeat updated successfully.", "metadata": {"loop_counter": 27}}
 {"timestamp": "2025-04-06T11:10:18.940053+00:00", "component": "sonic_monitor", "operation": "heartbeat_update", "status": "Success", "message": "Heartbeat updated successfully.", "metadata": {"loop_counter": 28}}
+{"timestamp": "2025-04-18T23:02:13.968704+00:00", "component": "price_monitor", "operation": "price_update", "status": "Failure", "message": "Price update failed on loop 1: 'PriceMonitor' object has no attribute '_fetch_cmc_prices'", "metadata": {"loop_counter": 1}}

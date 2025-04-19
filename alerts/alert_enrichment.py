@@ -426,3 +426,4 @@ def enrich_alert_data(alert: dict, data_locker, logger: logging.Logger, alert_co
 
     logger.debug("=== Finished enrich_alert_data ===")
     return alert
+

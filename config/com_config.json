@@ -10,6 +10,14 @@
           "password": "pzix taan afbe igxb",
           "default_recipient": "bubba.diego@gmail.com"
         }
+      },     
+      "api_config": {
+        "coingecko_api_enabled":    "ENABLE",
+        "coinmarketcap_api_enabled":"ENABLE",
+        "coinpaprika_api_enabled":  "ENABLE",
+        "binance_api_enabled":      "DISABLE",
+        "cryptocompare_api_enabled":"ENABLE",
+        "nomics_api_enabled":       "ENABLE"
       },
       "sms": {
         "enabled": true,

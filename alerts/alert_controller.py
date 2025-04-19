@@ -213,19 +213,15 @@ class AlertController:
             raise
 
     def create_all_position_alerts(self) -> list:
-        """
-        Iterates over each position and creates individual alerts for each enabled
-        metric (travel percent, profit, and heat index) if not already mapped.
-        Returns a list of created alert dictionaries.
-        """
         created_alerts = []
         positions = self.data_locker.read_positions()
         # Load configuration for enabled alert types.
-        alert_limits = self.json_manager.load("", JsonType.ALERT_LIMITS)
+        jm = self.json_manager
+        alert_limits = jm.load("", JsonType.ALERT_LIMITS)
 
         for pos in positions:
             position_id = pos.get("id")
-            # 1. Travel Percent Alert
+            # 1. Travel Percent Alert (already uses 0.0 as trigger_value)
             travel_config = alert_limits.get("alert_ranges", {}).get("travel_percent_liquid_ranges", {})
             if travel_config.get("enabled", False):
                 if not self.data_locker.has_alert_mapping(position_id, AlertType.TRAVEL_PERCENT_LIQUID.value):
@@ -233,117 +229,26 @@ class AlertController:
                                                                   0.0, "BELOW", "Call")
                     if travel_alert:
                         created_alerts.append(travel_alert)
-            # 2. Profit Alert
+            # 2. Profit Alert - FIX: set trigger_value to 0.0 instead of using pnl_after_fees_usd
             profit_config = alert_limits.get("alert_ranges", {}).get("profit_ranges", {})
             if profit_config.get("enabled", False):
                 if not self.data_locker.has_alert_mapping(position_id, AlertType.PROFIT.value):
-                    try:
-                        profit_val = float(pos.get("pnl_after_fees_usd", 0.0))
-                    except Exception:
-                        profit_val = 0.0
+                    profit_val = 0.0  # Use 0.0 to force enrichment to assign config threshold
                     profit_alert = self.create_alert_for_position(pos, AlertType.PROFIT.value,
                                                                   profit_val, "ABOVE", "Call")
                     if profit_alert:
                         created_alerts.append(profit_alert)
-            # 3. Heat Index Alert
+            # 3. Heat Index Alert - FIX: similarly set trigger_value to 0.0
             heat_config = alert_limits.get("alert_ranges", {}).get("heat_index_ranges", {})
             if heat_config.get("enabled", False):
                 if not self.data_locker.has_alert_mapping(position_id, AlertType.HEAT_INDEX.value):
-                    try:
-                        heat_val = float(pos.get("current_heat_index", 0.0))
-                    except Exception:
-                        heat_val = 0.0
+                    heat_val = 0.0  # Use 0.0 so enrichment sets the configured threshold
                     heat_alert = self.create_alert_for_position(pos, AlertType.HEAT_INDEX.value,
                                                                 heat_val, "ABOVE", "Call")
                     if heat_alert:
                         created_alerts.append(heat_alert)
         return created_alerts
 
-    def create_position_alertsff(self):
-        """
-        Create position alerts for each position that doesn't have a valid alert_reference_id.
-        Returns a list of created alert dictionaries.
-        """
-        print("📈📈📈📈📈📈📈📈📈📈📈📈📈📈📈📈📈📈📈📈📈📈📈📈📈📈📈📈Starting create_position_alerts method.")
-        created_alerts = []
-        positions = self.data_locker.read_positions()
-        self.logger.debug("Retrieved {} positions from the database.".format(len(positions)))
-
-        for pos in positions:
-            pos_id = pos.get("id")
-            # Check if alert_reference_id is missing or empty.
-            if not pos.get("alert_reference_id") or pos.get("alert_reference_id").strip() == "":
-                asset = pos.get("asset_type", "BTC")
-                # Retrieve position_type robustly:
-                position_type = pos.get("position_type")
-                if not position_type or (isinstance(position_type, str) and position_type.strip() == ""):
-                    position_type = "LONG"
-                else:
-                    position_type = position_type.upper()
-                self.logger.debug("Creating alert for position {} with position_type: {}".format(pos_id, position_type))
-
-                # For testing, set trigger_value to 0.0 (which triggers enrichment later)
-                try:
-                    trigger_value = float(0.0)
-                    self.logger.debug("Using trigger_value {} for position {}.".format(trigger_value, pos_id))
-                except Exception as e:
-                    self.logger.error("Error converting trigger_value for position {}: {}".format(pos_id, e))
-                    trigger_value = 0.0
-                condition = "BELOW"
-                notification_type = "Call"
-
-                alert_obj = DummyPositionAlert(
-                    AlertType.TRAVEL_PERCENT_LIQUID.value,
-                    asset,
-                    trigger_value,
-                    condition,
-                    notification_type,
-                    pos_id,
-                    position_type  # New parameter passed
-                )
-                # Log the created alert object's dictionary (should include position_type)
-                self.logger.debug("Created DummyPositionAlert for position {}: {}".format(pos_id, alert_obj.to_dict()))
-                print("DEBUG: Created alert object for position {} with position_type: {}".format(pos_id,
-                                                                                                  alert_obj.position_type))
-
-                if self.create_alert(alert_obj):
-                    self.logger.debug(
-                        "Alert created successfully for position {}: {}".format(pos_id, alert_obj.to_dict()))
-                    created_alerts.append(alert_obj.to_dict())
-                    # Query DB to log inserted alert's position_type
-                    try:
-                        conn = self.data_locker.get_db_connection()
-                        cursor = conn.cursor()
-                        cursor.execute("SELECT position_type FROM alerts WHERE id=?", (alert_obj.id,))
-                        row = cursor.fetchone()
-                        if row:
-                            self.logger.debug(
-                                "DB record for alert {}: position_type={}".format(alert_obj.id, row["position_type"]))
-                            print("DEBUG: DB record for alert {}: position_type={}".format(alert_obj.id,
-                                                                                           row["position_type"]))
-                        else:
-                            self.logger.error("No alert record found in DB for alert id {}".format(alert_obj.id))
-                        cursor.close()
-                    except Exception as e:
-                        self.logger.error("Error querying alert record for alert id {}: {}".format(alert_obj.id, e),
-                                          exc_info=True)
-                    # Update the position record with the alert_reference_id.
-                    try:
-                        conn = self.data_locker.get_db_connection()
-                        cursor = conn.cursor()
-                        cursor.execute("UPDATE positions SET alert_reference_id=? WHERE id=?", (alert_obj.id, pos_id))
-                        conn.commit()
-                        self.logger.debug("Updated position {} with alert_reference_id {}".format(pos_id, alert_obj.id))
-                        cursor.close()
-                    except Exception as e:
-                        self.logger.error("Error updating position {} with alert_reference_id: {}".format(pos_id, e))
-                else:
-                    self.logger.error("Failed to create alert for position {}.".format(pos_id))
-            else:
-                self.logger.debug("Position {} already has alert_reference_id: '{}'. Skipping alert creation.".format(
-                    pos_id, pos.get("alert_reference_id")))
-        self.logger.debug("create_position_alerts completed. Created {} alerts.".format(len(created_alerts)))
-        return created_alerts
 
     def enrich_alert(self, alert: dict) -> dict:
         """
