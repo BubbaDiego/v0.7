@@ -1,5 +1,6 @@
 from typing import Optional, List, Dict
 import sqlite3
+import logging
 
 @staticmethod
 def get_profit_alert_class(profit, low_thresh, med_thresh, high_thresh):
@@ -45,7 +46,9 @@ class CalcServices:
     """
 
     def __init__(self):
-        # Logger initialization removed.
+
+        self.logger = logging.getLogger(__name__)
+
         self.color_ranges = {
             "travel_percent": [
                 (0, 25, "green"),
@@ -159,10 +162,16 @@ class CalcServices:
           - At liquidation_price, travel percent = -100%.
           - At profit target (entry_price - (liquidation_price - entry_price)), travel percent = +100%.
         """
+        self.logger.debug(
+            f"[calculate_travel_percent] Inputs: type={position_type}, entry_price={entry_price}, current_price={current_price}, liquidation_price={liquidation_price}"
+        )
+
+        # Guard clauses
         if entry_price <= 0 or liquidation_price <= 0 or entry_price == liquidation_price:
+            self.logger.debug("[calculate_travel_percent] Invalid price parameters, returning 0.0")
             return 0.0
 
-        ptype = position_type.upper()
+        ptype = position_type.strip().upper()
         result = 0.0
 
         if ptype == "LONG":
@@ -170,24 +179,39 @@ class CalcServices:
                 denom = entry_price - liquidation_price
                 numer = current_price - entry_price
                 result = (numer / denom) * 100
+                self.logger.debug(
+                    f"[calculate_travel_percent:LONG<=] denom={denom}, numer={numer}, result={result}"
+                )
             else:
                 profit_target = entry_price + (entry_price - liquidation_price)
                 denom = profit_target - entry_price
                 numer = current_price - entry_price
                 result = (numer / denom) * 100
+                self.logger.debug(
+                    f"[calculate_travel_percent:LONG>] profit_target={profit_target}, denom={denom}, numer={numer}, result={result}"
+                )
         elif ptype == "SHORT":
             if current_price >= entry_price:
                 denom = liquidation_price - entry_price
                 numer = current_price - entry_price
-                result = -((numer / denom) * 100)
+                result = -(numer / denom) * 100
+                self.logger.debug(
+                    f"[calculate_travel_percent:SHORT>=] denom={denom}, numer={numer}, result={result}"
+                )
             else:
                 profit_target = entry_price - (liquidation_price - entry_price)
                 denom = entry_price - profit_target
                 numer = entry_price - current_price
                 result = (numer / denom) * 100
+                self.logger.debug(
+                    f"[calculate_travel_percent:SHORT<] profit_target={profit_target}, denom={denom}, numer={numer}, result={result}"
+                )
         else:
+            self.logger.warning(
+                f"[calculate_travel_percent] Unknown position_type='{position_type}', defaulting result to 0.0")
             return 0.0
 
+        self.logger.debug(f"[calculate_travel_percent] Final travel_percent = {result}")
         return result
 
     def aggregator_positions(self, positions: List[dict], db_path: str) -> List[dict]:

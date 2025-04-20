@@ -213,78 +213,108 @@ class AlertController:
             raise
 
     def create_all_position_alerts(self) -> list:
+        """
+        Create alerts for each position based on configured thresholds.
+        Initializes travel percent, profit, and heat index triggers from config.
+        """
         created_alerts = []
         positions = self.data_locker.read_positions()
-        jm = self.json_manager
-        alert_limits = jm.load("", JsonType.ALERT_LIMITS)
+        # Load alert limits config
+        limits = self.json_manager.load("", JsonType.ALERT_LIMITS)
+
+        # Threshold configurations
+        tp_cfg = limits.get("alert_ranges", {}).get("travel_percent_liquid_ranges", {})
+        profit_cfg = limits.get("alert_ranges", {}).get("profit_ranges", {})
+        heat_cfg = limits.get("alert_ranges", {}).get("heat_index_ranges", {})
+
+        low_tp = float(tp_cfg.get("low", -25.0))
+        low_profit = float(profit_cfg.get("low", 0.0))
+        low_heat = float(heat_cfg.get("low", 0.0))
 
         for pos in positions:
-            position_id = pos.get("id")
+            pid = pos.get("id")
 
             # 1. Travel Percent Alert
-            travel_cfg = alert_limits.get("alert_ranges", {}).get("travel_percent_liquid_ranges", {})
-            if travel_cfg.get("enabled", False):
-                if not self.data_locker.has_alert_mapping(position_id, AlertType.TRAVEL_PERCENT_LIQUID.value):
-                    travel_alert = self.create_alert_for_position(
-                        pos,
-                        AlertType.TRAVEL_PERCENT_LIQUID.value,
-                        0.0,
-                        "BELOW",
-                        "Call"
+            if tp_cfg.get("enabled", False) and not self.data_locker.has_alert_mapping(pid,
+                                                                                       AlertType.TRAVEL_PERCENT_LIQUID.value):
+                ta = self.create_alert_for_position(
+                    pos,
+                    AlertType.TRAVEL_PERCENT_LIQUID.value,
+                    low_tp,
+                    "BELOW",
+                    "Call"
+                )
+                if ta:
+                    created_alerts.append(ta)
+                    cur = self.data_locker.conn.cursor()
+                    cur.execute(
+                        "UPDATE positions SET alert_reference_id = ? WHERE id = ?",
+                        (ta['id'], pid)
                     )
-                    if travel_alert:
-                        created_alerts.append(travel_alert)
-                        # **WRITE BACK** the new alert ID into the positions table
-                        cursor = self.data_locker.conn.cursor()
-                        cursor.execute(
-                            "UPDATE positions SET alert_reference_id = ? WHERE id = ?",
-                            (travel_alert["id"], position_id)
-                        )
-                        self.data_locker.conn.commit()
+                    self.data_locker.conn.commit()
 
             # 2. Profit Alert
-            profit_cfg = alert_limits.get("alert_ranges", {}).get("profit_ranges", {})
-            if profit_cfg.get("enabled", False):
-                if not self.data_locker.has_alert_mapping(position_id, AlertType.PROFIT.value):
-                    profit_alert = self.create_alert_for_position(
-                        pos,
-                        AlertType.PROFIT.value,
-                        0.0,
-                        "ABOVE",
-                        "Call"
+            if profit_cfg.get("enabled", False) and not self.data_locker.has_alert_mapping(pid, AlertType.PROFIT.value):
+                pa = self.create_alert_for_position(
+                    pos,
+                    AlertType.PROFIT.value,
+                    low_profit,
+                    "ABOVE",
+                    "Call"
+                )
+                if pa:
+                    created_alerts.append(pa)
+                    cur = self.data_locker.conn.cursor()
+                    cur.execute(
+                        "UPDATE positions SET alert_reference_id = ? WHERE id = ?",
+                        (pa['id'], pid)
                     )
-                    if profit_alert:
-                        created_alerts.append(profit_alert)
-                        cursor = self.data_locker.conn.cursor()
-                        cursor.execute(
-                            "UPDATE positions SET alert_reference_id = ? WHERE id = ?",
-                            (profit_alert["id"], position_id)
-                        )
-                        self.data_locker.conn.commit()
+                    self.data_locker.conn.commit()
 
             # 3. Heat Index Alert
-            heat_cfg = alert_limits.get("alert_ranges", {}).get("heat_index_ranges", {})
-            if heat_cfg.get("enabled", False):
-                if not self.data_locker.has_alert_mapping(position_id, AlertType.HEAT_INDEX.value):
-                    heat_alert = self.create_alert_for_position(
-                        pos,
-                        AlertType.HEAT_INDEX.value,
-                        0.0,
-                        "ABOVE",
-                        "Call"
+            if heat_cfg.get("enabled", False) and not self.data_locker.has_alert_mapping(pid,
+                                                                                         AlertType.HEAT_INDEX.value):
+                ha = self.create_alert_for_position(
+                    pos,
+                    AlertType.HEAT_INDEX.value,
+                    low_heat,
+                    "ABOVE",
+                    "Call"
+                )
+                if ha:
+                    created_alerts.append(ha)
+                    cur = self.data_locker.conn.cursor()
+                    cur.execute(
+                        "UPDATE positions SET alert_reference_id = ? WHERE id = ?",
+                        (ha['id'], pid)
                     )
-                    if heat_alert:
-                        created_alerts.append(heat_alert)
-                        cursor = self.data_locker.conn.cursor()
-                        cursor.execute(
-                            "UPDATE positions SET alert_reference_id = ? WHERE id = ?",
-                            (heat_alert["id"], position_id)
-                        )
-                        self.data_locker.conn.commit()
+                    self.data_locker.conn.commit()
 
         return created_alerts
 
-
+    def create_alert_for_position(self, pos: dict, alert_type: str, trigger_value: float,
+                                  condition: str, notification: str) -> dict:
+        """Helper to construct and persist an alert for a position."""
+        alert = {
+            'id': self.data_locker.generate_uuid(),
+            'created_at': self.data_locker.now_str(),
+            'alert_type': alert_type,
+            'alert_class': 'Position',
+            'asset_type': pos.get('asset_type'),
+            'trigger_value': trigger_value,
+            'condition': condition,
+            'notification_type': notification,
+            'level': 'Normal',
+            'status': 'Active',
+            'frequency': 1,
+            'counter': 0,
+            'position_reference_id': pos.get('id'),
+        }
+        if self.data_locker.insert_alert(alert):
+            self.logger.debug(f"Created {alert_type} for position {pos.get('id')}")
+            return alert
+        self.logger.error(f"Failed to create {alert_type} for position {pos.get('id')}")
+        return None
 
     def enrich_alert(self, alert: dict) -> dict:
         """

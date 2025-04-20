@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 import os
 import time
 from uuid import uuid4
@@ -18,12 +19,16 @@ from utils.unified_logger import UnifiedLogger
 from data.models import NotificationType, Status, Alert, Position
 from data.models import AlertType, Alert, AlertClass  # for standardizing alert types
 from xcom.xcom import send_sms
-from alerts.alert_evaluator import AlertEvaluator
-
+# Fix for AlertController import
 try:
+    # When running as a package
     from .alert_controller import AlertController
 except ImportError:
+    # When running as a standalone script/module
     from alert_controller import AlertController
+
+# And ensure your evaluator import is absolute
+from alerts.alert_evaluator import AlertEvaluator
 
 u_logger = UnifiedLogger()
 

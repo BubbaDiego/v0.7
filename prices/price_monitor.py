@@ -150,14 +150,17 @@ class PriceMonitor:
         averages: Dict[str, float] = {}
         for sym in self.assets:
             vals = agg.get(sym, [])
-            if vals:
-                avg = sum(vals) / len(vals)
+            # Filter out missing or zero prices
+            valid_vals = [v for v in vals if v and v > 0]
+            if valid_vals:
+                avg = sum(valid_vals) / len(valid_vals)
                 averages[sym] = avg
+                # Persist only true averages
                 self.data_locker.insert_or_update_price(sym, avg, "Averaged")
                 cycle_logs.append(f"{datetime.now().isoformat()} - {sym} avg: {avg:.2f}")
             else:
-                logger.warning("No data for %s; skipping update.", sym)
-                cycle_logs.append(f"{datetime.now().isoformat()} - {sym} no new data")
+                logger.warning("No valid data for %s; skipping update.", sym)
+                cycle_logs.append(f"{datetime.now().isoformat()} - {sym} no valid data")
 
         # Finalize logging and summary
         now = datetime.now()
@@ -169,7 +172,7 @@ class PriceMonitor:
             file=__file__
         )
         self.generate_update_summary_html(src_data, averages, now)
-        return cycle_logs
+        return cycle_logs  # Updated to average only valid prices
 
     async def _fetch_cmc_prices(self) -> Dict[str, float]:
         syms = [s for s in self.assets if s in ("BTC", "ETH", "SOL")]
