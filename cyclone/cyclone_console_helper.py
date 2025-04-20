@@ -167,6 +167,8 @@ class CycloneConsoleHelper:
             else:
                 print("Invalid choice, please try again.")
 
+        # In cyclone_console_helper.py (CycloneConsoleHelper class)
+
     def run_alerts_menu(self):
         while True:
             print("\n--- Alerts Menu ---")
@@ -174,7 +176,7 @@ class CycloneConsoleHelper:
             print("2) 💵 Create Market Alerts")
             print("3) 📌 Create Position Alerts")
             print("4) 🖥 Create System Alerts")
-            print("5) ✨ Enrich Alerts")   # New option for alert enrichment
+            print("5) ✨ Enrich Alerts")
             print("6) 🔄 Update Evaluated Value")
             print("7) 🔍 Alert Evaluations")
             print("8) 🧹 Clear Alerts")
@@ -210,9 +212,8 @@ class CycloneConsoleHelper:
                 self.cyclone.clear_alerts_backend()
             elif choice == "9":
                 print("Refreshing Alerts...")
-                ac = AlertController()
-                count = ac.refresh_all_alerts()
-                print(f"Refreshed and confirmed {count} alert(s).")
+                asyncio.run(self.cyclone.run_alert_updates())
+                print("Alerts refreshed.")
             elif choice == "10":
                 print("Clearing Alert Ledger...")
                 self.cyclone.clear_alert_ledger_backend()

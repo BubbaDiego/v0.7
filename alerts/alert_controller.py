@@ -215,39 +215,75 @@ class AlertController:
     def create_all_position_alerts(self) -> list:
         created_alerts = []
         positions = self.data_locker.read_positions()
-        # Load configuration for enabled alert types.
         jm = self.json_manager
         alert_limits = jm.load("", JsonType.ALERT_LIMITS)
 
         for pos in positions:
             position_id = pos.get("id")
-            # 1. Travel Percent Alert (already uses 0.0 as trigger_value)
-            travel_config = alert_limits.get("alert_ranges", {}).get("travel_percent_liquid_ranges", {})
-            if travel_config.get("enabled", False):
+
+            # 1. Travel Percent Alert
+            travel_cfg = alert_limits.get("alert_ranges", {}).get("travel_percent_liquid_ranges", {})
+            if travel_cfg.get("enabled", False):
                 if not self.data_locker.has_alert_mapping(position_id, AlertType.TRAVEL_PERCENT_LIQUID.value):
-                    travel_alert = self.create_alert_for_position(pos, AlertType.TRAVEL_PERCENT_LIQUID.value,
-                                                                  0.0, "BELOW", "Call")
+                    travel_alert = self.create_alert_for_position(
+                        pos,
+                        AlertType.TRAVEL_PERCENT_LIQUID.value,
+                        0.0,
+                        "BELOW",
+                        "Call"
+                    )
                     if travel_alert:
                         created_alerts.append(travel_alert)
-            # 2. Profit Alert - FIX: set trigger_value to 0.0 instead of using pnl_after_fees_usd
-            profit_config = alert_limits.get("alert_ranges", {}).get("profit_ranges", {})
-            if profit_config.get("enabled", False):
+                        # **WRITE BACK** the new alert ID into the positions table
+                        cursor = self.data_locker.conn.cursor()
+                        cursor.execute(
+                            "UPDATE positions SET alert_reference_id = ? WHERE id = ?",
+                            (travel_alert["id"], position_id)
+                        )
+                        self.data_locker.conn.commit()
+
+            # 2. Profit Alert
+            profit_cfg = alert_limits.get("alert_ranges", {}).get("profit_ranges", {})
+            if profit_cfg.get("enabled", False):
                 if not self.data_locker.has_alert_mapping(position_id, AlertType.PROFIT.value):
-                    profit_val = 0.0  # Use 0.0 to force enrichment to assign config threshold
-                    profit_alert = self.create_alert_for_position(pos, AlertType.PROFIT.value,
-                                                                  profit_val, "ABOVE", "Call")
+                    profit_alert = self.create_alert_for_position(
+                        pos,
+                        AlertType.PROFIT.value,
+                        0.0,
+                        "ABOVE",
+                        "Call"
+                    )
                     if profit_alert:
                         created_alerts.append(profit_alert)
-            # 3. Heat Index Alert - FIX: similarly set trigger_value to 0.0
-            heat_config = alert_limits.get("alert_ranges", {}).get("heat_index_ranges", {})
-            if heat_config.get("enabled", False):
+                        cursor = self.data_locker.conn.cursor()
+                        cursor.execute(
+                            "UPDATE positions SET alert_reference_id = ? WHERE id = ?",
+                            (profit_alert["id"], position_id)
+                        )
+                        self.data_locker.conn.commit()
+
+            # 3. Heat Index Alert
+            heat_cfg = alert_limits.get("alert_ranges", {}).get("heat_index_ranges", {})
+            if heat_cfg.get("enabled", False):
                 if not self.data_locker.has_alert_mapping(position_id, AlertType.HEAT_INDEX.value):
-                    heat_val = 0.0  # Use 0.0 so enrichment sets the configured threshold
-                    heat_alert = self.create_alert_for_position(pos, AlertType.HEAT_INDEX.value,
-                                                                heat_val, "ABOVE", "Call")
+                    heat_alert = self.create_alert_for_position(
+                        pos,
+                        AlertType.HEAT_INDEX.value,
+                        0.0,
+                        "ABOVE",
+                        "Call"
+                    )
                     if heat_alert:
                         created_alerts.append(heat_alert)
+                        cursor = self.data_locker.conn.cursor()
+                        cursor.execute(
+                            "UPDATE positions SET alert_reference_id = ? WHERE id = ?",
+                            (heat_alert["id"], position_id)
+                        )
+                        self.data_locker.conn.commit()
+
         return created_alerts
+
 
 
     def enrich_alert(self, alert: dict) -> dict:

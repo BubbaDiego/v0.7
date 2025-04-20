@@ -228,6 +228,13 @@ class Cyclone:
             self.logger.error("Error clearing alerts: %s", e, exc_info=True)
             print(f"Error clearing alerts: {e}")
 
+    def clear_alerts_backend(self):
+        """
+        Alias for the internal sync clear-alerts method,
+        so console and API routes can call it uniformly.
+        """
+        self._clear_alerts_sync()
+
     def clear_prices_backend(self):
         try:
             dl = DataLocker.get_instance()
@@ -333,19 +340,28 @@ class Cyclone:
             self.logger.error(f"Error cleansing IDs: {e}", exc_info=True)
             print(f"Error cleansing IDs: {e}")
 
-    def run_alert_enrichment(self):
+        # In cyclone.py (Cyclone class)
+
+    async def run_alert_enrichment(self):
+        """
+        Async method to enrich all alerts using the shared enrichment routine.
+        """
         try:
             from alerts.alert_enrichment import enrich_alert_data
             alerts = self.data_locker.get_alerts()
             enriched_alerts = []
             for alert in alerts:
-                # Pass the alert_controller as the fourth parameter.
-                enriched_alert = enrich_alert_data(alert, self.data_locker, self.logger,
-                                                   self.alert_manager.alert_controller)
-                enriched_alerts.append(enriched_alert)
+                enriched = enrich_alert_data(
+                    alert,
+                    self.data_locker,
+                    self.logger,
+                    self.alert_manager.alert_controller
+                )
+                enriched_alerts.append(enriched)
             self.logger.debug(f"Enriched {len(enriched_alerts)} alerts")
         except Exception as e:
-            self.logger.error("Alert Data Enrichment failed: %s", e)
+            self.logger.error("Alert Data Enrichment failed: %s", e, exc_info=True)
+        return
 
     async def run_enrich_positions(self):
         self.logger.info("Starting Position Enrichment")
@@ -600,23 +616,37 @@ class Cyclone:
             alerts = cursor.fetchall()
             cursor.close()
 
-            print("\n----- Alerts -----")
+            print("\n🔔 Alerts")
             print(f"Found {len(alerts)} alert record(s).\n")
 
-            for alert in alerts:
-                a = dict(alert)
-                print(f"ID: {a.get('id', '-')}")
-                print(f"Type: {a.get('alert_type', '-')}")
-                print(f"Class: {a.get('alert_class', '-')}")
-                print(f"Asset: {a.get('asset_type', '-')}")
-                print(f"Trigger Value: {a.get('trigger_value', '-')}")
-                print(f"Condition: {a.get('condition', '-')}")
-                print(f"Notification: {a.get('notification_type', '-')}")
-                print(f"Level: {a.get('level', '-')}")
-                print(f"Position Ref: {a.get('position_reference_id', '-')}")
-                pos_type = a.get("position_type")
-                print(f"Position Type: {pos_type if pos_type is not None else '-'}")
-                print(f"Created at: {a.get('created_at', '-')}")
+            # ANSI color codes for levels
+            color_map = {
+                "Normal": "\033[34m",  # blue
+                "Low": "\033[32m",  # green
+                "Medium": "\033[33m",  # yellow
+                "High": "\033[31m"  # red
+            }
+            reset = "\033[0m"
+
+            for a in alerts:
+                alert = dict(a)
+                level = alert.get("level", "-")
+                lvl_color = color_map.get(level, "")
+                colored_level = f"{lvl_color}{level}{reset}"
+
+                print(f"🆔 ID:               {alert.get('id', '-')}")
+                print(f"📌 Type:             {alert.get('alert_type', '-')}")
+                print(f"🏷️ Class:            {alert.get('alert_class', '-')}")
+                print(f"💰 Asset:            {alert.get('asset_type', '-')}")
+                print(f"🎯 Trigger Value:    {alert.get('trigger_value', '-')}")
+                print(f"📈 Evaluated Value:  {alert.get('evaluated_value', '-')}")
+                print(f"⚙️ Condition:        {alert.get('condition', '-')}")
+                print(f"🔔 Notification:     {alert.get('notification_type', '-')}")
+                print(f"📊 Level:            {colored_level}")
+                print(f"📍 Position Ref:     {alert.get('position_reference_id', '-')}")
+                pos_type = alert.get("position_type")
+                print(f"📊 Position Type:    {pos_type if pos_type is not None else '-'}")
+                print(f"🕒 Created at:       {alert.get('created_at', '-')}")
                 print("-" * 40)
             print("")
         except Exception as e:
