@@ -110,17 +110,16 @@ class DataLocker:
                     FOREIGN KEY(alert_id) REFERENCES alerts(id)
                 )
             """)
-            self.logger.debug("Created table 'position_alert_map' if it did not exist.")
 
             # NEW: Add columns for strategy performance persistence
             cursor.execute("PRAGMA table_info(system_vars)")
             existing_cols = [row["name"] for row in cursor.fetchall()]
             if "strategy_start_value" not in existing_cols:
                 cursor.execute("ALTER TABLE system_vars ADD COLUMN strategy_start_value REAL DEFAULT 0.0")
-                self.logger.info("Added 'strategy_start_value' column to 'system_vars' table.")
+               # self.logger.info("Added 'strategy_start_value' column to 'system_vars' table.")
             if "strategy_description" not in existing_cols:
                 cursor.execute("ALTER TABLE system_vars ADD COLUMN strategy_description TEXT DEFAULT ''")
-                self.logger.info("Added 'strategy_description' column to 'system_vars' table.")
+               # self.logger.info("Added 'strategy_description' column to 'system_vars' table.")
 
             # Create prices table if it doesn't exist
             cursor.execute("""
@@ -251,7 +250,7 @@ class DataLocker:
                 )
             """)
             self.conn.commit()
-            self.logger.debug("Database initialization complete.")
+           # self.logger.debug("Database initialization complete.")
         except sqlite3.Error as e:
             self.logger.error(f"Error initializing database: {e}", exc_info=True)
             raise
@@ -266,7 +265,7 @@ class DataLocker:
         db_dir = os.path.dirname(self.db_path)
         if db_dir and not os.path.exists(db_dir):
             os.makedirs(db_dir, exist_ok=True)
-            self.logger.debug(f"Created directory for DB: {db_dir}")
+          #  self.logger.debug(f"Created directory for DB: {db_dir}")
         if self.conn is None:
             self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
             self.conn.execute("PRAGMA journal_mode=WAL;")
@@ -331,7 +330,7 @@ class DataLocker:
             WHERE id = 1
         """, (start_value, description))
         self.conn.commit()
-        self.logger.debug(f"Updated strategy performance data: start_value={start_value}, description={description}")
+       # self.logger.debug(f"Updated strategy performance data: start_value={start_value}, description={description}")
 
     def get_strategy_performance_data(self) -> dict:
         self._init_sqlite_if_needed()
