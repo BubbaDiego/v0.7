@@ -4,139 +4,109 @@ import sys
 import time
 import json
 import logging
-import requests
-import urllib3
 from datetime import datetime, timezone
+
 import pytz
+import urllib3
 
-# Set logging to use Pacific Standard Time (PST)
-PST = pytz.timezone("America/Los_Angeles")
-logging.Formatter.converter = lambda *args: datetime.now(PST).timetuple()
-
-# Ensure BASE_DIR is added to the path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-from config.config_constants import HEARTBEAT_FILE, BASE_DIR
+from common_monitor_utils import load_timer_config, update_timer_config, call_endpoint
 from utils.unified_logger import UnifiedLogger
 
-# Disable InsecureRequestWarning
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
+# ——— Setup logging in PST ———
+PST = pytz.timezone("America/Los_Angeles")
+logging.Formatter.converter = lambda *args: datetime.now(PST).timetuple()
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
-# URL Constants for sonic_monitor
+# Ensure BASE_DIR on path
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, BASE_DIR)
+
+# Endpoints
 JUPITER_URL = "http://www.deadlypanda.com/positions/update_jupiter"
-MARKET_URL = "http://www.deadlypanda.com/cyclone/api/run_market_updates"
-CYCLE_URL = "http://www.deadlypanda.com/cyclone/api/run_full_cycle"
+MARKET_URL  = "http://www.deadlypanda.com/cyclone/api/run_market_updates"
+CYCLE_URL   = "http://www.deadlypanda.com/cyclone/api/run_full_cycle"
 
-# Define timer config file path (assumes timer_config.json is in the config folder)
-TIMER_CONFIG_PATH = os.path.join(BASE_DIR, "config", "timer_config.json")
+# Initialize unified logger
+u_logger = UnifiedLogger()
+logger   = u_logger.logger
 
-def load_timer_config():
-    try:
-        with open(TIMER_CONFIG_PATH, "r") as f:
-            return json.load(f)
-    except Exception as e:
-        logging.error("Error loading timer config: %s", e)
-        return {}
+def heartbeat_ledger(loop_counter: int):
+    """
+    Append a heartbeat entry and update the last-run timestamp in timer_config.
+    """
+    ledger_file = os.path.join(BASE_DIR, "monitor", "sonic_ledger.json")
+    os.makedirs(os.path.dirname(ledger_file), exist_ok=True)
 
-def update_timer_config(new_config: dict):
-    try:
-        with open(TIMER_CONFIG_PATH, "w") as f:
-            json.dump(new_config, f, indent=4)
-    except Exception as e:
-        logging.error("Error updating timer config: %s", e)
-
-# Load timer configuration for sonic_monitor (using sonic_loop_interval in seconds)
-timer_config = load_timer_config()
-sonic_loop_interval = timer_config.get("sonic_loop_interval", 120)  # default to 120 seconds
-
-# Create a UnifiedLogger instance
-unified_logger = UnifiedLogger()
-
-def log_operation_with_line(operation_type: str, primary_text: str, source: str, file: str):
-    import inspect
-    lineno = inspect.currentframe().f_back.f_lineno
-    extra = {
-        "source": source,
-        "operation_type": operation_type,
-        "log_type": "operation",
-        "file": file,
-        "caller_lineno": lineno
-    }
-    unified_logger.logger.info(primary_text, extra=extra)
-    unified_logger.logger.debug("Logged operation entry with operation_type=%s at line %s", operation_type, lineno)
-
-def call_jupiter():
-    try:
-        response = requests.get(JUPITER_URL, timeout=30, verify=False)
-        response.raise_for_status()
-        logging.info("Called update_jupiter successfully. Status code: %s", response.status_code)
-    except Exception as e:
-        logging.error("Error calling update_jupiter: %s", e)
-
-def call_market_updates():
-    try:
-        response = requests.post(MARKET_URL, timeout=30, verify=False)
-        response.raise_for_status()
-        logging.info("Called run_market_updates successfully. Status code: %s", response.status_code)
-    except Exception as e:
-        logging.error("Error calling run_market_updates: %s", e)
-
-def call_run_cycle():
-    try:
-        response = requests.post(CYCLE_URL, timeout=30, verify=False)
-        response.raise_for_status()
-        logging.info("Called run_cycle successfully. Status code: %s", response.status_code)
-    except Exception as e:
-        logging.error("Error calling run_cycle: %s", e)
-
-def write_ledger(loop_counter):
-    LEDGER_FILE = os.path.join(BASE_DIR, "monitor", "sonic_ledger.json")
-    ledger_dir = os.path.dirname(LEDGER_FILE)
-    os.makedirs(ledger_dir, exist_ok=True)
-    timestamp = datetime.now(timezone.utc).isoformat()
-    ledger_entry = {
-        "timestamp": timestamp,
+    entry = {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "component": "sonic_monitor",
         "operation": "heartbeat_update",
         "status": "Success",
-        "message": "Heartbeat updated successfully.",
-        "metadata": {
-            "loop_counter": loop_counter
-        }
+        "metadata": {"loop_counter": loop_counter}
     }
+    with open(ledger_file, "a") as f:
+        f.write(json.dumps(entry) + "\n")
+    logger.info("Ledger entry: %s", entry)
+
+    cfg = load_timer_config()
+    cfg["sonic_loop_start_time"] = entry["timestamp"]
+    update_timer_config(cfg)
+
+def do_cycle(loop_counter: int):
+    """
+    Perform one full monitor cycle: market, full cycle, jupiter, log & heartbeat.
+    """
+    logger.info("🔄 Sonic Monitor iteration #%d starting", loop_counter)
+
+    # Market updates
     try:
-        with open(LEDGER_FILE, "a") as f:
-            f.write(json.dumps(ledger_entry) + "\n")
-        logging.info("Ledger updated: %s", ledger_entry)
-        current_timer_config = load_timer_config()
-        current_timer_config["sonic_loop_start_time"] = timestamp
-        update_timer_config(current_timer_config)
+        call_endpoint(MARKET_URL, method="post")
+        logger.info("Market updates succeeded")
     except Exception as e:
-        logging.error("Failed to update ledger: %s", e)
+        logger.error("Market update error: %s", e)
+
+    time.sleep(3)
+
+    # Full cycle
+    try:
+        call_endpoint(CYCLE_URL, method="post")
+        logger.info("Full cycle succeeded")
+    except Exception as e:
+        logger.error("Full cycle error: %s", e)
+
+    # Jupiter update
+    try:
+        call_endpoint(JUPITER_URL, method="get")
+        logger.info("Jupiter update succeeded")
+    except Exception as e:
+        logger.error("Jupiter update error: %s", e)
+
+    # Structured log entry
+    u_logger.log_cyclone(
+        operation_type="Monitor Loop",
+        primary_text=f"Monitor Loop #{loop_counter} completed",
+        source="SonicMonitor",
+        file="sonic_monitor.py"
+    )
+
+    # Heartbeat + config timestamp
+    heartbeat_ledger(loop_counter)
+
+    # Your signature unicorn banner
+    print("❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄")
 
 def main():
+    cfg = load_timer_config()
+    interval = cfg.get("sonic_loop_interval", 120)
     loop_counter = 0
-    while True:
-        current_timer_config = load_timer_config()
-        current_timestamp = datetime.now(timezone.utc).isoformat()
-        current_timer_config["sonic_loop_start_time"] = current_timestamp
-        update_timer_config(current_timer_config)
 
+    while True:
         loop_counter += 1
-        logging.info("Sonic Monitor Loop count: %d. Calling endpoints...", loop_counter)
-        call_market_updates()
-        time.sleep(10)
-        call_run_cycle()
-        call_jupiter()
-        log_operation_with_line("Monitor Loop", f"Monitor Loop #{loop_counter} - Endpoints called", "Cyclone", "sonic_monitor.py")
-        write_ledger(loop_counter)
-        print("❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄")
-        time.sleep(sonic_loop_interval)
+        do_cycle(loop_counter)
+        time.sleep(interval)
 
 if __name__ == '__main__':
     main()

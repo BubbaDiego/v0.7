@@ -1,12 +1,12 @@
 import logging
 import time
 from typing import Optional
-
 from config.unified_config_manager import UnifiedConfigManager
 from config.config_constants import CONFIG_PATH
 from utils.unified_logger import UnifiedLogger
 from utils.calc_services import CalcServices
 from alerts.alert_enrichment import enrich_alert_data, update_trigger_value_FUCK_ME
+from alerts.alert_controller import DummyPositionAlert
 from data.models import Alert, AlertType, AlertClass, NotificationType, Status
 from uuid import uuid4
 
@@ -131,53 +131,53 @@ class AlertEvaluator:
 
     def evaluate_heat_index_alert(self, pos: dict) -> str:
         """
-        Evaluate heat index using explicit configured thresholds.
-        Returns a message if level > Normal, else empty string.
+        Evaluate heat index alert for a position.
+        Always invoke _update_alert_level (which now persists the alert_reference_id)
+        and return a message only if level > Normal.
         """
-        # Compute current heat index
+        print(f"[DEBUG] evaluate_heat_index_alert: Evaluating position with id: {pos.get('id')}")
         try:
             current_heat = float(pos.get("current_heat_index", 0.0))
+            print(f"[DEBUG] evaluate_heat_index_alert: current_heat = {current_heat}")
         except Exception as e:
             self._debug_log(f"[Heat Alert] Error parsing heat index: {e}")
             return ""
-
-        # Load thresholds
-        from utils.json_manager import JsonManager, JsonType
-        jm = JsonManager()
-        limits = jm.load("", JsonType.ALERT_LIMITS)
-        cfg = limits.get("alert_ranges", {}).get("heat_index_ranges", {})
-        low = float(cfg.get("low", 7.0))
-        med = float(cfg.get("medium", 33.0))
-        high = float(cfg.get("high", 66.0))
+        try:
+            trigger_value = float(pos.get("heat_index_trigger", 12.0))
+            print(f"[DEBUG] evaluate_heat_index_alert: trigger_value = {trigger_value}")
+        except Exception:
+            trigger_value = 12.0
+            print(f"[DEBUG] evaluate_heat_index_alert: Using default trigger_value = {trigger_value}")
 
         # Determine level
-        if current_heat < low:
+        if current_heat <= trigger_value:
             level = "Normal"
-        elif current_heat < med:
+        elif current_heat < trigger_value * 1.5:
             level = "Low"
-        elif current_heat < high:
+        elif current_heat < trigger_value * 2:
             level = "Medium"
         else:
             level = "High"
+        print(f"[DEBUG] evaluate_heat_index_alert: Determined alert level as {level}")
 
-        # Next trigger
-        next_trigger = {
-            "Normal": low,
-            "Low": med,
-            "Medium": high,
-            "High": high
-        }[level]
+        # **NEW**: always create-or-update via this call (it now writes the ID back to positions)
+        self._update_alert_level(
+            pos,
+            level,
+            evaluated_value=current_heat,
+            custom_alert_type=AlertType.HEAT_INDEX.value
+        )
 
-        # Update alert
-        if level != "Normal":
-            self._update_alert_level(pos, level, evaluated_value=current_heat,
-                                     custom_alert_type=AlertType.HEAT_INDEX.value)
-            return (f"Heat Index ALERT: Pos {pos.get('id')} heat={current_heat:.1f} "
-                    f"Level={level}, next_trigger={next_trigger:.1f}")
-        else:
-            self._update_alert_level(pos, "Normal", evaluated_value=current_heat,
-                                     custom_alert_type=AlertType.HEAT_INDEX.value)
+        # Only return a message for non‑Normal levels
+        if level == "Normal":
             return ""
+        msg = (
+            f"Heat Index ALERT: Position {pos.get('id')} heat index {current_heat:.2f} "
+            f"exceeds trigger {trigger_value} (Level: {level})"
+        )
+        self._debug_log(f"[Heat Alert] {msg}")
+        print(f"[DEBUG] evaluate_heat_index_alert: {msg}")
+        return msg
 
     def enrich_alert(self, alert: dict) -> dict:
         """
@@ -673,16 +673,20 @@ class AlertEvaluator:
     def _update_alert_level(self, pos: dict, new_level: str, evaluated_value: Optional[float] = None,
                             custom_alert_type: str = None):
         alert_id = pos.get("alert_reference_id")
-        # Check if alert_reference_id is missing or empty.
+
+        # If no existing alert, create one
         if not alert_id or (isinstance(alert_id, str) and alert_id.strip() == ""):
             self._debug_log("[AlertEvaluator] No alert_reference_id found. Creating new alert record.")
-            new_alert_type = custom_alert_type if custom_alert_type is not None else AlertType.TRAVEL_PERCENT_LIQUID.value
+
+            new_alert_type = custom_alert_type or AlertType.TRAVEL_PERCENT_LIQUID.value
             if new_alert_type == AlertType.HEAT_INDEX.value:
                 new_trigger = pos.get("heat_index_trigger", 12.0)
             else:
                 new_trigger = pos.get("travel_percent", 0.0)
-            # Retrieve position_type from position; default to "LONG"
+
             position_type = pos.get("position_type", "LONG").upper()
+
+            # **NEW**: use DummyPositionAlert when creating fallback
             new_alert = DummyPositionAlert(
                 new_alert_type,
                 pos.get("asset_type", "BTC"),
@@ -692,21 +696,26 @@ class AlertEvaluator:
                 pos.get("id"),
                 position_type
             )
+
             created = self.alert_controller.create_alert(new_alert)
             if created:
                 pos["alert_reference_id"] = new_alert.id
                 conn = self.data_locker.get_db_connection()
                 cursor = conn.cursor()
-                cursor.execute("UPDATE positions SET alert_reference_id=? WHERE id=?", (new_alert.id, pos.get("id")))
+                cursor.execute(
+                    "UPDATE positions SET alert_reference_id=? WHERE id=?",
+                    (new_alert.id, pos.get("id"))
+                )
                 conn.commit()
                 alert_id = new_alert.id
                 self._debug_log(
-                    f"[AlertEvaluator] Created new alert with id {new_alert.id} for position {pos.get('id')}.")
+                    f"[AlertEvaluator] Created new alert with id {new_alert.id} for position {pos.get('id')}."
+                )
             else:
                 self._debug_log("[AlertEvaluator] Failed to create new alert record.")
                 return
 
-        old_level = pos.get("level", "Normal")
+        # Now update the existing alert record
         update_fields = {"level": new_level}
         if evaluated_value is not None:
             update_fields["evaluated_value"] = evaluated_value
@@ -722,6 +731,7 @@ class AlertEvaluator:
                 self._debug_log(f"[AlertEvaluator] Successfully updated alert '{alert_id}' to level '{new_level}'.")
         except Exception as e:
             self._debug_log(f"[AlertEvaluator] Exception while updating alert '{alert_id}': {e}")
+
 
 
 def create_alert(self, alert_obj) -> bool:

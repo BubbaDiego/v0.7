@@ -89,7 +89,7 @@ Purpose:
 The Alert Evaluator (in alert_evaluator.py) is responsible for determining if alert conditions are met. It supports evaluation of:
 
 Travel Alerts: Based on travel percent thresholds.
-
+[alert_controller.py](alert_controller.py)
 Profit Alerts: Evaluated against profit thresholds.
 
 Swing, Blast, and Heat Index Alerts: With specific logic and cooldown handling.

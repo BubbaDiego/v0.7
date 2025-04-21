@@ -9,6 +9,9 @@ from utils.operations_manager import OperationsLogger
 from utils.json_manager import JsonManager, JsonType
 from sonic_labs.hedge_manager import HedgeManager
 from cyclone.cyclone import Cyclone
+
+from alerts.alert_manager import manager as alert_manager
+
 from time import time
 
 # Ensure the current directory is in sys.path so we can import alert_manager.py
@@ -443,6 +446,21 @@ def update_alert_config_route():
         op_logger.log("Alert Configuration Failed", source="System",
                       operation_type="Alert Config Failed", file_name=str(ALERT_LIMITS_PATH))
         return jsonify({"success": False, "error": str(e)}), 500
+
+
+# **NEW**: Test SMS endpoint
+@alerts_bp.route('/test_sms', methods=['POST'])
+def test_sms():
+    """
+    Triggers a test SMS using the AlertManager’s send_sms_alert method.
+    """
+    # Allow overriding the test message via Flask config
+    msg = current_app.config.get('TEST_SMS_MESSAGE', 'This is a test SMS alert.')
+    # Use a fixed key so it doesn’t collide with real alerts
+    success = alert_manager.send_sms_alert(msg, 'test_sms')
+    status_code = 200 if success else 500
+    return jsonify(success=bool(success),
+                   message='SMS sent!' if success else 'SMS failed'), status_code
 
 
 @alerts_bp.route('/matrix', methods=['GET'], endpoint="alert_matrix")

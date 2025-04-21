@@ -377,30 +377,38 @@
     </div>
 
     <!-- System Alerts Section -->
-    <div class="card mb-4">
-      <div class="card-header bg-dark text-white">
-        <h2 class="mb-0"><i class="fas fa-cogs"></i> System Alerts</h2>
+<!-- System Alerts Section -->
+<div class="card mb-4">
+  <div class="card-header bg-dark text-white">
+    <div class="d-flex justify-content-between align-items-center">
+      <h2 class="mb-0"><i class="fas fa-cogs"></i> System Alerts</h2>
+      <!-- **NEW** Test SMS Button -->
+      <button type="button" id="test-sms-btn" class="btn btn-outline-warning">
+        <i class="fas fa-sms me-1"></i> Test SMS
+      </button>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="row mb-3 align-items-center">
+      <div class="col-md-4">
+        <label class="form-label">Alert Cooldown (s):</label>
+        <input type="number" class="form-control" name="alert_cooldown_seconds"
+               value="{{ alert_cooldown_seconds }}">
       </div>
-      <div class="card-body">
-        <div class="row mb-3 align-items-center">
-          <div class="col-md-4">
-            <label class="form-label">Alert Cooldown (s):</label>
-            <input type="number" class="form-control" name="alert_cooldown_seconds"
-                   value="{{ alert_cooldown_seconds }}">
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Call Refractory (s):</label>
-            <input type="number" class="form-control" name="call_refractory_period"
-                   value="{{ call_refractory_period }}">
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Snooze Countdown (s):</label>
-            <input type="number" class="form-control" name="alert_config[snooze_countdown]"
-                   value="300" readonly>
-          </div>
-        </div>
+      <div class="col-md-4">
+        <label class="form-label">Call Refractory (s):</label>
+        <input type="number" class="form-control" name="call_refractory_period"
+               value="{{ call_refractory_period }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Snooze Countdown (s):</label>
+        <input type="number" class="form-control" name="alert_config[snooze_countdown]"
+               value="300" readonly>
       </div>
     </div>
+  </div>
+</div>
+
 
     <!-- Save Button -->
     <div class="d-flex justify-content-end">
@@ -412,7 +420,12 @@
 </div>
 {% endblock %}
 
+
+
+
 {% block extra_scripts %}
+
+
 <script>
   // AJAX Form Submission with Save Confirmation
   document.getElementById('alertForm').addEventListener('submit', function(e) {
@@ -436,5 +449,23 @@
       document.getElementById('save-confirmation').textContent = "Error: " + error;
     });
   });
+
+  // **NEW**: AJAX handler for Test SMS
+document.getElementById('test-sms-btn').addEventListener('click', () => {
+  fetch('{{ url_for("alerts_bp.test_sms") }}', { method: 'POST' })
+    .then(r => r.json())
+    .then(data => {
+      const btn = document.getElementById('test-sms-btn');
+      btn.textContent = data.success ? 'SMS Sent!' : 'SMS Failed';
+      setTimeout(() => {
+        btn.innerHTML = '<i class="fas fa-sms me-1"></i> Test SMS';
+      }, 3000);
+    })
+    .catch(() => { /* error state */ });
+});
+
+
 </script>
+
+
 {% endblock %}

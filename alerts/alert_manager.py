@@ -151,6 +151,14 @@ class AlertManager:
                 extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
             )
 
+        # **NEW**: load SMS provider config once
+        from xcom.xcom import load_com_config
+        full_comms = load_com_config()
+        self.sms_cfg = full_comms \
+            .get("communication", {}) \
+            .get("providers", {}) \
+            .get("sms", {})
+
         self.twilio_config = self.config.get("twilio_config", {})
         self.cooldown = self.config.get("alert_cooldown_seconds", 900)
         self.call_refractory_period = self.config.get("call_refractory_period", 3600)
@@ -235,24 +243,14 @@ class AlertManager:
                           f"System Alerts: {evaluation_results.get('system')}")
 
     def send_sms_alert(self, message: str, key: str):
-        """
-        Sends an SMS alert using the xCom module.
-        Implements a refractory period to suppress duplicate alerts.
-        """
         now = current_time()
         last_sms_time = self.last_call_triggered.get(key, 0)
         if now - last_sms_time < self.call_refractory_period:
-            self.logger.info("SMS alert '%s' suppressed.", key)
-            u_logger.log_operation(
-                operation_type="Alert Silenced",
-                primary_text=f"SMS Alert Silenced: {key}",
-                source="AlertManager",
-                file="alert_manager.py",
-                extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
-            )
-            return
+            # … logging suppressed …
+            return False   # <–– also return False when you suppress
 
-        result = send_sms("", message)
+        result = send_sms("", message)  # or your full‑config call
+
         if result:
             self.last_call_triggered[key] = now
             u_logger.log_operation(
@@ -271,6 +269,10 @@ class AlertManager:
                 extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
             )
 
+        return result
+
+
+
     def check_alerts(self, source: Optional[str] = None):
         """
         Reevaluate alert conditions, retrieve updated alerts from DB,
@@ -286,7 +288,7 @@ class AlertManager:
             )
             return
 
-        # Debug: log global config enabled flag
+        # Global Alerts branch
         global_config = self.config.get("global_alert_config", {})
         self.logger.debug("Global alert config enabled flag: " + str(global_config.get("enabled", False)))
 
@@ -294,8 +296,8 @@ class AlertManager:
             positions = self.data_locker.read_positions()
             # For debugging, using dummy market data:
             market_data = {"BTC": 75000, "ETH": 1600, "SOL": 130}
-            self.logger.debug("Using dummy market data for global alert evaluation: " + str(market_data))
             global_alerts = self.alert_evaluator.evaluate_global_alerts(positions, market_data)
+
             if global_alerts:
                 combined_message = "Global Alerts:\n" + "\n".join(
                     f"{key.upper()}: {msg}" for key, msg in global_alerts.items()
@@ -307,7 +309,22 @@ class AlertManager:
                     file="alert_manager.py",
                     extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
                 )
-                self.send_sms_alert(combined_message, "global_alerts")
+
+                # **NEW**: check per‑level SMS flag for globals
+                sms_flag = (
+                    self.config
+                        .get("alert_config", {})
+                        .get("notifications", {})
+                        .get("global", {})        # or your chosen key for global alerts
+                        .get("high", {})          # pick a default level, or iterate like below
+                        .get("notify_by", {})
+                        .get("sms", False)
+                )
+                if sms_flag:
+                    self.send_sms_alert(combined_message, "global_alerts")
+                else:
+                    self.logger.info("Global SMS suppressed; notify_by.sms not enabled.")
+
             else:
                 u_logger.log_alert(
                     operation_type="No Global Alerts Found",
@@ -316,7 +333,9 @@ class AlertManager:
                     file="alert_manager.py",
                     extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
                 )
+
         else:
+            # Position & Market Alerts branch
             self.reevaluate_alerts()
             alerts = self.data_locker.get_alerts()
             triggered_alerts = [a for a in alerts if a.get("level", "Normal") != "Normal"]
@@ -334,7 +353,29 @@ class AlertManager:
                     file="alert_manager.py",
                     extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
                 )
-                self.send_sms_alert(combined_message, "all_alerts")
+
+                # **NEW**: only send SMS if any triggered alert has sms enabled
+                any_sms = False
+                for a in triggered_alerts:
+                    t = a.get("alert_type")
+                    lvl = a.get("level", "").lower()
+                    if (
+                        self.config
+                            .get("alert_config", {})
+                            .get("notifications", {})
+                            .get(t, {})
+                            .get(lvl, {})
+                            .get("notify_by", {})
+                            .get("sms", False)
+                    ):
+                        any_sms = True
+                        break
+
+                if any_sms:
+                    self.send_sms_alert(combined_message, "all_alerts")
+                else:
+                    self.logger.info("SMS suppressed for all_alerts—notify_by.sms not enabled for these levels.")
+
             elif self.suppressed_count > 0:
                 u_logger.log_alert(
                     operation_type="Alert Silenced",
@@ -351,6 +392,7 @@ class AlertManager:
                     file="alert_manager.py",
                     extra_data={"log_line": inspect.currentframe().f_back.f_lineno}
                 )
+
 
     def update_timer_states(self):
         now = current_time()
