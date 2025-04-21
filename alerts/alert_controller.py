@@ -214,81 +214,66 @@ class AlertController:
 
     def create_all_position_alerts(self) -> list:
         """
-        Create alerts for each position based on configured thresholds.
-        Initializes travel percent, profit, and heat index triggers from config.
+        Creates alerts for each position: travel percent, profit, and heat index.
+        Uses the position-alert mapping table to avoid duplicate alerts and does NOT overwrite existing position.alert_reference_id.
+        Returns a list of created alert dictionaries.
         """
-        created_alerts = []
+        # Read current positions from the database
         positions = self.data_locker.read_positions()
-        # Load alert limits config
-        limits = self.json_manager.load("", JsonType.ALERT_LIMITS)
+        created_alerts = []
 
-        # Threshold configurations
+        # Load configuration for alert thresholds
+        from utils.json_manager import JsonManager, JsonType
+        from data.models import AlertType
+        jm = JsonManager()
+        limits = jm.load("", JsonType.ALERT_LIMITS)
         tp_cfg = limits.get("alert_ranges", {}).get("travel_percent_liquid_ranges", {})
         profit_cfg = limits.get("alert_ranges", {}).get("profit_ranges", {})
         heat_cfg = limits.get("alert_ranges", {}).get("heat_index_ranges", {})
 
-        low_tp = float(tp_cfg.get("low", -25.0))
-        low_profit = float(profit_cfg.get("low", 0.0))
-        low_heat = float(heat_cfg.get("low", 0.0))
-
         for pos in positions:
             pid = pos.get("id")
 
-            # 1. Travel Percent Alert
+            # 1) Travel Percent Alert
             if tp_cfg.get("enabled", False) and not self.data_locker.has_alert_mapping(pid,
                                                                                        AlertType.TRAVEL_PERCENT_LIQUID.value):
+                trigger_tp = float(tp_cfg.get("low", -25.0))
                 ta = self.create_alert_for_position(
                     pos,
                     AlertType.TRAVEL_PERCENT_LIQUID.value,
-                    low_tp,
+                    trigger_tp,
                     "BELOW",
                     "Call"
                 )
                 if ta:
                     created_alerts.append(ta)
-                    cur = self.data_locker.conn.cursor()
-                    cur.execute(
-                        "UPDATE positions SET alert_reference_id = ? WHERE id = ?",
-                        (ta['id'], pid)
-                    )
-                    self.data_locker.conn.commit()
 
-            # 2. Profit Alert
+            # 2) Profit Alert
             if profit_cfg.get("enabled", False) and not self.data_locker.has_alert_mapping(pid, AlertType.PROFIT.value):
+                trigger_profit = float(profit_cfg.get("low", 0.0))
                 pa = self.create_alert_for_position(
                     pos,
                     AlertType.PROFIT.value,
-                    low_profit,
+                    trigger_profit,
                     "ABOVE",
                     "Call"
                 )
                 if pa:
                     created_alerts.append(pa)
-                    cur = self.data_locker.conn.cursor()
-                    cur.execute(
-                        "UPDATE positions SET alert_reference_id = ? WHERE id = ?",
-                        (pa['id'], pid)
-                    )
-                    self.data_locker.conn.commit()
 
-            # 3. Heat Index Alert
+            # 3) Heat Index Alert
             if heat_cfg.get("enabled", False) and not self.data_locker.has_alert_mapping(pid,
                                                                                          AlertType.HEAT_INDEX.value):
+                trigger_heat = float(heat_cfg.get("low", 7.0))  # uses 'low' from JSON; fallback 7.0
                 ha = self.create_alert_for_position(
                     pos,
                     AlertType.HEAT_INDEX.value,
-                    low_heat,
+                    trigger_heat,
                     "ABOVE",
                     "Call"
                 )
                 if ha:
                     created_alerts.append(ha)
-                    cur = self.data_locker.conn.cursor()
-                    cur.execute(
-                        "UPDATE positions SET alert_reference_id = ? WHERE id = ?",
-                        (ha['id'], pid)
-                    )
-                    self.data_locker.conn.commit()
 
         return created_alerts
 
@@ -897,9 +882,17 @@ class AlertController:
 
     def create_heat_index_alerts(self):
         """
-        Creates a heat index alert for each position regardless of the current heat index value.
+        Creates a heat index alert for each position, using the configured low threshold.
         """
         created_alerts = []
+        # Load configured low threshold for heat index
+        from utils.json_manager import JsonManager, JsonType
+        jm = JsonManager()
+        limits = jm.load("", JsonType.ALERT_LIMITS)
+        low_threshold = float(limits.get("alert_ranges", {})
+                              .get("heat_index_ranges", {})
+                              .get("low", 7.0))
+
         positions = self.data_locker.read_positions()
         for pos in positions:
             asset = pos.get("asset_type", "BTC")
@@ -909,11 +902,12 @@ class AlertController:
             except Exception as e:
                 self.logger.error("Error parsing heat index for position %s: %s", pos_id, e)
                 current_heat = 0.0
-            # Use a default trigger for heat alerts (could also be pulled from config)
-            trigger_value = 12.0
-            condition = "ABOVE"  # Heat alert triggers when current_heat exceeds trigger_value
+
+            trigger_value = low_threshold
+            condition = "ABOVE"
             notification_type = "Call"
             position_type = self.get_position_type(pos_id)
+
             alert_obj = DummyPositionAlert(
                 AlertType.HEAT_INDEX.value,
                 asset,
@@ -923,11 +917,14 @@ class AlertController:
                 pos_id,
                 position_type
             )
-            alert_obj.level = "Normal"  # Set default level
+            alert_obj.level = "Normal"
+
+            # Create alert without overwriting position.alert_reference_id
             if self.create_alert(alert_obj):
                 created_alerts.append(alert_obj.to_dict())
             else:
                 self.logger.error("Failed to create heat alert for position %s", pos_id)
+
         return created_alerts
 
     def create_all_alerts(self):

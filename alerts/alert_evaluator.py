@@ -130,68 +130,54 @@ class AlertEvaluator:
         return f"Blast ALERT: Position {pos.get('id')} liquidation distance {current_value:.2f}"
 
     def evaluate_heat_index_alert(self, pos: dict) -> str:
-        asset = pos.get("asset_type", "BTC")
-        price_record = self.data_locker.get_latest_price(asset)
-        if price_record and "current_price" in price_record:
-            current_price = float(price_record["current_price"])
-        else:
-            self._debug_log(f"[Heat Alert] Error: latest price not available for asset {asset}")
-            current_price = 0.0
-
+        """
+        Evaluate heat index using explicit configured thresholds.
+        Returns a message if level > Normal, else empty string.
+        """
+        # Compute current heat index
         try:
-            pos_updated = pos.copy()
-            pos_updated["current_price"] = current_price
-            current_heat = self.calc_services.calculate_composite_risk_index(pos_updated)
-            if current_heat is None:
-                current_heat = 0.0
+            current_heat = float(pos.get("current_heat_index", 0.0))
         except Exception as e:
-            self._debug_log(f"[Heat Alert] Error calculating composite risk index: {e}")
+            self._debug_log(f"[Heat Alert] Error parsing heat index: {e}")
             return ""
 
-        # Load explicit heat index thresholds from configuration
+        # Load thresholds
         from utils.json_manager import JsonManager, JsonType
         jm = JsonManager()
-        alert_limits = jm.load("", JsonType.ALERT_LIMITS)
-        heat_config = alert_limits.get("alert_ranges", {}).get("heat_index_ranges", {})
-        low_thresh = float(heat_config.get("low", 12.0))
-        medium_thresh = float(heat_config.get("medium", 33.0))
-        high_thresh = float(heat_config.get("high", 66.0))
+        limits = jm.load("", JsonType.ALERT_LIMITS)
+        cfg = limits.get("alert_ranges", {}).get("heat_index_ranges", {})
+        low = float(cfg.get("low", 7.0))
+        med = float(cfg.get("medium", 33.0))
+        high = float(cfg.get("high", 66.0))
 
-        self._debug_log(
-            f"[Heat Alert] current_heat = {current_heat}, thresholds: low={low_thresh}, medium={medium_thresh}, high={high_thresh}")
-
-        # Determine alert level based on explicit thresholds:
-        if current_heat < low_thresh:
+        # Determine level
+        if current_heat < low:
             level = "Normal"
-        elif current_heat < medium_thresh:
+        elif current_heat < med:
             level = "Low"
-        elif current_heat < high_thresh:
+        elif current_heat < high:
             level = "Medium"
         else:
             level = "High"
 
-        # Determine next trigger threshold based on level:
-        if level == "Normal":
-            next_trigger = low_thresh
-        elif level == "Low":
-            next_trigger = medium_thresh
-        elif level in ["Medium", "High"]:
-            next_trigger = high_thresh
+        # Next trigger
+        next_trigger = {
+            "Normal": low,
+            "Low": med,
+            "Medium": high,
+            "High": high
+        }[level]
+
+        # Update alert
+        if level != "Normal":
+            self._update_alert_level(pos, level, evaluated_value=current_heat,
+                                     custom_alert_type=AlertType.HEAT_INDEX.value)
+            return (f"Heat Index ALERT: Pos {pos.get('id')} heat={current_heat:.1f} "
+                    f"Level={level}, next_trigger={next_trigger:.1f}")
         else:
-            next_trigger = 0.0
-
-        self._debug_log(f"[Heat Alert] Determined level: {level}, next trigger should be: {next_trigger}")
-
-        if level == "Normal":
             self._update_alert_level(pos, "Normal", evaluated_value=current_heat,
                                      custom_alert_type=AlertType.HEAT_INDEX.value)
             return ""
-        else:
-            self._update_alert_level(pos, level, evaluated_value=current_heat,
-                                     custom_alert_type=AlertType.HEAT_INDEX.value)
-            msg = f"Heat Index ALERT: Position {pos.get('id')} heat index {current_heat:.2f} exceeds threshold (Level: {level}). Next trigger: {next_trigger}"
-            self._debug_log(f"[Heat Alert] {msg}")
-            return msg
 
     def enrich_alert(self, alert: dict) -> dict:
         """
