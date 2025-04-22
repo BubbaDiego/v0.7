@@ -200,6 +200,14 @@
               <span class="update-icon">🌀</span>
             </button>
           </li>
+            <!-- Clear All Data button (add this after your 🌀 full‐cycle <li>) -->
+            <li class="nav-item d-flex align-items-center me-3">
+              <button type="button" class="update-btn" id="clearAllBtn" title="Clear All Data">
+                <span class="update-icon">🗑️</span>
+              </button>
+            </li>
+
+
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="gearDropdown" role="button"
                data-bs-toggle="dropdown" aria-expanded="false" title="Navigation">
@@ -315,6 +323,23 @@
       localStorage.setItem("layoutMode", newMode);
       window.location.reload();
     });
+
+
+     // Clear All Data button
+    const clearAllBtn = document.getElementById('clearAllBtn');
+    if (clearAllBtn) {
+      clearAllBtn.addEventListener('click', () => {
+        clearAllBtn.querySelector('.update-icon').classList.add('spin');
+        fetch('/api/clear_all_data', { method: 'POST' })
+          .then(r => r.json())
+          .then(() => window.location.reload())
+          .catch(err => {
+            clearAllBtn.querySelector('.update-icon').classList.remove('spin');
+            console.error('Clear All Data error:', err);
+          });
+      });
+    }
+
   </script>
   <style>
     @keyframes spin {

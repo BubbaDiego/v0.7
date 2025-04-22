@@ -98,3 +98,20 @@ def run_system_updates():
     Placeholder for 'System Updates'.
     """
     return jsonify({"message": "System Updates Completed (placeholder)."}), 200
+
+import asyncio
+from .cyclone import Cyclone
+from flask import Blueprint, jsonify
+
+@cyclone_bp.route("/api/clear_all_data", methods=["POST"])
+def clear_all_data_api():
+    """
+    Clears alerts, prices, and positions via Cyclone.
+    """
+    try:
+        # instantiate and run the clear‐all task
+        cyclone = Cyclone(poll_interval=60)
+        asyncio.run(cyclone.run_clear_all_data())
+        return jsonify({"message": "All data cleared."}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

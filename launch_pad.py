@@ -27,6 +27,10 @@ import pytz
 import requests
 from datetime import datetime, timedelta
 from uuid import uuid4
+import asyncio
+from flask import jsonify
+from cyclone.cyclone import Cyclone
+
 
 from flask import Flask, request, jsonify, render_template, redirect, url_for, flash, current_app
 from flask_socketio import SocketIO, emit
@@ -47,6 +51,8 @@ from sonic_labs.sonic_labs_bp import sonic_labs_bp
 #from chat_gpt.chat_gpt_bp import chat_gpt_bp
 from aave.aave_bp import aave_bp
 from aave import aave_api
+
+from cyclone.cyclone_bp import cyclone_bp
 
 
 
@@ -77,7 +83,8 @@ app.register_blueprint(alerts_bp, url_prefix="/alerts")
 app.register_blueprint(prices_bp, url_prefix="/prices")
 app.register_blueprint(dashboard_bp)  # Dashboard-specific routes and API endpoints
 app.register_blueprint(sonic_labs_bp, url_prefix="/sonic_labs")
-app.register_blueprint(cyclone_bp, url_prefix="/cyclone")
+#app.register_blueprint(cyclone_bp, url_prefix="/cyclone")
+app.register_blueprint(cyclone_bp)
 
 #app.register_blueprint(chat_gpt_bp, url_prefix='/chat_gpt')
 app.register_blueprint(aave_bp, url_prefix="/aave")
