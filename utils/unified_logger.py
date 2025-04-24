@@ -113,6 +113,8 @@ class UnifiedLogger:
             extra.update(extra_data)
         self.logger.info(primary_text, extra=extra)
 
+
+
     def log_alert(self, operation_type: str, primary_text: str, source: str = "", file: str = "", extra_data: dict = None):
         extra = {
             "source": source,

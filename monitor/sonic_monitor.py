@@ -20,8 +20,7 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
-# Ensure BASE_DIR on path
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 sys.path.insert(0, BASE_DIR)
 
 # Endpoints
@@ -49,7 +48,7 @@ def heartbeat_ledger(loop_counter: int):
     }
     with open(ledger_file, "a") as f:
         f.write(json.dumps(entry) + "\n")
-    logger.info("Ledger entry: %s", entry)
+    #logger.info("Ledger entry: %s", entry)
 
     cfg = load_timer_config()
     cfg["sonic_loop_start_time"] = entry["timestamp"]

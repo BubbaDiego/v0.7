@@ -57,6 +57,30 @@
     width: 48%;
   }
 
+  /* Combined Ledger Card outer theming */
+.status-bar.common-box {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 12px;
+  gap: 16px;
+}
+
+/* Layout for the two inner ledger boxes */
+.ledger-row {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+/* Give each ledger box extra breathing room */
+.ledger-box {
+  flex: 1;
+  min-width: 160px;
+  margin: 0;
+}
+
+
   /* Ledger Box */
   .ledger-inline-container {
     display: flex;
@@ -299,40 +323,30 @@
 {% block content %}
 <!-- Top Row: Ledger (24%) + Timer (20%) + Status (48%) -->
 <div class="box-row" style="margin-top:0;">
-  <!-- Ledger Box -->
-  <div class="ledger-inline-container"
-       style="width:24%;
-              background-color: {{ ledger_info.color if ledger_info and ledger_info.color else 'var(--light-bg-color)' }};">
-    {% if ledger_info and ledger_info.formatted_time %}
-      <div style="display:flex; flex-wrap:wrap; width:100%;">
-        <div style="width:50%;">⚙ Source: Ledger</div>
-        <!-- Remove year, add space after PM -->
-        <div style="width:50%;">
-          🕖
-          {% set parted = ledger_info.formatted_time.split(' ') %}
-          {% if parted|length == 3 %}
-            {% set parted_date_arr = parted[2].split('/') %}
-            {% if parted_date_arr|length == 3 %}
-              {% set short_date = parted_date_arr[0] ~ '/' ~ parted_date_arr[1] %}
-              {{ parted[0] }} {{ parted[1] }}&nbsp;&nbsp;{{ short_date }}
-            {% else %}
-              {{ ledger_info.formatted_time }}
-            {% endif %}
-          {% else %}
-            {{ ledger_info.formatted_time }}
-          {% endif %}
-        </div>
-        <div style="width:50%;">ℹ️ Status: {{ ledger_info.status }}</div>
-        {% if ledger_info.loop_count is defined %}
-          <div style="width:50%;">🔄 Loop: {{ ledger_info.loop_count }}</div>
-        {% else %}
-          <div style="width:50%;">🔄 Loop: (not set)</div>
-        {% endif %}
-      </div>
-    {% else %}
-      <div>No ledger info available.</div>
-    {% endif %}
+    <!-- Combined Ledger Card -->
+<div class="status-bar common-box {% if theme_mode=='dark' %}dark-mode{% else %}light-mode{% endif %}">
+  {# decide green/yellow/red via the two ages we passed in #}
+  {% set class1 = 'fresh'   if ledger_info.age_price < 5
+                 else 'warning' if ledger_info.age_price < 10
+                 else 'stale' %}
+  {% set class2 = 'fresh'   if ledger_info.age_pos   < 5
+                 else 'warning' if ledger_info.age_pos   < 10
+                 else 'stale' %}
+
+  <div class="ledger-row">
+    <div class="ledger-box ledger1 {{ class1 }}">
+      📈 Price Ledger<br>
+      {{ ledger_info.formatted_time_price }}<br>
+      Loop: {{ ledger_info.loop_count_price }}
+    </div>
+    <div class="ledger-box ledger2 {{ class2 }}">
+      📌 Position Ledger<br>
+      {{ ledger_info.formatted_time_position }}<br>
+      Loop: {{ ledger_info.loop_count_position }}
+    </div>
   </div>
+</div>
+
 
   <!-- Timer Box (Sonic + Price + Den) -->
   <div class="common-box light-mode" id="countdownBox">

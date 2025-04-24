@@ -147,146 +147,6 @@ def compute_collateral_composition():
     else:
         series = [0, 0]
     return series
-
-
-
-@dashboard_bp.route("/dashboard")
-def dashboard():
-
-    try:
-        all_positions = PositionService.get_all_positions(DB_PATH) or []
-        positions = all_positions
-        liquidation_positions = all_positions
-        top_positions = sorted(all_positions, key=lambda pos: float(pos.get("current_travel_percent", 0)), reverse=True)
-        bottom_positions = sorted(all_positions, key=lambda pos: float(pos.get("current_travel_percent", 0)))[:3]
-
-        totals = {
-            "total_collateral": sum(float(pos.get("collateral", 0)) for pos in positions),
-            "total_value": sum(float(pos.get("value", 0)) for pos in positions),
-            "total_size": sum(float(pos.get("size", 0)) for pos in positions)
-        }
-        if positions:
-            totals["avg_leverage"] = sum(float(pos.get("leverage", 0)) for pos in positions) / len(positions)
-            totals["avg_travel_percent"] = sum(float(pos.get("current_travel_percent", 0)) for pos in positions) / len(positions)
-        else:
-            totals["avg_leverage"] = 0
-            totals["avg_travel_percent"] = 0
-
-        dl = DataLocker.get_instance()
-        portfolio_history = dl.get_portfolio_history() or []
-        portfolio_value_num = portfolio_history[-1].get("total_value", 0) if portfolio_history else 0
-        portfolio_change = 0
-        if portfolio_history:
-            cutoff = datetime.now() - timedelta(hours=24)
-            filtered_history = [
-                entry for entry in portfolio_history
-                if entry.get("snapshot_time") and datetime.fromisoformat(entry.get("snapshot_time")) >= cutoff
-            ]
-            first_val = filtered_history[0].get("total_value", 0) if filtered_history else portfolio_history[0].get("total_value", 0)
-            if first_val:
-                portfolio_change = ((portfolio_history[-1].get("total_value", 0) - first_val) / first_val) * 100
-
-        formatted_portfolio_value = "{:,.2f}".format(portfolio_value_num)
-        formatted_portfolio_change = "{:,.1f}".format(portfolio_change)
-
-        btc_data = dl.get_latest_price("BTC") or {}
-        eth_data = dl.get_latest_price("ETH") or {}
-        sol_data = dl.get_latest_price("SOL") or {}
-        sp500_data = dl.get_latest_price("SP500") or {}
-
-        formatted_btc_price = "{:,.2f}".format(float(btc_data.get("current_price", 0)))
-        formatted_eth_price = "{:,.2f}".format(float(eth_data.get("current_price", 0)))
-        formatted_sol_price = "{:,.2f}".format(float(sol_data.get("current_price", 0)))
-        formatted_sp500_value = "{:,.2f}".format(float(sp500_data.get("current_price", 0)))
-
-        strategy_performance = get_strategy_performance()
-
-        update_times = dl.get_last_update_times() or {}
-        raw_last_update = update_times.get("last_update_time_positions")
-        last_update_positions_source = update_times.get("last_update_positions_source", "N/A")
-        if raw_last_update:
-            converted_last_update = _convert_iso_to_pst(raw_last_update)
-            if converted_last_update != "N/A":
-                try:
-                    dt_obj = datetime.strptime(converted_last_update, "%m/%d/%Y %I:%M:%S %p %Z")
-                    last_update_time_only = dt_obj.strftime("%I:%M %p %Z").lstrip("0")
-                    last_update_date_only = f"{dt_obj.month}/{dt_obj.day}/{dt_obj.strftime('%y')}"
-                except Exception:
-                    last_update_time_only = "N/A"
-                    last_update_date_only = "N/A"
-            else:
-                last_update_time_only = "N/A"
-                last_update_date_only = "N/A"
-        else:
-            last_update_time_only = "N/A"
-            last_update_date_only = "N/A"
-
-        # Read log files using UnifiedLogViewer.
-        operations_log_file = os.path.join(str(BASE_DIR), "operations_log.txt")
-        alert_log_file = os.path.join(str(BASE_DIR), "alert_monitor_log.txt")
-        ops_viewer = UnifiedLogViewer([operations_log_file])
-        system_feed_entries = ops_viewer.get_all_display_strings()
-        alert_viewer = UnifiedLogViewer([alert_log_file])
-        alert_entries = alert_viewer.get_all_display_strings()
-
-        # Load the theme configuration.
-        try:
-            with open(THEME_CONFIG_PATH, "r", encoding="utf-8") as f:
-                theme_config = json.load(f)
-        except Exception as ex:
-            logger.error("Error loading theme config: %s", ex)
-            theme_config = {}
-
-        ledger_info = get_last_ledger_entry()
-
-        return render_template(
-            "dashboard.html",  # Note: since blueprint's template_folder is "dashboard", this loads templates/dashboard/dashboard.html
-            theme=theme_config,
-            top_positions=top_positions,
-            bottom_positions=bottom_positions,
-            liquidation_positions=liquidation_positions,
-            portfolio_data=portfolio_history,
-            portfolio_value=formatted_portfolio_value,
-            portfolio_change=formatted_portfolio_change,
-            btc_price=formatted_btc_price,
-            eth_price=formatted_eth_price,
-            sol_price=formatted_sol_price,
-            sp500_value=formatted_sp500_value,
-            positions=positions,
-            totals=totals,
-            last_update_time_only=last_update_time_only,
-            last_update_date_only=last_update_date_only,
-            last_update_positions_source=last_update_positions_source,
-            system_feed_entries=system_feed_entries,
-            alert_entries=alert_entries,
-            strategy_performance=strategy_performance,
-            ledger_info=ledger_info,
-        )
-    except Exception as e:
-        logger.exception("Error rendering dashboard:")
-        return render_template(
-            "dashboard.html",
-            theme={},
-            top_positions=[],
-            bottom_positions=[],
-            liquidation_positions=[],
-            portfolio_data=[],
-            portfolio_value="0.00",
-            portfolio_change="0.0",
-            btc_price="0.00",
-            eth_price="0.00",
-            sol_price="0.00",
-            sp500_value="0.00",
-            positions=[],
-            totals={},
-            last_update_time_only="N/A",
-            last_update_date_only="N/A",
-            last_update_positions_source="N/A",
-            system_feed_entries='<div class="alert alert-secondary p-1 mb-1" role="alert">No feed data available</div>',
-            alert_entries='<div class="alert alert-secondary p-1 mb-1" role="alert">No alert data available</div>'
-        )
-
-
 @dashboard_bp.route("/api/graph_data")
 def api_graph_data():
     dl = DataLocker.get_instance()
@@ -860,129 +720,181 @@ def save_theme_mode():
 
 @dashboard_bp.route("/dash", endpoint="dash_page")
 def dash_page():
-    from datetime import datetime, timedelta, timezone
-    import os
-    import json
+    from datetime import datetime, timezone
+    import os, json
+    from flask import render_template, current_app
+    from config.config_constants import BASE_DIR
+    from utils.unified_logger import UnifiedLogger
+    from utils.unified_log_viewer import UnifiedLogViewer
+    from data.data_locker import DataLocker
+    from positions.position_service import PositionService
 
-    # Get positions data
+    # ---- Portfolio / Positions ----
     all_positions = PositionService.get_all_positions(DB_PATH) or []
     if all_positions:
-        total_value = sum(float(p.get("value", 0)) for p in all_positions)
-        total_collateral = sum(float(p.get("collateral", 0)) for p in all_positions)
-        total_size = sum(float(p.get("size", 0)) for p in all_positions)
-        avg_leverage = sum(float(p.get("leverage", 0)) for p in all_positions) / len(all_positions)
-        avg_travel_percent = sum(float(p.get("travel_percent", 0)) for p in all_positions) / len(all_positions)
-        vc_ratio = round(total_value / total_collateral, 2) if total_collateral > 0 else "N/A"
-        total_heat_index = sum(float(p.get("heat_index", 0)) for p in all_positions)
-        avg_heat_index = total_heat_index / len(all_positions)
+        total_value       = sum(float(p.get("value",0)) for p in all_positions)
+        total_collateral  = sum(float(p.get("collateral",0)) for p in all_positions)
+        total_size        = sum(float(p.get("size",0)) for p in all_positions)
+        avg_leverage      = sum(float(p.get("leverage",0)) for p in all_positions) / len(all_positions)
+        avg_travel_percent= sum(float(p.get("travel_percent",0)) for p in all_positions) / len(all_positions)
+        vc_ratio          = round(total_value/total_collateral,2) if total_collateral>0 else "N/A"
+        total_heat_index  = sum(float(p.get("heat_index",0)) for p in all_positions)
+        avg_heat_index    = total_heat_index/len(all_positions)
     else:
         total_value = total_collateral = total_size = avg_leverage = avg_travel_percent = avg_heat_index = 0
         vc_ratio = "N/A"
 
-    formatted_portfolio_value = "${:,.2f}".format(total_value)
-    formatted_portfolio_change = "N/A"  # Default since change isn't computed here
+    formatted_portfolio_value  = "${:,.2f}".format(total_value)
+    formatted_portfolio_change = "N/A"
 
-    positions = all_positions
-    liquidation_positions = all_positions
-    top_positions = sorted(all_positions, key=lambda pos: float(pos.get("current_travel_percent", 0)), reverse=True)
-    bottom_positions = sorted(all_positions, key=lambda pos: float(pos.get("current_travel_percent", 0)))[:3]
+    positions              = all_positions
+    liquidation_positions  = all_positions
+    top_positions          = sorted(all_positions, key=lambda p: float(p.get("current_travel_percent",0)), reverse=True)
+    bottom_positions       = sorted(all_positions, key=lambda p: float(p.get("current_travel_percent",0)))[:3]
 
+    # ---- Theme config ----
     dl = DataLocker.get_instance()
-    portfolio_history = dl.get_portfolio_history() or []
     try:
-        with open(THEME_CONFIG_PATH, "r", encoding="utf-8") as f:
+        with open(THEME_CONFIG_PATH, "r") as f:
             theme_config = json.load(f)
-    except Exception as ex:
+    except:
         theme_config = {}
 
-    # Fetch price data from the database
-    btc_data = dl.get_latest_price("BTC") or {}
-    eth_data = dl.get_latest_price("ETH") or {}
-    sol_data = dl.get_latest_price("SOL") or {}
-    sp500_data = dl.get_latest_price("SP500") or {}
+    # ---- Price data ----
+    btc_data  = dl.get_latest_price("BTC") or {}
+    eth_data  = dl.get_latest_price("ETH") or {}
+    sol_data  = dl.get_latest_price("SOL") or {}
+    sp500_data= dl.get_latest_price("SP500") or {}
 
-    btc_price = "{:,.0f}".format(float(btc_data.get("current_price", 0)))
-    eth_price = "{:,.0f}".format(float(eth_data.get("current_price", 0)))
-    sol_price = "{:,.2f}".format(float(sol_data.get("current_price", 0)))
-    sp500_value = "{:,.0f}".format(float(sp500_data.get("current_price", 0)))
+    btc_price  = "{:,.0f}".format(float(btc_data.get("current_price",0)))
+    eth_price  = "{:,.0f}".format(float(eth_data.get("current_price",0)))
+    sol_price  = "{:,.2f}".format(float(sol_data.get("current_price",0)))
+    sp500_value= "{:,.0f}".format(float(sp500_data.get("current_price",0)))
 
-    # Get last update times
+    # ---- Last update positions ----
     update_times = dl.get_last_update_times() or {}
-    raw_last_update = update_times.get("last_update_time_positions")
-    last_update_positions_source = update_times.get("last_update_positions_source", "N/A")
+    raw_last_update             = update_times.get("last_update_time_positions")
+    last_update_positions_source= update_times.get("last_update_positions_source","N/A")
     if raw_last_update:
-        converted_last_update = _convert_iso_to_pst(raw_last_update)
-        if converted_last_update != "N/A":
-            try:
-                dt_obj = datetime.strptime(converted_last_update, "%m/%d/%Y %I:%M:%S %p %Z")
-                last_update_time_only = dt_obj.strftime("%I:%M %p %Z").lstrip("0")
-                last_update_date_only = f"{dt_obj.month}/{dt_obj.day}/{dt_obj.strftime('%y')}"
-            except Exception:
-                last_update_time_only = last_update_date_only = "N/A"
-        else:
+        converted = _convert_iso_to_pst(raw_last_update)
+        try:
+            dt = datetime.strptime(converted, "%m/%d/%Y %I:%M:%S %p %Z")
+            last_update_time_only = dt.strftime("%I:%M %p %Z").lstrip("0")
+            last_update_date_only = f"{dt.month}/{dt.day}/{dt.strftime('%y')}"
+        except:
             last_update_time_only = last_update_date_only = "N/A"
     else:
         last_update_time_only = last_update_date_only = "N/A"
 
-    # Read log files using UnifiedLogViewer.
-    operations_log_file = os.path.join(str(BASE_DIR), "operations_log.txt")
-    alert_log_file = os.path.join(str(BASE_DIR), "alert_monitor_log.txt")
-    ops_viewer = UnifiedLogViewer([operations_log_file])
-    system_feed_entries = ops_viewer.get_all_display_strings()
-    alert_viewer = UnifiedLogViewer([alert_log_file])
-    alert_entries = alert_viewer.get_all_display_strings()
+    # ---- System & Alert logs ----
+    ops_log  = os.path.join(BASE_DIR, "operations_log.txt")
+    alert_log= os.path.join(BASE_DIR, "alert_monitor_log.txt")
+    system_feed_entries = UnifiedLogViewer([ops_log]).get_all_display_strings()
+    alert_entries       = UnifiedLogViewer([alert_log]).get_all_display_strings()
 
-    # Ledger info for update bar
-    ledger_info = get_last_ledger_entry()
-    if ledger_info and "timestamp" in ledger_info:
-        formatted_time, ledger_color = format_ledger_time(ledger_info["timestamp"])
-        ledger_info["formatted_time"] = formatted_time
-        ledger_info["color"] = ledger_color
+    # ---- Ledger helpers ----
+    def read_last_ledger(file_name):
+        ledger_file = os.path.join(BASE_DIR, "monitor", file_name)
+        try:
+            with open(ledger_file, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+            for line in reversed(lines):
+                line = line.strip()
+                try:
+                    obj = json.loads(line)
+                    if isinstance(obj, dict):
+                        # attach loop_count if present
+                        md = obj.get("metadata", {})
+                        if isinstance(md, dict) and "loop_counter" in md:
+                            obj["loop_count"] = md["loop_counter"]
+                        return obj
+                except json.JSONDecodeError:
+                    continue
+        except Exception as e:
+            current_app.logger.error(f"Error reading {file_name}: {e}", exc_info=True)
+        return {}
+
+    # ---- Read price & position ledgers ----
+    price_entry    = read_last_ledger("price_ledger.json")
+    position_entry = read_last_ledger("position_ledger.json")
+
+    ledger_info = {}
+    # Price ledger info
+    ts_p = price_entry.get("timestamp")
+    if ts_p:
+        ftp, _ = format_ledger_time(ts_p)
+        ledger_info["timestamp_price"]        = ts_p
+        ledger_info["formatted_time_price"]   = ftp
+        ledger_info["loop_count_price"]       = price_entry.get("loop_count", 0)
     else:
-        ledger_info = {}
+        ledger_info.update({
+            "formatted_time_price": "N/A",
+            "loop_count_price": 0,
+            "timestamp_price": None,
+        })
 
-    theme_mode = dl.get_theme_mode()
+    # Position ledger info
+    ts_pos = position_entry.get("timestamp")
+    if ts_pos:
+        ftpos, _ = format_ledger_time(ts_pos)
+        ledger_info["timestamp_position"]        = ts_pos
+        ledger_info["formatted_time_position"]   = ftpos
+        ledger_info["loop_count_position"]       = position_entry.get("loop_count", 0)
+    else:
+        ledger_info.update({
+            "formatted_time_position": "N/A",
+            "loop_count_position": 0,
+            "timestamp_position": None,
+        })
 
-    # --- Timer Calculations ---
+    # Compute staleness (minutes)
+    now = datetime.now(timezone.utc)
+    def compute_age(ts):
+        try:
+            dt_obj = datetime.fromisoformat(ts)
+            return (now - dt_obj).total_seconds() / 60
+        except:
+            return float("inf")
+    ledger_info["age_price"] = compute_age(ledger_info.get("timestamp_price"))
+    ledger_info["age_pos"]   = compute_age(ledger_info.get("timestamp_position"))
+
+    # ---- Timers ----
     try:
-        timer_config_path = os.path.join(BASE_DIR, "config", "timer_config.json")
-        with open(timer_config_path, "r") as f:
+        tcfg_path = os.path.join(BASE_DIR, "config", "timer_config.json")
+        with open(tcfg_path) as f:
             timer_config = json.load(f)
-    except Exception as e:
+    except:
         timer_config = {}
 
-    def calculate_remaining(timer_key_start, timer_key_interval, default_interval):
-        now = datetime.now(timezone.utc)
-        start_str = timer_config.get(timer_key_start)
-        interval = timer_config.get(timer_key_interval, default_interval)
-        if start_str:
-            start_time = datetime.fromisoformat(start_str)
-            if now < start_time:
-                # Timer hasn't started yet; countdown until start time
-                remaining_seconds = (start_time - now).total_seconds()
+    def calc_rem(start_key, interval_key, default_int):
+        now_u = datetime.now(timezone.utc)
+        start_s = timer_config.get(start_key)
+        interval= timer_config.get(interval_key, default_int)
+        if start_s:
+            st = datetime.fromisoformat(start_s)
+            if now_u < st:
+                rem = (st - now_u).total_seconds()
             else:
-                elapsed = (now - start_time).total_seconds()
-                remaining_seconds = interval - (elapsed % interval)
-            return remaining_seconds
+                rem = interval - ((now_u - st).total_seconds() % interval)
+            return rem
         return 0
 
-    sonic_remaining_sec = calculate_remaining("sonic_loop_start_time", "sonic_monitor_loop_interval", 120)
-    price_remaining_sec = calculate_remaining("price_loop_start_time", "price_monitor_loop_interval", 60)
-    den_mother_remaining_sec = calculate_remaining("den_mother_start_time", "den_mother_loop_interval", 600)
+    sonic_sec = calc_rem("sonic_loop_start_time","sonic_monitor_loop_interval",120)
+    price_sec = calc_rem("price_loop_start_time","price_monitor_loop_interval",60)
+    den_sec   = calc_rem("den_mother_start_time","den_mother_loop_interval",600)
 
-    def format_seconds(secs):
-        minutes = int(secs // 60)
-        seconds = int(secs % 60)
-        return f"{minutes:02d}:{seconds:02d}"
+    dl = DataLocker.get_instance()
+    portfolio_history = dl.get_portfolio_history() or []
 
-    formatted_sonic_remaining = format_seconds(sonic_remaining_sec)
-    formatted_price_remaining = format_seconds(price_remaining_sec)
-    formatted_den_mother_remaining = format_seconds(den_mother_remaining_sec)
+    def fmt_secs(s):
+        m = int(s//60); sec = int(s%60)
+        return f"{m:02d}:{sec:02d}"
 
+    # ---- Render ----
     return render_template(
-        "dash.html",  # Your main dashboard template
+        "dash.html",
         theme=theme_config,
-        theme_mode=theme_mode,
+        theme_mode=dl.get_theme_mode(),
         top_positions=top_positions,
         bottom_positions=bottom_positions,
         liquidation_positions=liquidation_positions,
@@ -1006,13 +918,12 @@ def dash_page():
         last_update_positions_source=last_update_positions_source,
         system_feed_entries=system_feed_entries,
         alert_entries=alert_entries,
-        strategy_performance={},
         ledger_info=ledger_info,
-        # Pass both formatted and raw remaining seconds for timers
-        sonic_timer_remaining=formatted_sonic_remaining,
-        price_timer_remaining=formatted_price_remaining,
-        den_mother_timer_remaining=formatted_den_mother_remaining,
-        sonic_timer_remaining_sec=sonic_remaining_sec,
-        price_timer_remaining_sec=price_remaining_sec,
-        den_mother_timer_remaining_sec=den_mother_remaining_sec
+        sonic_timer_remaining=fmt_secs(sonic_sec),
+        price_timer_remaining=fmt_secs(price_sec),
+        den_mother_timer_remaining=fmt_secs(den_sec),
+        sonic_timer_remaining_sec=sonic_sec,
+        price_timer_remaining_sec=price_sec,
+        den_mother_timer_remaining_sec=den_sec
     )
+

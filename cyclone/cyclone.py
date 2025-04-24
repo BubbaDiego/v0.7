@@ -2,18 +2,14 @@ import asyncio
 import logging
 import sys
 import os
-import json
-from uuid import uuid4
 
-from prices.price_monitor import PriceMonitor
+from monitor.price_monitor import PriceMonitor
 from alerts.alert_manager import AlertManager
 from data.data_locker import DataLocker
 from utils.unified_logger import UnifiedLogger
 from sonic_labs.hedge_manager import HedgeManager  # Import HedgeManager directly
 from positions.position_service import PositionService
-from alerts.alert_controller import AlertController, DummyPositionAlert
-from data.models import AlertType, AlertClass
-from alerts.alert_evaluator import AlertEvaluator
+from alerts.alert_controller import AlertController
 from config.unified_config_manager import UnifiedConfigManager
 from config.config_constants import CONFIG_PATH
 

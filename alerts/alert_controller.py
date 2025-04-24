@@ -1,5 +1,5 @@
+import json
 from data.data_locker import DataLocker
-from utils.json_manager import JsonManager, JsonType
 from uuid import uuid4
 from data.models import AlertType, AlertClass, Status
 from typing import Optional
@@ -9,6 +9,7 @@ import sqlite3
 from utils.unified_logger import UnifiedLogger
 from utils.update_ledger import log_alert_update
 from alerts.alert_enrichment import enrich_alert_data
+from config.config_constants import ALERT_LIMITS_PATH
 
 
 class DummyPositionAlert:
@@ -70,7 +71,6 @@ class AlertController:
         self.u_logger = UnifiedLogger()
         self.logger = logging.getLogger(__name__)
         self.data_locker = DataLocker.get_instance(db_path) if db_path else DataLocker.get_instance()
-        self.json_manager = JsonManager()
 
     def get_position_type(self, position_id: str) -> str:
         try:
@@ -102,6 +102,18 @@ class AlertController:
             alert.setdefault(k, v)
         return alert
 
+    def _load_limits(self) -> dict:
+        """
+        Load alert limits directly from the JSON file to guarantee freshness.
+        """
+        try:
+            with open(ALERT_LIMITS_PATH, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            return data.get('alert_ranges', {})
+        except Exception as e:
+            self.logger.error(f"Failed to load alert limits: {e}")
+            return {}
+
     def create_alert(self, alert_obj) -> bool:
         try:
             alert = alert_obj.to_dict() if not isinstance(alert_obj, dict) else alert_obj
@@ -132,25 +144,54 @@ class AlertController:
 
     def create_price_alerts(self) -> list[dict]:
         created = []
-        cfg = self.json_manager.load("", JsonType.ALERT_LIMITS)
-        for asset, settings in cfg.get("alert_ranges", {}).get("price_alerts", {}).items():
-            if not settings.get("enabled"): continue
-            try:
-                trigger = float(settings.get("trigger_value", 0))
-            except:
+        ranges = self._load_limits()
+        for asset, settings in ranges.get("price_alerts", {}).items():
+            if not settings.get("enabled", False):
                 continue
-            nt = "Call" if settings.get("notifications", {}).get("call") else "Email"
+            trigger = float(settings.get("trigger_value", 0))
+            notif = "Call" if settings.get("notifications", {}).get("call") else "Email"
             alert = DummyPositionAlert(
                 AlertType.PRICE_THRESHOLD.value,
                 asset,
                 trigger,
                 settings.get("condition", "ABOVE"),
-                nt,
+                notif,
                 None,
                 None
             )
             if self.create_alert(alert):
                 created.append(alert.to_dict())
+        return created
+
+    def create_all_position_alerts(self) -> list[dict]:
+        created = []
+        ranges = self._load_limits()
+        tp_cfg = ranges.get("travel_percent_liquid_ranges", {})
+        pr_cfg = ranges.get("profit_ranges", {})
+        hi_cfg = ranges.get("heat_index_ranges", {})
+
+        for pos in self.data_locker.read_positions():
+            pid = pos.get("id")
+
+            if tp_cfg.get("enabled", False) and not self.data_locker.has_alert_mapping(pid, AlertType.TRAVEL_PERCENT_LIQUID.value):
+                trigger_tp = float(tp_cfg.get("low", 0))
+                ta = self.create_alert_for_position(pos, AlertType.TRAVEL_PERCENT_LIQUID.value, trigger_tp, "BELOW", "Call")
+                if ta: created.append(ta)
+
+            if pr_cfg.get("enabled", False) and not self.data_locker.has_alert_mapping(pid, AlertType.PROFIT.value):
+                trigger_pr = float(pr_cfg.get("low", 0))
+                pa = self.create_alert_for_position(pos, AlertType.PROFIT.value, trigger_pr, "ABOVE", "Call")
+                if pa: created.append(pa)
+
+            if hi_cfg.get("enabled", False) and not self.data_locker.has_alert_mapping(pid, AlertType.HEAT_INDEX.value):
+                raw_low = hi_cfg.get("low", 7.0)
+                try:
+                    trigger_hi = float(raw_low)
+                except:
+                    trigger_hi = 7.0
+                ha = self.create_alert_for_position(pos, AlertType.HEAT_INDEX.value, trigger_hi, "ABOVE", "Call")
+                if ha: created.append(ha)
+
         return created
 
     def create_alert_for_position(self, pos: dict, alert_type: str, trigger_value: float, condition: str,
@@ -165,84 +206,27 @@ class AlertController:
             self.get_position_type(pos.get("id"))
         )
         if self.create_alert(alert):
-            # Record mapping by alert type
             pos_id = pos.get("id")
             self.data_locker.add_position_alert_mapping(pos_id, alert.alert_type)
-            # Persist reference on position to prevent evaluator duplicates
             cursor = self.data_locker.conn.cursor()
-            cursor.execute(
-                "UPDATE positions SET alert_reference_id = ? WHERE id = ?",
-                (alert.id, pos_id)
-            )
+            cursor.execute("UPDATE positions SET alert_reference_id = ? WHERE id = ?", (alert.id, pos_id))
             self.data_locker.conn.commit()
             return alert.to_dict()
         return None
 
-    def create_all_position_alerts(self) -> list[dict]:
-        created = []
-        cfg = self.json_manager.load("", JsonType.ALERT_LIMITS)
-        tp_cfg = cfg.get("alert_ranges", {}).get("travel_percent_liquid_ranges", {})
-        pr_cfg = cfg.get("alert_ranges", {}).get("profit_ranges", {})
-        hi_cfg = cfg.get("alert_ranges", {}).get("heat_index_ranges", {})
-        for pos in self.data_locker.read_positions():
-            pid = pos.get("id")
-            if tp_cfg.get("enabled") and not self.data_locker.has_alert_mapping(pid, AlertType.TRAVEL_PERCENT_LIQUID.value):
-                ta = self.create_alert_for_position(pos, AlertType.TRAVEL_PERCENT_LIQUID.value,
-                                                   float(tp_cfg.get("low", 0)), "BELOW", "Call")
-                if ta: created.append(ta)
-            if pr_cfg.get("enabled") and not self.data_locker.has_alert_mapping(pid, AlertType.PROFIT.value):
-                pa = self.create_alert_for_position(pos, AlertType.PROFIT.value,
-                                                   float(pr_cfg.get("low", 0)), "ABOVE", "Call")
-                if pa: created.append(pa)
-            if hi_cfg.get("enabled") and not self.data_locker.has_alert_mapping(pid, AlertType.HEAT_INDEX.value):
-                ha = self.create_alert_for_position(pos, AlertType.HEAT_INDEX.value,
-                                                   float(hi_cfg.get("low", 7)), "ABOVE", "Call")
-                if ha: created.append(ha)
-        return created
-
-    def create_all_alerts(self) -> list[dict]:
-        self.u_logger.log_operation(operation_type="Create Alerts", primary_text="Creating all alerts", source="AlertController", file="alert_controller.py")
-        return self.create_price_alerts() + self.create_all_position_alerts()
-
-    def get_all_alerts(self) -> list[dict]:
-        try:
-            return self.data_locker.get_alerts()
-        except Exception:
-            self.logger.exception("Error retrieving alerts.")
-            return []
-
-    def populate_evaluated_value_for_alert(self, alert: dict) -> float:
-        evaluated = 0.0
-        tp = alert.get("alert_type")
-        positions = {p.get("id"): p for p in self.data_locker.read_positions()}
-        pid = alert.get("position_reference_id") or alert.get("id")
-        try:
-            if tp == AlertType.PRICE_THRESHOLD.value:
-                pr = self.data_locker.get_latest_price(alert.get("asset_type", ""))
-                evaluated = float(pr.get("current_price", 0)) if pr else 0
-            elif tp == AlertType.TRAVEL_PERCENT_LIQUID.value:
-                evaluated = float(positions[pid].get("travel_percent", 0))
-            elif tp == AlertType.PROFIT.value:
-                evaluated = float(positions[pid].get("pnl_after_fees_usd", 0))
-            elif tp == AlertType.HEAT_INDEX.value:
-                evaluated = float(positions[pid].get("current_heat_index", 0))
-        except Exception:
-            self.logger.exception("Error populating evaluated value.")
-        return evaluated
-
     def refresh_position_alerts(self) -> int:
         updated = 0
-        for alert in self.get_all_alerts():
+        from data.models import AlertClass
+        for alert in self.data_locker.get_alerts():
             if alert.get("alert_class") != AlertClass.POSITION.value: continue
-            pid = alert.get("position_reference_id")
-            if not pid: continue
-            enriched = self.enrich_alert(alert.copy())
-            val = self.populate_evaluated_value_for_alert(enriched)
+            enriched = enrich_alert_data(alert.copy(), self.data_locker, self.logger, self)
+            val = enriched.get("evaluated_value", 0.0)
             updates = {
-                "liquidation_distance": enriched.get("liquidation_distance", 0),
-                "liquidation_price": enriched.get("liquidation_price", 0),
-                "travel_percent": enriched.get("travel_percent", 0),
-                "evaluated_value": val
+                "liquidation_distance": enriched.get("liquidation_distance", 0.0),
+                "liquidation_price": enriched.get("liquidation_price", 0.0),
+                "travel_percent": enriched.get("travel_percent", 0.0),
+                "evaluated_value": val,
+                "level": enriched.get("level", "Normal")
             }
             if self.data_locker.update_alert_conditions(alert["id"], updates) > 0:
                 updated += 1
@@ -266,7 +250,7 @@ class AlertController:
 
     def delete_all_alerts(self) -> int:
         count = 0
-        for alert in self.get_all_alerts():
+        for alert in self.data_locker.get_alerts():
             if self.delete_alert(alert["id"]):
                 count += 1
         return count

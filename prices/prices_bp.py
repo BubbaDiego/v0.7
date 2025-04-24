@@ -12,19 +12,17 @@ Description:
     separation of concerns.
 """
 
-import os
-import json
 import logging
 import sqlite3
 import asyncio
 from datetime import datetime, timedelta
 
-from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, current_app
+from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash
 
 # Import configuration constants and modules
 from config.config_constants import DB_PATH, CONFIG_PATH
 from data.data_locker import DataLocker
-from prices.price_monitor import PriceMonitor
+from monitor.price_monitor import PriceMonitor
 
 
 # ---------------------------------------------------------------------------

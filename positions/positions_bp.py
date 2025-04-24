@@ -10,34 +10,26 @@ Description:
 import logging
 import json
 import os
-from datetime import datetime
 import pytz
 from datetime import datetime, timedelta
-import asyncio
-
 
 from flask import (
     Blueprint, request, jsonify, render_template, redirect, url_for, flash, current_app
 )
 from data.data_locker import DataLocker
 #from config.config_manager import load_config, update_config
-from config.config_constants import DB_PATH, CONFIG_PATH
+from config.config_constants import DB_PATH
 from utils.calc_services import CalcServices, get_profit_alert_class
 from positions.position_service import PositionService
 #from positions.Dydx_api import DydxAPI
-from api.dydx_api import DydxAPI
 #from api.Dydx_API import DydxAPI
 
 
 
 import asyncio  # Ensure asyncio is imported
-from alerts.alert_manager import manager as alert_manager
 
 # These helper functions and objects must be defined and imported appropriately.
 # For example, update_prices and manual_check_alerts might come from other modules.
-from prices.price_monitor import PriceMonitor
-from alerts.alert_manager import AlertManager #manual_check_alerts, manager
-from utils.operations_manager import OperationsLogger
 from utils.unified_logger import UnifiedLogger
 
 # Assume that socketio is initialized in your main app and imported here.
@@ -634,7 +626,7 @@ def get_socketio():
 # Define the helper function update_prices_wrapper.
 def update_prices_wrapper(source="undefined"):
     try:
-        from prices.price_monitor import PriceMonitor
+        from monitor.price_monitor import PriceMonitor
         # Run the asynchronous price update, passing the source parameter.
         asyncio.run(PriceMonitor(db_path=DB_PATH, config_path=CONFIG_PATH).update_prices(source=source))
         class DummyResponse:

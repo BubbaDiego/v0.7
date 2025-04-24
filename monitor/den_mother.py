@@ -15,9 +15,15 @@ logging.Formatter.converter = lambda *args: datetime.now(PST).timetuple()
 logger = logging.getLogger("DenMother")
 logger.setLevel(logging.INFO)
 
-# Ensure BASE_DIR is added to the path
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-sys.path.insert(0, BASE_DIR)
+THIS_DIR    = os.path.abspath(os.path.dirname(__file__))
+PROJECT_ROOT = os.path.abspath(os.path.join(THIS_DIR, os.pardir))
+print("PROJECT_ROOT =", PROJECT_ROOT)
+print("sys.path[0] =", PROJECT_ROOT)
+sys.path.insert(0, PROJECT_ROOT)
+print("sys.path includes config?:", os.path.isdir(os.path.join(PROJECT_ROOT, "config")))
+
+
+
 
 from config.config_constants import BASE_DIR, CONFIG_PATH
 from common_monitor_utils import load_timer_config, update_timer_config
