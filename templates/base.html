@@ -85,9 +85,16 @@
   {% block extra_scripts %}{% endblock %}
 
   <!-- Client-side Layout Mode Loader -->
-  <script>
-    // On page load, no need to check localStorage.
-    // The backend passes the persisted theme_mode which is used in the <body> tag.
+<script>
+    (function(){
+      // read saved mode (fluid = wide, fixed = fitted)
+      const mode = localStorage.getItem("layoutMode") || "fluid";
+      const wrapper = document.getElementById("layoutContainer");
+      if (!wrapper) return;
+      // swap Bootstrap container classes
+      wrapper.classList.remove("container", "container-fluid");
+      wrapper.classList.add(mode === "fixed" ? "container" : "container-fluid");
+    })();
   </script>
 
   <!-- Theme Toggle Script: update DB when toggled -->
