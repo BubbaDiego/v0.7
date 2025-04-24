@@ -5,10 +5,10 @@ import asyncio
 from datetime import datetime, timezone
 from typing import Dict
 
+import requests
 from monitor.common_monitor_utils import BaseMonitor
 from data.data_locker import DataLocker
 from utils.unified_logger import UnifiedLogger
-import requests
 
 # Constants
 from config.config_constants import COM_CONFIG_PATH
@@ -46,6 +46,7 @@ class GPTIsFuckingStupid:
 class PriceMonitor(BaseMonitor):
     """
     Standalone price monitor using GPTIsFuckingStupid fetcher.
+    Fetches prices, writes to DataLocker, and writes ledger entries automatically.
     """
     def __init__(self, timer_config_path: str = None, ledger_filename: str = None):
         super().__init__(
@@ -58,15 +59,29 @@ class PriceMonitor(BaseMonitor):
         self.fetcher = GPTIsFuckingStupid()
 
     def _do_work(self) -> dict:
+        """
+        Fetches current prices and writes each to DataLocker.
+        Returns metadata for heartbeat (loop_counter).
+        """
         prices = self.fetcher.get_prices()
         count = 0
         for symbol, price in prices.items():
             if price is not None:
                 self.data_locker.insert_or_update_price(symbol, price, "Fetched")
                 count += 1
-        # update last update time
+        # Update last update timestamp
         now = datetime.now(timezone.utc)
         self.data_locker.set_last_update_times(prices_dt=now, prices_source="GPTFetch")
+        # Write a manual ledger entry
+        entry = {
+            "timestamp": now.isoformat(),
+            "component": self.name,
+            "operation": "price_update",
+            "status": "Success",
+            "metadata": {"fetched_count": count}
+        }
+        self.ledger_writer.write(self.ledger_file, entry)
+        # Also log cycle complete in UnifiedLogger
         self.u_logger.log_cyclone(
             operation_type="Price Update",
             primary_text=f"Fetched {count} prices",
@@ -76,6 +91,9 @@ class PriceMonitor(BaseMonitor):
         return {"loop_counter": count}
 
     async def update_prices(self, source: str = "Manual") -> dict:
+        """
+        Async entry-point for Cyclone: offloads _do_work to executor.
+        """
         loop = asyncio.get_event_loop()
         metadata = await loop.run_in_executor(None, self._do_work)
         return metadata

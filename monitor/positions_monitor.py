@@ -26,19 +26,29 @@ class PositionMonitor(BaseMonitor):
 
     def _do_work(self) -> dict:
         """
-        Fetch and enrich positions, then return metadata for heartbeat.
+        Fetches all positions, writes a detailed ledger entry, and returns metadata for heartbeat.
         """
-        # Fetch positions from service
         all_positions = self.service.get_all_positions() or []
-        # Enrichment or any processing logic
-        loop_count = len(all_positions)
-        # Optionally write positions JSON snapshot
-        # snapshot_file = os.path.join(os.path.dirname(__file__), '..', 'monitor', 'positions_snapshot.json')
-        # with open(snapshot_file, 'w') as f:
-        #     json.dump(all_positions, f, indent=2, default=str)
+        processed_count = len(all_positions)
+        total_value = sum(float(p.get("value", 0)) for p in all_positions)
 
-        # Return metadata for ledger entry
-        return {"loop_counter": loop_count}
+        # Manual ledger entry
+        entry = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "component": self.name,
+            "operation": "positions_update",
+            "status": "Success",
+            "metadata": {
+                "processed_count": processed_count,
+                "total_value": total_value
+            }
+        }
+        # Write to ledger immediately
+        self.ledger_writer.write(self.ledger_file, entry)
+
+        # Return metadata for BaseMonitor heartbeat
+        return {"processed_positions": processed_count}
+
 
 if __name__ == "__main__":
     # Example usage

@@ -16,3 +16,10 @@
 {"timestamp": "2025-04-23T23:31:03.919633+00:00", "component": "price_monitor", "operation": "heartbeat", "status": "Success", "metadata": {"loop_counter": 2}}
 {"timestamp": "2025-04-23T23:38:20.699955+00:00", "component": "price_monitor", "operation": "heartbeat", "status": "Success", "metadata": {"loop_counter": 2}}
 {"timestamp": "2025-04-24T00:01:48.957404+00:00", "component": "price_monitor", "operation": "heartbeat", "status": "Success", "metadata": {"loop_counter": 3}}
+{"timestamp": "2025-04-24T00:15:59.040295+00:00", "component": "price_monitor", "operation": "heartbeat", "status": "Error", "metadata": {"error": "'PriceMonitor' object has no attribute 'service'"}}
+{"timestamp": "2025-04-24T00:21:04.437902+00:00", "component": "price_monitor", "operation": "heartbeat", "status": "Error", "metadata": {"error": "'PriceMonitor' object has no attribute 'service'"}}
+{"timestamp": "2025-04-24T00:22:03.052592+00:00", "component": "price_monitor", "operation": "price_update", "status": "Success", "metadata": {"fetched_count": 3}}
+{"timestamp": "2025-04-24T00:22:03.079726+00:00", "component": "price_monitor", "operation": "heartbeat", "status": "Success", "metadata": {"loop_counter": 3}}
+{"timestamp": "2025-04-24T00:22:37.219837+00:00", "component": "price_monitor", "operation": "price_update", "status": "Success", "metadata": {"fetched_count": 3}}
+{"timestamp": "2025-04-24T00:23:45.364170+00:00", "component": "price_monitor", "operation": "price_update", "status": "Success", "metadata": {"fetched_count": 3}}
+{"timestamp": "2025-04-24T00:31:32.700917+00:00", "component": "price_monitor", "operation": "price_update", "status": "Success", "metadata": {"fetched_count": 3}}
