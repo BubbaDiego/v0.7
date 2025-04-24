@@ -20,7 +20,7 @@ import pytz
 from datetime import datetime, timedelta
 import os
 
-from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, current_app
+from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, current_app, session
 from config.config_constants import DB_PATH, CONFIG_PATH, BASE_DIR, THEME_CONFIG_PATH
 from data.data_locker import DataLocker
 from positions.position_service import PositionService
@@ -702,19 +702,18 @@ def format_ledger_time(iso_str):
     yr = dt.year % 100
     final_str = f"{hour_min} {mon}/{day}/{yr:02d}"
     return final_str, color
+from flask import request, jsonify, session, current_app
 
-@dashboard_bp.route("/save_theme_mode", methods=["POST"])
+@dashboard_bp.route('/save_theme_mode', methods=['POST'])
 def save_theme_mode():
     data = request.get_json() or {}
-    mode = data.get("theme_mode")
-    if mode not in ["light", "dark"]:
-        return jsonify({"success": False, "error": "Invalid theme mode"}), 400
-    try:
-        dl = DataLocker.get_instance()
-        dl.set_theme_mode(mode)
-        return jsonify({"success": True})
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
+    mode = data.get('theme_mode')
+    if mode not in ('light', 'dark'):
+        return jsonify(success=False, error='Invalid mode'), 400
+    # Persist however you store user settings.
+    # For example, in session:
+    session['theme_mode'] = mode
+    return jsonify(success=True)
 
 
 
@@ -890,11 +889,13 @@ def dash_page():
         m = int(s//60); sec = int(s%60)
         return f"{m:02d}:{sec:02d}"
 
+    theme_mode = session.get('theme_mode', dl.get_theme_mode())
+
     # ---- Render ----
     return render_template(
         "dash.html",
         theme=theme_config,
-        theme_mode=dl.get_theme_mode(),
+        theme_mode=theme_mode,
         top_positions=top_positions,
         bottom_positions=bottom_positions,
         liquidation_positions=liquidation_positions,
