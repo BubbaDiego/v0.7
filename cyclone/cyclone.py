@@ -51,14 +51,33 @@ class Cyclone:
     async def run_position_updates(self):
         self.logger.info("Starting Position Updates")
         try:
+            # Fetch and persist positions via your PositionService
             result = PositionService.update_jupiter_positions()
+
+            # Cyclone unified log
             self.u_logger.log_cyclone(
                 operation_type="Position Updates",
-                primary_text=f"{result.get('message', 'No message returned')}",
+                primary_text=result.get("message", "No message returned"),
                 source="Cyclone",
                 file="cyclone.py"
             )
+
+            # Also write to JSON ledger so dashboard picks it up
+            from monitor.common_monitor_utils import LedgerWriter
+            from datetime import datetime, timezone
+
+            ledger = LedgerWriter()
+            entry = {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "component": "PositionMonitor",
+                "operation": "position_update",
+                "status": "Success",
+                "metadata": result
+            }
+            ledger.write("position_ledger.json", entry)
+
         except Exception as e:
+            # Log failure in both unified logger and ledger
             self.logger.error(f"Position Updates failed: {e}")
             self.u_logger.log_cyclone(
                 operation_type="Position Updates",
@@ -66,6 +85,19 @@ class Cyclone:
                 source="Cyclone",
                 file="cyclone.py"
             )
+            from monitor.common_monitor_utils import LedgerWriter
+            from datetime import datetime, timezone
+
+            ledger = LedgerWriter()
+            entry = {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "component": "PositionMonitor",
+                "operation": "position_update",
+                "status": "Error",
+                "metadata": {"error": str(e)}
+            }
+            ledger.write("position_ledger.json", entry)
+
 
     async def run_enrich_positions(self):
         self.logger.info("Starting Position Enrichment")
