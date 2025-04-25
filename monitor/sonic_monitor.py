@@ -1,16 +1,24 @@
 #!/usr/bin/env python3
+"""
+===========================================================
+|    Sonic Monitor - The Unified Heartbeat of Our System |
+===========================================================
+
+This file orchestrates market updates, position syncs,
+price fetches, enrichment steps, alert creation, and
+hedge updates in a single always-on loop.
+
+"""
 import os
 import sys
 import time
-import json
+import asyncio
 import logging
 from datetime import datetime, timezone
 
 import pytz
-import urllib3
-
-from common_monitor_utils import load_timer_config, update_timer_config, call_endpoint
-from utils.unified_logger import UnifiedLogger
+from cyclone.cyclone import Cyclone
+from monitor.common_monitor_utils import load_timer_config, update_timer_config
 
 # ——— Setup logging in PST ———
 PST = pytz.timezone("America/Los_Angeles")
@@ -20,92 +28,46 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
-sys.path.insert(0, BASE_DIR)
-
-# Endpoints
-JUPITER_URL = "http://www.deadlypanda.com/positions/update_jupiter"
-MARKET_URL  = "http://www.deadlypanda.com/cyclone/api/run_market_updates"
-CYCLE_URL   = "http://www.deadlypanda.com/cyclone/api/run_full_cycle"
-
-# Initialize unified logger
-u_logger = UnifiedLogger()
-logger   = u_logger.logger
-
-def heartbeat_ledger(loop_counter: int):
+def heartbeat(loop_counter: int):
     """
-    Append a heartbeat entry and update the last-run timestamp in timer_config.
+    Record a heartbeat in timer_config for monitoring loops.
     """
-    ledger_file = os.path.join(BASE_DIR, "monitor", "sonic_ledger.json")
-    os.makedirs(os.path.dirname(ledger_file), exist_ok=True)
-
-    entry = {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "component": "sonic_monitor",
-        "operation": "heartbeat_update",
-        "status": "Success",
-        "metadata": {"loop_counter": loop_counter}
-    }
-    with open(ledger_file, "a") as f:
-        f.write(json.dumps(entry) + "\n")
-    #logger.info("Ledger entry: %s", entry)
-
+    timestamp = datetime.now(timezone.utc).isoformat()
     cfg = load_timer_config()
-    cfg["sonic_loop_start_time"] = entry["timestamp"]
+    cfg["sonic_loop_start_time"] = timestamp
     update_timer_config(cfg)
+    logging.info("Heartbeat #%d at %s", loop_counter, timestamp)
 
-def do_cycle(loop_counter: int):
+async def run_cycle(loop_counter: int, cyclone: Cyclone):
     """
-    Perform one full monitor cycle: market, full cycle, jupiter, log & heartbeat.
+    Execute the full SonicMonitor cycle using Cyclone steps.
     """
-    logger.info("🔄 Sonic Monitor iteration #%d starting", loop_counter)
+    logging.info("🔄 Sonic Monitor Loop #%d starting", loop_counter)
+    await cyclone.run_cycle()
+    heartbeat(loop_counter)
+    logging.info("✔️ Sonic Monitor Loop #%d completed", loop_counter)
+    print("❤️🦄" * 10)
 
-    # Market updates
-    try:
-        call_endpoint(MARKET_URL, method="post")
-        logger.info("Market updates succeeded")
-    except Exception as e:
-        logger.error("Market update error: %s", e)
-
-    time.sleep(3)
-
-    # Full cycle
-    try:
-        call_endpoint(CYCLE_URL, method="post")
-        logger.info("Full cycle succeeded")
-    except Exception as e:
-        logger.error("Full cycle error: %s", e)
-
-    # Jupiter update
-    try:
-        call_endpoint(JUPITER_URL, method="get")
-        logger.info("Jupiter update succeeded")
-    except Exception as e:
-        logger.error("Jupiter update error: %s", e)
-
-    # Structured log entry
-    u_logger.log_cyclone(
-        operation_type="Monitor Loop",
-        primary_text=f"Monitor Loop #{loop_counter} completed",
-        source="SonicMonitor",
-        file="sonic_monitor.py"
-    )
-
-    # Heartbeat + config timestamp
-    heartbeat_ledger(loop_counter)
-
-    # Your signature unicorn banner
-    print("❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄❤️🦄")
 
 def main():
-    cfg = load_timer_config()
-    interval = cfg.get("sonic_loop_interval", 120)
+    # Ensure project root is in sys.path
+    BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+    sys.path.insert(0, BASE_DIR)
+
+    # Load loop interval from config (seconds)
+    interval = load_timer_config().get("sonic_loop_interval", 60)
+    cyclone = Cyclone(poll_interval=interval)
+    loop = asyncio.get_event_loop()
     loop_counter = 0
 
-    while True:
-        loop_counter += 1
-        do_cycle(loop_counter)
-        time.sleep(interval)
+    try:
+        while True:
+            loop_counter += 1
+            loop.run_until_complete(run_cycle(loop_counter, cyclone))
+            time.sleep(interval)
+    except KeyboardInterrupt:
+        logging.info("Sonic Monitor stopped by user")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

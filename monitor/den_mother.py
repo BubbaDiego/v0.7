@@ -6,7 +6,7 @@ import json
 import logging
 import argparse
 import inspect
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 import pytz
 
 # Set logging to use Pacific Standard Time (PST)
@@ -17,13 +17,7 @@ logger.setLevel(logging.INFO)
 
 THIS_DIR    = os.path.abspath(os.path.dirname(__file__))
 PROJECT_ROOT = os.path.abspath(os.path.join(THIS_DIR, os.pardir))
-print("PROJECT_ROOT =", PROJECT_ROOT)
-print("sys.path[0] =", PROJECT_ROOT)
 sys.path.insert(0, PROJECT_ROOT)
-print("sys.path includes config?:", os.path.isdir(os.path.join(PROJECT_ROOT, "config")))
-
-
-
 
 from config.config_constants import BASE_DIR, CONFIG_PATH
 from common_monitor_utils import load_timer_config, update_timer_config
@@ -31,16 +25,14 @@ from utils.unified_logger import UnifiedLogger
 from alerts.alert_manager import trigger_twilio_flow
 from xcom.xcom import send_email, send_sms, load_com_config
 
-# Define ledger files for separate monitors
+# Define ledger files for SonicMonitor
 LEDGER_FILES = {
-    "PriceMonitor": os.path.join(BASE_DIR, "monitor", "price_ledger.json"),
-    "PositionMonitor": os.path.join(BASE_DIR, "monitor", "position_ledger.json")
+    "SonicMonitor": os.path.join(BASE_DIR, "monitor", "sonic_ledger.json")
 }
 HTML_REPORT_FILE = os.path.join(BASE_DIR, "monitor", "den_mother_report.html")
 
 # Shared logger
 u_logger = UnifiedLogger()
-
 
 def log_operation(operation_type: str, primary_text: str, source: str, file: str):
     lineno = inspect.currentframe().f_back.f_lineno
@@ -52,7 +44,6 @@ def log_operation(operation_type: str, primary_text: str, source: str, file: str
         "caller_lineno": lineno
     }
     u_logger.logger.info(primary_text, extra=extra)
-
 
 def write_ledger(component: str, status: str, message: str, metadata: dict = None):
     path = LEDGER_FILES.get(component)
@@ -75,7 +66,6 @@ def write_ledger(component: str, status: str, message: str, metadata: dict = Non
     key = component.lower() + "_last_run"
     cfg[key] = timestamp
     update_timer_config(cfg)
-
 
 def check_heartbeat():
     cfg = load_timer_config()
@@ -122,7 +112,6 @@ def check_heartbeat():
                 )
                 log_operation("FallbackNotification", f"Email/SMS fallback for {comp}", "DenMother", __file__)
 
-
 def generate_html_report():
     rows = []
     for comp, path in LEDGER_FILES.items():
@@ -151,7 +140,6 @@ def generate_html_report():
     os.makedirs(os.path.dirname(HTML_REPORT_FILE), exist_ok=True)
     with open(HTML_REPORT_FILE, "w") as f:
         f.write("".join(html))
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

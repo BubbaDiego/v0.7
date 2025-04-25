@@ -15,6 +15,21 @@ DEFAULT_LEDGER_DIR = os.path.join(BASE_DIR, "monitor")
 # Module logger
 logger = logging.getLogger(__name__)
 
+
+def load_timer_config(path=None):
+    """
+    Convenience: load the entire timer config JSON as a dict.
+    """
+    return TimerConfig(path).load()
+
+def update_timer_config(config_data, path=None):
+    """
+    Convenience: overwrite timer config with the given dict.
+    """
+    tc = TimerConfig(path)
+    tc._cache = config_data
+    tc.save()
+
 class TimerConfig:
     """
     Wraps loading and saving of timer configuration JSON.
