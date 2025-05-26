@@ -8,7 +8,7 @@ import json
 
 # Ensure repository root is on sys.path when run as a script
 CURRENT_DIR = os.path.dirname(__file__)
-REPO_ROOT = os.path.dirname(CURRENT_DIR)
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
@@ -25,7 +25,11 @@ class DummyOpenAI:
 
 sys.modules['openai'] = types.SimpleNamespace(OpenAI=DummyOpenAI)
 
-from gpt.gpt_core import GPTCore
+try:
+    from .gpt_core import GPTCore
+except ImportError:
+    sys.path.insert(0, CURRENT_DIR)
+    from gpt_core import GPTCore
 from config.config_constants import DB_PATH
 
 
